@@ -3,7 +3,7 @@ HYDRA_FULL_ERROR=1 BIGNLP_CI=1 python3 main.py \
     run_training_hp_search=True \
     run_inference_hp_search=False \
     bignlp_hp_tool_path=${GIT_CLONE_PATH} \
-    data_dir=/lustre/fsw/adlr/adlr-nlp/data/roberta_mmap \
+    data_dir=/lustre/fsw/joc/big_nlp/t5/dataset/Pile \
     base_results_dir=${BASE_RESULTS_DIR} \
     "training_container='${BUILD_IMAGE_TRAINING_NAME_SRUN}'" \
     cluster.partition=${SLURM_PARTITION} \
