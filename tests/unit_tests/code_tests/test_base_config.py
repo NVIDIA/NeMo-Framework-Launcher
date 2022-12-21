@@ -156,7 +156,7 @@ class TestCalculateGbsTpPp:
             (3.0, "bert", (1024, 1, 1)),
             (6.0, "bert", (2048, 2, 1)),
             (13.0, "bert", (2048, 4, 1)),
-            (20.0, "bert", (2048, 8, 1)),
+            (20.0, "bert", (4096, 8, 1)),
         ],
     )
     def test_calculate_gbs_tp_pp(self, model_size, model_name, expected):
@@ -193,9 +193,9 @@ class TestGenerateBaseconfig:
             (24.65, 40, 8, 80, 55, 1000, 250000, "mt5", {"search_config": {"train_settings": {"logs": "."}}, "bignlp_hp_tool_path": ".", "wandb": {"enable": True, "project": "test_project"}}, {"name": "mt5_24.65b", "time_limit": "55-00:00:00", "max_steps": 1017250, "max_time": "54:23:30:00", "num_layers": 36, "gbs": 1920, "hs": 5120, "att_heads": 80, "ffn": 10880, "kv": 64, "init_std": 0.015, "lr": 1e-4, "min_lr": 1e-5, "warmup_steps": None, "constant_steps": None, "warmup_ratio": 0.01}),
             (42.54, 40, 8, 80, 90.25, 1000, 250000, "mt5", {"search_config": {"train_settings": {"logs": "."}}, "bignlp_hp_tool_path": ".", "wandb": {"enable": True, "project": "test_project"}}, {"name": "mt5_42.54b", "time_limit": "90-06:00:00", "max_steps": 1017250, "max_time": "90:05:30:00", "num_layers": 48, "gbs": 1920, "hs": 6144, "att_heads": 96, "ffn": 10880, "kv": 64, "init_std": 0.015, "lr": 1e-4, "min_lr": 1e-5, "warmup_steps": None, "constant_steps": None, "warmup_ratio": 0.01}),
             # BERT tests
-            (0.11, 8, 8, 80, 2, 300, 30522, "bert", {"search_config": {"train_settings": {"logs": "."}}, "bignlp_hp_tool_path": ".", "wandb": {"enable": True, "project": "test_project"}}, {"name": "bert_0.11b", "time_limit": "2-00:00:00", "max_steps": 2288818, "max_time": "1:23:30:00", "num_layers": 12, "gbs": 256, "hs": 768, "att_heads": 12, "ffn": 768*4, "kv": "null", "init_std": 0.023094, "lr": 2e-4, "min_lr": 2e-5, "warmup_steps": 3433, "constant_steps": 379943, "warmup_ratio": None}),
-            (4.0, 16, 8, 80, 7, 300, 30522, "bert", {"search_config": {"train_settings": {"logs": "."}}, "bignlp_hp_tool_path": ".", "wandb": {"enable": True, "project": "test_project"}}, {"name": "bert_4.0b", "time_limit": "7-00:00:00", "max_steps": 286102, "max_time": "6:23:30:00", "num_layers": 48, "gbs": 2048, "hs": 2560, "att_heads": 32, "ffn": 2560*4, "kv": "null", "init_std": 0.012649, "lr": 1e-4, "min_lr": 1e-5, "warmup_steps": 429, "constant_steps": 47492, "warmup_ratio": None}),
-            (20.0, 64, 8, 80, 12, 300, 30522, "bert", {"search_config": {"train_settings": {"logs": "."}}, "bignlp_hp_tool_path": ".", "wandb": {"enable": True, "project": "test_project"}}, {"name": "bert_20.0b", "time_limit": "12-00:00:00", "max_steps": 286102, "max_time": "11:23:30:00", "num_layers": 44, "gbs": 2048, "hs": 6144, "att_heads": 48, "ffn": 6144*4, "kv": "null", "init_std": 0.008165, "lr": 1e-4, "min_lr": 1e-5, "warmup_steps": 429, "constant_steps": 47492, "warmup_ratio": None}),
+            (0.11, 8, 8, 80, 2, 1800, 30522, "bert", {"search_config": {"train_settings": {"logs": "."}}, "bignlp_hp_tool_path": ".", "wandb": {"enable": True, "project": "test_project"}}, {"name": "bert_0.11b", "time_limit": "2-00:00:00", "max_steps": 13800000, "max_time": "1:23:30:00", "num_layers": 12, "gbs": 256, "hs": 768, "att_heads": 12, "ffn": 768*4, "kv": "null", "init_std": 0.023094, "lr": 2e-4, "min_lr": 2e-5, "warmup_steps": 20000, "constant_steps": 2300000, "warmup_ratio": None}),
+            (4.0, 16, 8, 80, 7, 1800, 30522, "bert", {"search_config": {"train_settings": {"logs": "."}}, "bignlp_hp_tool_path": ".", "wandb": {"enable": True, "project": "test_project"}}, {"name": "bert_4.0b", "time_limit": "7-00:00:00", "max_steps": 1720000, "max_time": "6:23:30:00", "num_layers": 48, "gbs": 2048, "hs": 2560, "att_heads": 32, "ffn": 2560*4, "kv": "null", "init_std": 0.012649, "lr": 1e-4, "min_lr": 1e-5, "warmup_steps": 2600, "constant_steps": 285000, "warmup_ratio": None}),
+            (20.0, 64, 8, 80, 12, 1800, 30522, "bert", {"search_config": {"train_settings": {"logs": "."}}, "bignlp_hp_tool_path": ".", "wandb": {"enable": True, "project": "test_project"}}, {"name": "bert_20.0b", "time_limit": "12-00:00:00", "max_steps": 860000, "max_time": "11:23:30:00", "num_layers": 44, "gbs": 4096, "hs": 6144, "att_heads": 48, "ffn": 6144*4, "kv": "null", "init_std": 0.008165, "lr": 1e-4, "min_lr": 1e-5, "warmup_steps": 1300, "constant_steps": 142000, "warmup_ratio": None}),
         ],
     )
     def test_generate_base_config(
@@ -233,7 +233,7 @@ class TestGenerateBaseconfig:
         # Trainer parameters
         assert out_cfg["trainer"]["num_nodes"] == nodes, "trainer.num_nodes doesn't match the expected value."
         assert out_cfg["trainer"]["precision"] == "bf16", "trainer.precision doesn't match the expected value."
-        assert out_cfg["trainer"]["max_steps"] == pytest.approx(expected=expected["max_steps"], rel=self.margin), "trainer.max_steps doesn't match the expected value."
+        assert out_cfg["trainer"]["max_steps"] == pytest.approx(expected=expected["max_steps"], rel=self.margin), f"trainer.max_steps is {out_cfg['trainer']['max_steps']} but it should be {expected['max_steps']}."
         assert out_cfg["trainer"]["max_time"] == expected["max_time"], "trainer.max_time doesn't match the expected value."
 
         # Exp_manager parameters
