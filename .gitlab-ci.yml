@@ -394,6 +394,95 @@ train.mt5.3p2b_40gb_2runs_20nodes:
   rules:
     - when: always
 
+train.bert.110m_80gb_2runs_1node:
+  <<: *hp-tool-LUNA-test-LAUNCHER
+  variables:
+    <<: [*VARS, *LUNA_VARS]
+    RUN_TASK: train
+    RUN_MODEL: bert
+    RUN_SIZE: 0.11b
+    BASE_RESULTS_DIR: "${PIPELINE_DIR}/train_results"
+    GPU_MEM: 80
+    RUNS: 2
+    NODES: 1
+    TP_SIZES: auto
+    PP_SIZES: auto
+    MBS_SIZES: auto
+    RUN_JOB_NAME: bert_training_search
+  rules:
+    - when: always
+
+train.bert.110m_40gb_2runs_1node:
+  <<: *hp-tool-LUNA-test-LAUNCHER
+  variables:
+    <<: [*VARS, *LUNA_VARS]
+    RUN_TASK: train
+    RUN_MODEL: bert
+    RUN_SIZE: 0.11b
+    BASE_RESULTS_DIR: "${PIPELINE_DIR}/train_results"
+    GPU_MEM: 40
+    RUNS: 2
+    NODES: 1
+    TP_SIZES: auto
+    PP_SIZES: auto
+    MBS_SIZES: auto
+    RUN_JOB_NAME: bert_training_search
+  rules:
+    - when: always
+
+train.bert.4b_80gb_2runs_1node:
+  <<: *hp-tool-LUNA-test-LAUNCHER
+  variables:
+    <<: [*VARS, *LUNA_VARS]
+    RUN_TASK: train
+    RUN_MODEL: bert
+    RUN_SIZE: 4b
+    BASE_RESULTS_DIR: "${PIPELINE_DIR}/train_results"
+    GPU_MEM: 80
+    RUNS: 2
+    NODES: 1
+    TP_SIZES: auto
+    PP_SIZES: auto
+    MBS_SIZES: auto
+    RUN_JOB_NAME: bert_training_search
+  rules:
+    - when: always
+
+train.bert.4b_40gb_2runs_1node:
+  <<: *hp-tool-LUNA-test-LAUNCHER
+  variables:
+    <<: [*VARS, *LUNA_VARS]
+    RUN_TASK: train
+    RUN_MODEL: bert
+    RUN_SIZE: 4b
+    BASE_RESULTS_DIR: "${PIPELINE_DIR}/train_results"
+    GPU_MEM: 40
+    RUNS: 2
+    NODES: 1
+    TP_SIZES: auto
+    PP_SIZES: auto
+    MBS_SIZES: auto
+    RUN_JOB_NAME: bert_training_search
+  rules:
+    - when: always
+
+train.bert.20b_80gb_2runs_4nodes:
+  <<: *hp-tool-LUNA-test-LAUNCHER
+  variables:
+    <<: [*VARS, *LUNA_VARS]
+    RUN_TASK: train
+    RUN_MODEL: bert
+    RUN_SIZE: 20b
+    BASE_RESULTS_DIR: "${PIPELINE_DIR}/train_results"
+    GPU_MEM: 80
+    RUNS: 2
+    NODES: 4
+    TP_SIZES: auto
+    PP_SIZES: auto
+    MBS_SIZES: auto
+    RUN_JOB_NAME: bert_training_search
+  rules:
+    - when: always
 
 ###### TRAINING BENCHMARKS ######
 benchmark.gpt3.126m_80gb_100runs_1nodes:
@@ -720,6 +809,77 @@ benchmark.mt5.42.54b_80gb_100runs_40nodes:
   rules:
     - when: manual
 
+benchmark.bert.110m_80gb_100runs_8nodes:
+  <<: *hp-tool-LUNA-test-LAUNCHER
+  variables:
+    <<: [*VARS, *LUNA_VARS]
+    RUN_TASK: train
+    RUN_MODEL: bert
+    RUN_SIZE: 0.11b
+    BASE_RESULTS_DIR: "${PIPELINE_DIR}/train_benchmark_results"
+    RUNS: 100
+    GPU_MEM: 80
+    NODES: 8
+    TP_SIZES: auto
+    PP_SIZES: auto
+    MBS_SIZES: auto
+    RUN_JOB_NAME: bert_training_search
+  rules:
+    - when: manual
+
+benchmark.bert.4b_80gb_100runs_16nodes:
+  <<: *hp-tool-LUNA-test-LAUNCHER
+  variables:
+    <<: [*VARS, *LUNA_VARS]
+    RUN_TASK: train
+    RUN_MODEL: bert
+    RUN_SIZE: 4b
+    BASE_RESULTS_DIR: "${PIPELINE_DIR}/train_benchmark_results"
+    RUNS: 100
+    GPU_MEM: 80
+    NODES: 16
+    TP_SIZES: auto
+    PP_SIZES: auto
+    MBS_SIZES: auto
+    RUN_JOB_NAME: bert_training_search
+  rules:
+    - when: manual
+
+benchmark.bert.20b_80gb_100runs_64nodes:
+  <<: *hp-tool-LUNA-test-LAUNCHER
+  variables:
+    <<: [*VARS, *LUNA_VARS]
+    RUN_TASK: train
+    RUN_MODEL: bert
+    RUN_SIZE: 20b
+    BASE_RESULTS_DIR: "${PIPELINE_DIR}/train_benchmark_results"
+    RUNS: 100
+    GPU_MEM: 80
+    NODES: 64
+    TP_SIZES: auto
+    PP_SIZES: auto
+    MBS_SIZES: auto
+    RUN_JOB_NAME: bert_training_search
+  rules:
+    - when: manual
+
+benchmark.bert.100b_80gb_100runs_128nodes:
+  <<: *hp-tool-LUNA-test-LAUNCHER
+  variables:
+    <<: [*VARS, *LUNA_VARS]
+    RUN_TASK: train
+    RUN_MODEL: bert
+    RUN_SIZE: 100b
+    BASE_RESULTS_DIR: "${PIPELINE_DIR}/train_benchmark_results"
+    RUNS: 100
+    GPU_MEM: 80
+    NODES: 128
+    TP_SIZES: auto
+    PP_SIZES: auto
+    MBS_SIZES: auto
+    RUN_JOB_NAME: bert_training_search
+  rules:
+    - when: manual
 # =========== INFERENCE =============
 
 inference.gpt3.126m_80gb_2runs_1node:
