@@ -148,3 +148,9 @@ dmypy.json
 
 # Emacs backup files
 *~
+
+*__pycache__*
+*slurm*
+*results*
+*tmp_test_model*
+*workspace_test*
