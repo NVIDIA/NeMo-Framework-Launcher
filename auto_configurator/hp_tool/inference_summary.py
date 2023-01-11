@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# Copyright (c) 2022, NVIDIA CORPORATION. All rights reserved.
+# Copyright (c) 2023, NVIDIA CORPORATION.  All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,7 +28,6 @@ def scrap_latency(file_name):
 
 
 def main():
-
     parser = argparse.ArgumentParser(description="Generate summary from inference benchmark")
     parser.add_argument("--model-prefix", help="File prefix for logs", required=True)
     parser.add_argument("--configs-csv", help="Path to CSV file with profile configurations", required=True)
@@ -45,7 +43,6 @@ def main():
     for tp, pp, bs in [l for l in config_lines[1:] if len(l) == 3]:
         file_prefix = f"{args.workspace}/{args.model_prefix}_tp{tp}_pp{pp}_bs{bs}/log_job*.out"
         files = [f for f in glob.glob(file_prefix) if os.path.isfile(f)]
-        latency = "UNKNOWN"
         if len(files) != 1:
             latency = "MISSING_LOG"
         else:
@@ -61,7 +58,6 @@ def main():
         output_writer.writerow(header)
         output_writer.writerows(rows)
 
+
 if __name__ == "__main__":
     main()
-
-

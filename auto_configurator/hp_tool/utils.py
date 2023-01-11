@@ -1,27 +1,38 @@
-"""Utility functions for the HP tool."""
-import os
-import time
-import copy
-from typing import Tuple, List, Optional
+# Copyright (c) 2023, NVIDIA CORPORATION.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-import yaml
+"""Utility functions for the HP tool."""
+import copy
+from typing import List, Optional, Tuple
+
 import omegaconf
+import yaml
 
 
 def _calculate_model_size(
-        vocab_size: int = None,
-        seq_length: int = None,
-        hidden_size: int = None,
-        num_layers: int = None,
-        ffn_size: int = None,
-        kv_channels: int = None,
-        att_heads: int = None,
-        model_name: str = "gpt3",
+    vocab_size: int = None,
+    seq_length: int = None,
+    hidden_size: int = None,
+    num_layers: int = None,
+    ffn_size: int = None,
+    kv_channels: int = None,
+    att_heads: int = None,
+    model_name: str = "gpt3",
 ):
     """
-    Calculates the model size (number of parameters in billions), given the model parameters 
+    Calculates the model size (number of parameters in billions), given the model parameters
     and name.
-
     :param int vocab_size: vocabulary size to be used during training.
     :param int seq_length: input sequence length to be used during training.
     :param int hidden_size: size of the hidden layers of the model.
@@ -38,12 +49,8 @@ def _calculate_model_size(
         model_size = (
             12
             * num_layers
-            * hidden_size**2
-            * (
-                1
-                + (13 / (12 * hidden_size))
-                + ((vocab_size + seq_length) / (12 * num_layers * hidden_size))
-            )
+            * hidden_size ** 2
+            * (1 + (13 / (12 * hidden_size)) + ((vocab_size + seq_length) / (12 * num_layers * hidden_size)))
             / 1e9
         )
     elif model_name in ["t5", "mt5"]:
@@ -53,24 +60,12 @@ def _calculate_model_size(
             2 * num_layers * 1.5 * ffn_size
             + 3 * num_layers * proj_size
             + hidden_size
-            * (
-                2
-                + 4 * num_layers * 1.5 * ffn_size
-                + num_layers * (21 + 12 * proj_size)
-                + seq_length
-                + vocab_size
-            )
+            * (2 + 4 * num_layers * 1.5 * ffn_size + num_layers * (21 + 12 * proj_size) + seq_length + vocab_size)
         ) / 1e9
     elif model_name == "bert":
         model_size = (
-            num_layers * (
-                ffn_size + hidden_size * (
-                    4 * hidden_size + 3 * att_heads + 2 * ffn_size + 6
-                )
-            )
-            + hidden_size * (
-                    vocab_size + seq_length + hidden_size + 5
-                )
+            num_layers * (ffn_size + hidden_size * (4 * hidden_size + 3 * att_heads + 2 * ffn_size + 6))
+            + hidden_size * (vocab_size + seq_length + hidden_size + 5)
         ) / 1e9
 
     else:
@@ -80,12 +75,11 @@ def _calculate_model_size(
 
 
 def calculate_model_size_params(
-        model_size_in_b: float, vocab_size: int = 51200, seq_length: int = 2048, model_name: str = "gpt3"
+    model_size_in_b: float, vocab_size: int = 51200, seq_length: int = 2048, model_name: str = "gpt3"
 ) -> Tuple[int, int, float]:
     """
     Calculates the parameters that affect model_size: hidden size, attention heads,
     KV channels, and FFN size. It also calculates the learning rate.
-
     :param float model_size_in_b: float, number of parameters in the desired model config, in billions.
     :param int seq_length: int, sequence length to be used during training.
     :param int vocab_size: int, size of the vocabulary to use for training.
@@ -220,7 +214,7 @@ def calculate_model_size_params(
     # Try powers of 2
     margin = 0.01
     for attempt in range(0, 10):
-        for layers in (2**p for p in range(1, 10)):
+        for layers in (2 ** p for p in range(1, 10)):
             out_size = _calculate_model_size(
                 vocab_size=vocab_size,
                 seq_length=seq_length,
@@ -312,25 +306,36 @@ def calculate_model_size_params(
 def generic_base_config(cfg: omegaconf.dictconfig.DictConfig, model_name: str = "gpt3") -> dict:
     """
     Generates a base config dictionary from a base config yaml file.
-
     :param omegaconf.dictconfig.DictConfig cfg: hydra-like config object for the HP tool.
     :param str model_name: name of the model, i.e. gpt3, t5, mt5...
     :returns: dictionary containing the base configuration for the model.
     :rtype: dict
     """
-    with open(f"{cfg.bignlp_hp_tool_path}/base_configs/{model_name}.yaml") as f:
+    with open(f"{cfg.autoconfig_path}/base_configs/{model_name}.yaml") as f:
         base_cfg = yaml.safe_load(f)
     return base_cfg
 
 
-def modify_cfg(base_cfg: dict, act: int, num_mbs_act: int, act_per_pipe: int, tp: int, pp: int, virtual_pipelines: int, mbs: int, max_minutes: int, max_steps: int, num_nodes: int, model_name: str) -> dict:
+def modify_cfg(
+    base_cfg: dict,
+    act: int,
+    num_mbs_act: int,
+    act_per_pipe: int,
+    tp: int,
+    pp: int,
+    virtual_pipelines: int,
+    mbs: int,
+    max_minutes: int,
+    max_steps: int,
+    num_nodes: int,
+    model_name: str,
+) -> dict:
     """
     Modify the base configuration for the model with the new parameters that are specific to the current model, which the HP tool heuristics selected.
-
     :param dict base_cfg: base configuration for the current model, which will be modified in this function.
     :param int act: number of activation checkpointing layers to use for the model.
-    :param int num_mbs_act: 
-    :param int act_per_pipe: 
+    :param int num_mbs_act:
+    :param int act_per_pipe:
     :param int tp: Tensor Parallelism (TP) value to be set for the model.
     :param int pp: Pipeline Parallelism (PP) value to be set for the model.
     :param int virtual_pipelines: Virtual Pipelines value to be set for the model.
@@ -346,10 +351,10 @@ def modify_cfg(base_cfg: dict, act: int, num_mbs_act: int, act_per_pipe: int, tp
     if act is not None:
         if model_name in ["gpt3", "bert"]:
             new_cfg["model"]["activations_checkpoint_num_layers"] = act
-        else: 
+        else:
             new_cfg["model"]["encoder"]["activations_checkpoint_num_layers"] = act // 2
             new_cfg["model"]["decoder"]["activations_checkpoint_num_layers"] = act // 2
-        
+
     if num_mbs_act is not None and model_name in ["gpt3", "bert"]:
         new_cfg["model"]["num_micro_batches_with_partial_activation_checkpoints"] = num_mbs_act
 
@@ -397,30 +402,29 @@ def modify_cfg(base_cfg: dict, act: int, num_mbs_act: int, act_per_pipe: int, tp
 
 
 def create_slurm_file(
-        new_script_path: str,
-        cmds: List[str],
-        job_name: str,
-        flags: str = "",
-        dependency: Optional[str] = None,
-        time: str = "04:00:00",
-        exclusive: bool = True,
-        mem: Optional[int] = None,
-        overcommit: bool = True,
-        nodes: Optional[int] = None,
-        ntasks: Optional[int] = None,
-        ntasks_per_node: Optional[int] = None,
-        gpus_per_task: Optional[int] = None,
-        gpus_per_node: Optional[int] = None,
-        partition: str = "batch",
-        account: Optional[str] = None,
-        exclude: Optional[str] = None,
-        output: Optional[str] = None,
-        comment: Optional[str] = None,
+    new_script_path: str,
+    cmds: List[str],
+    job_name: str,
+    flags: str = "",
+    dependency: Optional[str] = None,
+    time: str = "04:00:00",
+    exclusive: bool = True,
+    mem: Optional[int] = None,
+    overcommit: bool = True,
+    nodes: Optional[int] = None,
+    ntasks: Optional[int] = None,
+    ntasks_per_node: Optional[int] = None,
+    gpus_per_task: Optional[int] = None,
+    gpus_per_node: Optional[int] = None,
+    partition: str = "batch",
+    account: Optional[str] = None,
+    exclude: Optional[str] = None,
+    output: Optional[str] = None,
+    comment: Optional[str] = None,
 ):
     """
-    Creates a slurm script file to launch a job on a slurm based cluster. Saves the script 
+    Creates a slurm script file to launch a job on a slurm based cluster. Saves the script
     to the local file system in the path specified on new_script_path.
-
     :param str new_stript_path: path where the SLURM script will be stored in the file system.
     :param List[str] cmds: list of commands to run, each one inside an srun line.
     :param str job_name: name of the slurm job.
@@ -475,16 +479,15 @@ def create_slurm_file(
             f.writelines(f"#SBATCH --comment={comment}\n")
         f.writelines(f"#SBATCH --time={time}\n\n")
         for cmd in cmds:
-            #assert "'" not in cmd
+            # assert "'" not in cmd
             f.writelines(f"srun {flags} sh -c '{cmd}'\n\n")
         f.writelines("set +x\n")
 
 
 def convert_to_cli(cfg: omegaconf.dictconfig.DictConfig, root: bool = True) -> str:
     """
-    Converts hydra-like OmegaConf config dictionary object to a sring that can be used to override 
+    Converts hydra-like OmegaConf config dictionary object to a sring that can be used to override
     hydra parameters using the CLI.
-
     :param omegaconf.dictconfig.DictConfig cfg: the config object to be converted to str format.
     :return: the string containing the overrides for hydra.
     :rtype: str
@@ -494,7 +497,13 @@ def convert_to_cli(cfg: omegaconf.dictconfig.DictConfig, root: bool = True) -> s
         result.append(f"search_config={cfg['search_config_value']}")
 
     for k, v in cfg.items():
-        if k in ["training_container", "inference_container", "training_container_image", "inference_container_image", "ci_test"]:
+        if k in [
+            "training_container",
+            "inference_container",
+            "training_container_image",
+            "inference_container_image",
+            "ci_test",
+        ]:
             continue
         if isinstance(v, omegaconf.dictconfig.DictConfig):
             output = convert_to_cli(v, False)
@@ -508,11 +517,9 @@ def convert_to_cli(cfg: omegaconf.dictconfig.DictConfig, root: bool = True) -> s
     return " \\\n  ".join(result) if root else result
 
 
-
 def convert_to_null(val: Optional[str]) -> str:
     """
     Converts a value to the str null if None is provided, to be able to pass it to hydra.
-    
     :param Optional[str] val: value to be replaced with 'null' if the value is None.
     :return: either the input value itself or 'null'.
     :rtype: str
@@ -525,7 +532,6 @@ def convert_to_null(val: Optional[str]) -> str:
 def add_container_mounts(container_mounts: Optional[List[str]]) -> str:
     """
     Converts the config container mounts to the right format for an srun command.
-
     :param Optional[List[str]] container_mounts: list of container mounts as in the config file.
     :return: the string that can be used in the srun command to add the container mounts.
     :rtype: str
@@ -534,9 +540,7 @@ def add_container_mounts(container_mounts: Optional[List[str]]) -> str:
     if container_mounts[0] is None or container_mounts[0] == "None":
         return ""
     if container_mounts is not None:
-        assert isinstance(
-            container_mounts, omegaconf.listconfig.ListConfig
-        ), "container_mounts must be a list."
+        assert isinstance(container_mounts, omegaconf.listconfig.ListConfig), "container_mounts must be a list."
         for mount in container_mounts:
             if mount is not None and isinstance(mount, str):
                 mounts_str += f",{mount}" if ":" in mount else f",{mount}:{mount}"
