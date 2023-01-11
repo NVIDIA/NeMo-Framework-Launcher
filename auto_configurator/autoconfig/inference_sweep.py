@@ -94,7 +94,7 @@ def configure_fastertransformer(base_cfg, cfg, tp, pp, bs, destination):
 
     command = [
         f"python3",
-        f"{cfg.fastertransformer_dir}/examples/pytorch/gpt/utils/generate_gpt_config.py",
+        f"{cfg.fastertransformer_path}/examples/pytorch/gpt/utils/generate_gpt_config.py",
         f"--max_seq_len {max_seq_len}",
         f"--beam_width {cfg.search_config.inference_settings.benchmark.beam_width}",
         f"--head_num {base_cfg['model']['num_attention_heads']}",
@@ -120,7 +120,7 @@ def configure_fastertransformer(base_cfg, cfg, tp, pp, bs, destination):
 def generate_start_ids(base_cfg, cfg, bs, destination):
     command = [
         f"python3",
-        f"{cfg.fastertransformer_dir}/examples/pytorch/gpt/utils/generate_start_ids.py",
+        f"{cfg.fastertransformer_path}/examples/pytorch/gpt/utils/generate_start_ids.py",
         f"-max_batch_size {bs}",
         f"-max_input_length {cfg.search_config.inference_settings.benchmark.input_len}",
         f"--destination {destination}",
