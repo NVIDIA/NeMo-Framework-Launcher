@@ -35,7 +35,7 @@ def numa_mapping(local_rank, devices, numa_cfg):
     max_cores = numa_cfg.get("max_cores")
 
     if enable:
-        from gpu_affinity import set_affinity
+        from launcher_scripts.nemo_launcher.collections.gpu_affinity import set_affinity
 
         affinity = set_affinity(
             gpu_id=int(local_rank),
