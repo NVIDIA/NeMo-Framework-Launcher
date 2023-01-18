@@ -37,13 +37,7 @@ RUN apt-get update && \
 
 # backend build
 WORKDIR /workspace/FasterTransformer
-ADD . /workspace/FasterTransformer
-
-RUN git submodule update --init --recursive && \
-    git clone https://github.com/NVIDIA/NeMo /workspace/FasterTransformer/3rdparty/NeMo && \
-    cd /workspace/FasterTransformer/3rdparty/NeMo && \
-    git checkout e01ab855422126f2fbef3aeecba95cb1a756a05d && \
-    cd -
+RUN git clone https://github.com/NVIDIA/FasterTransformer.git /workspace/FasterTransformer
 
 ENV NCCL_LAUNCH_MODE=GROUP
 ARG SM=80
