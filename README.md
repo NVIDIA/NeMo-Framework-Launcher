@@ -349,7 +349,7 @@ On the scheduler node:
 - Move the `.sqsh` file to the root of nemo-megatron-scripts
 - Set the container path in `launcher_scripts/conf/config.yaml` to the new Enroot image:
 ```
-container: /path/to/nemo_megatron/nemo_megatron_training.sqsh
+container: /path/to/nemo_megatron_launcher/nemo_megatron_training.sqsh
 ```
 
 ### 4.2. Cluster Validation
@@ -423,7 +423,7 @@ The NCCL topology file is unique for each CSP, and can be found in their corresp
 In `launcher_scripts/conf/config.yaml`, mount the directory containing the topology file:
 ```
 container_mounts:
-  - /path/to/nemo_megatron/csp_tools/<csp>/:/nccl
+  - /path/to/nemo_megatron_launcher/csp_tools/<csp>/:/nccl
 ```
 
 Then set the path of the file in the container:
