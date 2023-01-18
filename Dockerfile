@@ -106,9 +106,8 @@ RUN git clone https://github.com/NVIDIA/NeMo.git && \
     make
 
 # Install launch scripts
-RUN git clone https://github.com/NVIDIA/NeMo-Megatron-Launcher.git NeMo-Megatron-Launcher && \
-    cd NeMo-Megatron-Launcher && \
-    git checkout 403c4c57ceb4a7eda56390f97ae37207224d824f && \
+COPY . NeMo-Megatron-Launcher
+RUN cd NeMo-Megatron-Launcher && \
     pip install --no-cache-dir -r requirements.txt
 
 ENV LAUNCHER_SCRIPTS_PATH=/opt/NeMo-Megatron-Launcher/launcher_scripts
