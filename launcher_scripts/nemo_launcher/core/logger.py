@@ -17,9 +17,9 @@ import os
 from logging import config
 from typing import Union
 
-# provide a way to change level through NEMO_MEGATRON_LOG_LEVEL environment variable:
+# provide a way to change level through NEMO_LAUNCHER_LOG_LEVEL environment variable:
 # ...
-LOG_VARNAME = "NEMO_MEGATRON_LOG_LEVEL"
+LOG_VARNAME = "NEMO_LAUNCHER_LOG_LEVEL"
 level_str = os.environ.get(LOG_VARNAME, "INFO").upper()
 level: Union[int, str] = level_str if not level_str.isdigit() else int(level_str)
 
@@ -50,7 +50,7 @@ if level != "NOCONFIG":
 
 
 def get_logger() -> logging.Logger:
-    return logging.getLogger("NEMO_MEGATRON")
+    return logging.getLogger("NEMO_LAUNCHER")
 
 
 def exception(*args: str) -> None:

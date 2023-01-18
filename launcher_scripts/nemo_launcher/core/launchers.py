@@ -27,9 +27,9 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Union
 import nemo_launcher.utils.job_utils as job_utils
 from nemo_launcher.core.logger import logger
 
-NEMO_MEGATRON_CI = os.getenv("NEMO_MEGATRON_CI", "False").lower() in ("true", "t", "1")
-NEMO_MEGATRON_DEBUG = os.getenv("NEMO_MEGATRON_DEBUG", "False").lower() in ("true", "t", "1")
-NEMO_MEGATRON_MEMORY_MEASURE = os.getenv("NEMO_MEGATRON_MEMORY_MEASURE", "False").lower() in ("true", "t", "1")
+NEMO_LAUNCHER_CI = os.getenv("NEMO_LAUNCHER_CI", "False").lower() in ("true", "t", "1")
+NEMO_LAUNCHER_DEBUG = os.getenv("NEMO_LAUNCHER_DEBUG", "False").lower() in ("true", "t", "1")
+NEMO_LAUNCHER_MEMORY_MEASURE = os.getenv("NEMO_LAUNCHER_MEMORY_MEASURE", "False").lower() in ("true", "t", "1")
 
 
 class AutoLauncher:
@@ -92,7 +92,7 @@ class Launcher:
         logger.info(f"Job {self.job_name} submission file created at '{submission_file_path}'")
 
         job_id = ""
-        if not NEMO_MEGATRON_DEBUG:
+        if not NEMO_LAUNCHER_DEBUG:
             job_id = self._submit_command(submission_file_path)
             if job_id:
                 logger.info(f"Job {self.job_name} submitted with Job ID {job_id}")
@@ -332,7 +332,7 @@ class SlurmLauncher(Launcher):
         self.parameters = {}
         self._update_parameters(job_name=job_name, **kwargs)
 
-        if shutil.which("srun") is None and not NEMO_MEGATRON_DEBUG:
+        if shutil.which("srun") is None and not NEMO_LAUNCHER_DEBUG:
             raise RuntimeError('Could not detect "srun", are you indeed on a slurm cluster?')
 
     @classmethod
@@ -533,7 +533,7 @@ def _make_sbatch_string(
     if not stderr_to_stdout:
         parameters["error"] = stderr.replace("%t", "0")
 
-    if NEMO_MEGATRON_CI:  # Override output file for slurm
+    if NEMO_LAUNCHER_CI:  # Override output file for slurm
         parameters["output"] = parameters["error"] = str(paths.folder / "slurm_%j.out")
         stdout = stderr = parameters["output"]
 
@@ -555,7 +555,7 @@ def _make_sbatch_string(
     if srun_args is None:
         srun_args = []
 
-    if NEMO_MEGATRON_MEMORY_MEASURE:
+    if NEMO_LAUNCHER_MEMORY_MEASURE:
         srun_args += ["--overlap"]
 
         mem_stdout = stdout.replace("_%j", "_mem_%j")
