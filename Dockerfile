@@ -145,12 +145,6 @@ RUN git clone https://github.com/google/sentencepiece.git && \
 
 # Copy FasterTransformer
 COPY --from=ft_builder /workspace/FasterTransformer FasterTransformer
-COPY fastertransformer_backend fastertransformer_backend
-RUN rm fastertransformer_backend/.gitlab-ci.yml \
-       fastertransformer_backend/.git \
-       fastertransformer_backend/.gitignore
-
-COPY entrypoint.d/ /opt/nvidia/entrypoint.d/
 
 ## Temporary fix for pickle issue
 #RUN sed -i "s/DEFAULT_PROTOCOL = 2/DEFAULT_PROTOCOL = 4/g" /opt/conda/lib/python3.8/site-packages/torch/serialization.py
