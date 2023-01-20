@@ -693,7 +693,7 @@ def launch_grid_search_configs(
     :return: job_ids, list of job ids for all the training jobs.
     :rtype: list[int]
     """
-    nemo_megatron_path = cfg.get("nemo_megatron_path")
+    launcher_scripts_path = cfg.get("launcher_scripts_path")
 
     search_cfg = cfg.get("search_config")
     train_cfg = search_cfg.get("train_settings")
@@ -704,7 +704,7 @@ def launch_grid_search_configs(
     for cfg_list in results_cfgs:
         for file_name in cfg_list:
             src_file = os.path.join(base_dir, file_name)
-            dst_dir = os.path.join(nemo_megatron_path, "conf/training", model_name, file_name)
+            dst_dir = os.path.join(launcher_scripts_path, "conf/training", model_name, file_name)
             shutil.copyfile(src_file, dst_dir)
             job_id = train.run_training(file_name, model_name, results_dir, cfg)
             os.remove(dst_dir)
@@ -737,7 +737,7 @@ def launch_throughput_measure(
     :rtype: str
     """
     # Read config
-    autoconfig_path = cfg.get("autoconfig_path")
+    auto_configurator_path = cfg.get("auto_configurator_path")
     cluster_type = cfg.get("cluster_type")
     container_mounts = cfg.get("container_mounts")
     container = cfg.get("training_container")
@@ -767,7 +767,7 @@ def launch_throughput_measure(
     os.makedirs(final_log_dir, exist_ok=True)
 
     # Process container-mounts.
-    mounts_str = f"{autoconfig_path}:{autoconfig_path},{base_results_dir}:{base_results_dir}"
+    mounts_str = f"{auto_configurator_path}:{auto_configurator_path},{base_results_dir}:{base_results_dir}"
     mounts_str += utils.add_container_mounts(container_mounts)
 
     flags = f"--container-image {container} " f"--container-mounts {mounts_str} " f"--no-container-mount-home "
@@ -780,9 +780,9 @@ def launch_throughput_measure(
         )
 
     if cluster_type == "bcm":
-        new_script_path = os.path.join(autoconfig_path, "autoconfig/scripts/compare_throughput.sh")
-        code_path = os.path.join(autoconfig_path, "autoconfig/scripts/compare_throughput_results.py")
-        train_cmd = f"HYDRA_FULL_ERROR=1 python3 -u {code_path} autoconfig_path={autoconfig_path} search_config.train_settings.model_size_in_b={model_size_in_b} search_config={model_name}/{model_size_in_b}b search_config_value={model_name}/{model_size_in_b}b +nodes={num_nodes} base_results_dir={base_results_dir} {hydra_args} "
+        new_script_path = os.path.join(auto_configurator_path, "autoconfig/scripts/compare_throughput.sh")
+        code_path = os.path.join(auto_configurator_path, "autoconfig/scripts/compare_throughput.py")
+        train_cmd = f"HYDRA_FULL_ERROR=1 python3 -u {code_path} auto_configurator_path={auto_configurator_path} search_config.train_settings.model_size_in_b={model_size_in_b} search_config={model_name}/{model_size_in_b}b search_config_value={model_name}/{model_size_in_b}b +nodes={num_nodes} base_results_dir={base_results_dir} {hydra_args} "
         utils.create_slurm_file(
             new_script_path=new_script_path,
             cmds=[train_cmd],
@@ -808,8 +808,8 @@ def launch_throughput_measure(
         print(f"Submitted job to select optimal throughput with job id: {dependency}")
         return dependency
     elif cluster_type == "bcp":
-        code_path = os.path.join(autoconfig_path, "autoconfig/scripts/compare_throughput_results.py")
-        train_cmd = f"HYDRA_FULL_ERROR=1 python3 -u {code_path} autoconfig_path={autoconfig_path} search_config.train_settings.model_size_in_b={model_size_in_b} search_config={model_name}/{model_size_in_b}b search_config_value={model_name}/{model_size_in_b}b +nodes={num_nodes} base_results_dir={base_results_dir} {hydra_args} "
+        code_path = os.path.join(auto_configurator_path, "autoconfig/scripts/compare_throughput.py")
+        train_cmd = f"HYDRA_FULL_ERROR=1 python3 -u {code_path} auto_configurator_path={auto_configurator_path} search_config.train_settings.model_size_in_b={model_size_in_b} search_config={model_name}/{model_size_in_b}b search_config_value={model_name}/{model_size_in_b}b +nodes={num_nodes} base_results_dir={base_results_dir} {hydra_args} "
         job_id = subprocess.check_output([train_cmd], shell=True)
         dependency = job_id.decode("utf-8")
         print(f"Submitted job to select optimal throughput with job id: {dependency}")
