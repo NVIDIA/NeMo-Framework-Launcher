@@ -185,10 +185,11 @@ if [[ $RUN_NCCL == 1 ]]; then
     # Wait for NCCL jobs to finish
     srun -p ${PARTITION} -N 1 --dependency=$all_ids true > /dev/null 2> /dev/null
 
+    LARGE_TEST_SIZE=8589934592
     nccl_pass=1
     for i in ${slurm_ids[*]}; do
         CURR_NODES=$(sed -n 2p $RESULTS_DIR/nccl.sh_${i}.log | cut -d"=" -f2) # Get the nodes in this test
-        LARGE_TEST_LINE=$(tail -4 $RESULTS_DIR/nccl.sh_${i}.log | head -1) # Get the results of the 8 GiB size test
+        LARGE_TEST_LINE=$(grep $LARGE_TEST_SIZE $RESULTS_DIR/nccl.sh_${i}.log | tail -1) # Get the results of the 8 GiB size test
         LARGE_TEST_ARR=($LARGE_TEST_LINE)
         CURR_BUSBW=${LARGE_TEST_ARR[6]%.*} # Find the out-of-place bus bandwidth
 
