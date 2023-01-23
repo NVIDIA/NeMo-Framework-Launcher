@@ -4312,7 +4312,7 @@ srun \
      --nodes=<NUMBER OF NODES>\
      --partition=<SLURM PARITION>\
      --mpi <MPI MODE>\
-     --container-image <NEMO_MEGATRON INFERENCE CONTAINER>\
+     --container-image <NEMO_LAUNCHER INFERENCE CONTAINER>\
      --container-mounts <TRITON MODEL REPOSITORY>:<TRITON MODEL REPOSITORY> \
      bash -c "export CUDA_VISIBLE_DEVICES=<LIST OF CUDA DEVICES> && tritonserver --model-repository <TRITON MODEL REPOSITORY>"
 
@@ -4322,7 +4322,7 @@ Parameters:
 * `NUMBER OF NODES`: Number of machines in cluster, which should be used to run inference.
 * `SLURM PARTITION`: Slurm partition with DGX machines for inference.
 * `MPI MODE`: FasterTransformer uses MPI for interprocess communication like `pmix` library.
-* `NEMO_MEGATRON INFERENCE CONTAINER`: Separate docker container streamlined for just inference.
+* `NEMO_LAUNCHER INFERENCE CONTAINER`: Separate docker container streamlined for just inference.
 * `TRITON MODEL REPOSITORY`: Triton model repository created by FasterTransformer export stage.
 * `LIST OF CUDA DEVICES`: List of CUDA devices, which should be used by inference like `0,1,2,3`.
 

@@ -19,7 +19,7 @@ import time
 
 from nemo_launcher.utils.file_utils import download_single_file
 
-NEMO_MEGATRON_CI = os.getenv("NEMO_MEGATRON_CI", "False").lower() in ("true", "t", "1")
+NEMO_LAUNCHER_CI = os.getenv("NEMO_LAUNCHER_CI", "False").lower() in ("true", "t", "1")
 VERSIONS = ["v1.1", "v2.0", "xquad"]
 VERSION2PATHS = {
     "v1.1": [
@@ -44,7 +44,7 @@ def download_squad(data_dir, versions):
         if os.path.exists(os.path.join(data_dir, v)):
             print(f"Skipped downloading SQuAD {v}. Already exists.")
             # download might not finish in time in CI
-            if NEMO_MEGATRON_CI:
+            if NEMO_LAUNCHER_CI:
                 time.sleep(5)
             continue
 

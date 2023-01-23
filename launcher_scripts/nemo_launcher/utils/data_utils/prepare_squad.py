@@ -18,7 +18,7 @@ import time
 
 from .download_squad import download_squad
 
-NEMO_MEGATRON_CI = os.getenv("NEMO_MEGATRON_CI", "False").lower() in ("true", "t", "1")
+NEMO_LAUNCHER_CI = os.getenv("NEMO_LAUNCHER_CI", "False").lower() in ("true", "t", "1")
 
 
 def prepare_squad_for_prompt_learning(data_dir, launcher_scripts_path):
@@ -59,7 +59,7 @@ def preprocess_squad_for_fine_tuning(fname, out_fname_prefix, dev=False):
     print(f"Preprocessing \"{fname}\" for fine-tuning...")
     if os.path.exists(f'{out_fname_prefix}_src.txt') and os.path.exists(f'{out_fname_prefix}_tgt.txt'):
         print(f"Skipped! Fine-tuning data existed at \"{out_fname_prefix}*.txt\"")
-        if NEMO_MEGATRON_CI:
+        if NEMO_LAUNCHER_CI:
             time.sleep(5)
         return
     with open(f'{out_fname_prefix}_src.txt', 'w') as f_src, open(f'{out_fname_prefix}_tgt.txt', 'w') as f_tgt:

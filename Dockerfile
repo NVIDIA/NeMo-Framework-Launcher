@@ -37,13 +37,7 @@ RUN apt-get update && \
 
 # backend build
 WORKDIR /workspace/FasterTransformer
-ADD . /workspace/FasterTransformer
-
-RUN git submodule update --init --recursive && \
-    git clone https://github.com/NVIDIA/NeMo /workspace/FasterTransformer/3rdparty/NeMo && \
-    cd /workspace/FasterTransformer/3rdparty/NeMo && \
-    git checkout e01ab855422126f2fbef3aeecba95cb1a756a05d && \
-    cd -
+RUN git clone https://github.com/NVIDIA/FasterTransformer.git /workspace/FasterTransformer
 
 ENV NCCL_LAUNCH_MODE=GROUP
 ARG SM=80
@@ -106,9 +100,8 @@ RUN git clone https://github.com/NVIDIA/NeMo.git && \
     make
 
 # Install launch scripts
-RUN git clone https://github.com/NVIDIA/NeMo-Megatron-Launcher.git NeMo-Megatron-Launcher && \
-    cd NeMo-Megatron-Launcher && \
-    git checkout 403c4c57ceb4a7eda56390f97ae37207224d824f && \
+COPY . NeMo-Megatron-Launcher
+RUN cd NeMo-Megatron-Launcher && \
     pip install --no-cache-dir -r requirements.txt
 
 ENV LAUNCHER_SCRIPTS_PATH=/opt/NeMo-Megatron-Launcher/launcher_scripts
@@ -152,12 +145,6 @@ RUN git clone https://github.com/google/sentencepiece.git && \
 
 # Copy FasterTransformer
 COPY --from=ft_builder /workspace/FasterTransformer FasterTransformer
-COPY fastertransformer_backend fastertransformer_backend
-RUN rm fastertransformer_backend/.gitlab-ci.yml \
-       fastertransformer_backend/.git \
-       fastertransformer_backend/.gitignore
-
-COPY entrypoint.d/ /opt/nvidia/entrypoint.d/
 
 ## Temporary fix for pickle issue
 #RUN sed -i "s/DEFAULT_PROTOCOL = 2/DEFAULT_PROTOCOL = 4/g" /opt/conda/lib/python3.8/site-packages/torch/serialization.py

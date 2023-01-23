@@ -21,7 +21,7 @@ import subprocess
 
 from autoconfig import utils
 
-BIGNLP_DEBUG = os.getenv("BIGNLP_DEBUG", "False").lower() in ("true", "t", "1")
+NEMO_LAUNCHER_DEBUG = os.getenv("NEMO_LAUNCHER_DEBUG", "False").lower() in ("true", "t", "1")
 
 
 def nodes_necessary(gpus_per_node, tp, pp):
@@ -176,12 +176,12 @@ def generate_submission(base_cfg, cfg, job_name, nodes, tasks_per_node, ini, csv
 
 
 def submit_job(submission_file, results_dir):
-    if os.getenv('BIGNLP_CI'):
+    if os.getenv('NEMO_LAUNCHER_CI'):
         job_id = subprocess.check_output(
             [f'sbatch {submission_file} | tee "{results_dir}/../launcher.log" '], shell=True
         )
     else:
-        if not BIGNLP_DEBUG:
+        if not NEMO_LAUNCHER_DEBUG:
             job_id = subprocess.check_output([f"sbatch --parsable {submission_file}"], shell=True)
         else:
             job_id = str(random.randint(10000, 99999)).encode("utf-8")

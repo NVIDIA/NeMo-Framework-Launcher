@@ -771,7 +771,7 @@ def launch_throughput_measure(
     mounts_str += utils.add_container_mounts(container_mounts)
 
     flags = f"--container-image {container} " f"--container-mounts {mounts_str} " f"--no-container-mount-home "
-    if os.getenv("BIGNLP_CI"):  # Whether this job is running in CI or not.
+    if os.getenv("NEMO_LAUNCHER_CI"):  # Whether this job is running in CI or not.
         flags += f"-o {log_dir}/slurm_%j.log "
     else:
         flags += (
@@ -800,7 +800,7 @@ def launch_throughput_measure(
             partition=partition,
             account=account,
         )
-        if os.getenv("BIGNLP_CI"):
+        if os.getenv("NEMO_LAUNCHER_CI"):
             job_id = subprocess.check_output([f'sbatch {new_script_path} | tee "{log_dir}/launcher.log" '], shell=True)
         else:
             job_id = subprocess.check_output([f"sbatch --parsable {new_script_path}"], shell=True)
