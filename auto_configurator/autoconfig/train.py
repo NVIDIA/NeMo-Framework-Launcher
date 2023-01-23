@@ -32,9 +32,9 @@ def run_training(file_name: str, model_name: str, results_dir: str, cfg: OmegaCo
     :rtype: str
     """
     # Copy cluster config to nemo_megatron_launcher.
-    nemo_megatron_path = cfg.get("nemo_megatron_path")
+    launcher_scripts_path = cfg.get("launcher_scripts_path")
     cluster_cfg = cfg.get("cluster")
-    dst = os.path.join(nemo_megatron_path, "conf/cluster/bcm.yaml")
+    dst = os.path.join(launcher_scripts_path, "conf/cluster/bcm.yaml")
     copy_config_to_file(cluster_cfg, dst)
     print(f"Copied cluster config to {dst}")
 
@@ -42,7 +42,7 @@ def run_training(file_name: str, model_name: str, results_dir: str, cfg: OmegaCo
     overrides_str = generate_overrides_str(file_name, model_name, results_dir, cfg)
 
     nemo_megatron_ci = f"NEMO_LAUNCHER_CI=1" if bool(os.getenv("NEMO_LAUNCHER_CI")) else ""
-    main_path = os.path.join(nemo_megatron_path, "main.py")
+    main_path = os.path.join(launcher_scripts_path, "main.py")
     cmd = f"HYDRA_FULL_ERROR=1 {nemo_megatron_ci} python3 {main_path} {overrides_str} "
 
     # Launch job with command cmd.
@@ -98,10 +98,10 @@ def generate_overrides_str(file_name: str, model_name: str, results_dir: str, cf
     training_model = f"{model_name}/{file_name}"
     cluster_type = cfg.get("cluster_type")
     container = cfg.get("training_container")
-    autoconfig_path = cfg.get("autoconfig_path")
-    autoconfig_path = convert_to_absolute_path(autoconfig_path)
-    nemo_megatron_path = cfg.get("nemo_megatron_path")
-    nemo_megatron_path = convert_to_absolute_path(nemo_megatron_path)
+    auto_configurator_path = cfg.get("auto_configurator_path")
+    auto_configurator_path = convert_to_absolute_path(auto_configurator_path)
+    launcher_scripts_path = cfg.get("launcher_scripts_path")
+    launcher_scripts_path = convert_to_absolute_path(launcher_scripts_path)
     data_dir = cfg.get("data_dir")
     container_mounts = cfg.get("container_mounts", "null")
     api_key_file = cfg.get("wandb").get("api_key_file")
@@ -109,7 +109,7 @@ def generate_overrides_str(file_name: str, model_name: str, results_dir: str, cf
         api_key_file = "null"
 
     # Process container-mounts.
-    mounts_str = f"{autoconfig_path}:{autoconfig_path},{results_dir}:{results_dir}"
+    mounts_str = f"{auto_configurator_path}:{auto_configurator_path},{results_dir}:{results_dir}"
     mounts_str += utils.add_container_mounts(container_mounts)
 
     overrides_str = (
@@ -118,7 +118,7 @@ def generate_overrides_str(file_name: str, model_name: str, results_dir: str, cf
         f"cluster_type={cluster_type} "
         f"base_results_dir={results_dir} "
         f"\"container='{container}'\" "
-        f"nemo_megatron_path={nemo_megatron_path} "
+        f"launcher_scripts_path={launcher_scripts_path} "
         f"data_dir={data_dir} "
         f"training.exp_manager.create_checkpoint_callback=False "
         f"container_mounts=\[{mounts_str}\] "

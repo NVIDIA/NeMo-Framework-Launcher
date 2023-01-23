@@ -346,7 +346,7 @@ On the scheduler node:
 ```
     enroot import --output nemo_megatron_training.sqsh dockerd://<image name>:<tag>
 ```
-- Move the `.sqsh` file to the root of nemo-megatron-scripts
+- Move the `.sqsh` file to the root of NeMo-Megatron-Launcher
 - Set the container path in `launcher_scripts/conf/config.yaml` to the new Enroot image:
 ```
 container: /path/to/nemo_megatron_launcher/nemo_megatron_training.sqsh
