@@ -19,7 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 ARG BIGNLP_BACKEND=pytorch
-ARG BIGNLP_BACKEND_BRANCH_TAG=22.09
+ARG BIGNLP_BACKEND_BRANCH_TAG=22.12
 
 # The following FROM line MUST say ...-base , not ...-devel!  Otherwise we
 # leak internal information, as -devel is internal-only.
@@ -86,18 +86,22 @@ WORKDIR /opt
 RUN pip uninstall -y apex && \
     git clone https://github.com/ericharper/apex && \
 	cd apex && \
-	git checkout 86c4edacb8148ea4d5e898c2acbb816b60185b77 && \
+	git checkout 7afa66e8f83cf881bcba3b859c5b283a9bf9865c && \
 	pip install -v --disable-pip-version-check --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" --global-option="--fast_layer_norm" --global-option="--bnp" --global-option="--xentropy" --global-option="--deprecated_fused_adam" --global-option="--deprecated_fused_lamb" --global-option="--fast_multihead_attn" --global-option="--distributed_lamb" --global-option="--transducer" --global-option="--distributed_adam" --global-option="--fmha" --global-option="--fast_bottleneck" --global-option="--nccl_p2p" --global-option="--peer_memory" --global-option="--permutation_search" --global-option="--focal_loss" --global-option="--fused_conv_bias_relu" ./
 
 # Install NeMo
 RUN git clone https://github.com/NVIDIA/NeMo.git && \
     cd NeMo && \
-    git fetch origin 403c4c57ceb4a7eda56390f97ae37207224d824f && \
+    git fetch origin 52d2ae67c4988bf312539ae22d449cc61ec087ab && \
     git checkout FETCH_HEAD && \
     pip uninstall -y nemo_toolkit sacrebleu && \
     pip install -e ".[nlp]" && \
     cd nemo/collections/nlp/data/language_modeling/megatron && \
     make
+
+# HF cache
+RUN python -c "from transformers import AutoTokenizer; tok_gpt=AutoTokenizer.from_pretrained('gpt2'); tok_bert=AutoTokenizer.from_pretrained('bert-base-cased'); tok_large_bert=AutoTokenizer.from_pretrained('bert-large-cased'); tok_large_uncased_bert=AutoTokenizer.from_pretrained('bert-large-uncased');"
+
 
 # Install launch scripts
 COPY . NeMo-Megatron-Launcher

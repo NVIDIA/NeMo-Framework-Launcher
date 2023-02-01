@@ -505,14 +505,14 @@ class Training(NeMoStage):
         }
         return model_type_to_code_path[model_type]
 
-    @property
-    def _nvte_bias_gelu_nvfusion(self) -> str:
-        """Only used in pretraining; override in training class; not supported on BCP"""
-        return (
-            "NVTE_BIAS_GELU_NVFUSION="
-            "\$(python3 -c 'import torch; "
-            "print(int(torch.cuda.get_device_properties(torch.cuda.current_device()).major >= 9))')"
-        )
+    # @property
+    # def _nvte_bias_gelu_nvfusion(self) -> str:
+    #     """Only used in pretraining; override in training class; not supported on BCP"""
+    #     return (
+    #         "NVTE_BIAS_GELU_NVFUSION="
+    #         "\$(python3 -c 'import torch; "
+    #         "print(int(torch.cuda.get_device_properties(torch.cuda.current_device()).major >= 9))')"
+    #     )
 
 
 class FineTuning(NeMoStage):
