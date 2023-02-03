@@ -1,0 +1,205 @@
+run:
+  name: bert_100b
+  results_dir: ${base_results_dir}/${.name}
+  time_limit: "82-00:00:00"
+  dependency: "singleton"
+
+name: megatron_bert
+restore_from_path: null # used when starting from a .nemo file
+
+trainer:
+  devices: 8
+  num_nodes: 128
+  accelerator: gpu
+  precision: bf16
+  logger: False # logger provided by exp_manager
+  enable_checkpointing: False
+  replace_sampler_ddp: False
+  max_epochs: -1 # PTL default. In practice we don't usually train for more than 1 epoch.
+  max_steps: 860000 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
+  max_time: "81:23:30:00"
+  log_every_n_steps: 10
+  val_check_interval: 2000
+  limit_val_batches: 50
+  limit_test_batches: 50
+  accumulate_grad_batches: 1
+  gradient_clip_val: 1.0
+
+exp_manager:
+  explicit_log_dir: ${training.run.results_dir}/results
+  exp_dir: null
+  name: megatron_bert
+  create_wandb_logger: False
+  wandb_logger_kwargs:
+    project: nemo_bert
+    name: ${training.run.name}
+  resume_if_exists: True
+  resume_ignore_no_checkpoint: True
+  create_checkpoint_callback: True
+  checkpoint_callback_params:
+    monitor: val_loss
+    save_top_k: 2
+    mode: min
+    always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
+    filename: 'megatron_bert--{val_loss:.2f}-{step}-{consumed_samples}'
+    model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
+  log_step_timing: True
+  step_timing_kwargs:
+    sync_cuda: True
+    buffer_size: 5
+
+model:
+  # model parallelism 
+  global_batch_size: 4096
+  micro_batch_size: 8
+  tensor_model_parallel_size: 4
+  pipeline_model_parallel_size: 16
+  virtual_pipeline_model_parallel_size: null
+
+  # model architecture
+  encoder_seq_length: 512
+  max_position_embeddings: ${.encoder_seq_length}
+  num_layers: 96
+  hidden_size: 9216
+  ffn_hidden_size: ${multiply:4, ${.hidden_size}} # Transformer FFN hidden size. Usually 4 * hidden_size.
+  num_attention_heads: 96
+  init_method_std: 0.0066 # Standard deviation of the zero mean normal distribution used for weight initialization.')
+  hidden_dropout: 0.1 # Dropout probability for hidden state transformer.
+  kv_channels: null # Projection weights dimension in multi-head attention. Set to hidden_size // num_attention_heads if null
+  apply_query_key_layer_scaling: True # scale Q * K^T by 1 / layer-number.
+  layernorm_epsilon: 1e-5
+  make_vocab_size_divisible_by: 128 # Pad the vocab size to be divisible by this value for computation efficiency.
+  pre_process: True # add embedding
+  post_process: True # add pooler
+  bert_binary_head: False # BERT binary head
+
+  tokenizer:
+    library: 'megatron'
+    type: 'BertWordPieceLowerCase'
+    model: null
+    vocab_file: ${data_dir}/vocab.txt
+    merge_file: null 
+
+  # precision
+  native_amp_init_scale: 4294967296 # 2 ** 32
+  native_amp_growth_interval: 1000
+  fp32_residual_connection: False # Move residual connections to fp32
+  fp16_lm_cross_entropy: False # Move the cross entropy unreduced loss calculation for lm head to fp16
+
+  # Megatron O2-style half-precision
+  megatron_amp_O2: True # Enable O2-level automatic mixed precision using main parameters
+  grad_allreduce_chunk_size_mb: 125
+  grad_div_ar_fusion: False 
+
+  # miscellaneous
+  seed: 1234
+  use_cpu_initialization: False # Init weights on the CPU (slow for large models)
+  onnx_safe: False # Use work-arounds for known problems with Torch ONNX exporter.
+  gradient_as_bucket_view: True # PyTorch DDP argument. Allocate gradients in a contiguous bucket to save memory (less fragmentation and buffer memory)
+
+  activations_checkpoint_granularity: selective
+  activations_checkpoint_method: block
+  activations_checkpoint_layers_per_pipeline: 1
+  num_micro_batches_with_partial_activation_checkpoints: 96
+  activations_checkpoint_num_layers: 0
+
+  sequence_parallel: True 
+
+  data:
+    # Path to data must be specified by the user.
+    # can override from the CLI: "model.data.data_prefix=[.5,/raid/data/pile/my-gpt3_00_text_document,.5,/raid/data/pile/my-gpt3_01_text_document]",
+    # Or see example below: 
+    # data_prefix: 
+    #   - .5
+    #   - /raid/data/pile/my-gpt3_00_text_document
+    #   - .5
+    #   - /raid/data/pile/my-gpt3_01_text_document
+    data_prefix: # Should be weight path weight path... for a blended dataset
+      - .0333
+      - ${data_dir}/my-t5_00_text_document
+      - .0333
+      - ${data_dir}/my-t5_01_text_document
+      - .0333
+      - ${data_dir}/my-t5_02_text_document
+      - .0333
+      - ${data_dir}/my-t5_03_text_document
+      - .0333
+      - ${data_dir}/my-t5_04_text_document
+      - .0333
+      - ${data_dir}/my-t5_05_text_document
+      - .0333
+      - ${data_dir}/my-t5_06_text_document
+      - .0333
+      - ${data_dir}/my-t5_07_text_document
+      - .0333
+      - ${data_dir}/my-t5_08_text_document
+      - .0333
+      - ${data_dir}/my-t5_09_text_document
+      - .0333
+      - ${data_dir}/my-t5_10_text_document
+      - .0333
+      - ${data_dir}/my-t5_11_text_document
+      - .0333
+      - ${data_dir}/my-t5_12_text_document
+      - .0333
+      - ${data_dir}/my-t5_13_text_document
+      - .0333
+      - ${data_dir}/my-t5_14_text_document
+      - .0333
+      - ${data_dir}/my-t5_15_text_document
+      - .0333
+      - ${data_dir}/my-t5_16_text_document
+      - .0333
+      - ${data_dir}/my-t5_17_text_document
+      - .0333
+      - ${data_dir}/my-t5_18_text_document
+      - .0333
+      - ${data_dir}/my-t5_19_text_document
+      - .0333
+      - ${data_dir}/my-t5_20_text_document
+      - .0333
+      - ${data_dir}/my-t5_21_text_document
+      - .0333
+      - ${data_dir}/my-t5_22_text_document
+      - .0333
+      - ${data_dir}/my-t5_23_text_document
+      - .0333
+      - ${data_dir}/my-t5_24_text_document
+      - .0333
+      - ${data_dir}/my-t5_25_text_document
+      - .0333
+      - ${data_dir}/my-t5_26_text_document
+      - .0333
+      - ${data_dir}/my-t5_27_text_document
+      - .0333
+      - ${data_dir}/my-t5_28_text_document
+      - .0334
+      - ${data_dir}/my-t5_29_text_document
+    index_mapping_dir: null # path to save index mapping .npy files, by default will save in the same location as data_prefix
+    data_impl: mmap
+    splits_string: 900,50,50
+    seq_length: 512 #${model.encoder_seq_length}
+    skip_warmup: True
+    num_workers: 2
+    dataloader_type: single # cyclic
+    reset_position_ids: False # Reset position ids after end-of-document token
+    reset_attention_mask: False # Reset attention mask after end-of-document token
+    eod_mask_loss: False # Mask loss for the end of document tokens
+    masked_lm_prob: 0.15 # Probability of replacing a token with mask.
+    short_seq_prob: 0.1 # Probability of producing a short sequence.
+  
+  optim:
+    name: distributed_fused_adam
+    lr: 1e-4
+    weight_decay: 0.01 
+    overlap_grad_sync: False
+    bucket_cap_mb: ${training.model.grad_allreduce_chunk_size_mb}
+    betas: 
+    - 0.9
+    - 0.98
+    sched:
+      name: CosineAnnealing
+      warmup_steps: 1300
+      constant_steps: 150000
+      min_lr: 2e-5
+      

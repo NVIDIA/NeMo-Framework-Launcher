@@ -48,7 +48,7 @@ STR2STAGECLASS = {
         NeMoEvaluation: ["t5", "mt5", "prompt_t5", "prompt_mt5", "adapter_t5", "adapter_gpt3", "ia3_t5", "ia3_gpt3"],
     },
     "data_preparation": {
-        PileDataPreparation: ["gpt3", "t5"],
+        PileDataPreparation: ["gpt3", "t5", "bert"],
         MC4DataPreparation: ["mt5"],
         CustomDataPreparation: ["generic"],
     },
