@@ -22,9 +22,8 @@ RUN apt-get update && \
     cd /tmp && \
     curl -O https://efa-installer.amazonaws.com/aws-efa-installer-${EFA_INSTALLER_VERSION}.tar.gz  && \
     tar -xf aws-efa-installer-${EFA_INSTALLER_VERSION}.tar.gz && \
-    cd aws-efa-installer/DEBS/UBUNTU2004/$(uname -m) && \
-    dpkg -i libfabric*.deb && \
-    dpkg -i efa-profile*.deb && \
+    cd aws-efa-installer && \
+    ./efa_installer.sh -y -g -d --skip-kmod --skip-limit-conf && \
     ldconfig && \
     rm -rf /tmp/aws-efa-installer /var/lib/apt/lists/* && \
     /opt/amazon/efa/bin/fi_info --version
