@@ -61,20 +61,34 @@ def main(cfg):
     if cfg.get("cluster_type") == "bcm":
         file_number = int(os.environ.get("SLURM_ARRAY_TASK_ID"))
         extracted_path = os.path.join(data_dir, f"{file_number:02d}.jsonl")
-        # TODO: find better way to do this
-        output_prefix = os.path.join(data_dir, f"my-{'t5' if 't5' in data_config else 'gpt3'}_{file_number:02d}")
+        
+        model_type = 't5'
+        if 'bert' in data_config:
+            model_type = 'bert'
+        elif 'gpt3' in data_config:
+            model_type = 'gpt3'
+
+        output_prefix = os.path.join(data_dir, f"my-{model_type}_{file_number:02d}")
 
         flags = (
             f"--input {extracted_path} "
             f"--output-prefix {output_prefix} "
             f"--vocab {vocab_path} "
-            f"--merge-file {merges_path} "
             f"--dataset-impl mmap "
             f"--tokenizer-library megatron "
             f"--tokenizer-type {tokenizer_type} "
             f"--workers $SLURM_CPUS_ON_NODE "
-            f"--append-eod "
         )
+
+        if model_type == 'bert':
+            # Used for bert binary head (Next sentence predition)
+            flags += "--split-sentences "
+        else:
+            flags += (                    
+                f"--merge-file {merges_path} "
+                f"--append-eod "
+                )
+
         os.system(compilecmd)
         runcmd += f"{flags} "
         os.system(runcmd)
@@ -102,19 +116,35 @@ def main(cfg):
         ncpus = psutil.cpu_count(logical=False)
         for file_number in files_to_preproc:
             extracted_path = os.path.join(data_dir, f"{file_number:02d}.jsonl")
-            output_prefix = os.path.join(data_dir, f"my-{'t5' if 't5' in data_config else 'gpt3'}_{file_number:02d}")
+
+            model_type = 't5'
+            if 'bert' in data_config:
+                model_type = 'bert'
+            elif 'gpt3' in data_config:
+                model_type = 'gpt3'
+
+            output_prefix = os.path.join(data_dir, f"my-{model_type}_{file_number:02d}")
 
             flags = (
                 f"--input {extracted_path} "
                 f"--output-prefix {output_prefix} "
                 f"--vocab {vocab_path} "
-                f"--merge-file {merges_path} "
                 f"--dataset-impl mmap "
                 f"--tokenizer-library megatron "
                 f"--tokenizer-type {tokenizer_type} "
                 f"--workers {ncpus} "
-                f"--append-eod "
             )
+
+            if model_type == 'bert':
+                # Used for bert binary head (Next sentence predition)
+                flags += "--split-sentences "
+            else:
+                flags += (                    
+                    f"--merge-file {merges_path} "
+                    f"--append-eod "
+                    )
+
+
             proc = subprocess.Popen(runcmd + flags, shell=True)
             proc.wait()
             if rm_extracted:

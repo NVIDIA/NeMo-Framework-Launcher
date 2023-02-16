@@ -11,6 +11,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
 - [2. Feature Matrix](#2-feature-matrix)
   * [2.1. GPT-3 Models](#21-gpt-3-models)
   * [2.2. T5 and mT5 Models](#22-t5-and-mt5-models)
+  * [2.3. BERT Models](#23-bert-models)
 - [3. Setup](#3-setup)
   * [3.1. Support Matrix](#31-support-matrix)
 - [4. Cloud Service Providers](#4-cloud-service-providers)
@@ -45,11 +46,16 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
         * [5.1.2.3.1. Slurm](#51231-slurm)
         * [5.1.2.3.2. Base Command Platform](#51232-base-command-platform)
         * [5.1.2.3.3. Common](#51233-common)
+      - [5.1.2.4. Data Preparation for BERT Models](#5124-data-preparation-for-bert-models)
+        * [5.1.2.4.1. Slurm](#51241-slurm)
+        * [5.1.2.4.2. Base Command Platform](#51242-base-command-platform)
+        * [5.1.2.4.3. Common](#51243-common)        
   * [5.2. Training with Predefined Configurations](#52-training-with-predefined-configurations)
     + [5.2.1. Predefined Configurations of GPT-3 Models](#521-predefined-configurations-of-gpt-3-models)
     + [5.2.2. Predefined Configurations of T5 Models](#522-predefined-configurations-of-t5-models)
     + [5.2.3. Predefined Configurations of mT5 Models](#523-predefined-configurations-of-mt5-models)
     + [5.2.4. Training Logs with TensorBoard and Weights and Biases](#524-training-logs-with-tensorboard-and-weights-and-biases)
+    + [5.2.5. Predefined Configurations of BERT Models](#525-predefined-configurations-of-bert-models)
   * [5.3. Using AutoConfigurator to Find the Optimal Configuration](#53-using-autoconfigurator-to-find-the-optimal-configuration)
     + [5.3.1. AutoConfigurator Capabilities](#531-autoconfigurator-capabilities)
       - [5.3.1.1. Model Size Recommendation](#5311-model-size-recommendation)
@@ -84,6 +90,9 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
     + [5.6.3. mT5 Training](#563-mt5-training)
       - [5.6.3.1. Slurm](#5631-slurm)
       - [5.6.3.2. Base Command Platform](#5632-base-command-platform)
+    + [5.6.4. BERT Training](#564-bert-training)
+      - [5.6.4.1. Slurm](#5641-slurm)
+      - [5.6.4.2. Base Command Platform](#5642-base-command-platform)      
   * [5.7. Resuming Training with Different Number of Nodes](#57-resuming-training-with-different-number-of-nodes)
   * [5.8. Checkpoint Conversion](#58-checkpoint-conversion)
     + [5.8.1. GPT-3 Conversion](#581-gpt-3-conversion)
@@ -185,6 +194,9 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
     + [7.3.1. Training Accuracy Results](#731-training-accuracy-results)
     + [7.3.2. Training Performance Results](#732-training-performance-results)
     + [7.3.3. Inference Performance](#733-inference-performance)
+  * [7.4. BERT Results](#74-bert-results)
+    + [7.4.1. Training Accuracy Results](#741-training-accuracy-results)
+    + [7.4.2. Training Performance Results](#742-training-performance-results)
 - [8. Changelog](#8-changelog)
 - [9. Known Issues](#9-known-issues)
 
@@ -195,7 +207,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
 <a id="markdown-model-overview" name="model-overview"></a>
 
 NeMo Megatron is a new version in the NeMo framework that allows developers to effectively train and scale language
-models to billions of parameters. With NeMo Megatron, you can train different variants of GPT-3 and T5 style models,
+models to billions of parameters. With NeMo Megatron, you can train different variants of GPT-3, Bert and T5 style models,
 and scale them to multiple nodes on NVIDIA DGX SuperPOD deployments. This deep learning (DL) software stack is optimized for DGX
 SuperPOD configurations using NVIDIA InfiniBand technology to provide efficient on-premises compute for training
 and inferring complex workloads.
@@ -274,9 +286,34 @@ Figure 1: The GPT-3 family architecture. The 5B variant includes 24 transformer 
 | NVfuser                          | No                                                       |    N/A    |
 | P-Tuning and Prompt Tuning                | Yes             | N/A                                                                                                                                                                  |
 | IA3 and Adapter learning                | Yes             | N/A                                                                                                                                                                  |
-| AutoConfigurator                         | Yes                                                       |    N/A    |
-| Distributed Optimizer   | Yes             | N/A      
+| AutoConfigurator                          | Yes                                                       |    N/A    |
+| Distributed Optimizer   | Yes             | N/A      |
+| Mixture of Experts   | Yes (no expert parallelism)            | N/A      |
 
+### 2.3. BERT Models
+<a id="markdown-bert-models" name="bert-models"></a>
+
+| Feature                                                 | Training                             | Inference                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Data parallelism                | Yes                    | N/A                                                                                                                                                                  |
+| Tensor parallelism              | Yes                    | N/A                                                                                                                                                               |
+| Pipeline parallelism            | Yes                     | N/A                                                                                                                           |
+| Sequence parallelism            | Yes                     | N/A                                                                                                                        |
+| Selective activation checkpointing | Yes                     | N/A                                                                                                                        |
+| Gradient checkpointing          | Yes                    | N/A                                                                                                                                                                  |
+| Partial gradient checkpointing  | Yes                    | N/A                                                                                                                                                                  |
+| FP32/TF32                       | Yes                    | N/A                                                                                                                                      |
+| AMP/FP16                        | No | N/A                                                                                                                                                               |
+| BF16                            | Yes  | N/A                                                                                                                                                                |
+| Multi-GPU                       | Yes                    | N/A                                                                                                                                                                |
+| Multi-Node                      | Yes                    | N/A                                                                                                                                                                |
+| Inference deployment            | N/A                    | N/A  |
+| SW stack support                | Slurm DeepOps/Base Command Manager/Base Command Platform          |N/A                                                                                                                                                     |
+| Distributed data preprocessing | Yes (the Pile only)       | N/A                                                                                                                                                                  |
+| NVfuser                         | Yes             | N/A                                                                                                                                                                  |
+| P-Tuning and Prompt Tuning                | N/A             | N/A                                                                                                                                                                  |
+| IA3 and Adapter learning                | N/A             | N/A                                                                                                                                                                  |
+| Distributed Optimizer              | Yes             | N/A                                                                                                                                                                  |
 
 ## 3. Setup
 <a id="markdown-setup" name="setup"></a>
@@ -312,7 +349,7 @@ Figure 1: The GPT-3 family architecture. The 5B variant includes 24 transformer 
 #### 4.1.1. Common
 <a id="markdown-common" name="common"></a>
 
-To set up a Slurm cluster for Nemo Megatron, we recommend using [Nephele](https://github.com/nvidia/nephele). This cluster deployment tool has been tested on Azure, AWS, and Oracle Cloud.
+To set up a Slurm cluster for NeMo Megatron, we recommend using [Nephele](https://github.com/nvidia/nephele). This cluster deployment tool has been tested on Azure, AWS, and Oracle Cloud.
 We recommend hosting Nephele on a new VM instance in the CSP of your choice. To get started:
 - Clone the Nephele repo
 - Install the dependencies
@@ -322,7 +359,7 @@ We recommend hosting Nephele on a new VM instance in the CSP of your choice. To 
 
 You can then run `./nephele init` and `./nephele create`.
 
-We also recommend mounting an external persistent NFS once the cluster is up and running (ensure it is mounted on all nodes) and using this to configure and run Nemo Megatron.
+We also recommend mounting an external persistent NFS once the cluster is up and running (ensure it is mounted on all nodes) and using this to configure and run NeMo Megatron.
 
 The above steps apply to all CSPs, including Azure, AWS, and OCI.
 Some modifications are necessary for OCI and AWS and are detailed below.
@@ -341,7 +378,7 @@ We recommend building a new container image with Docker, then creating an Enroot
 On the scheduler node:
 
 - Install Docker
-- Build the image with EFA drivers and NCCL plugin from `csp_tools/aws/Dockerfile`
+- Build the image with EFA drivers and NCCL plugin from `csp/aws/Dockerfile`
 - Run this command on the Docker image to create an Enroot image:
 ```
     enroot import --output nemo_megatron_training.sqsh dockerd://<image name>:<tag>
@@ -423,7 +460,7 @@ The NCCL topology file is unique for each CSP, and can be found in their corresp
 In `launcher_scripts/conf/config.yaml`, mount the directory containing the topology file:
 ```
 container_mounts:
-  - /path/to/nemo_megatron_launcher/csp_tools/<csp>/:/nccl
+  - /path/to/nemo_megatron_laujncher/csp_tools/<csp>/:/nccl
 ```
 
 Then set the path of the file in the container:
@@ -655,6 +692,18 @@ stages:
   - prompt_learning
   - evaluation
   - export
+```
+
+**Settings for Bert Models**: Default settings for T5 models are in the `config/config.yaml` file:
+```yaml
+# default values:
+cluster: bcm  # Leave it as bcm even if using bcp. It will be ignored for bcp.
+data_preparation: bert/download_bert_pile
+training: bert/4b
+
+stages:
+  - data_preparation
+  - training
 ```
 
 To run these pipelines execute:
@@ -991,6 +1040,97 @@ preprocess_worker_mapping: ${.mc4_dir}/preprocess_mapping
 rm_downloaded: False # Script will not remove downloaded after preprocessing
 ```
 
+##### 5.1.2.4. Data Preparation for BERT Models
+<a id="markdown-data-preparation-for-bert-model" name="data-preparation-for-bert-model"></a>
+The `data_preparation` parameter in `conf/config.yaml` specifies which file to use for data preparation
+configuration purposes. The default value is set to `download_bert_pile`, which can be
+found in `conf/data_preparation/download_bert_pile.yaml`. It is used to download, extract,
+and preprocess the Pile dataset for BERT model. The parameters can be
+modified to perform the different tasks and to decide where to store the
+datasets, vocab etc.
+
+To download a reduced portion of the dataset to run tests, the 
+`file_numbers` parameter can be updated to download only one of the 
+shards by changing “0-29” to “0” (the syntax must be a combination of
+numbers separated by dashes "-" or commas ",") For example, 
+`file_numbers`="0,3,5-7" will download and prepare 
+files 0, 3, 5, 6, and 7.
+
+###### 5.1.2.4.1. Slurm
+<a id="markdown-51241-slurm" name="51241-slurm"></a>
+
+First, ensure the cluster related configuration in the `conf/cluster/bcm.yaml` file is correct.
+The `cluster` and `cluster_type` parameters in `conf/config.yaml` must be set to `bcm`.
+Then, modify the `time_limit` or any other parameter related to the job in the `download_bert_pile.yaml`
+file for BERT models.
+The data preparation can be parallelized by using up to 30 nodes to download all 30 files in parallel.
+
+Example:
+
+To run only the data preparation pipeline and not the training, evaluation or
+inference pipelines, set the `conf/config.yaml` file to:
+```yaml
+stages:
+  - data_preparation
+```
+
+And then run:
+```
+python3 main.py
+```
+
+###### 5.1.2.4.2. Base Command Platform
+<a id="markdown-51242-base-command-platform" name="51242-base-command-platform"></a>
+
+In order to run the data preparation script on Base Command Platform, set the
+`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
+from the command line, using hydra. 
+By default, the data preparation script will download the data into the `data/` directory.
+We recommend that the `data_dir` parameter is set to a workspace, so that the data 
+is visible across multiple jobs later on. The vocab and merge files should also be 
+stored to the same workspace as the dataset, for later usage. The data preparation code 
+must be launched in a multi-node job. It can be parallelized to use between 2 and 30 nodes for faster preparation of the dataset.
+
+With Base Command Platform, the 700+ GB dataset can be downloaded once and then
+shared by multiple users in the same ACE by setting appropriate permissions of the `nemo_megatron_data_ws` the workspace.
+
+To run the data preparation pipeline for Bert models, run:
+```
+python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[data_preparation] \
+cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_bert \
+base_results_dir=/mount/results data_preparation.file_numbers='0-29' \
+data_preparation.vocab_save_dir=/mount/data/bpe data_preparation.merges_save_dir=/mount/data/bpe >> /results/data_bert_log.txt 2>&1
+```
+
+The command above assumes you want to prepare the entire dataset (files 0-29), and you mounted the data 
+workspace in `/mount/data`, and the results workspace in `/mount/results`. Stdout and stderr are redirected to the `/results/data_bert_log.txt` file, so it can be downloaded from NGC. 
+Any other parameter can also be added to the command to modify its behavior.
+
+###### 5.1.2.1.3. Common
+<a id="markdown-51243-common" name="51243-common"></a>
+
+Set the configuration for the data preparation job for BERT models in the YAML file:
+```yaml
+run:
+  name: download_bert_pile
+  results_dir: ${base_results_dir}/${.name}
+  time_limit: "4:00:00"
+  dependency: "singleton"
+  node_array_size: 30
+  array: ${..file_numbers}
+  bcp_preproc_npernode: 2 # 2 should be safe to use and x2 times faster.
+
+dataset: pile
+download_the_pile: True  # Whether to download the pile dataset from the internet.
+the_pile_url: "https://mystic.the-eye.eu/public/AI/pile/train/"  # Source URL to download The Pile dataset from.
+file_numbers: "0-29"  # The pile dataset consists of 30 files (0-29), choose which ones to download.
+preprocess_data: True  # True to preprocess the data from a jsonl file, False otherwise.
+download_vocab_url: "https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-cased-vocab.txt"  # URL to download the vocab from.
+vocab_save_dir: ${data_dir}/bpe
+tokenizer_type: BertWordPieceLowerCase
+rm_downloaded: True # Extract script will remove downloaded zst after extraction
+rm_extracted: True # Preprocess script will remove extracted files after preproc.
+```
 
 ### 5.2. Training with Predefined Configurations
 <a id="markdown-training-with-predefined-configurations" name="training-with-predefined-configurations"></a>
@@ -1504,6 +1644,143 @@ exp_manager:
 The logs show the reduced_train_loss, val_loss, train_step_timing (which is the best way 
 to measure the time it takes to finish each global step), and other relevant metrics.
 
+#### 5.2.5. Predefined Configurations of BERT Models
+<a id="markdown-predefined-configurations-of-bert-models" name="predefined-configurations-of-bert-models"></a>
+
+We provide configuration files for four BERT model sizes: 110M, 4B, 20B, 
+and 100B parameters. These configurations include carefully selected
+hyperparameters, which should be used as guidelines for any custom model
+configurations. The configuration files are provided in the `conf/training/bert`
+directory. The desired configuration can be chosen by selecting the training
+ parameter in the `conf/config.yaml` file.
+For Base Command Platform, all jobs must be launched in multi-node mode.
+
+**110M configuration:**
+
+The 110M model uses the bf16 data type. The model includes 12 transformer layers, a hidden size of 768, 
+a feedforward network size of 3072 and 12 attention heads with GeGLU activation function. The sequence length is 512,
+and the optimizer is Distributed Adam. This model does not use any model parallelism. See the `bert/110m.yaml` config file for parameter details.
+
+To train a 110M model on a Slurm cluster, modify the `conf/config.yaml` file to set:
+```yaml
+training: bert/110m
+stages:
+  - training
+```
+
+And run:
+```
+python3 main.py
+```
+
+To train a 110M model on Base Command Platform cluster on 4 nodes, use the command:
+```
+python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=bert/110m \
+stages=[training] \
+launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
+base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
+training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.txt cluster_type=bcp
+```
+The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
+directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas). 
+
+To train with a different number of nodes, the relevant parameters 
+(e.g. `micro_batch_size`) can be adjusted either in the appropriate yaml config file or 
+from the command line. More on this in [section 5.7](#57-resuming-training-from-fewer-nodes). 
+For Base Command Platform, all jobs must be launched in multi-node mode.
+
+**4B configuration:**
+
+The 4B model uses the bf16 data type. The model includes 48 transformer layers, a hidden size of 2560, 
+a feedforward network size of 10240, and 40 attention heads  with GeGLU activation function. The
+sequence length is 512, and the optimizer is Distributed Adam. For the details on all the parameters, see the `bert/4b.yaml`
+config file.
+
+To train a 4B model, modify the `conf/config.yaml` file to set:
+```yaml
+training: bert/4b
+stages:
+  - training
+```
+
+And run:
+```
+python3 main.py
+```
+
+To train a 4B model on Base Command Platform cluster on 20 nodes, use the command:
+```
+python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=bert/4b \
+stages=[training] \
+launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
+base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
+training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.txt cluster_type=bcp
+```
+The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
+directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas).
+
+
+**20B configuration:**
+
+The 20B model uses the bf16 data type. The model includes 48 transformer layers, a hidden size of 6144, 
+a feedforward network size of 24576, and 96 attention heads  with GeGLU activation function. The
+sequence length is 512, and the optimizer is Distributed Adam. For the details on all the parameters, see the `bert/20b.yaml`
+config file.
+
+To train a 20B model, modify the `conf/config.yaml` file to set:
+```yaml
+training: bert/20b
+stages:
+  - training
+```
+
+And run:
+```
+python3 main.py
+```
+
+To train a 20B model on Base Command Platform cluster on 20 nodes, use the command:
+```
+python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=bert/20b \
+stages=[training] \
+launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
+base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
+training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.txt cluster_type=bcp
+```
+The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
+directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas).
+
+**100B configuration:**
+
+The 100B model uses the bf16 data type. The model includes 96 transformer layers, a hidden size of 9216, 
+a feedforward network size of 36864, and 96 attention heads  with GeGLU activation function. The
+sequence length is 512, and the optimizer is Distributed Adam. For the details on all the parameters, see the `bert/100b.yaml`
+config file.
+
+To train a 100B model, modify the `conf/config.yaml` file to set:
+```yaml
+training: bert/100b
+stages:
+  - training
+```
+
+And run:
+```
+python3 main.py
+```
+
+To train a 100B model on Base Command Platform cluster on 20 nodes, use the command:
+```
+python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=bert/100b \
+stages=[training] \
+launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
+base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
+training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.txt cluster_type=bcp
+```
+The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
+directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas).
+
+
 ### 5.3. Using AutoConfigurator to Find the Optimal Configuration
 <a id="markdown-using-autoconfigurator-to-find-the-optimal-configuration" name="using-autoconfigurator-to-find-the-optimal-configuration"></a>
 AutoConfigurator searches for the Hyper-Parameters (HPs) that achieve the highest throughput for training and inference for
@@ -1515,24 +1792,25 @@ Note: The inference HP search is only available for GPT-3 models.
 <a id="markdown-autoconfigurator-capabilities" name="autoconfigurator-capabilities"></a>
 
 AutoConfigurator is intended to quickly iterate over different model configurations, 
-to find the best configuration with minimal time and money spending. To achieve that, 
-AutoConfigurator provides several different capabilities, as shown in the table below:
+to find the best configuration with minimal time and money spending. To achieve that, AutoConfigurator provides several different capabilities, as shown in the table below:
 
-| Feature                              | GPT-3    | T5       | mT5      |
-| ------------------------------------ | -------- | -------- | -------- |
-| Model Size Recommendation            | Yes      | Yes      | Yes      |
-| Base Config Generation               | Yes      | Yes      | Yes      |
-| Training HP Search                   | Yes      | Yes      | Yes      |
-| Inference HP Search                  | BCM Only | No       | No       |
-| Slurm Based Clusters                 | Yes      | Yes      | Yes      |
-| Base Command Platform Based Clusters | Yes      | Yes      | Yes      |
+| Feature                              | GPT-3    | T5       | mT5      | Bert     |
+| ------------------------------------ | -------- | -------- | -------- | -------- |
+| Model Size Recommendation            | Yes      | Yes      | Yes      | Yes      |
+| Base Config Generation               | Yes      | Yes      | Yes      | Yes      |
+| Training HP Search                   | Yes      | Yes      | Yes      | Yes      |
+| Parallel Training HP Search          | BCM Only | BCM Only | BCM Only | BCM Only |
+| Inference HP Search                  | BCM Only | No       | No       | No       |
+| Parallel Inference HP Search         | BCM Only | No       | No       | No       |
+| Slurm Based Clusters                 | Yes      | Yes      | Yes      | Yes      |
+| Base Command Platform Based Clusters | Yes      | Yes      | Yes      | Yes      |
 
 ##### 5.3.1.1. Model Size Recommendation
 <a id="markdown-model-size-recommendation" name="model-size-recommendation"></a>
 
 For users who do not know what model size they wish to train, AutoConfigurator is capable of recommending 
 a model size, given the hardware and training constraints. If the number of GPUs, the TFLOPS per GPU, 
-the maximum time to train, and the number of tokens to train for are known, then it can 
+the maximum time to train, and the number of tokens to train for are known, then it tool can 
 recommend a model size that can be trained with the specified hardware and time constraints.
 
 For example, if the user has 20 NVIDIA DGX nodes available (80GB GPU memory), and wants to train a 
@@ -1600,7 +1878,7 @@ First, our configuration setup assumes that the `/opt/NeMo-Megatron-Launcher/aut
 and `/opt/FasterTransformer` directories have been copied from the container to the local file system.
 
 The first parameter that must be set is the `auto_configurator_path` parameter inside the `conf/config.yaml` 
-file. This parameter must point to the absolute path where the `auto_configurator` directory is stored in 
+file. This parameter must point to the absolute path where the `auto_configurator` directory is stored in  
 the file system. Additionally, if using a Slurm-based cluster, the config file in the 
 `conf/cluster/bcm.yaml` subfolder has the parameters to set the generic cluster related information, 
 such as the `partition` or `account` parameters.
@@ -1638,11 +1916,9 @@ launcher_scripts_path: ${auto_configurator_path}/../launcher_scripts
 fastertransformer_path: ${auto_configurator_path}/../FasterTransformer
 base_results_dir: ${auto_configurator_path}/results
 data_dir: ${launcher_scripts_path}/data
-
 training_container: nvcr.io/ea-bignlp/bignlp-training:22.11-py3
 container_mounts:
     - null
-
 wandb:  # Weights and Biases (W&B) logging.
   enable: False  # Whether to save logs to W&B.
   api_key_file: null # Path to the file where the w&B api key is stored. Key must be on the first line.
@@ -1654,7 +1930,7 @@ wandb:  # Weights and Biases (W&B) logging.
 
 In Base Command Platform, the dataset, vocabulary, and merge files used for the training HP search must be available as a 
 dataset and mounted accordingly. This guide assumes the dataset will be mounted to `/mount/data`. 
-The results of running AutoConfigurator will be stored in `/mount/results/auto_configurator`, so we recommend to mount a workspace 
+The results of running the AutoConfigurator will be stored in `/mount/results/auto_configurator`, so we recommend to mount a workspace 
 to `/mount/results`.
 
 The main configuration file can be found in `conf/config.yaml`. All the parameters can be overridden from the 
@@ -1788,8 +2064,8 @@ using the `search_config` parameter in `conf/config.yaml`. For example, by defau
 will be set to `gpt3/5b`, so AutoConfigurator will search the optimal training HPs for a 5B parameter GPT-3 
 model. The configuration for this model can be found in the `conf/search_config/gpt3/5b.yaml` file. 
 To configure the behavior of the HP search, the following parameters can be modified in the 
-correspoinding YAML file. To run the training AutoConfigurator HP search after all the parameters are set, 
-you should call `python3 main.py`.
+correspoinding YAML file. To run the training AutoConfigurator HP search after all the parameters are set, you should call 
+`python3 main.py`.
 
 ####### 5.3.2.2.3.2. Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
@@ -1845,7 +2121,7 @@ correspoinding YAML file.
 The HP Tool is capable of recommending a model size, based on your hardware and training time 
 constraints. For instance, if you want to train a GPT-3 model, but don't know what model size is 
 appropriate, you can input the number of nodes (and GPUs per node) available in your cluster, 
-the amount of time you want to spend training the model, and AutoConfigurator will recommend a model size 
+the amount of time you want to spend training the model, and AutoConfigurator will recommend a model size
 that can be trained in that time with your hardware. To see an example of this, you can look at 
 the `conf/search_config/gpt3/unknown_size.yaml` file. In this file, the `model_size_in_b` 
 parameter is set to null. This is how you can tell it to recommend a model size to you. 
@@ -1890,7 +2166,7 @@ config with the lowest training time. This is the recommended model for training
 For the inference HP search, the results can be found inside the directory specified in the
 `results_dir` parameter of the YAML config file. Inside that directory, you will find:
 .../inference/final_summary/final_output.csv.
-This csv file will have the results of every model that was run by the inference AutoConfigurato HP search.
+This csv file will have the results of every model that was run by the AutoConfigurator HP search.
 
 Notes: 
  - The result of the Training HP Search will vary when it is run with different numbers of nodes. 
@@ -2010,7 +2286,8 @@ nodes which is equal to the number of custom dataset files for faster preparatio
 To run the data preparation pipeline, run:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[data_preparation] \
-cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data \
+cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts
+data_dir=/mount/data \
 base_results_dir=/mount/results data_preparation=custom_dataset \
 dataprepartion.train_tokenizer_args.inp=/path/to/text/file/for/training/tokenizer \
 datapreparation.raw_dataset_files=[/path/to/custom_data_files] \
@@ -2233,6 +2510,62 @@ python3 main.py
 ```
 
 ##### 5.6.3.2. Base Command Platform
+<a id="markdown-base-command-platform" name="base-command-platform"></a>
+
+Select the cluster related configuration following the NGC documentation. 
+Then, use the python3 main.py command to launch the job and override the 
+desired parameters from the training job parameters.
+
+
+#### 5.6.4. BERT Training
+<a id="markdown-bert-training" name="bert-training"></a>
+The configuration used for the training pipeline must be specified in the
+`conf/config.yaml` file, specifying the training parameter, specifying which file
+to use for training purposes. The `training` must be included in `stages` to
+run the training pipeline. The `training` parameter needs to be set to `bert/(model_size)`
+for T5 models. For example, one can use `bert/110m` which can be found
+in `conf/training/bert/110m.yaml`. The parameters can be modified to adjust the
+hyperparameters of the training runs. All supported model types and sizes can be found
+in `conf/training` folder.
+
+##### 5.6.4.1. Slurm
+<a id="markdown-slurm" name="slurm"></a>
+
+Set configuration for your Slurm cluster in the `conf/cluster/bcm.yaml` file:
+
+```yaml
+partition: null
+account: null
+exclusive: True
+gpus_per_task: null
+gpus_per_node: 8
+mem: 0
+overcommit: False
+job_name_prefix: "nemo-megatron-"
+```
+
+And set the training job specific parameters in the `conf/training/(model_type)/(model_size).yaml` file, 
+using the run section:
+```yaml
+run:
+    name: bert_110m
+    results_dir: ${base_results_dir}/${.name}
+    time_limit: "7-00:00:00"
+    dependency: "singleton"
+```
+
+To run only the training pipeline and not the data preparation, evaluation or
+inference pipelines, set the `conf/config.yaml` file to:
+```yaml
+stages:
+  - training
+```
+And then run:
+```
+python3 main.py
+```
+
+##### 5.6.4.2. Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 
 Select the cluster related configuration following the NGC documentation. 
@@ -2539,7 +2872,8 @@ To run the conversion pipeline to convert a mT5 390M checkpoint stored in
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py conversion=convert_mt5 \
 stages=[conversion] \
-cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data \
+cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts 
+data_dir=/mount/data \
 conversion.run.model_train_name=mt5_390m \
 base_results_dir=/mount/results conversion.run.results_dir=/mount/results/mt5_390m/results/convert_nemo \
 conversion.model.checkpoint_folder=/mount/results/mt5_390m/checkpoints \
@@ -2952,7 +3286,7 @@ To run the prompt learning pipeline to prompt-learn a 220M T5 model converted ch
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py prompt_learning=t5/squad \
 stages=[prompt_learning] cluster_type=bcp \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data base_results_dir=/mount/results \
+launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts  data_dir=/mount/data base_results_dir=/mount/results \
 prompt_learning.run.model_train_name=t5_220m \
 prompt_learning.model.language_model_path=/mount/results/t5_220m/convert_nemo/results/megatron_t5.nemo \
 >> /results/prompt_learning_t5_log.txt 2>&1
@@ -3080,7 +3414,7 @@ To run the adapter learning pipeline to adapter-learn a 5B GPT-3 model converted
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py adapter_learning=gpt3/squad \
 stages=[adapter_learning] cluster_type=bcp \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data base_results_dir=/mount/results \
+launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts  data_dir=/mount/data base_results_dir=/mount/results \
 adapter_learning.run.model_train_name=gpt3_5b \
 adapter_learning.model.language_model_path=/mount/results/gpt3_5b/convert_nemo/results/megatron_gpt.nemo \
 >> /results/adapter_learning_gpt3_log.txt 2>&1
@@ -3405,7 +3739,7 @@ on `squad` task and checkpoint stored in `/mount/results/t5_220m/squad/results/c
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py evaluation=t5/squad \
 stages=[evaluation] \
- cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data \
+ cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts  data_dir=/mount/data \
 base_results_dir=/mount/results evaluation.run.model_train_name=t5_220m \
 evaluation.model.restore_from_path=/mount/results/t5_220m/squad/results/checkpoints/megatron_t5_glue.nemo \
 >> /results/eval_t5_log.txt 2>&1
@@ -4742,9 +5076,62 @@ Inference parameters:
 | 11B            |                  134 |  4 |  1 |    4 |
 | 23B            |                  230 |  4 |  1 |    4 |
 
+### 7.4. BERT Results
+<a id="markdown-bert-results" name="bert-results"></a>
+
+#### 7.4.1. Training Accuracy Results
+Training Accuracy: NVIDIA DGX SuperPOD (16 x 8 x A100 80GB for 4b Bert Model)
+
+Training the 4B BERT model for 95 Billion takes 1.5 days, and the loss curve can be seen in the figure below:
+
+<img src="img/4b_bert_loss_final.png"/>
+
+The table below shows the converged training loss, the throughput, and the
+total time to train for the 4B BERT model, using a given number of GPUs and a
+given Global Batch Size (GBS).
+
+| \#GPUs | GBS    | Seq Length | \#Tokens | Loss  | Throughput (Tokens/sec) | Time to Train (days) |
+|--------|------|------------|----------|-------|-------------------------|----------------------|
+| 16         | 2048 | 512                | 217B             | 1.44 | 728178               | 1.5                                        |
+
+
+#### 7.4.2. Training Performance Results
+<a id="markdown-training-performance-results" name="training-performance-results"></a>
+Training Performance: NVIDIA DGX SuperPOD (20 x 8 x A100 80GB for 4B BERT Model)
+
+We measured the throughput of training a 4B parameter BERT model on NVIDIA DGX
+SuperPOD using a different number of nodes. When scaling from 1 node to 16 nodes, we achieve 12.71x
+speed-up. 
+The table and chart below show the performance results.
+
+
+|         |                                    |        |         |         | Nodes   |         |
+|---------|------------------------------------|--------|---------|---------|---------|---------|
+|         |                                    | 1      | 2       | 4       | 8       | 16      | 
+|         | Tokens per Second                  | 57287  | 108695  | 215358  | 393167  | 728178  | 
+| 4B      | Perfect Linear Scaling (Tokens)    | 57287  | 114574  | 229148  | 458296  | 916592  | 
+|         | Speed-up                           | 1x     | 1.89x   | 3.75x    | 6.86x   | 12.71x   | 
+
+
+<img src="img/4B_bert_throughput_2211.png"/>
+
+
 
 ## 8. Changelog
 <a id="markdown-changelog" name="changelog"></a>
+
+**NeMo Megatron 23.01**
+* BERT with tensor parallelism support (training only)
+* BERT with pipeline parallelism support (training only)
+* Sequence Parallelism and Selective Activation Checkpointing for BERT (training only)
+* Interleaved Pipeline Scheduling for BERT
+* Distributed Adam Optimizer for BERT
+* AugoConfigurator for BERT
+* 110M, 4B, 20B, and 100B BERT training configurations
+* Support for the Mixture of Experts for T5 (no expert parallelism, training only)
+* Performance improvement for GPT-3 P-Tuning (20% - 25% speed-up)
+* ALiBi Position Embeddings for T5 and mT5 (training only)
+* Log total model size (across modal parallel ranks) for GPT-3, T5, mT5, and BERT
 
 **NeMo Megatron 22.11**
 * Interleaved Pipeline Scheduling for GPT-3 (training only)
