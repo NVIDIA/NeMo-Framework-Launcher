@@ -2058,6 +2058,10 @@ preprocess_worker_mapping: ${.custom_dataset_dir}/preprocess_mapping
 preprocessed_dir: ${.custom_dataset_dir}/preprocessed
 ```
 
+*Note*: depending on the dataset and system, it's possible that system memory gets OOM with very large dataset shard files. The solution
+to this issue is to reduce dataset shard sizes. If you see similar issue,
+please consider breaking up json, jsonl or json.gz files into smaller chunks before running preprocessing. 
+
 
 ### 5.6. Model Training
 <a id="markdown-model-training" name="model-training"></a>
