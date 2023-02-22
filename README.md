@@ -378,7 +378,7 @@ We recommend building a new container image with Docker, then creating an Enroot
 On the scheduler node:
 
 - Install Docker
-- Build the image with EFA drivers and NCCL plugin from `csp/aws/Dockerfile`
+- Build the image with EFA drivers and NCCL plugin from `csp_tools/aws/Dockerfile`
 - Run this command on the Docker image to create an Enroot image:
 ```
     enroot import --output nemo_megatron_training.sqsh dockerd://<image name>:<tag>
