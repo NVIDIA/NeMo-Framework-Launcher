@@ -401,6 +401,7 @@ def generate_base_config(
     max_training_days: float,
     num_tokens_in_b: int,
     vocab_size: int,
+    seq_length: int,
     model_name: str,
     cfg: omegaconf.dictconfig.DictConfig,
 ):
@@ -433,7 +434,6 @@ def generate_base_config(
     # TRAINER
     base_cfg["trainer"]["num_nodes"] = nodes
     base_cfg["trainer"]["precision"] = "bf16"
-    seq_length = base_cfg["model"]["data"]["seq_length"]
     base_cfg["trainer"]["max_steps"] = int((num_tokens_in_b * 1e9) / (seq_length * gbs))
     if int_hours == 0:
         int_days -= 1
@@ -459,6 +459,9 @@ def generate_base_config(
         base_cfg["model"]["global_batch_size"] = int(gbs)
         base_cfg["model"]["hidden_size"] = int(hs)
         base_cfg["model"]["num_attention_heads"] = int(att_h)
+        base_cfg["model"]["encoder_seq_length"] = seq_length
+        base_cfg["model"]["max_position_embeddings"] = seq_length
+        base_cfg["model"]["data"]["seq_length"] = seq_length
         if ffn is not None:
             base_cfg["model"]["ffn_hidden_size"] = int(ffn)
         if kv is not None:
