@@ -1,0 +1,38 @@
+run:
+  name: download_multimodal
+  results_dir: ${base_results_dir}/${.name}
+  time_limit: "4:00:00"
+  dependency: "singleton"
+  max_simultaneous_jobs: 10
+  bcp_preproc_npernode: 2  # 2 should be safe to use and x2 times faster.
+
+dataset_repo_id: laion/laion-art  # huggingface dataset repo id
+# e.g. # laion/laion2B-en-aesthetic  kakaobrain/coyo-700m, ChristophSchuhmann/improved_aesthetics_5plus
+download_parquet_dir: ${data_dir}/laion--laion-art/parquet
+download_images_dir: ${data_dir}/laion--laion-art/tarfiles
+reorganize_tar_dir: ${data_dir}/laion--laion-art/tarfiles_reorganized
+
+
+download_parquet: False
+parquet_subpartitions: 3  # the more partitions, the shorter each job is
+parquet_pattern: "*.parquet"
+num_parquets_downloaded: 1  # manually specify the number of parquet files in huggingface repo.
+# Only used if download_images is launched before download_parquet finishes. Otherwise script will
+# automatically count the number of parquet files downloaded.
+# Note that download_images_node_array_size == parquet_subpartitions x num_parquets_downloaded
+download_images: False
+download_num_processes: -1  # set to number of CPUs in the job (-1 defaults to slurm cpus_per_task)
+download_num_threads: 128  # tune by monitoring CPU usage
+img2dataset_additional_arguments:
+  encode_quality: 95  # jpeg compression quality (100 is best, but still lossy)
+  resize_mode: no
+  skip_reencode: True
+
+reorganize_tar: True
+reorganize_tar_node_array_size: 2
+tar_chunk_size: 1000
+file_ext_in_tar:
+  - .jpg
+  - .txt
+
+precache_encodings: False

@@ -330,7 +330,7 @@ class NemoMegatronStage:
         return ""
 
     @functools.lru_cache()
-    def get_job_path(self, sub_stage: Optional = None) -> JobPaths:
+    def get_job_path(self, sub_stage: Optional[str] = None) -> JobPaths:
         """Fetch a JobPaths object for current stage"""
         run_cfg = self.stage_cfg.get("run")
         results_dir = Path(run_cfg.get("results_dir"))  # TODO: rename this to job dir in config
@@ -973,7 +973,17 @@ def create_args_list(hydra: bool = False, replace_underscore: bool = True, **kwa
     args = []
     for k, v in kwargs.items():
         if hydra:
-            args.append(f"{k}={v}")
+            if isinstance(v, dict) or isinstance(v, omegaconf.dictconfig.DictConfig):
+                # remove quotes around keys if the argument is a dict
+                # (https://hydra.cc/docs/advanced/override_grammar/basic/)
+                # For example, dict {"a":10, "b":20} will become string "'{a:10,b:20}'"
+                data = ','.join(f"{kk}:{vv}" for kk, vv in v.items())
+                args.append(f"'{k}={{{data}}}'")
+            elif isinstance(v, list) or isinstance(v, omegaconf.listconfig.ListConfig):
+                data = ','.join(v)
+                args.append(f"'{k}=[{data}]'")
+            else:
+                args.append(f"{k}={v}")
         else:
             # use "store_true" to add keys only args
             if replace_underscore:
