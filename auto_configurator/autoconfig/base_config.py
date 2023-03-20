@@ -145,7 +145,7 @@ def _estimate_training_time(
     return None
 
 
-def _calculate_gbs_tp_pp(model_size_in_b: float, gpu_memory_gb: int = 80, model_name: str = "gpt3",) -> Tuple[int]:
+def _calculate_gbs_tp_pp(model_size_in_b: float, gpu_memory_gb: int = 80, model_name: str = "gpt3", seq_length: int) -> Tuple[int]:
     """
     Calculates Global Batch Size (GBS), Tensor Parallelism (TP), and Pipeline
     Parallelism (PP) values, given a model size and model name.
@@ -161,25 +161,25 @@ def _calculate_gbs_tp_pp(model_size_in_b: float, gpu_memory_gb: int = 80, model_
     """
     if model_name == "gpt3":
         if gpu_memory_gb == 80:
-            return _gbs_tp_pp_gpt3_80gb(model_size_in_b=model_size_in_b)
+            return _gbs_tp_pp_gpt3_80gb(model_size_in_b=model_size_in_b, seq_length=seq_length)
         elif gpu_memory_gb == 40:
-            return _gbs_tp_pp_gpt3_40gb(model_size_in_b=model_size_in_b)
+            return _gbs_tp_pp_gpt3_40gb(model_size_in_b=model_size_in_b, seq_length=seq_length)
     elif model_name in ["t5", "mt5"]:
         if gpu_memory_gb == 80:
-            return _gbs_tp_pp_t5_80gb(model_size_in_b=model_size_in_b)
+            return _gbs_tp_pp_t5_80gb(model_size_in_b=model_size_in_b, seq_length=seq_length)
         elif gpu_memory_gb == 40:
-            return _gbs_tp_pp_t5_40gb(model_size_in_b=model_size_in_b)
+            return _gbs_tp_pp_t5_40gb(model_size_in_b=model_size_in_b, seq_length=seq_length)
     elif model_name == "bert":
         if gpu_memory_gb == 80:
-            return _gbs_tp_pp_bert_80gb(model_size_in_b=model_size_in_b)
+            return _gbs_tp_pp_bert_80gb(model_size_in_b=model_size_in_b, seq_length=seq_length)
         elif gpu_memory_gb == 40:
-            return _gbs_tp_pp_bert_40gb(model_size_in_b=model_size_in_b)
+            return _gbs_tp_pp_bert_40gb(model_size_in_b=model_size_in_b, seq_length=seq_length)
     else:
         raise NotImplementedError("Only gpt3, t5, mt5 and bert are supported.")
     return None
 
 
-def _gbs_tp_pp_gpt3_80gb(model_size_in_b: float) -> Tuple[int]:
+def _gbs_tp_pp_gpt3_80gb(model_size_in_b: float, seq_length: int) -> Tuple[int]:
     """
     Outputs GBS, TP and PP values for any GPT-3 model size for 80GB GPUs.
     :param float model_size_in_b: the number of parameters in the model.
@@ -190,34 +190,67 @@ def _gbs_tp_pp_gpt3_80gb(model_size_in_b: float) -> Tuple[int]:
         int pp is the Pipeline Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
-    if model_size_in_b <= 1.0:
-        gbs, tp, pp = 256, 1, 1
-    elif model_size_in_b <= 4.0:
-        gbs, tp, pp = 1024, 1, 1
-    elif model_size_in_b <= 8.0:
-        gbs, tp, pp = 2048, 2, 1
-    elif model_size_in_b <= 13.0:
-        gbs, tp, pp = 2048, 4, 1
-    elif model_size_in_b <= 20.6:
-        gbs, tp, pp = 2048, 8, 1
-    elif model_size_in_b <= 45.6:
-        gbs, tp, pp = 2048, 8, 2
-    elif model_size_in_b <= 123.6:
-        gbs, tp, pp = 2048, 8, 4
-    elif model_size_in_b <= 196.6:
-        gbs, tp, pp = 2048, 8, 8
-    elif model_size_in_b <= 392.2:
-        gbs, tp, pp = 2048, 8, 16
-    elif model_size_in_b <= 735:
-        gbs, tp, pp = 2048, 8, 32
-    elif model_size_in_b <= 1100:
-        gbs, tp, pp = 2048, 8, 64
+    if seq_length == 2048:
+        if model_size_in_b <= 1.0:
+            gbs, tp, pp = 256, 1, 1
+        elif model_size_in_b <= 4.0:
+            gbs, tp, pp = 1024, 1, 1
+        elif model_size_in_b <= 8.0:
+            gbs, tp, pp = 2048, 2, 1
+        elif model_size_in_b <= 13.0:
+            gbs, tp, pp = 2048, 4, 1
+        elif model_size_in_b <= 20.6:
+            gbs, tp, pp = 2048, 8, 1
+        elif model_size_in_b <= 45.6:
+            gbs, tp, pp = 2048, 8, 2
+        elif model_size_in_b <= 123.6:
+            gbs, tp, pp = 2048, 8, 4
+        elif model_size_in_b <= 196.6:
+            gbs, tp, pp = 2048, 8, 8
+        elif model_size_in_b <= 392.2:
+            gbs, tp, pp = 2048, 8, 16
+        elif model_size_in_b <= 735:
+            gbs, tp, pp = 2048, 8, 32
+        elif model_size_in_b <= 1100:
+            gbs, tp, pp = 2048, 8, 64
+        else:
+            raise ValueError("No GPT-3 model larger than 1.1T parameters is supported.")
+    elif seq_length == 4096:
+        if model_size_in_b <= 1.0:
+            gbs, tp, pp = 128, 1, 1
+        elif model_size_in_b <= 4.0:
+            gbs, tp, pp = 512, 1, 1
+        elif model_size_in_b <= 8.0:
+            gbs, tp, pp = 1024, 2, 1
+        elif model_size_in_b <= 13.0:
+            gbs, tp, pp = 1024, 4, 1
+        elif model_size_in_b <= 20.6:
+            gbs, tp, pp = 1024, 8, 1
+        elif model_size_in_b <= 45.6:
+            gbs, tp, pp = 1024, 8, 2
+        else:
+            raise ValueError("No GPT-3 model larger than 45.6B parameters is supported with sequnce length 4096.")
+    elif seq_length == 8192:
+        if model_size_in_b <= 1.0:
+            gbs, tp, pp = 64, 1, 1
+        elif model_size_in_b <= 4.0:
+            gbs, tp, pp = 256, 1, 1
+        elif model_size_in_b <= 8.0:
+            gbs, tp, pp = 512, 2, 1
+        elif model_size_in_b <= 13.0:
+            gbs, tp, pp = 512, 4, 1
+        elif model_size_in_b <= 20.6:
+            gbs, tp, pp = 512, 8, 1
+        elif model_size_in_b <= 45.6:
+            gbs, tp, pp = 512, 8, 2
+        else:
+            raise ValueError("No GPT-3 model larger than 45.6B parameters is supported with sequnce length 8192.")
     else:
-        raise ValueError("No GPT-3 model larger than 1.1T parameters is supported.")
+        raise ValueError(f"seq_length = {seq_length} is not supported. Available seq_length list for GPT-3 models: [2048, 4096, 8192]")
     return gbs, tp, pp
 
 
-def _gbs_tp_pp_gpt3_40gb(model_size_in_b: float) -> Tuple[int, int, int]:
+def _gbs_tp_pp_gpt3_40gb(model_size_in_b: float, seq_length: int) -> Tuple[int, int, int]:
     """
     Outputs GBS, TP and PP values for any GPT-3 model size for 40GB GPUs.
     :param float model_size_in_b: the number of parameters in the model.
@@ -228,34 +261,37 @@ def _gbs_tp_pp_gpt3_40gb(model_size_in_b: float) -> Tuple[int, int, int]:
         int pp is the Pipeline Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
-    if model_size_in_b <= 1.0:
-        gbs, tp, pp = 256, 1, 1
-    elif model_size_in_b <= 4.0:
-        gbs, tp, pp = 1024, 4, 1
-    elif model_size_in_b <= 8.0:
-        gbs, tp, pp = 2048, 8, 1
-    elif model_size_in_b <= 13.0:
-        gbs, tp, pp = 2048, 8, 2
-    elif model_size_in_b <= 20.6:
-        gbs, tp, pp = 2048, 8, 4
-    elif model_size_in_b <= 45.6:
-        gbs, tp, pp = 2048, 8, 4
-    elif model_size_in_b <= 123.6:
-        gbs, tp, pp = 2048, 8, 8
-    elif model_size_in_b <= 196.6:
-        gbs, tp, pp = 2048, 8, 16
-    elif model_size_in_b <= 392.2:
-        gbs, tp, pp = 2048, 8, 32
-    elif model_size_in_b <= 735:
-        gbs, tp, pp = 2048, 8, 64
-    elif model_size_in_b <= 1100:
-        gbs, tp, pp = 2048, 8, 128
+    if seq_length == 2048:
+        if model_size_in_b <= 1.0:
+            gbs, tp, pp = 256, 1, 1
+        elif model_size_in_b <= 4.0:
+            gbs, tp, pp = 1024, 4, 1
+        elif model_size_in_b <= 8.0:
+            gbs, tp, pp = 2048, 8, 1
+        elif model_size_in_b <= 13.0:
+            gbs, tp, pp = 2048, 8, 2
+        elif model_size_in_b <= 20.6:
+            gbs, tp, pp = 2048, 8, 4
+        elif model_size_in_b <= 45.6:
+            gbs, tp, pp = 2048, 8, 4
+        elif model_size_in_b <= 123.6:
+            gbs, tp, pp = 2048, 8, 8
+        elif model_size_in_b <= 196.6:
+            gbs, tp, pp = 2048, 8, 16
+        elif model_size_in_b <= 392.2:
+            gbs, tp, pp = 2048, 8, 32
+        elif model_size_in_b <= 735:
+            gbs, tp, pp = 2048, 8, 64
+        elif model_size_in_b <= 1100:
+            gbs, tp, pp = 2048, 8, 128
+        else:
+            raise ValueError("No GPT-3 model larger than 1.1T parameters is supported.")
     else:
-        raise ValueError("No GPT-3 model larger than 1.1T parameters is supported.")
+        raise ValueError("seq_length != 2048 is not supported on 40GB GPU.")
     return gbs, tp, pp
 
 
-def _gbs_tp_pp_t5_80gb(model_size_in_b: float) -> Tuple[int, int, int]:
+def _gbs_tp_pp_t5_80gb(model_size_in_b: float, seq_length: int) -> Tuple[int, int, int]:
     """
     Outputs GBS, TP and PP values for any T5/mT5 model size for 80GB GPUs.
     :param float model_size_in_b: the number of parameters in the model.
@@ -266,30 +302,33 @@ def _gbs_tp_pp_t5_80gb(model_size_in_b: float) -> Tuple[int, int, int]:
         int pp is the Pipeline Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
-    if model_size_in_b <= 1.0:
-        gbs, tp, pp = 2048, 1, 1
-    elif model_size_in_b <= 5.0:
-        gbs, tp, pp = 1920, 2, 1
-    elif model_size_in_b <= 11.5:
-        gbs, tp, pp = 1920, 4, 1
-    elif model_size_in_b <= 18.5:
-        gbs, tp, pp = 1920, 8, 1
-    elif model_size_in_b <= 25.9:
-        gbs, tp, pp = 1920, 8, 2
-    elif model_size_in_b <= 43.0:
-        gbs, tp, pp = 1920, 8, 4
-    elif model_size_in_b <= 85.5:
-        gbs, tp, pp = 1920, 8, 8
-    elif model_size_in_b <= 165.5:
-        gbs, tp, pp = 1920, 8, 16
-    elif model_size_in_b <= 250:
-        gbs, tp, pp = 1920, 8, 32
+    if seq_length == 512:
+        if model_size_in_b <= 1.0:
+            gbs, tp, pp = 2048, 1, 1
+        elif model_size_in_b <= 5.0:
+            gbs, tp, pp = 1920, 2, 1
+        elif model_size_in_b <= 11.5:
+            gbs, tp, pp = 1920, 4, 1
+        elif model_size_in_b <= 18.5:
+            gbs, tp, pp = 1920, 8, 1
+        elif model_size_in_b <= 25.9:
+            gbs, tp, pp = 1920, 8, 2
+        elif model_size_in_b <= 43.0:
+            gbs, tp, pp = 1920, 8, 4
+        elif model_size_in_b <= 85.5:
+            gbs, tp, pp = 1920, 8, 8
+        elif model_size_in_b <= 165.5:
+            gbs, tp, pp = 1920, 8, 16
+        elif model_size_in_b <= 250:
+            gbs, tp, pp = 1920, 8, 32
+        else:
+            raise ValueError("No T5/mT5 model larger than 250B parameters is supported.")
     else:
-        raise ValueError("No T5/mT5 model larger than 250B parameters is supported.")
+        raise ValueError(f"seq_length = {seq_length} is not supported. Available seq_length list for T5 models: [512]")
     return gbs, tp, pp
 
 
-def _gbs_tp_pp_t5_40gb(model_size_in_b: float) -> Tuple[int, int, int]:
+def _gbs_tp_pp_t5_40gb(model_size_in_b: float, seq_length: int) -> Tuple[int, int, int]:
     """
     Outputs GBS, TP and PP values for any T5/mT5 model size for 40GB GPUs.
     :param float model_size_in_b: the number of parameters in the model.
@@ -300,32 +339,35 @@ def _gbs_tp_pp_t5_40gb(model_size_in_b: float) -> Tuple[int, int, int]:
         int pp is the Pipeline Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
-    if model_size_in_b <= 0.5:
-        gbs, tp, pp = 2048, 1, 1
-    if model_size_in_b <= 1.0:
-        gbs, tp, pp = 2048, 2, 1
-    elif model_size_in_b <= 5.0:
-        gbs, tp, pp = 1920, 4, 1
-    elif model_size_in_b <= 11.5:
-        gbs, tp, pp = 1920, 8, 1
-    elif model_size_in_b <= 18.5:
-        gbs, tp, pp = 1920, 8, 2
-    elif model_size_in_b <= 25.9:
-        gbs, tp, pp = 1920, 8, 4
-    elif model_size_in_b <= 43.0:
-        gbs, tp, pp = 1920, 8, 8
-    elif model_size_in_b <= 85.5:
-        gbs, tp, pp = 1920, 8, 16
-    elif model_size_in_b <= 165.5:
-        gbs, tp, pp = 1920, 8, 32
-    elif model_size_in_b <= 250:
-        gbs, tp, pp = 1920, 8, 64
+    if seq_length == 512:
+        if model_size_in_b <= 0.5:
+            gbs, tp, pp = 2048, 1, 1
+        if model_size_in_b <= 1.0:
+            gbs, tp, pp = 2048, 2, 1
+        elif model_size_in_b <= 5.0:
+            gbs, tp, pp = 1920, 4, 1
+        elif model_size_in_b <= 11.5:
+            gbs, tp, pp = 1920, 8, 1
+        elif model_size_in_b <= 18.5:
+            gbs, tp, pp = 1920, 8, 2
+        elif model_size_in_b <= 25.9:
+            gbs, tp, pp = 1920, 8, 4
+        elif model_size_in_b <= 43.0:
+            gbs, tp, pp = 1920, 8, 8
+        elif model_size_in_b <= 85.5:
+            gbs, tp, pp = 1920, 8, 16
+        elif model_size_in_b <= 165.5:
+            gbs, tp, pp = 1920, 8, 32
+        elif model_size_in_b <= 250:
+            gbs, tp, pp = 1920, 8, 64
+        else:
+            raise ValueError("No T5/mT5 model larger than 250B parameters is supported.")
     else:
-        raise ValueError("No T5/mT5 model larger than 250B parameters is supported.")
+        raise ValueError(f"seq_length = {seq_length} is not supported. Available seq_length list for T5 models: [512]")
     return gbs, tp, pp
 
 
-def _gbs_tp_pp_bert_80gb(model_size_in_b: float) -> Tuple[int, int, int]:
+def _gbs_tp_pp_bert_80gb(model_size_in_b: float, seq_length: int) -> Tuple[int, int, int]:
     """
     Outputs GBS, TP and PP values for any BERT model size for 80GB GPUs.
     :param float model_size_in_b: the number of parameters in the model.
@@ -336,30 +378,33 @@ def _gbs_tp_pp_bert_80gb(model_size_in_b: float) -> Tuple[int, int, int]:
         int pp is the Pipeline Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
-    if model_size_in_b <= 1.0:
-        gbs, tp, pp = 256, 1, 1
-    elif model_size_in_b <= 3.2:
-        gbs, tp, pp = 1024, 1, 1
-    elif model_size_in_b <= 8.0:
-        gbs, tp, pp = 2048, 2, 1
-    elif model_size_in_b <= 13.0:
-        gbs, tp, pp = 2048, 4, 1
-    elif model_size_in_b <= 25.5:
-        gbs, tp, pp = 2048, 8, 1
-    elif model_size_in_b <= 46.5:
-        gbs, tp, pp = 2048, 8, 2
-    elif model_size_in_b <= 87.5:
-        gbs, tp, pp = 2048, 8, 4
-    elif model_size_in_b <= 165.5:
-        gbs, tp, pp = 4096, 8, 8
-    elif model_size_in_b <= 250.5:
-        gbs, tp, pp = 2048, 8, 16
+    if seq_length == 512:        
+        if model_size_in_b <= 1.0:
+            gbs, tp, pp = 256, 1, 1
+        elif model_size_in_b <= 3.2:
+            gbs, tp, pp = 1024, 1, 1
+        elif model_size_in_b <= 8.0:
+            gbs, tp, pp = 2048, 2, 1
+        elif model_size_in_b <= 13.0:
+            gbs, tp, pp = 2048, 4, 1
+        elif model_size_in_b <= 25.5:
+            gbs, tp, pp = 2048, 8, 1
+        elif model_size_in_b <= 46.5:
+            gbs, tp, pp = 2048, 8, 2
+        elif model_size_in_b <= 87.5:
+            gbs, tp, pp = 2048, 8, 4
+        elif model_size_in_b <= 165.5:
+            gbs, tp, pp = 4096, 8, 8
+        elif model_size_in_b <= 250.5:
+            gbs, tp, pp = 2048, 8, 16
+        else:
+            raise ValueError("No BERT model larger than 250B parameters is supported.")
     else:
-        raise ValueError("No BERT model larger than 250B parameters is supported.")
+        raise ValueError(f"seq_length = {seq_length} is not supported. Available seq_length list for BERT models: [512]")
     return gbs, tp, pp
 
 
-def _gbs_tp_pp_bert_40gb(model_size_in_b: float) -> Tuple[int, int, int]:
+def _gbs_tp_pp_bert_40gb(model_size_in_b: float, seq_length: int) -> Tuple[int, int, int]:
     """
     Outputs GBS, TP and PP values for any BERT model size for 40GB GPUs.
     :param float model_size_in_b: the number of parameters in the model.
@@ -370,26 +415,29 @@ def _gbs_tp_pp_bert_40gb(model_size_in_b: float) -> Tuple[int, int, int]:
         int pp is the Pipeline Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
-    if model_size_in_b <= 1.0:
-        gbs, tp, pp = 256, 1, 1
-    elif model_size_in_b <= 3.2:
-        gbs, tp, pp = 1024, 4, 1
-    elif model_size_in_b <= 8.0:
-        gbs, tp, pp = 2048, 8, 1
-    elif model_size_in_b <= 13.0:
-        gbs, tp, pp = 2048, 8, 2
-    elif model_size_in_b <= 25:
-        gbs, tp, pp = 2048, 8, 4
-    elif model_size_in_b <= 46.5:
-        gbs, tp, pp = 2048, 8, 8
-    elif model_size_in_b <= 87.5:
-        gbs, tp, pp = 2048, 8, 16
-    elif model_size_in_b <= 165.5:
-        gbs, tp, pp = 2048, 8, 32
-    elif model_size_in_b <= 250.5:
-        gbs, tp, pp = 2048, 8, 64
+    if seq_length == 512:
+        if model_size_in_b <= 1.0:
+            gbs, tp, pp = 256, 1, 1
+        elif model_size_in_b <= 3.2:
+            gbs, tp, pp = 1024, 4, 1
+        elif model_size_in_b <= 8.0:
+            gbs, tp, pp = 2048, 8, 1
+        elif model_size_in_b <= 13.0:
+            gbs, tp, pp = 2048, 8, 2
+        elif model_size_in_b <= 25:
+            gbs, tp, pp = 2048, 8, 4
+        elif model_size_in_b <= 46.5:
+            gbs, tp, pp = 2048, 8, 8
+        elif model_size_in_b <= 87.5:
+            gbs, tp, pp = 2048, 8, 16
+        elif model_size_in_b <= 165.5:
+            gbs, tp, pp = 2048, 8, 32
+        elif model_size_in_b <= 250.5:
+            gbs, tp, pp = 2048, 8, 64
+        else:
+            raise ValueError("No BERT model larger than 250B parameters is supported.")
     else:
-        raise ValueError("No BERT model larger than 250B parameters is supported.")
+        raise ValueError(f"seq_length = {seq_length} is not supported. Available seq_length list for BERT models: [512]")
     return gbs, tp, pp
 
 
@@ -419,7 +467,7 @@ def generate_base_config(
     """
     # GBS: global batch size
     gbs, tp, pp = _calculate_gbs_tp_pp(
-        model_size_in_b=model_size_in_b, gpu_memory_gb=gpu_memory_gb, model_name=model_name
+        model_size_in_b=model_size_in_b, gpu_memory_gb=gpu_memory_gb, model_name=model_name, seq_length=search
     )
 
     base_cfg = utils.generic_base_config(cfg, model_name=model_name)

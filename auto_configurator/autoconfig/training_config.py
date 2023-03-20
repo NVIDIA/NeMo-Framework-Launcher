@@ -71,6 +71,7 @@ def generate_grid_search_configs(
     # 2 * num_layers is needed because of encoder/decoder architecture.
     multiplier = 1 if model_name in ["gpt3", "bert"] else 2
 
+    seq_length = base_cfg["model"]["data"]["seq_length"]
     num_layers = (
         base_cfg["model"]["num_layers"]
         if model_name in ["gpt3", "bert"]
@@ -80,7 +81,7 @@ def generate_grid_search_configs(
     act_method = base_cfg["model"].get("activations_checkpoint_method", "block")
 
     tp_list, pp_list, mbs_list, min_model_parallel, max_model_parallel = _calculate_tp_pp_mbs_grid(
-        model_size_in_b=model_size_in_b, num_layers=num_layers, model_name=model_name, train_cfg=train_cfg,
+        model_size_in_b=model_size_in_b, num_layers=num_layers, model_name=model_name, seq_length=seq_length, train_cfg=train_cfg,
     )
 
     base_dir = f"{cfg.search_config.train_settings.logs}/candidate_configs"
@@ -203,7 +204,7 @@ def _set_activations_checkpoint_params(tp, pp, num_layers, act_method, multiplie
     return virtual_pipelines, act_ckpt_layers, num_micro_batches_partial_act_ckpt, act_ckpt_layers_per_pipeline
 
 
-def _tp_pp_mbs_grid_gpt3_80gb(model_size_in_b: float, valid_pp: List[int]) -> Tuple[int, int, int]:
+def _tp_pp_mbs_grid_gpt3_80gb(model_size_in_b: float, valid_pp: List[int], seq_length: int) -> Tuple[int, int, int]:
     """
     Selects grid search space for TP, PP, MBS parameters for GPT-3 and 80GB GPUs.
     :param float model_size_in_b: number of parameters in the model.
@@ -219,62 +220,124 @@ def _tp_pp_mbs_grid_gpt3_80gb(model_size_in_b: float, valid_pp: List[int]) -> Tu
     mbs = [1, 2, 3, 4, 6, 8]
     min_model_parallel = 1
     max_model_parallel = 8
-    if model_size_in_b <= 1.0:
-        tp = [1, 2]
-    elif model_size_in_b <= 4.0:
-        tp = [1, 2, 4]
-    elif model_size_in_b <= 8.0:
-        tp = [1, 2, 4]
-    elif model_size_in_b <= 13.0:
-        tp = [1, 2, 4, 8]
-    elif model_size_in_b <= 23.0:
-        tp = [1, 2, 4]
-        pp = [x for x in valid_pp if 1 <= x <= 4]
-        mbs = [1, 2, 4]
-        min_model_parallel = 4
-        max_model_parallel = 8
-    elif model_size_in_b <= 45.0:
-        tp = [2, 4, 8]
-        pp = [x for x in valid_pp if 1 <= x <= 4]
-        mbs = [1, 2, 4]
-        min_model_parallel = 8
-        max_model_parallel = 32
-    elif model_size_in_b <= 95:
-        tp = [2, 4, 8]
-        pp = [x for x in valid_pp if 1 <= x <= 8]
-        mbs = [1, 2, 4, 8]
-        min_model_parallel = 8
-        max_model_parallel = 64
-    elif model_size_in_b <= 130.0:
-        tp = [2, 4, 8]
-        pp = [x for x in valid_pp if 1 <= x <= 16]
-        mbs = [1, 2, 4, 8]
-        min_model_parallel = 16
-        max_model_parallel = 128
-    elif model_size_in_b <= 195.0:
-        tp = [8]
-        pp = [x for x in valid_pp if 4 <= x <= 16]
-        mbs = [1, 2, 4]
-        min_model_parallel = 32
-        max_model_parallel = 256
-    elif model_size_in_b <= 395.0:
-        tp = [8]
-        pp = [x for x in valid_pp if 8 <= x <= 32]
-        mbs = [1, 2, 4]
-        min_model_parallel = 64
-        max_model_parallel = 512
-    elif model_size_in_b <= 790.0:
-        tp = [8]
-        pp = [x for x in valid_pp if 8 <= x <= 100]
-        mbs = [1, 2, 4]
-        min_model_parallel = 128
-        max_model_parallel = 1024
-    elif model_size_in_b <= 1100.0:
-        tp = [8]
-        pp = [x for x in valid_pp if 16 <= x <= 130]
-        mbs = [1, 2, 4]
-        min_model_parallel = 256
-        max_model_parallel = 2048
+    if seq_length == 2048:
+        if model_size_in_b <= 1.0:
+            tp = [1, 2]
+        elif model_size_in_b <= 4.0:
+            tp = [1, 2, 4]
+        elif model_size_in_b <= 8.0:
+            tp = [1, 2, 4]
+        elif model_size_in_b <= 13.0:
+            tp = [1, 2, 4, 8]
+        elif model_size_in_b <= 23.0:
+            tp = [1, 2, 4]
+            pp = [x for x in valid_pp if 1 <= x <= 4]
+            mbs = [1, 2, 4]
+            min_model_parallel = 4
+            max_model_parallel = 8
+        elif model_size_in_b <= 45.0:
+            tp = [2, 4, 8]
+            pp = [x for x in valid_pp if 1 <= x <= 4]
+            mbs = [1, 2, 4]
+            min_model_parallel = 8
+            max_model_parallel = 32
+        elif model_size_in_b <= 95:
+            tp = [2, 4, 8]
+            pp = [x for x in valid_pp if 1 <= x <= 8]
+            mbs = [1, 2, 4, 8]
+            min_model_parallel = 8
+            max_model_parallel = 64
+        elif model_size_in_b <= 130.0:
+            tp = [2, 4, 8]
+            pp = [x for x in valid_pp if 1 <= x <= 16]
+            mbs = [1, 2, 4, 8]
+            min_model_parallel = 16
+            max_model_parallel = 128
+        elif model_size_in_b <= 195.0:
+            tp = [8]
+            pp = [x for x in valid_pp if 4 <= x <= 16]
+            mbs = [1, 2, 4]
+            min_model_parallel = 32
+            max_model_parallel = 256
+        elif model_size_in_b <= 395.0:
+            tp = [8]
+            pp = [x for x in valid_pp if 8 <= x <= 32]
+            mbs = [1, 2, 4]
+            min_model_parallel = 64
+            max_model_parallel = 512
+        elif model_size_in_b <= 790.0:
+            tp = [8]
+            pp = [x for x in valid_pp if 8 <= x <= 100]
+            mbs = [1, 2, 4]
+            min_model_parallel = 128
+            max_model_parallel = 1024
+        elif model_size_in_b <= 1100.0:
+            tp = [8]
+            pp = [x for x in valid_pp if 16 <= x <= 130]
+            mbs = [1, 2, 4]
+            min_model_parallel = 256
+            max_model_parallel = 2048
+    elif seq_length == 4096:
+        if model_size_in_b <= 1.0:
+            tp = [1, 2, 4]
+            mbs = [1, 2, 4, 8]
+        elif model_size_in_b <= 4.0:
+            tp = [1, 2, 4]
+            mbs = [1, 2, 4, 8]
+        elif model_size_in_b <= 8.0:
+            tp = [1, 2, 4]
+            pp = [x for x in valid_pp if 1 <= x <= 2]
+            mbs = [1, 2, 4]
+        elif model_size_in_b <= 13.0:
+            tp = [1, 2, 4]
+            pp = [x for x in valid_pp if 1 <= x <= 2]
+            mbs = [1, 2, 4]
+        elif model_size_in_b <= 23.0:
+            tp = [4, 8]
+            pp = [x for x in valid_pp if 1 <= x <= 4]
+            mbs = [1, 2]
+            min_model_parallel = 4
+            max_model_parallel = 32
+        elif model_size_in_b <= 45.0:
+            tp = [4, 8]
+            pp = [x for x in valid_pp if 4 <= x <= 8]
+            mbs = [1, 2]
+            min_model_parallel = 16
+            max_model_parallel = 64
+    elif seq_length == 8192:
+        if model_size_in_b <= 1.0:
+            tp = [1, 2, 4]
+            pp = [x for x in valid_pp if 1 <= x <= 2]
+            mbs = [1, 2, 4]
+        elif model_size_in_b <= 4.0:
+            tp = [1, 2, 4]
+            pp = [x for x in valid_pp if 1 <= x <= 2]
+            mbs = [1, 2, 4]
+        elif model_size_in_b <= 8.0:
+            tp = [1, 2, 4, 8]
+            pp = [x for x in valid_pp if 1 <= x <= 2]
+            mbs = [1, 2]
+            min_model_parallel = 1
+            max_model_parallel = 16
+        elif model_size_in_b <= 13.0:
+            tp = [1, 2, 4, 8]
+            pp = [x for x in valid_pp if 1 <= x <= 2]
+            mbs = [1, 2]
+            min_model_parallel = 1
+            max_model_parallel = 16
+        elif model_size_in_b <= 23.0:
+            tp = [4, 8]
+            pp = [x for x in valid_pp if 1 <= x <= 4]
+            mbs = [1]
+            min_model_parallel = 4
+            max_model_parallel = 32
+        elif model_size_in_b <= 45.0:
+            tp = [8]
+            pp = [x for x in valid_pp if 4 <= x <= 8]
+            mbs = [1]
+            min_model_parallel = 32
+            max_model_parallel = 64
+        
     return tp, pp, mbs, min_model_parallel, max_model_parallel
 
 
@@ -606,7 +669,7 @@ def _tp_pp_mbs_grid_bert_40gb(model_size_in_b: float, valid_pp: List[int]) -> Tu
 
 
 def _calculate_tp_pp_mbs_grid(
-    model_size_in_b: float, num_layers: int, model_name: str, train_cfg: omegaconf.dictconfig.DictConfig
+    model_size_in_b: float, num_layers: int, model_name: str, seq_length: int, train_cfg: omegaconf.dictconfig.DictConfig
 ) -> Tuple[int, int, int]:
     """
     Selects grid search space for TP, PP, MBS parameters for any model, and calls the necessary
@@ -639,7 +702,7 @@ def _calculate_tp_pp_mbs_grid(
     if model_name == "gpt3":
         if gpu_memory_gb == 80:
             tp, pp, mbs, min_model_parallel, max_model_parallel = _tp_pp_mbs_grid_gpt3_80gb(
-                model_size_in_b=model_size_in_b, valid_pp=valid_pp
+                model_size_in_b=model_size_in_b, valid_pp=valid_pp, seq_length=seq_length
             )
         elif gpu_memory_gb == 40:
             tp, pp, mbs, min_model_parallel, max_model_parallel = _tp_pp_mbs_grid_gpt3_40gb(

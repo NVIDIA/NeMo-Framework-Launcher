@@ -7,7 +7,6 @@ from shutil import copyfile
 import hydra
 import pandas as pd
 from omegaconf import OmegaConf
-from autoconfig.utils import find_error
 from tensorboard.backend.event_processing import event_accumulator
 
 
@@ -26,6 +25,7 @@ def main(cfg):
     result_columns = [
         "Model Name",
         "Model Size",
+        "Seq Length"
         "TP",
         "PP",
         "MBS",
@@ -47,6 +47,7 @@ def main(cfg):
     error_columns = [
         "Model Name",
         "Model Size",
+        "Seq Length"
         "TP",
         "PP",
         "MBS",
@@ -108,11 +109,12 @@ def main(cfg):
         for f in os.listdir(os.path.join(training_logs, candidate_dir)):
             if f.endswith(".err"):
                 error_file = os.path.join(training_logs, candidate_dir, f)
-                error = find_error(err_file)
+                error = find_error(error_file)
                 if error:
                     errors.append([
                             model_name,
                             model_size,
+                            enc_seq_len,
                             tp,
                             pp,
                             mbs,
@@ -159,6 +161,7 @@ def main(cfg):
                         [
                             model_name,
                             model_size,
+                            enc_seq_len,
                             tp,
                             pp,
                             mbs,
@@ -277,6 +280,23 @@ def calculate_tflops(
     else:
         raise NotImplementedError("Model type not supported.")
     return round(model_tflops, 2), round(model_tflops_per_gpu, 2)
+
+
+def find_error(error_file: str, errors: list = ["CUDA out of memory"]):
+    """
+    Finds the error among job output. 
+    :param list errors: list of "popular" errors. 
+    :param str error_file: path to the job output.
+    :return: str error if job has been failed because of one of listed errors and None if not.
+    :rtype: str
+    """
+    error = None
+    with open(error_file, 'r') as f:
+        output = f.read()
+    for e in errors:
+        if e in output:
+            error = e
+    return error
 
 
 if __name__ == "__main__":

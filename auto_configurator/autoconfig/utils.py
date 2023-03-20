@@ -546,23 +546,6 @@ def add_container_mounts(container_mounts: Optional[List[str]]) -> str:
                 mounts_str += f",{mount}" if ":" in mount else f",{mount}:{mount}"
     return mounts_str
 
-
-def find_error(error_file: str, errors: list = ["CUDA out of memory"]):
-    """
-    Finds the error among job output. 
-    :param list errors: list of "popular" errors. 
-    :param str error_file: path to the job output.
-    :return: str error if job has been failed because of one of listed errors and None if not.
-    :rtype: str
-    """
-    error = None
-    with open(error_file, 'r') as f:
-        output = f.read()
-    for e in errors:
-        if e in output:
-            error = e
-    return error
-
     
 
  
