@@ -466,7 +466,7 @@ def generate_base_config(
     :return: base config object for the given model.
     :rtype: dict
     """
-    base_cfg = utils.generic_base_config(cfg, model_name=model_name)
+    base_cfg = utils.generic_base_config(cfg=cfg, custom_cfg=custom_cfg, model_name=model_name)
 
     # GBS: global batch size
     if custom_cfg is None:
