@@ -49,6 +49,7 @@ def search_config(cfg: omegaconf.dictconfig.DictConfig, hydra_args: Optional[str
     tflops_per_gpu = train_cfg.get("tflops_per_gpu")
     num_tokens_in_b = train_cfg.get("num_tokens_in_b")
     seq_length = train_cfg.get("seq_length")
+    custom_cfg = train_cfg.get("custom_config")
 
     gpu_count = nodes * gpus_per_node
     assert isinstance(gpu_count, int) and gpu_count > 0, "nodes * gpus_per_node must be an int larger than zero."
@@ -86,6 +87,7 @@ def search_config(cfg: omegaconf.dictconfig.DictConfig, hydra_args: Optional[str
         num_tokens_in_b=num_tokens_in_b,
         vocab_size=vocab_size,
         seq_length=seq_length,
+        custom_cfg=custom_cfg,
         cfg=cfg,
         model_name=model_name,
     )

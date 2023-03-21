@@ -450,6 +450,7 @@ def generate_base_config(
     num_tokens_in_b: int,
     vocab_size: int,
     seq_length: int,
+    custom_cfg: str,
     model_name: str,
     cfg: omegaconf.dictconfig.DictConfig,
 ):
@@ -465,12 +466,17 @@ def generate_base_config(
     :return: base config object for the given model.
     :rtype: dict
     """
-    # GBS: global batch size
-    gbs, tp, pp = _calculate_gbs_tp_pp(
-        model_size_in_b=model_size_in_b, gpu_memory_gb=gpu_memory_gb, model_name=model_name, seq_length=seq_length
-    )
-
     base_cfg = utils.generic_base_config(cfg, model_name=model_name)
+
+    # GBS: global batch size
+    if custom_cfg is None:
+        gbs, tp, pp = _calculate_gbs_tp_pp(
+            model_size_in_b=model_size_in_b, gpu_memory_gb=gpu_memory_gb, model_name=model_name, seq_length=seq_length
+        )
+    else:
+        gbs = base_cfg["model"]["global_batch_size"]
+        tp = base_cfg["model"]["tensor_model_parallel_size"]
+        pp = base_cfg["model"]["pipeline_model_parallel_size"]
 
     # RUN
     base_cfg["run"]["name"] = f"{model_name}_{model_size_in_b}b"
@@ -499,60 +505,60 @@ def generate_base_config(
         base_cfg["exp_manager"]["wandb_logger_kwargs"]["project"] = project
 
     # MODEL
-    layers, hs, att_h, ffn, kv, lr = utils.calculate_model_size_params(
-        model_size_in_b=model_size_in_b, vocab_size=vocab_size, seq_length=seq_length, model_name=model_name,
-    )
-    if model_name == "gpt3":
-        base_cfg["model"]["num_layers"] = int(layers)
-        base_cfg["model"]["global_batch_size"] = int(gbs)
-        base_cfg["model"]["hidden_size"] = int(hs)
-        base_cfg["model"]["num_attention_heads"] = int(att_h)
-        base_cfg["model"]["encoder_seq_length"] = seq_length
-        base_cfg["model"]["max_position_embeddings"] = seq_length
-        base_cfg["model"]["data"]["seq_length"] = seq_length
-        if ffn is not None:
-            base_cfg["model"]["ffn_hidden_size"] = int(ffn)
-        if kv is not None:
-            base_cfg["model"]["kv_channels"] = int(kv)
-        base_cfg["model"]["init_method_std"] = round(0.64 / math.sqrt(hs), 6)
-        base_cfg["model"]["optim"]["sched"]["warmup_steps"] = int(0.0015 * base_cfg["trainer"]["max_steps"])
-        base_cfg["model"]["optim"]["sched"]["constant_steps"] = int(0.166 * base_cfg["trainer"]["max_steps"])
-        if model_size_in_b <= 13.0:
-            base_cfg["model"]["sequence_parallel"] = False
-    elif model_name == "bert":
-        base_cfg["model"]["global_batch_size"] = int(gbs)
-        base_cfg["model"]["num_layers"] = int(layers)
-        base_cfg["model"]["hidden_size"] = int(hs)
-        base_cfg["model"]["num_attention_heads"] = int(att_h)
-        if ffn is not None:
-            base_cfg["model"]["ffn_hidden_size"] = int(ffn)
-        if kv is not None:
-            base_cfg["model"]["kv_channels"] = int(kv)
-        base_cfg["model"]["init_method_std"] = round(0.64 / math.sqrt(hs), 6)
-        base_cfg["model"]["optim"]["sched"]["warmup_steps"] = int(0.0015 * base_cfg["trainer"]["max_steps"])
-        base_cfg["model"]["optim"]["sched"]["constant_steps"] = int(0.166 * base_cfg["trainer"]["max_steps"])
-        if model_size_in_b <= 13.0:
-            base_cfg["model"]["sequence_parallel"] = False
+    if custom_cfg is None:
+        layers, hs, att_h, ffn, kv, lr = utils.calculate_model_size_params(
+            model_size_in_b=model_size_in_b, vocab_size=vocab_size, seq_length=seq_length, model_name=model_name,
+        )
+        if model_name == "gpt3":
+            base_cfg["model"]["num_layers"] = int(layers)
+            base_cfg["model"]["global_batch_size"] = int(gbs)
+            base_cfg["model"]["hidden_size"] = int(hs)
+            base_cfg["model"]["num_attention_heads"] = int(att_h)
+            base_cfg["model"]["encoder_seq_length"] = seq_length
+            base_cfg["model"]["max_position_embeddings"] = seq_length
+            base_cfg["model"]["data"]["seq_length"] = seq_length
+            if ffn is not None:
+                base_cfg["model"]["ffn_hidden_size"] = int(ffn)
+            if kv is not None:
+                base_cfg["model"]["kv_channels"] = int(kv)
+            base_cfg["model"]["init_method_std"] = round(0.64 / math.sqrt(hs), 6)
+            base_cfg["model"]["optim"]["sched"]["warmup_steps"] = int(0.0015 * base_cfg["trainer"]["max_steps"])
+            base_cfg["model"]["optim"]["sched"]["constant_steps"] = int(0.166 * base_cfg["trainer"]["max_steps"])
+            if model_size_in_b <= 13.0:
+                base_cfg["model"]["sequence_parallel"] = False
+        elif model_name == "bert":
+            base_cfg["model"]["global_batch_size"] = int(gbs)
+            base_cfg["model"]["num_layers"] = int(layers)
+            base_cfg["model"]["hidden_size"] = int(hs)
+            base_cfg["model"]["num_attention_heads"] = int(att_h)
+            if ffn is not None:
+                base_cfg["model"]["ffn_hidden_size"] = int(ffn)
+            if kv is not None:
+                base_cfg["model"]["kv_channels"] = int(kv)
+            base_cfg["model"]["init_method_std"] = round(0.64 / math.sqrt(hs), 6)
+            base_cfg["model"]["optim"]["sched"]["warmup_steps"] = int(0.0015 * base_cfg["trainer"]["max_steps"])
+            base_cfg["model"]["optim"]["sched"]["constant_steps"] = int(0.166 * base_cfg["trainer"]["max_steps"])
+            if model_size_in_b <= 13.0:
+                base_cfg["model"]["sequence_parallel"] = False
+        else:
+            base_cfg["model"]["global_batch_size"] = int(gbs)
+            base_cfg["model"]["encoder"]["num_layers"] = int(layers)
+            base_cfg["model"]["decoder"]["num_layers"] = int(layers)
+            base_cfg["model"]["encoder"]["hidden_size"] = int(hs)
+            base_cfg["model"]["decoder"]["hidden_size"] = int(hs)
+            base_cfg["model"]["encoder"]["num_attention_heads"] = int(att_h)
+            base_cfg["model"]["decoder"]["num_attention_heads"] = int(att_h)
+            if ffn is not None:
+                base_cfg["model"]["encoder"]["ffn_hidden_size"] = int(ffn)
+                base_cfg["model"]["decoder"]["ffn_hidden_size"] = int(ffn)
+            if kv is not None:
+                base_cfg["model"]["encoder"]["kv_channels"] = int(kv)
+                base_cfg["model"]["decoder"]["kv_channels"] = int(kv)
+            base_cfg["model"]["init_method_std"] = 0.015
+            base_cfg["model"]["optim"]["sched"]["warmup_ratio"] = 0.01
 
-    else:
-        base_cfg["model"]["global_batch_size"] = int(gbs)
-        base_cfg["model"]["encoder"]["num_layers"] = int(layers)
-        base_cfg["model"]["decoder"]["num_layers"] = int(layers)
-        base_cfg["model"]["encoder"]["hidden_size"] = int(hs)
-        base_cfg["model"]["decoder"]["hidden_size"] = int(hs)
-        base_cfg["model"]["encoder"]["num_attention_heads"] = int(att_h)
-        base_cfg["model"]["decoder"]["num_attention_heads"] = int(att_h)
-        if ffn is not None:
-            base_cfg["model"]["encoder"]["ffn_hidden_size"] = int(ffn)
-            base_cfg["model"]["decoder"]["ffn_hidden_size"] = int(ffn)
-        if kv is not None:
-            base_cfg["model"]["encoder"]["kv_channels"] = int(kv)
-            base_cfg["model"]["decoder"]["kv_channels"] = int(kv)
-        base_cfg["model"]["init_method_std"] = 0.015
-        base_cfg["model"]["optim"]["sched"]["warmup_ratio"] = 0.01
-
-    base_cfg["model"]["optim"]["lr"] = lr
-    base_cfg["model"]["optim"]["sched"]["min_lr"] = round(lr * 0.1, 8)
+        base_cfg["model"]["optim"]["lr"] = lr
+        base_cfg["model"]["optim"]["sched"]["min_lr"] = round(lr * 0.1, 8)
 
     if cfg.get("cluster_type") == "bcp":
         index_map_dir = os.path.join(cfg.get("base_results_dir"), "data_index_files")
