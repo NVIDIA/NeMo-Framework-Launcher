@@ -25,7 +25,7 @@ def main(cfg):
     result_columns = [
         "Model Name",
         "Model Size",
-        "Seq Length"
+        "Seq Length",
         "TP",
         "PP",
         "MBS",
@@ -47,7 +47,7 @@ def main(cfg):
     error_columns = [
         "Model Name",
         "Model Size",
-        "Seq Length"
+        "Seq Length",
         "TP",
         "PP",
         "MBS",
