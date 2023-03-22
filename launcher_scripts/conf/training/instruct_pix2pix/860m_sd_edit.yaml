@@ -161,7 +161,7 @@ model:
       - 0.999
     sched:
       name: WarmupHoldPolicy
-      warmup_steps: 10000
+      warmup_steps: 100
       hold_steps: 10000000000000 # Incredibly large value to hold the lr as constant
 
   data:
