@@ -27,6 +27,9 @@ from nemo_launcher.utils.data_utils.prepare_squad import (
 from nemo_launcher.utils.job_utils import JobPaths
 from omegaconf import OmegaConf
 
+__LANGUAGE_MODELS_LIST__ = ["gpt3", "t5", "mt5", "bert"]
+__VISION_MODELS_LIST__ = ["vit"]
+__MULTIMODAL_MODELS_LIST__ = ["clip", "stable_diffusion"]
 
 class NemoMegatronStage:
     """
@@ -477,7 +480,7 @@ class Training(NeMoStage):
         choice_model_type, choice_name = self.get_stage_config_choice()
         if self.cluster == "bcp":
             hydra_override += ["+rank=\${RANK}"]
-        if self.stage_cfg.model.data.get("data_prefix", None) is None:
+        if choice_model_type in __LANGUAGE_MODELS_LIST__ and self.stage_cfg.model.data.get("data_prefix", None) is None:
             preprocessed_dir = self.stage_cfg.run.get("preprocessed_dir")
             blending_alpha = self.stage_cfg.run.get("blending_alpha")
             auto_blend_command = (
@@ -502,6 +505,11 @@ class Training(NeMoStage):
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_pretraining.py",
             "mt5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_pretraining.py",
             "gpt3": self._nemo_code_path / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "bert": self._nemo_code_path / "examples/nlp/language_modeling/megatron_bert_pretraining.py",
+            "vit": self._nemo_code_path / "examples/vision/vision_transformer/megatron_vit_classification_pretrain.py",
+            "clip": self._nemo_code_path / "examples/multimodal/foundation/clip/megatron_clip_pretrain.py",
+            "stable_diffusion": self._nemo_code_path / "examples/multimodal/generative/stable_diffusion/sd_train.py",
+            "instruct_pix2pix": self._nemo_code_path / "examples/multimodal/generative/instruct_pix2pix/sd_finetune.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -644,6 +652,30 @@ class IA3Learning(PromptLearning):
         return model_type_to_code_path[model_type]
 
 
+class FWInference(NeMoStage):
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "fw_inference"
+        self.stage_cfg = cfg.get("fw_inference")
+
+    def _get_nemo_code_path(self, model_type: str) -> Path:
+        """
+        Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
+        For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
+
+        :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
+        :return: path current stage's essential nemo scripts code
+        :rtype: Path
+        """
+        model_type_to_code_path = {
+            "vit": self._nemo_code_path / "examples/vision/vision_transformer/megatron_vit_classification_infer.py",
+            "clip": self._nemo_code_path / "examples/multimodal/foundation/clip/megatron_clip_infer.py",
+            "stable_diffusion": self._nemo_code_path / "examples/multimodal/generative/stable_diffusion/sd_infer.py",
+            "instruct_pix2pix": self._nemo_code_path / "examples/multimodal/generative/instruct_pix2pix/sd_edit_cli.py",
+        }
+        return model_type_to_code_path[model_type]
+
+
 class Conversion(NemoMegatronStage):
     """Stage class of converting training checkpoints to .nemo format"""
 
@@ -659,25 +691,33 @@ class Conversion(NemoMegatronStage):
         :return: command string for hparams override with the script in collections
         :rtype: str
         """
-        model_cfg = self.stage_cfg.get("model")
-        hparams_file = model_cfg.get("hparams_file")
-        vocab_file = model_cfg.get("vocab_file")
-        merge_file = model_cfg.get("merge_file")
-        tokenizer_model = model_cfg.get("tokenizer_model")
-        override_configs = {
-            "hparams_file": hparams_file,
-            "output_path": self.get_job_path().results_folder,
-            "vocab_file": vocab_file,
-            "merge_file": merge_file,
-            "tokenizer_model": tokenizer_model,
-        }
-        hparams_override = [f"{k}={v}" for k, v in override_configs.items()]
-        override_command = [
-            f"python3 -u {self._launcher_scripts_path / 'nemo_launcher/collections/hparams_override.py'}",
-            *hparams_override,
-        ]
-        override_command = " \\\n  ".join(override_command)
-        return [override_command]
+        choice_model_type, choice_name = self.get_stage_config_choice()
+        if choice_model_type in __LANGUAGE_MODELS_LIST__:
+            model_cfg = self.stage_cfg.get("model")
+            hparams_file = model_cfg.get("hparams_file")
+            vocab_file = model_cfg.get("vocab_file")
+            merge_file = model_cfg.get("merge_file")
+            tokenizer_model = model_cfg.get("tokenizer_model")
+            override_configs = {
+                "hparams_file": hparams_file,
+                "output_path": self.get_job_path().results_folder,
+                "vocab_file": vocab_file,
+                "merge_file": merge_file,
+                "tokenizer_model": tokenizer_model,
+            }
+            hparams_override = [f"{k}={v}" for k, v in override_configs.items()]
+            override_command = [
+                f"python3 -u {self._launcher_scripts_path / 'nemo_launcher/collections/hparams_override.py'}",
+                *hparams_override,
+            ]
+            override_command = " \\\n  ".join(override_command)
+            return [override_command]
+
+        else:
+            hparams_file = model_cfg.get("hparams_file")
+            output_path = self.get_job_path().results_folder
+            hparams_override = output_path / "hparams_override.yaml"
+            return [f"cp {hparams_file} {hparams_override}"]
 
     def _make_checkpoint_search_command(self, **kwargs: Any) -> str:
         """
@@ -705,6 +745,8 @@ class Conversion(NemoMegatronStage):
         :return: command groups for current stage
         :rtype: List[List[str]]
         """
+        choice_model_type, choice_name = self.get_stage_config_choice()
+
         command_groups = [[], []]
         command_groups[0] += self._make_hparams_override_command()
 
@@ -721,7 +763,14 @@ class Conversion(NemoMegatronStage):
         nemo_file_name = run_cfg.get("nemo_file_name")
         hparams_override_file = self.get_job_path().results_folder / "hparams_override.yaml"
         nemo_file_path = self.get_job_path().results_folder / nemo_file_name
-        code_path = self._nemo_code_path / "examples/nlp/language_modeling/megatron_ckpt_to_nemo.py"
+
+        if choice_model_type in __LANGUAGE_MODELS_LIST__:
+            code_path = self._nemo_code_path / "examples/nlp/language_modeling/megatron_ckpt_to_nemo.py"
+        elif choice_model_type in __VISION_MODELS_LIST__:
+            code_path = self._nemo_code_path / "examples/vision/convert_ckpt_to_nemo.py"
+        elif choice_model_type in __MULTIMODAL_MODELS_LIST__:
+            code_path = self._nemo_code_path / "examples/multimodal/convert_ckpt_to_nemo.py"
+
         args = create_args_list(
             replace_underscore=False,
             gpus_per_node=run_cfg.get("ntasks_per_node"),
