@@ -1,5 +1,5 @@
 run:
-  name: 860m-sd-edit
+  name: instruct_pix2pix_860m_sd_edit
   results_dir: ${base_results_dir}/${.name}
   time_limit: "8-00:00:00"
   dependency: "singleton"
@@ -40,6 +40,8 @@ exp_manager:
     mode: min
     monitor: val/loss
     filename: 'instruct-pix2pix--{val/loss:.4f}-{step}-{consumed_samples}'
+    always_save_nemo: False # saves nemo file during validation
+    save_nemo_on_train_end: True # not recommended when training large models on clusters with short time limits
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
   ema:
@@ -158,10 +160,9 @@ model:
       - 0.9
       - 0.999
     sched:
-      name: CosineAnnealing
-      warmup_steps: 2000
-      constant_steps: 10000000000000 # very large constant steps
-      min_lr: 1e-5
+      name: WarmupHoldPolicy
+      warmup_steps: 10000
+      hold_steps: 10000000000000 # Incredibly large value to hold the lr as constant
 
   data:
     # Path to instruct-pix2pix dataset must be specified by the user.

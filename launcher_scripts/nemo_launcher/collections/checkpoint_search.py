@@ -47,8 +47,8 @@ def checkpoint_search(cfg):
     # Checkpoint search
     checkpoint_folder = cfg.checkpoint_folder
     checkpoint_name = cfg.checkpoint_name
-    tensor_model_parallel_size = cfg.tensor_model_parallel_size
-    pipeline_model_parallel_size = cfg.pipeline_model_parallel_size
+    tensor_model_parallel_size = cfg.get("tensor_model_parallel_size", 1)
+    pipeline_model_parallel_size = cfg.get("pipeline_model_parallel_size", 1)
 
     if checkpoint_name == "latest":
         checkpoints = os.path.join(checkpoint_folder, "*.ckpt")

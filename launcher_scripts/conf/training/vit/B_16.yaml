@@ -1,15 +1,14 @@
 run:
-  name: ViT-bigG-14
+  name: vit_B_16
   results_dir: ${base_results_dir}/${.name}
-  time_limit: "8-00:00:00"
+  time_limit: "4-00:00:00"
   dependency: "singleton"
 
 name: nemo_vit_classification
-restore_from_path: null # used when starting from a .nemo file
 
 trainer:
   devices: 8
-  num_nodes: 4
+  num_nodes: 2
   accelerator: gpu
   precision: bf16
   logger: False # logger provided by exp_manager
@@ -41,8 +40,8 @@ exp_manager:
     monitor: val_loss
     save_top_k: 5
     mode: min
-    always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
-    save_nemo_on_train_end: False # not recommended when training large models on clusters with short time limits
+    always_save_nemo: False
+    save_nemo_on_train_end: True # not recommended when training large models on clusters with short time limits
     filename: 'nemo_vit_classification--{val_loss:.2f}-{step}-{consumed_samples}'
     model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
 
@@ -51,18 +50,18 @@ model:
   precision: ${training.trainer.precision}
   # specify micro_batch_size, global_batch_size, and model parallelism
   # gradient accumulation will be done automatically based on data_parallel_size
-  micro_batch_size: 32 # limited by GPU memory
+  micro_batch_size: 256 # limited by GPU memory
   global_batch_size: 4096 # will use more micro batches to reach global batch size
   tensor_model_parallel_size: 1 # intra-layer model parallelism
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
   virtual_pipeline_model_parallel_size: null # interleaved pipeline
 
-  restore_from_pretrained: null # used in fine-tuning
+  restore_from_path: null # used in fine-tuning
 
   # vision configs
   vision_pretraining_type: "classify"
   num_classes: 1000
-  patch_dim: 14
+  patch_dim: 16
   img_h: 224
   img_w: 224
   classes_fraction: 1.0
@@ -71,12 +70,12 @@ model:
   drop_path_rate: 0.0
 
   # model architecture
-  encoder_seq_length: 256
+  encoder_seq_length: 196
   max_position_embeddings: ${.encoder_seq_length}
-  num_layers: 48
-  hidden_size: 1664
-  ffn_hidden_size: 8192 # Transformer FFN hidden size. Usually 4 * hidden_size.
-  num_attention_heads: 16
+  num_layers: 12
+  hidden_size: 768
+  ffn_hidden_size: 3072 # Transformer FFN hidden size. Usually 4 * hidden_size.
+  num_attention_heads: 12
   init_method_std: 0.02 # Standard deviation of the zero mean normal distribution used for weight initialization.')
   use_scaled_init_method: True # use scaled residuals initialization
   hidden_dropout: 0.1 # Dropout probability for hidden state transformer.

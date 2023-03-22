@@ -1,39 +1,42 @@
 run:
-  name: ViT-B-16
-  results_dir: ${base_results_dir}/${.name}
-  time_limit: "4-00:00:00"
+  name: ${.task_name}_${.model_train_name}
+  time_limit: "04:00:00"
   dependency: "singleton"
+  convert_name: convert_nemo
+  model_train_name: vit_B_16
+  task_name: imagenet-1k
+  convert_dir: ${base_results_dir}/${fine_tuning.run.model_train_name}/${fine_tuning.run.convert_name}
+  results_dir: ${base_results_dir}/${.model_train_name}/${.task_name}
 
-name: nemo_vit_classification
-restore_from_path: null # used when starting from a .nemo file
+name: nemo_vit_classification_finetune
 
 trainer:
   devices: 8
-  num_nodes: 2
+  num_nodes: 1
   accelerator: gpu
   precision: bf16
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
   replace_sampler_ddp: False
   max_epochs: -1 # PTL default. In practice, max_steps will be reached first.
-  max_steps: 95000 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
+  max_steps: 20000 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
   log_every_n_steps: 10
   val_check_interval: 200
-  limit_val_batches: 50
-  limit_test_batches: 50
+  limit_val_batches: 10
+  limit_test_batches: 10
   accumulate_grad_batches: 1 # do not modify, grad acc is automatic for training megatron models
   gradient_clip_val: 1.0
   benchmark: False
   enable_model_summary: False # default PTL callback for this does not support model parallelism, instead we log manually
 
 exp_manager:
-  explicit_log_dir: ${training.run.results_dir}/results
+  explicit_log_dir: ${fine_tuning.run.results_dir}/results
   exp_dir: null
   name: nemo_vit_classification
   create_wandb_logger: False
   wandb_logger_kwargs:
     project: nemo_vit
-    name: ${training.run.name}
+    name: ${fine_tuning.run.name}
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
   create_checkpoint_callback: True
@@ -44,34 +47,33 @@ exp_manager:
     always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
     save_nemo_on_train_end: False # not recommended when training large models on clusters with short time limits
     filename: 'nemo_vit_classification--{val_loss:.2f}-{step}-{consumed_samples}'
-    model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
+    model_parallel_size: ${multiply:${fine_tuning.model.tensor_model_parallel_size}, ${fine_tuning.model.pipeline_model_parallel_size}}
 
 
 model:
-  precision: ${training.trainer.precision}
+  restore_from_path: ${fine_tuning.run.convert_dir}/results/nemo_vit_classification.nemo # used in fine-tuning
+
+  precision: ${fine_tuning.trainer.precision}
   # specify micro_batch_size, global_batch_size, and model parallelism
   # gradient accumulation will be done automatically based on data_parallel_size
-  micro_batch_size: 256 # limited by GPU memory
-  global_batch_size: 4096 # will use more micro batches to reach global batch size
+  micro_batch_size: 64 # limited by GPU memory
+  global_batch_size: 512 # will use more micro batches to reach global batch size
   tensor_model_parallel_size: 1 # intra-layer model parallelism
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
   virtual_pipeline_model_parallel_size: null # interleaved pipeline
-
-  restore_from_pretrained: null # used in fine-tuning
-
   # vision configs
   vision_pretraining_type: "classify"
   num_classes: 1000
   patch_dim: 16
-  img_h: 224
-  img_w: 224
+  img_h: 384
+  img_w: 384
   classes_fraction: 1.0
   data_per_class_fraction: 1.0
   num_channels: 3
   drop_path_rate: 0.0
 
   # model architecture
-  encoder_seq_length: 196
+  encoder_seq_length: 576
   max_position_embeddings: ${.encoder_seq_length}
   num_layers: 12
   hidden_size: 768
@@ -154,14 +156,12 @@ model:
     gen_shape: False # Generate model and kernel details including input shapes
 
   optim:
-    name: fused_adam
+    name: sgd
     lr: 3e-3
-    weight_decay: 0.3
-    betas:
-      - 0.9
-      - 0.999
+    weight_decay: 0.
+    momentum: 0.9
     sched:
       name: CosineAnnealing
-      warmup_steps: 10000
+      warmup_steps: 0
       constant_steps: 0
       min_lr: 1e-5

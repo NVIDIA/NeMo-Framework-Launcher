@@ -29,7 +29,7 @@ from omegaconf import OmegaConf
 
 __LANGUAGE_MODELS_LIST__ = ["gpt3", "t5", "mt5", "bert"]
 __VISION_MODELS_LIST__ = ["vit"]
-__MULTIMODAL_MODELS_LIST__ = ["clip", "stable_diffusion"]
+__MULTIMODAL_MODELS_LIST__ = ["clip", "stable_diffusion", "instruct_pix2pix"]
 
 class NemoMegatronStage:
     """
@@ -534,22 +534,24 @@ class FineTuning(NeMoStage):
     def setup_folder_and_data(self) -> None:
         """Setup job/data folders and fine-tuning/prompt-learning dataset"""
         super().setup_folder_and_data()
+        choice_model_type, choice_name = self.get_stage_config_choice()
 
-        # Prepare fine-tuning dataset
-        data_dir = self.cfg.get("data_dir")
-        task_name = self.stage_cfg.run.get("task_name")
+        if choice_model_type in __LANGUAGE_MODELS_LIST__:
+            # Prepare fine-tuning dataset
+            data_dir = self.cfg.get("data_dir")
+            task_name = self.stage_cfg.run.get("task_name")
 
-        # GLUE for internal use
-        download_glue_script_path = self._launcher_scripts_path / "nemo_launcher/utils/data_utils/download_glue.py"
-        if download_glue_script_path.exists():
-            from nemo_launcher.utils.data_utils.download_glue import download_glue, TASKS_LOWER
+            # GLUE for internal use
+            download_glue_script_path = self._launcher_scripts_path / "nemo_launcher/utils/data_utils/download_glue.py"
+            if download_glue_script_path.exists():
+                from nemo_launcher.utils.data_utils.download_glue import download_glue, TASKS_LOWER
 
-            if task_name in TASKS_LOWER:
-                download_glue(data_dir=os.path.join(data_dir, "glue_data"), tasks=task_name)
+                if task_name in TASKS_LOWER:
+                    download_glue(data_dir=os.path.join(data_dir, "glue_data"), tasks=task_name)
 
-        # Prepare dataset for squad
-        if task_name in ["squad", "xquad"]:
-            prepare_squad_for_fine_tuning(data_dir=os.path.join(data_dir, "squad_data"))
+            # Prepare dataset for squad
+            if task_name in ["squad", "xquad"]:
+                prepare_squad_for_fine_tuning(data_dir=os.path.join(data_dir, "squad_data"))
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
         """
@@ -565,6 +567,7 @@ class FineTuning(NeMoStage):
         model_type_to_code_path = {
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "mt5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
+            "vit": self._nemo_code_path / "examples/vision/vision_transformer/megatron_vit_classification_finetune.py"
         }
         return model_type_to_code_path[model_type]
 
@@ -692,8 +695,8 @@ class Conversion(NemoMegatronStage):
         :rtype: str
         """
         choice_model_type, choice_name = self.get_stage_config_choice()
+        model_cfg = self.stage_cfg.get("model")
         if choice_model_type in __LANGUAGE_MODELS_LIST__:
-            model_cfg = self.stage_cfg.get("model")
             hparams_file = model_cfg.get("hparams_file")
             vocab_file = model_cfg.get("vocab_file")
             merge_file = model_cfg.get("merge_file")
@@ -755,8 +758,8 @@ class Conversion(NemoMegatronStage):
         checkpoint_search_command = self._make_checkpoint_search_command(
             checkpoint_folder=model_cfg.get("checkpoint_folder"),
             checkpoint_name=model_cfg.get("checkpoint_name"),
-            tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size"),
-            pipeline_model_parallel_size=model_cfg.get("pipeline_model_parallel_size"),
+            tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size", 1),
+            pipeline_model_parallel_size=model_cfg.get("pipeline_model_parallel_size", 1),
         )
         command_groups[-1] += [f"export CKPT_NAME=$({checkpoint_search_command})"]
 
@@ -779,8 +782,8 @@ class Conversion(NemoMegatronStage):
             checkpoint_name="\${CKPT_NAME}",
             hparams_file=hparams_override_file,
             nemo_file_path=nemo_file_path,
-            tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size"),
-            pipeline_model_parallel_size=model_cfg.get("pipeline_model_parallel_size"),
+            tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size", 1),
+            pipeline_model_parallel_size=model_cfg.get("pipeline_model_parallel_size", 1),
         )
         if model_cfg.get("pipeline_model_parallel_split_rank") is not None:
             args += create_args_list(

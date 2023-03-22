@@ -1,11 +1,10 @@
 run:
-  name: CLIP-ViT-B-32
+  name: clip_vit_B_32
   results_dir: ${base_results_dir}/${.name}
   time_limit: "8-00:00:00"
   dependency: "singleton"
 
 name: nemo_clip
-restore_from_path: null # used when starting from a .nemo file
 
 trainer:
   devices: 8
@@ -42,8 +41,8 @@ exp_manager:
     monitor: val_loss
     save_top_k: 5
     mode: min
-    always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
-    save_nemo_on_train_end: False # not recommended when training large models on clusters with short time limits
+    always_save_nemo: False # saves nemo file during validation
+    save_nemo_on_train_end: True # not recommended when training large models on clusters with short time limits
     filename: 'nemo_clip--{val_loss:.2f}-{step}-{consumed_samples}'
     model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
   ema:
