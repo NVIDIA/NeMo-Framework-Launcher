@@ -20,9 +20,24 @@ import hydra
 
 
 def reorganize(files, save_dir, chunksize=1000, offset=0, extensions=('.jpg', '.txt')):
+    '''
+    Takes a list of tar files, and reorganizes the files inside them based on their file name ignoring extension,
+    such that each output tarfile contains exactly `chunksize` distinct file names (except the last tar file),
+    corresponding to that many training examples.
+    A log file is generated containing information about the number of files in the last tar file.
+
+    Args:
+    - files (list): A list of strings representing paths to tar files.
+    - save_dir (str): The path of the directory where the reorganized tar files and log file will be saved.
+    - chunksize (int, optional): The number of files to be included in each new tar file. Defaults to 1000.
+    - offset (int, optional): The starting number of the new tar files' names. Defaults to 0.
+    - extensions (tuple, optional): A tuple containing strings representing the file extensions to be included
+                                    in the reorganized tar files. Defaults to ('.jpg', '.txt').
+    '''
+
     cur_file = 0
     cur_tar = offset
-    new_tar = tarfile.TarFile(os.path.join(save_dir, f'{cur_tar:05}' + '.tar'),'w')
+    new_tar = tarfile.TarFile(os.path.join(save_dir, f'{cur_tar:05}' + '.tar'), 'w')
     for i, tar_name in enumerate(tqdm(files)):
         try:
             obj_name = tar_name
@@ -35,8 +50,8 @@ def reorganize(files, save_dir, chunksize=1000, offset=0, extensions=('.jpg', '.
                 for name in all_filenames:
                     file_pair = []
                     for post_script in extensions:
-                        f = tar_obj.extractfile(name+post_script)
-                        file_pair.append((f, name+post_script))
+                        f = tar_obj.extractfile(name + post_script)
+                        file_pair.append((f, name + post_script))
                     if len(file_pair) == len(extensions):
                         for f, filename in file_pair:
                             info = tarfile.TarInfo(name=filename)
@@ -48,7 +63,7 @@ def reorganize(files, save_dir, chunksize=1000, offset=0, extensions=('.jpg', '.
                         cur_file = 0
                         cur_tar += 1
                         new_tar.close()
-                        new_tar = tarfile.TarFile(os.path.join(save_dir, f'{cur_tar:05}' + '.tar'),'w')
+                        new_tar = tarfile.TarFile(os.path.join(save_dir, f'{cur_tar:05}' + '.tar'), 'w')
         except Exception as e:
             print(f"Failed to process tarfile {tar_name} due to {str(e)}")
 
@@ -83,15 +98,15 @@ def main(cfg) -> None:
     print(f'saving to {abs_save_dir}')
 
     files = sorted(glob.glob(os.path.join(root, "**", "*.tar"), recursive=True))
-    slc_start, slc_end = task_id*len(files)//ntasks, (task_id+1)*len(files)//ntasks
+    slc_start, slc_end = task_id * len(files) // ntasks, (task_id + 1) * len(files) // ntasks
 
     start = time.time()
-    print(f"Task {task_id}/{ntasks} is processing files {slc_start} to {slc_end-1} (total 0-{len(files)})")
+    print(f"Task {task_id}/{ntasks} is processing files {slc_start} to {slc_end - 1} (total 0-{len(files)})")
 
     reorganize(files[slc_start:slc_end], abs_save_dir, chunksize=tar_chunk_size, extensions=extensions)
 
     end = time.time()
-    print(f"Task {task_id} finished in {end-start}s")
+    print(f"Task {task_id} finished in {end - start}s")
 
 
 if __name__ == "__main__":

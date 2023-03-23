@@ -34,14 +34,14 @@ def main(cfg):
                                         local_dir_use_symlinks=False, allow_patterns=parquet_pattern)
     parquet_file_list = glob.glob(os.path.join(downloaded_path, "**", parquet_pattern), recursive=True)
     print(f"*** Downloaded {len(parquet_file_list)} parquet files. With {parquet_subpartitions} subpartitions, "
-          f"please launch {len(parquet_file_list)*parquet_subpartitions} jobs in the next step. ***")
+          f"please launch {len(parquet_file_list) * parquet_subpartitions} jobs in the next step. ***")
     print("Sub-partitioning individual parquet files...")
     if parquet_subpartitions > 1:
         for parquet_file in tqdm(parquet_file_list):
-            os.makedirs(os.path.basename(parquet_file)+"_parts", exist_ok=True)
+            os.makedirs(os.path.basename(parquet_file) + "_parts", exist_ok=True)
             dd.read_parquet(parquet_file) \
-              .repartition(parquet_subpartitions) \
-              .to_parquet(parquet_file+"_parts")
+                .repartition(parquet_subpartitions) \
+                .to_parquet(parquet_file + "_parts")
             os.remove(parquet_file)
 
 
