@@ -220,21 +220,15 @@ model:
 
   data:
     num_workers: 8
-    dataset_type: webdataset
     train:
-      data_path: # List of paths to pkl files or tar files
-        - ???
-      drop_last: True # drop_last = False is not implemented yet
+      dataset_path: # List of paths to pkl files or tar files
+        - /datasets/coyo/test.pkl
     validation: # List of paths to pkl files or tar files
-      data_path:
-        - ???
-      drop_last: True # drop_last = False is not implemented yet
+      dataset_path:
+        - /datasets/coyo/test.pkl
     webdataset:
-      object_store: False
-      bucket: datasets
-      pbss_credentials_file: pbss_credential
-      local_root_path: /datasets/coyo # tar files local root path
-      chunk_size: null # if data path is list of tar files, chunk_size needs to be provided
+      infinite_sampler: False
+      local_root_path: /datasets/coyo
 
     imagenet_val: null # Path to imagenet val set for conducting zero shot evaluation.
 
