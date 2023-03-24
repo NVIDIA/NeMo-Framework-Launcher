@@ -17,6 +17,8 @@ download_parquet:
 
 download_images:
   enable: False
+  parquet_pattern: ${..download_parquet.parquet_pattern}
+  input_dir: ${..download_parquet.output_dir}
   output_dir: ${..dataset_output_root}/tarfiles_raw
   num_parquets_downloaded: 1  # Number of parquet files in huggingface repo.
   # laion/laion-art: 1
@@ -33,7 +35,8 @@ download_images:
     resize_mode: no  # optionally resize after downloading to save disk space
 
 reorganize_tar:
-  enable: True
+  enable: False
+  input_dir: ${..download_images.output_dir}
   output_dir: ${..dataset_output_root}/tarfiles_reorganized
   node_array_size: 2  # number of concurrent jobs
   tar_chunk_size: 1000  # number of training examples in each output tar file
@@ -42,8 +45,18 @@ reorganize_tar:
     - .txt
 
 precache_encodings:
-  enable: False
+  enable: True
+  input_dir: ${..reorganize_tar.output_dir}
   output_dir: ${..dataset_output_root}/tarfiles_precached
-  node_array_size: 2
+  tar_chunk_size: ${..reorganize_tar.tar_chunk_size}
+  node_array_size: 4  # increase the number of jobs to reduce the time for each job
+  precache_config_path: ${launcher_scripts_path}/conf/data_preparation/multimodal/precache_sd.yaml
+
+generate_wdinfo:
+  enable: True
+  input_dir: ${..precache_encodings.output_dir}
+  # use ${..precache_encodings.output_dir} if you're doing precaching, otherwise use ${..reorganize_tar.output_dir}
+  tar_chunk_size: ${..precache_encodings.tar_chunk_size}
+  file_ext_in_tar:
+    - .pickle
   output_wdinfo_path: ${..dataset_output_root}/wdinfo.pkl
-  precache_config_path: ${launcher_scripts_path}/conf/data_preparation/multimodal/precache_sd

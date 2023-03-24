@@ -558,7 +558,8 @@ class MultimodalDataPreparation(DataStage):
         self.sub_stage_names = ["download_parquet",
                                 "download_images",
                                 "reorganize_tar",
-                                "precache_encodings"]
+                                "precache_encodings",
+                                "generate_wdinfo"]
 
     def _make_sub_stages(self) -> List[str]:
         """
@@ -613,7 +614,8 @@ class MultimodalDataPreparation(DataStage):
                 "download_parquet": 1,
                 "download_images": num_parquets,
                 "reorganize_tar": stage_cfg.reorganize_tar.get("node_array_size", 1),
-                "precache_encodings": stage_cfg.precache_encodings.get("node_array_size", 1)
+                "precache_encodings": stage_cfg.precache_encodings.get("node_array_size", 1),
+                "generate_wdinfo": 1,
             }[sub_stage]
 
             if node_array_size > 1:
@@ -636,29 +638,23 @@ class MultimodalDataPreparation(DataStage):
         """Make a command of the specified sub-stage"""
 
         dataprep_path = self._launcher_scripts_path / "nemo_launcher/collections/dataprep_scripts/multimodal_dataprep"
-        stage_to_code_path = {
-            "download_parquet": dataprep_path / "download_parquet.py",
-            "download_images": dataprep_path / "download_images.py",
-            "reorganize_tar": dataprep_path / "reorganize_tar.py",
-            "precache_encodings": dataprep_path / "precache_encodings.py",
-        }
-
+        stage_to_code_path = {sub_stage: dataprep_path / f"{sub_stage}.py" for sub_stage in self.sub_stage_names}
         code_path = stage_to_code_path[sub_stage]
         cfg = self.stage_cfg
         if sub_stage == "download_parquet":
             args = create_args_list(
                 hydra=True,
                 dataset_repo_id=cfg.get("dataset_repo_id"),
-                download_parquet_dir=cfg.download_parquet.get("output_dir"),
+                output_dir=cfg.download_parquet.get("output_dir"),
                 parquet_subpartitions=cfg.download_parquet.get("parquet_subpartitions", 1),
                 parquet_pattern=cfg.download_parquet.get("parquet_pattern"),
             )
         elif sub_stage == "download_images":
             args = create_args_list(
                 hydra=True,
-                download_parquet_dir=cfg.download_parquet.get("output_dir"),
-                parquet_pattern=cfg.download_parquet.get("parquet_pattern"),
-                download_images_dir=cfg.download_images.get("output_dir"),
+                input_dir=cfg.download_images.get("input_dir"),
+                output_dir=cfg.download_images.get("output_dir"),
+                parquet_pattern=cfg.download_images.get("parquet_pattern"),
                 download_num_processes=cfg.download_images.get("download_num_processes"),
                 download_num_threads=cfg.download_images.get("download_num_threads"),
                 img2dataset_additional_arguments=cfg.download_images.get("img2dataset_additional_arguments")
@@ -666,18 +662,27 @@ class MultimodalDataPreparation(DataStage):
         elif sub_stage == "reorganize_tar":
             args = create_args_list(
                 hydra=True,
-                download_images_dir=cfg.download_images.get("output_dir"),
-                reorganize_tar_dir=cfg.reorganize_tar.get("output_dir"),
+                input_dir=cfg.reorganize_tar.get("input_dir"),
+                output_dir=cfg.reorganize_tar.get("output_dir"),
                 file_ext_in_tar=cfg.reorganize_tar.get("file_ext_in_tar"),
                 tar_chunk_size=cfg.reorganize_tar.get("tar_chunk_size"),
             )
-        elif sub_stage == "precache":
+        elif sub_stage == "precache_encodings":
             args = create_args_list(
                 hydra=True,
-                input_tar_dir=cfg.reorganize_tar.get("output_dir"),
+                input_dir=cfg.precache_encodings.get("input_dir"),
                 output_dir=cfg.precache_encodings.get("output_dir"),
-                output_wdinfo_path=cfg.precache_encodings.get("output_wdinfo_path"),
+                tar_chunk_size=cfg.precache_encodings.get("tar_chunk_size"),
                 precache_config_path=cfg.precache_encodings.get("precache_config_path"),
+            )
+        elif sub_stage == "generate_wdinfo":
+            args = create_args_list(
+                hydra=True,
+                input_dir=cfg.generate_wdinfo.get("input_dir"),
+                output_wdinfo_path=cfg.generate_wdinfo.get("output_wdinfo_path"),
+                tar_chunk_size=cfg.generate_wdinfo.get("tar_chunk_size"),
+                file_ext_in_tar=cfg.generate_wdinfo.get("file_ext_in_tar"),
+
             )
         else:
             raise ValueError("Invalid sub_stage:", sub_stage)

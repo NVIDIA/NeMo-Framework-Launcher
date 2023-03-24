@@ -19,7 +19,7 @@ from tqdm import tqdm
 import hydra
 
 
-def reorganize(files, save_dir, chunksize=1000, offset=0, extensions=('.jpg', '.txt')):
+def reorganize(files, save_dir, chunksize=1000, offset=0, extensions=('.jpg', '.txt'), fname_prefix=""):
     '''
     Takes a list of tar files, and reorganizes the files inside them based on their file name ignoring extension,
     such that each output tarfile contains exactly `chunksize` distinct file names (except the last tar file),
@@ -33,11 +33,15 @@ def reorganize(files, save_dir, chunksize=1000, offset=0, extensions=('.jpg', '.
     - offset (int, optional): The starting number of the new tar files' names. Defaults to 0.
     - extensions (tuple, optional): A tuple containing strings representing the file extensions to be included
                                     in the reorganized tar files. Defaults to ('.jpg', '.txt').
+    - fname_prefix (str, optional): A prefix to every tar file. Defaults to "".
     '''
+    def _get_tarname(cur_tar):
+        return os.path.join(save_dir, f'{fname_prefix}{cur_tar:05}.tar')
 
     cur_file = 0
     cur_tar = offset
-    new_tar = tarfile.TarFile(os.path.join(save_dir, f'{cur_tar:05}' + '.tar'), 'w')
+    os.makedirs(save_dir, exist_ok=True)
+    new_tar = tarfile.TarFile(_get_tarname(cur_tar), 'w')
     for i, tar_name in enumerate(tqdm(files)):
         try:
             obj_name = tar_name
@@ -63,13 +67,17 @@ def reorganize(files, save_dir, chunksize=1000, offset=0, extensions=('.jpg', '.
                         cur_file = 0
                         cur_tar += 1
                         new_tar.close()
-                        new_tar = tarfile.TarFile(os.path.join(save_dir, f'{cur_tar:05}' + '.tar'), 'w')
+                        new_tar = tarfile.TarFile(_get_tarname(cur_tar), 'w')
         except Exception as e:
             print(f"Failed to process tarfile {tar_name} due to {str(e)}")
 
     new_tar.close()
     with open(os.path.join(save_dir, 'log.txt'), 'w') as f:
         f.write(f"Last tar {cur_tar} only has {cur_file} files!")
+    if cur_file > 0:
+        open(_get_tarname(cur_tar)+'.INCOMPLETE', 'w').close()  # mark file as incomplete
+    else:
+        os.remove(_get_tarname(cur_tar))
 
 
 @hydra.main(config_path="conf", config_name="config", version_base="1.2")
@@ -88,8 +96,8 @@ def main(cfg) -> None:
     task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
     ntasks = int(os.environ.get("SLURM_ARRAY_TASK_COUNT", 1))
 
-    root = cfg.get("download_images_dir")
-    save_dir = cfg.get("reorganize_tar_dir")
+    root = cfg.get("input_dir")
+    save_dir = cfg.get("output_dir")
     extensions = cfg.get("file_ext_in_tar")
     tar_chunk_size = cfg.get("tar_chunk_size")
 
@@ -98,10 +106,12 @@ def main(cfg) -> None:
     print(f'saving to {abs_save_dir}')
 
     files = sorted(glob.glob(os.path.join(root, "**", "*.tar"), recursive=True))
+    if len(files) == 0:
+        raise FileNotFoundError("Could not find any tar files")
     slc_start, slc_end = task_id * len(files) // ntasks, (task_id + 1) * len(files) // ntasks
 
     start = time.time()
-    print(f"Task {task_id}/{ntasks} is processing files {slc_start} to {slc_end - 1} (total 0-{len(files)})")
+    print(f"Task {task_id}/{ntasks} is processing files {slc_start} to {slc_end - 1} (total 0-{len(files) - 1})")
 
     reorganize(files[slc_start:slc_end], abs_save_dir, chunksize=tar_chunk_size, extensions=extensions)
 

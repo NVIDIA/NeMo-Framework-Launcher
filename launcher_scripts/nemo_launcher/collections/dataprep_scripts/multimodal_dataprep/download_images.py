@@ -25,9 +25,13 @@ def main(cfg):
     """
     task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
     num_tasks = int(os.environ.get("SLURM_ARRAY_TASK_COUNT", 1))
-    download_parquet_dir = cfg.get("download_parquet_dir")
+    download_parquet_dir = cfg.get("input_dir")
+    download_images_dir = cfg.get("output_dir")
     parquet_pattern = cfg.get("parquet_pattern")
     num_processes = cfg.get("download_num_processes")
+    download_num_threads = cfg.get("download_num_threads")
+    img2dataset_additional_arguments = cfg.get("img2dataset_additional_arguments")
+
     if num_processes <= 0:
         num_processes = int(os.environ.get("SLURM_CPUS_ON_NODE"))
 
@@ -38,7 +42,7 @@ def main(cfg):
         print("WARNING: If you continue executing the script, image data may not be downloaded completely.")
 
     parquet_file_name = sorted(parquet_file_list)[task_id]
-    output_folder_path = os.path.join(cfg.get("download_images_dir"), os.path.basename(parquet_file_name))
+    output_folder_path = os.path.join(download_images_dir, os.path.basename(parquet_file_name))
     os.makedirs(output_folder_path, exist_ok=True)
 
     img2dataset_kwargs = {
@@ -49,9 +53,9 @@ def main(cfg):
         "url_list": parquet_file_name,
         "output_folder": output_folder_path,
         "processes_count": num_processes,
-        "thread_count": cfg.get("download_num_threads"),
+        "thread_count": download_num_threads,
     }
-    img2dataset_kwargs.update(cfg.get("img2dataset_additional_arguments"))
+    img2dataset_kwargs.update(img2dataset_additional_arguments)
 
     cmd_list = ["img2dataset"]
     cmd_list.extend(f"--{k}={v}" for k, v in img2dataset_kwargs.items())

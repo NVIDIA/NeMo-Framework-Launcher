@@ -26,7 +26,7 @@ def main(cfg):
     This download step should only be run in one process. It should be quick (a few minutes to an hour)
     """
     dataset_repo_id = cfg.get("dataset_repo_id")
-    download_parquet_dir = cfg.get("download_parquet_dir")
+    download_parquet_dir = cfg.get("output_dir")
     parquet_subpartitions = cfg.get("parquet_subpartitions", 1)
     parquet_pattern = cfg.get("parquet_pattern")
     downloaded_path = snapshot_download(repo_id=dataset_repo_id, repo_type="dataset",
