@@ -256,7 +256,7 @@ def main(cfg):
 
     urls = glob.glob(os.path.join(input_tar_dir, "**", "*.tar"), recursive=True)
     if len(urls) == 0:
-        raise FileNotFoundError("Could not find any tar files")
+        raise FileNotFoundError(f"Could not find any tar files in {input_tar_dir}")
     slc_start, slc_end = task_id * len(urls) // ntasks, (task_id + 1) * len(urls) // ntasks
     print(f"Task {task_id}/{ntasks} is processing files {slc_start} to {slc_end - 1} (total 0-{len(urls) - 1})")
 

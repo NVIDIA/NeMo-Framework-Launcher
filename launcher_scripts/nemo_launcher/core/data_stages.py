@@ -583,8 +583,9 @@ class MultimodalDataPreparation(DataStage):
 
         data_cfg = self.stage_cfg
         for sub_stage in self.sub_stage_names:
-            if data_cfg.get(sub_stage) and data_cfg.get(sub_stage).get("enable", False):
-                os.makedirs(data_cfg.download_parquet.output_dir, exist_ok=True)
+            if data_cfg.get(sub_stage) and data_cfg.get(sub_stage).get("enable", False)\
+                    and sub_stage != "generate_wdinfo":
+                os.makedirs(data_cfg.get(sub_stage).output_dir, exist_ok=True)
 
     def _make_private_cluster_parameters(self, cluster: str, sub_stage: str) -> Dict:
         """
@@ -604,19 +605,20 @@ class MultimodalDataPreparation(DataStage):
 
         container_image = cfg.get("container")
         container_mounts = self._make_container_mounts_string()
-        num_parquets = len(glob.glob(os.path.join(stage_cfg.download_parquet.output_dir, "**",
-                                                  stage_cfg.download_parquet.parquet_pattern), recursive=True))
-        if num_parquets == 0:
-            num_parquets = stage_cfg.download_images.get("num_parquets_downloaded") \
-                           * stage_cfg.download_parquet.get("parquet_subpartitions")
+
         if cluster == "bcm":
-            node_array_size = {
-                "download_parquet": 1,
-                "download_images": num_parquets,
-                "reorganize_tar": stage_cfg.reorganize_tar.get("node_array_size", 1),
-                "precache_encodings": stage_cfg.precache_encodings.get("node_array_size", 1),
-                "generate_wdinfo": 1,
-            }[sub_stage]
+            if sub_stage == "download_images":
+                node_array_size = len(glob.glob(os.path.join(stage_cfg.download_parquet.output_dir, "**",
+                                                          stage_cfg.download_parquet.parquet_pattern), recursive=True))
+                if node_array_size == 0:
+                    node_array_size = stage_cfg.download_images.get("num_parquets_downloaded") \
+                                   * stage_cfg.download_parquet.get("parquet_subpartitions")
+            elif sub_stage == "reorganize_tar":
+                node_array_size = stage_cfg.reorganize_tar.get("node_array_size", 1)
+            elif sub_stage == "precache_encodings":
+                node_array_size = stage_cfg.precache_encodings.get("node_array_size", 1)
+            else:  # download_parquet, generate_wdinfo
+                node_array_size = 1
 
             if node_array_size > 1:
                 max_simultaneous_jobs = 100

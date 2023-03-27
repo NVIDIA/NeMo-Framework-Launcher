@@ -108,7 +108,7 @@ def main(cfg) -> None:
 
     files = sorted(glob.glob(os.path.join(root, "**", "*.tar"), recursive=True))
     if len(files) == 0:
-        raise FileNotFoundError("Could not find any tar files")
+        raise FileNotFoundError(f"Could not find any tar files in {files}")
     slc_start, slc_end = task_id * len(files) // ntasks, (task_id + 1) * len(files) // ntasks
 
     start = time.time()
