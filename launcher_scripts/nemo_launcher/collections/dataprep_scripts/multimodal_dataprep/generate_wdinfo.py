@@ -56,6 +56,5 @@ def main(cfg):
     generate_wdinfo(tar_folder, tar_chunk_size, output_wdinfo_path)
 
 
-
 if __name__ == '__main__':
     main()

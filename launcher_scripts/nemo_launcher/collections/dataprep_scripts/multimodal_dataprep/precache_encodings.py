@@ -117,7 +117,7 @@ class EncodingCacher(pl.LightningModule, Serialization):
 
         def write_tar_content(idx):
             tar_name = self._get_tarname()
-            open(tar_name+".INCOMPLETE", 'w').close()  # mark file as incomplete
+            open(tar_name + ".INCOMPLETE", 'w').close()  # mark file as incomplete
             with tarfile.open(tar_name, 'a') as tar:
                 print('writing to tar:', tar_name)
                 while idx < batch_size and self.cur_tar_size < self.output_tar_chunk_size:
@@ -142,7 +142,7 @@ class EncodingCacher(pl.LightningModule, Serialization):
         idx = write_tar_content(idx)
 
         if self.cur_tar_size == self.output_tar_chunk_size:
-            os.remove(self._get_tarname()+".INCOMPLETE")
+            os.remove(self._get_tarname() + ".INCOMPLETE")
             # this tar file is finished
             self.cur_tar_size = 0
             self.cur_tar_num += 1

@@ -35,6 +35,7 @@ def reorganize(files, save_dir, chunksize=1000, offset=0, extensions=('.jpg', '.
                                     in the reorganized tar files. Defaults to ('.jpg', '.txt').
     - fname_prefix (str, optional): A prefix to every tar file. Defaults to "".
     '''
+
     def _get_tarname(cur_tar):
         return os.path.join(save_dir, f'{fname_prefix}{cur_tar:05}.tar')
 
@@ -75,7 +76,7 @@ def reorganize(files, save_dir, chunksize=1000, offset=0, extensions=('.jpg', '.
     with open(os.path.join(save_dir, 'log.txt'), 'w') as f:
         f.write(f"Last tar {cur_tar} only has {cur_file} files!")
     if cur_file > 0:
-        open(_get_tarname(cur_tar)+'.INCOMPLETE', 'w').close()  # mark file as incomplete
+        open(_get_tarname(cur_tar) + '.INCOMPLETE', 'w').close()  # mark file as incomplete
     else:
         os.remove(_get_tarname(cur_tar))
 

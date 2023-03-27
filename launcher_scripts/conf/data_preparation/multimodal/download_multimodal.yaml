@@ -30,7 +30,7 @@ download_images:
   # Note that node_array_size for this stage will be parquet_subpartitions x num_parquets_downloaded
   download_num_processes: -1  # set to number of CPUs in the job (-1 defaults to slurm cpus_per_task)
   download_num_threads: 128  # tune by monitoring CPU usage
-  img2dataset_additional_arguments:  # see https://github.com/rom1504/img2dataset for complete list of parameters
+  img2dataset_additional_arguments: # see https://github.com/rom1504/img2dataset for complete list of parameters
     encode_quality: 95  # jpeg compression quality (100 is best, but still lossy)
     resize_mode: no  # optionally resize after downloading to save disk space
 
@@ -40,7 +40,7 @@ reorganize_tar:
   output_dir: ${..dataset_output_root}/tarfiles_reorganized
   node_array_size: 2  # number of concurrent jobs
   tar_chunk_size: 1000  # number of training examples in each output tar file
-  file_ext_in_tar:  # target extensions in each
+  file_ext_in_tar: # target extensions in each
     - .jpg
     - .txt
 

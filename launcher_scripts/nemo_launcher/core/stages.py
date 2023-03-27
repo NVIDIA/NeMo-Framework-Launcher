@@ -64,7 +64,7 @@ class NemoMegatronStage:
         # Make command groups
         command_groups = self.make_stage_command_groups(stage_cfg_path)
         # Create launcher
-        launcher = AutoLauncher(folder=job_path.folder, cluster=self.cluster, **cluster_parameters,)
+        launcher = AutoLauncher(folder=job_path.folder, cluster=self.cluster, **cluster_parameters, )
         job_id = launcher.launch(command_groups=command_groups)
 
         return job_id
