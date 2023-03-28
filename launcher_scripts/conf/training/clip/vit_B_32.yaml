@@ -46,7 +46,7 @@ exp_manager:
     filename: 'nemo_clip--{val_loss:.2f}-{step}-{consumed_samples}'
     model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
   ema:
-    enable: True
+    enable: False
     decay: 0.9999
     validate_original_weights: False
     every_n_steps: 1
@@ -198,7 +198,7 @@ model:
     use_emha: False # Use fused multi-head attention for large sequence-length. Note this is not yet supported. Please set to False.
 
   # Megatron O2-style half-precision
-  megatron_amp_O2: False # Enable O2-level automatic mixed precision using main parameters
+  megatron_amp_O2: True # Enable O2-level automatic mixed precision using main parameters
   grad_allreduce_chunk_size_mb: 125
   grad_div_ar_fusion: True # Fuse grad division into torch.distributed.all_reduce
 
