@@ -10,13 +10,13 @@ dataset_repo_id: laion/laion-art  # huggingface dataset repo id
 dataset_output_root: ${data_dir}/laion--laion-art
 
 download_parquet:
-  enable: False
+  enable: True
   output_dir: ${..dataset_output_root}/parquet
   parquet_subpartitions: 3  # increase the number of partitions to reduce the download time of each job
   parquet_pattern: "*.parquet"  # files to be included in the hugging face repo
 
 download_images:
-  enable: False
+  enable: True
   parquet_pattern: ${..download_parquet.parquet_pattern}
   input_dir: ${..download_parquet.output_dir}
   output_dir: ${..dataset_output_root}/tarfiles_raw
@@ -29,16 +29,16 @@ download_images:
   # Otherwise script will automatically count the number of parquet files downloaded.
   # Note that node_array_size for this stage will be parquet_subpartitions x num_parquets_downloaded
   download_num_processes: -1  # set to number of CPUs in the job (-1 defaults to slurm cpus_per_task)
-  download_num_threads: 128  # tune by monitoring CPU usage
+  download_num_threads: 64  # tune by monitoring CPU usage
   img2dataset_additional_arguments: # see https://github.com/rom1504/img2dataset for complete list of parameters
     encode_quality: 95  # jpeg compression quality (100 is best, but still lossy)
     resize_mode: no  # optionally resize after downloading to save disk space
 
 reorganize_tar:
-  enable: False
+  enable: True
   input_dir: ${..download_images.output_dir}
   output_dir: ${..dataset_output_root}/tarfiles_reorganized
-  node_array_size: 2  # number of concurrent jobs
+  node_array_size: 2  # increase the number of concurrent jobs to reduce the time for each job
   tar_chunk_size: 1000  # number of training examples in each output tar file
   file_ext_in_tar: # target extensions in each
     - .jpg
@@ -49,7 +49,7 @@ precache_encodings:
   input_dir: ${..reorganize_tar.output_dir}
   output_dir: ${..dataset_output_root}/tarfiles_precached
   tar_chunk_size: ${..reorganize_tar.tar_chunk_size}
-  node_array_size: 4  # increase the number of jobs to reduce the time for each job
+  node_array_size: 4  # increase the number of concurrent jobs to reduce the time for each job
   precache_config_path: ${launcher_scripts_path}/conf/data_preparation/multimodal/precache_sd.yaml
 
 generate_wdinfo:

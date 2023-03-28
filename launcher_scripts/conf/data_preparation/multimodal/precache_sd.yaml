@@ -1,7 +1,9 @@
 batch_size_per_GPU: 64  # as much as it can fit in your GPU memory
 dataloader_num_workers: 16
-save_original_in_tar:
-encodings: # this is a list of dicts because it is possible that one modality has two types of embeddings
+save_original_in_tar:  # for SD, original images or text are not used during training (if using precached encodings)
+# so we can leave this empty. For models like eDiff-i, this should be [image, text] so that original image and text
+# are copied into tarfiles along with the encodings.
+encodings: # see README for instructions
   - modality: image
     extension: jpg
     key: autoencoderkl_image
@@ -10,7 +12,6 @@ encodings: # this is a list of dicts because it is possible that one modality ha
       cls: nemo.collections.multimodal.models.stable_diffusion.ldm.autoencoder.AutoencoderKL
       from_pretrained: /mingyuanm/huggingface-v1.2/vae.bin  # change me
       embed_dim: 4
-      #            monitor: val/rec_loss
       ddconfig:
         double_z: true
         z_channels: 4

@@ -228,11 +228,14 @@ def get_webdataset_loader(precache_cfg, urls):
             # e.g. {'images': input[0], 'text': input[1]}
             yield out_dict
 
-    dataset = (wds.WebDataset(urls)
-               .decode(pil_loader, handler=wds.warn_and_continue)  # Decoding the data
-               .to_tuple(' '.join(modality_cfg.extension for modality_cfg in precache_cfg.encodings))
-               .compose(tuple_to_dict)  # Converting tuple to data dict
-               )
+    dataset = wds.DataPipeline(
+        wds.SimpleShardList(urls),
+        wds.split_by_node,
+        wds.split_by_worker,
+        wds.tarfile_to_samples(),
+        wds.decode(pil_loader, handler=wds.warn_and_continue),
+        wds.to_tuple(' '.join(modality_cfg.extension for modality_cfg in precache_cfg.encodings))
+    ).compose(tuple_to_dict)
 
     dataloader = torch.utils.data.DataLoader(dataset,
                                              batch_size=precache_cfg.batch_size_per_GPU,

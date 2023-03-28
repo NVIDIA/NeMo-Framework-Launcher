@@ -607,6 +607,7 @@ class MultimodalDataPreparation(DataStage):
         container_mounts = self._make_container_mounts_string()
 
         if cluster == "bcm":
+            ntasks_per_node = 1
             if sub_stage == "download_images":
                 node_array_size = len(glob.glob(os.path.join(stage_cfg.download_parquet.output_dir, "**",
                                                           stage_cfg.download_parquet.parquet_pattern), recursive=True))
@@ -617,6 +618,7 @@ class MultimodalDataPreparation(DataStage):
                 node_array_size = stage_cfg.reorganize_tar.get("node_array_size", 1)
             elif sub_stage == "precache_encodings":
                 node_array_size = stage_cfg.precache_encodings.get("node_array_size", 1)
+                ntasks_per_node = 8
             else:  # download_parquet, generate_wdinfo
                 node_array_size = 1
 
@@ -631,7 +633,7 @@ class MultimodalDataPreparation(DataStage):
                 "array": array,
                 "container_image": container_image,
                 "container_mounts": container_mounts,
-                "ntasks_per_node": 1,
+                "ntasks_per_node": ntasks_per_node,
             }
         else:  # will support bcp later
             raise NotImplementedError
