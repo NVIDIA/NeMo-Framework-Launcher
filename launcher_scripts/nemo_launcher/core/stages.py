@@ -64,7 +64,7 @@ class NemoMegatronStage:
         # Make command groups
         command_groups = self.make_stage_command_groups(stage_cfg_path)
         # Create launcher
-        launcher = AutoLauncher(folder=job_path.folder, cluster=self.cluster, **cluster_parameters,)
+        launcher = AutoLauncher(folder=job_path.folder, cluster=self.cluster, **cluster_parameters, )
         job_id = launcher.launch(command_groups=command_groups)
 
         return job_id
@@ -262,7 +262,7 @@ class NemoMegatronStage:
             cluster_parameters["job_name"] = job_name_prefix + cluster_parameters["job_name"]
         elif cluster == "bcp":
             cluster_parameters.update(
-                {**shared_parameters, "env_vars": env_vars,}
+                {**shared_parameters, "env_vars": env_vars, }
             )
         elif cluster == "interactive":
             cluster_parameters.update(shared_parameters)
@@ -330,7 +330,7 @@ class NemoMegatronStage:
         return ""
 
     @functools.lru_cache()
-    def get_job_path(self, sub_stage: Optional = None) -> JobPaths:
+    def get_job_path(self, sub_stage: Optional[str] = None) -> JobPaths:
         """Fetch a JobPaths object for current stage"""
         run_cfg = self.stage_cfg.get("run")
         results_dir = Path(run_cfg.get("results_dir"))  # TODO: rename this to job dir in config
@@ -779,7 +779,7 @@ class NeMoEvaluation(NeMoStage):
             pred_file_path = self.stage_cfg.get("pred_file_path")
             ground_truth_file_path = self.stage_cfg.get("ground_truth_file_path")
             code_path = self._launcher_scripts_path / "nemo_launcher/collections/metric_calculation/squad_metric_calc.py"
-            args = create_args_list(pred=pred_file_path, ground_truth=ground_truth_file_path,)
+            args = create_args_list(pred=pred_file_path, ground_truth=ground_truth_file_path, )
             split_string = self.stage_cfg.get("split_string", None)
             if split_string:
                 args += create_args_list(split_string=f"'{split_string}'")
@@ -790,14 +790,14 @@ class NeMoEvaluation(NeMoStage):
             pred_file_path = output_file_path_prefix + "_validation_dataloader0_inputs_preds_labels.json"
             ground_truth_file_path = self.stage_cfg.model.data.validation_ds.get("ground_truth_file_path")
             code_path = (
-                self._launcher_scripts_path / "nemo_launcher/collections/metric_calculation/fine_tuning_metric_calc.py"
+                    self._launcher_scripts_path / "nemo_launcher/collections/metric_calculation/fine_tuning_metric_calc.py"
             )
             args = create_args_list(
                 replace_underscore=False,
                 pred_file=pred_file_path,
                 target_file=ground_truth_file_path,
                 squad_eval_script_path=self._launcher_scripts_path
-                / "nemo_launcher/collections/metric_calculation/squad_metric_calc.py",
+                                       / "nemo_launcher/collections/metric_calculation/squad_metric_calc.py",
             )
             calculation_command = [f"python3 {code_path}", *args]
             calculation_command = " \\\n  ".join(calculation_command)
@@ -828,7 +828,7 @@ class NeMoEvaluation(NeMoStage):
             "ia3_gpt3": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_eval.py",
             "adapter_t5": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_t5_adapter_eval.py",
             "adapter_gpt3": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_eval.py",
+                            / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_eval.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -859,7 +859,7 @@ class EvalHarnessEvaluation(NemoMegatronStage):
         tasks = run_cfg.get("tasks")
 
         code_path = self._launcher_scripts_path / "nemo_launcher/collections/eval_harness/download.py"
-        args = create_args_list(tasks=tasks, cache_dir=cache_dir,)
+        args = create_args_list(tasks=tasks, cache_dir=cache_dir, )
         download_command = [f"python3 {code_path}", *args]
         download_command_string = " \\\n  ".join(download_command)
         return download_command_string
@@ -958,7 +958,7 @@ def _hydra_interpolation(cfg: OmegaConf) -> None:
     interpolate(cfg)
 
 
-def create_args_list(hydra: bool = False, replace_underscore: bool = True, **kwargs: Any,) -> List[str]:
+def create_args_list(hydra: bool = False, replace_underscore: bool = True, **kwargs: Any, ) -> List[str]:
     """
     An easy tool function to convert arguments into a list of argument strings.
     For example, `create_args_list(a=123, b=456)` will generate `['--a=123', '--b=456']`.
@@ -973,7 +973,17 @@ def create_args_list(hydra: bool = False, replace_underscore: bool = True, **kwa
     args = []
     for k, v in kwargs.items():
         if hydra:
-            args.append(f"{k}={v}")
+            if isinstance(v, dict) or isinstance(v, omegaconf.dictconfig.DictConfig):
+                # remove quotes around keys if the argument is a dict
+                # (https://hydra.cc/docs/advanced/override_grammar/basic/)
+                # For example, dict {"a":10, "b":20} will become string "'{a:10,b:20}'"
+                data = ','.join(f"{inner_key}:{inner_val}" for inner_key, inner_val in v.items())
+                args.append(f"'{k}={{{data}}}'")
+            elif isinstance(v, list) or isinstance(v, omegaconf.listconfig.ListConfig):
+                data = ','.join(v)
+                args.append(f"'{k}=[{data}]'")
+            else:
+                args.append(f"{k}={v}")
         else:
             # use "store_true" to add keys only args
             if replace_underscore:
