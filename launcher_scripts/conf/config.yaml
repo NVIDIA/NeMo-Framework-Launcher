@@ -9,6 +9,7 @@ defaults:
   - adapter_learning: null
   - ia3_learning: null
   - evaluation: gpt3/evaluate_all
+  - fw_inference: null
   - export: gpt3/export_gpt3
   - override hydra/job_logging: stdout
 
@@ -64,3 +65,4 @@ ia3_learning_config: ${hydra:runtime.choices.ia3_learning}
 evaluation_config: ${hydra:runtime.choices.evaluation}
 conversion_config: ${hydra:runtime.choices.conversion}
 export_config: ${hydra:runtime.choices.export}
+fw_inference_config: ${hydra:runtime.choices.fw_inference}
