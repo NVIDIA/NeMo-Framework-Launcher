@@ -1,0 +1,8 @@
+run:
+  name: download_instruct_pix2pix
+  results_dir: ${base_results_dir}/${.name}
+  time_limit: "4:00:00"
+  dependency: "singleton"
+
+dataset_name: clip-filtered-dataset  # clip-filtered-dataset or random-sample-dataset
+dataset_output_root: ${data_dir}/instruct_pix2pix

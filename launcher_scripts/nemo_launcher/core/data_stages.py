@@ -15,6 +15,7 @@
 import copy
 import glob
 import os
+import shutil
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -583,7 +584,7 @@ class MultimodalDataPreparation(DataStage):
 
         data_cfg = self.stage_cfg
         for sub_stage in self.sub_stage_names:
-            if data_cfg.get(sub_stage) and data_cfg.get(sub_stage).get("enable", False)\
+            if data_cfg.get(sub_stage) and data_cfg.get(sub_stage).get("enable", False) \
                     and sub_stage != "generate_wdinfo":
                 os.makedirs(data_cfg.get(sub_stage).output_dir, exist_ok=True)
 
@@ -610,10 +611,11 @@ class MultimodalDataPreparation(DataStage):
             ntasks_per_node = 1
             if sub_stage == "download_images":
                 node_array_size = len(glob.glob(os.path.join(stage_cfg.download_parquet.output_dir, "**",
-                                                          stage_cfg.download_parquet.parquet_pattern), recursive=True))
+                                                             stage_cfg.download_parquet.parquet_pattern),
+                                                recursive=True))
                 if node_array_size == 0:
                     node_array_size = stage_cfg.download_images.get("num_parquets_downloaded") \
-                                   * stage_cfg.download_parquet.get("parquet_subpartitions")
+                                      * stage_cfg.download_parquet.get("parquet_subpartitions")
             elif sub_stage == "reorganize_tar":
                 node_array_size = stage_cfg.reorganize_tar.get("node_array_size", 1)
             elif sub_stage == "precache_encodings":
@@ -693,4 +695,75 @@ class MultimodalDataPreparation(DataStage):
 
         sub_stage_command = [f"python3 -u {code_path}", *args]
         sub_stage_command = " \\\n  ".join(sub_stage_command)
+        return [sub_stage_command]
+
+
+class InstructPix2PixDataPreparation(DataStage):
+    """
+    DataStage for preparing the custom generated datasets for InstructPix2Pix
+    """
+
+    def _make_sub_stages(self) -> List[str]:
+        """
+        Create a list of sub-stage names which are required to run in current data stage.
+        Based on the input config, some of sub stages may not need to run.
+
+        :return: a list of sub-stage names which are required to run
+        :rtype: List[str]
+        """
+        sub_stages = ['download']
+        return sub_stages
+
+    def setup_folder_and_data(self) -> None:
+        """Setup job/data folders for each substage"""
+        job_path = self.get_job_path()
+        job_path.folder.mkdir(parents=True, exist_ok=True)
+
+        dataset_output_root = self.stage_cfg.dataset_output_root
+        if os.path.exists(dataset_output_root):
+            print(f"WARNING: dataset_output_root already exists")
+            response = ''
+            while response.lower() not in ['y', 'n']:
+                response = input(f"Do you want to wipe everything at {dataset_output_root}? [y/n] \n>>> ")
+            if response.lower() == 'y':
+                shutil.rmtree(dataset_output_root)
+            else:
+                print("Not removing existing folder. Subsequent operations may fail.")
+        os.makedirs(dataset_output_root, exist_ok=True)
+
+    def _make_private_cluster_parameters(self, cluster: str, sub_stage: str) -> Dict:
+        """
+        A simplifying function to make cluster parameters specific to each cluster type.
+        Shared cluster parameters are handled in _make_cluster_parameters.
+        This is function is introduced because for different dataset preparation the required slurm params are different,
+            but the shared parameters are always the same. As a result, one only needs to override private parameters
+            for different DataStage.
+
+        :param str cluster: cluster type
+        :param str sub_stage: current sub_stage name
+        :return: a dictionary of private cluster parameters, e.g. `bcp_preproc_npernode`
+        :rtype: Dict
+        """
+        container_image = self.cfg.get("container")
+        container_mounts = self._make_container_mounts_string()
+
+        if cluster == "bcm":
+            return {
+                "nodes": 1,
+                "array": None,
+                "container_image": container_image,
+                "container_mounts": container_mounts,
+                "ntasks_per_node": 1,
+            }
+        else:  # will support bcp later
+            raise NotImplementedError
+
+    def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
+        """Make a command of the specified sub-stage"""
+
+        dataprep_path = self._launcher_scripts_path / "nemo_launcher/collections/dataprep_scripts/instruct_pix2pix_dataprep"
+        code_path = dataprep_path / "download.sh"
+        cfg = self.stage_cfg
+
+        sub_stage_command = f"bash {code_path} {cfg.dataset_output_root} {cfg.dataset_name}"
         return [sub_stage_command]
