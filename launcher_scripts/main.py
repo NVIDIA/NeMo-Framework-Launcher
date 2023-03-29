@@ -30,6 +30,7 @@ from nemo_launcher.core.stages import (
     NeMoEvaluation,
     PromptLearning,
     Training,
+    FWInference,
 )
 
 omegaconf.OmegaConf.register_new_resolver("multiply", lambda x, y: x * y, replace=True)
@@ -44,6 +45,7 @@ STR2STAGECLASS = {
     "ia3_learning": IA3Learning,
     "conversion": Conversion,
     "export": Export,
+    "fw_inference": FWInference,
     "evaluation": {
         EvalHarnessEvaluation: ["gpt3", "prompt_gpt3"],
         NeMoEvaluation: ["t5", "mt5", "prompt_t5", "prompt_mt5", "adapter_t5", "adapter_gpt3", "ia3_t5", "ia3_gpt3"],
