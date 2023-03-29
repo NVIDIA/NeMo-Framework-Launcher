@@ -212,7 +212,7 @@ class NeMo_GPT3_PROMPTLM(LM):
         for batch in tqdm.tqdm(request_dl):
             # inputs = (token_ids, conti_lens)
             inputs = (batch[0].cuda(), batch[1].cuda())
-            task_ids = batch[2].cuda()
+            task_ids = torch.zeros((self.batch_size, 1), device='cuda')
             response = generate(
                 model=self.model,
                 inputs=inputs,
