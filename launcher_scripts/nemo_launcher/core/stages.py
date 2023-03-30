@@ -542,14 +542,6 @@ class FineTuning(NeMoStage):
             data_dir = self.cfg.get("data_dir")
             task_name = self.stage_cfg.run.get("task_name")
 
-            # GLUE for internal use
-            download_glue_script_path = self._launcher_scripts_path / "nemo_launcher/utils/data_utils/download_glue.py"
-            if download_glue_script_path.exists():
-            from nemo_launcher.utils.data_utils.download_glue import TASKS_LOWER, download_glue
-
-                if task_name in TASKS_LOWER:
-                    download_glue(data_dir=os.path.join(data_dir, "glue_data"), tasks=task_name)
-
             # Prepare dataset for squad
             if task_name in ["squad", "xquad"]:
                 prepare_squad_for_fine_tuning(data_dir=os.path.join(data_dir, "squad_data"))
