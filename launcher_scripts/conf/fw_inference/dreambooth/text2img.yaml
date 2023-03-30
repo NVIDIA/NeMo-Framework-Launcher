@@ -17,6 +17,7 @@ infer:
   output_type: 'pil'
   save_to_file: True
   out_path: ${fw_inference.run.results_dir}
+  seed: 234
   prompts:
     - "a photo of a sks dog"
     - "a photo of a sks dog in the Acropolis"
