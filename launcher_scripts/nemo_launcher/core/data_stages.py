@@ -523,7 +523,8 @@ class CustomDataPreparation(DataStage):
         else:
             assert sub_stage == "preprocess", f"Unknown substage {sub_stage}"
             code_path = (
-                self._launcher_scripts_path / "nemo_launchernemo_launcher/collections/dataprep_scripts/custom_dataprep/preprocess.py"
+                self._launcher_scripts_path
+                / "nemo_launchernemo_launcher/collections/dataprep_scripts/custom_dataprep/preprocess.py"
             )
             args = create_args_list(
                 output_path=data_cfg.get("preprocessed_dir"),

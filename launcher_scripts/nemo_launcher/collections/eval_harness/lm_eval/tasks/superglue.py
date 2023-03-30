@@ -22,9 +22,9 @@ import sklearn
 import transformers.data.metrics.squad_metrics as squad_metrics
 from lm_eval.base import rf
 
-from .common import HFTask, yesno
 from ..metrics import acc_all, mean, metric_max_over_ground_truths
 from ..utils import general_detokenize
+from .common import HFTask, yesno
 
 
 class BoolQ(HFTask):

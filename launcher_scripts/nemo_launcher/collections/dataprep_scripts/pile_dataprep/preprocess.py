@@ -61,7 +61,7 @@ def main(cfg):
     if cfg.get("cluster_type") == "bcm":
         file_number = int(os.environ.get("SLURM_ARRAY_TASK_ID"))
         extracted_path = os.path.join(data_dir, f"{file_number:02d}.jsonl")
-        
+
         model_type = 't5'
         if 'bert' in data_config:
             model_type = 'bert'
@@ -84,10 +84,7 @@ def main(cfg):
             # Used for bert binary head (Next sentence predition)
             flags += "--split-sentences "
         else:
-            flags += (                    
-                f"--merge-file {merges_path} "
-                f"--append-eod "
-                )
+            flags += f"--merge-file {merges_path} " f"--append-eod "
 
         os.system(compilecmd)
         runcmd += f"{flags} "
@@ -139,11 +136,7 @@ def main(cfg):
                 # Used for bert binary head (Next sentence predition)
                 flags += "--split-sentences "
             else:
-                flags += (                    
-                    f"--merge-file {merges_path} "
-                    f"--append-eod "
-                    )
-
+                flags += f"--merge-file {merges_path} " f"--append-eod "
 
             proc = subprocess.Popen(runcmd + flags, shell=True)
             proc.wait()
