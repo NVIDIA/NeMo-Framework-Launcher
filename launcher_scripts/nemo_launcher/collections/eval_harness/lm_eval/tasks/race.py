@@ -18,8 +18,8 @@ import datasets
 import numpy as np
 from lm_eval.base import rf
 
-from .common import HFTask
 from ..metrics import mean
+from .common import HFTask
 
 
 class each:

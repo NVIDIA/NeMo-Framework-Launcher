@@ -545,7 +545,7 @@ class FineTuning(NeMoStage):
             # GLUE for internal use
             download_glue_script_path = self._launcher_scripts_path / "nemo_launcher/utils/data_utils/download_glue.py"
             if download_glue_script_path.exists():
-                from nemo_launcher.utils.data_utils.download_glue import download_glue, TASKS_LOWER
+            from nemo_launcher.utils.data_utils.download_glue import TASKS_LOWER, download_glue
 
                 if task_name in TASKS_LOWER:
                     download_glue(data_dir=os.path.join(data_dir, "glue_data"), tasks=task_name)
@@ -832,7 +832,9 @@ class NeMoEvaluation(NeMoStage):
         if any([choice_model_type.startswith(type) for type in ["prompt", "ia3", "adapter"]]):
             pred_file_path = self.stage_cfg.get("pred_file_path")
             ground_truth_file_path = self.stage_cfg.get("ground_truth_file_path")
-            code_path = self._launcher_scripts_path / "nemo_launcher/collections/metric_calculation/squad_metric_calc.py"
+            code_path = (
+                self._launcher_scripts_path / "nemo_launcher/collections/metric_calculation/squad_metric_calc.py"
+            )
             args = create_args_list(pred=pred_file_path, ground_truth=ground_truth_file_path, )
             split_string = self.stage_cfg.get("split_string", None)
             if split_string:

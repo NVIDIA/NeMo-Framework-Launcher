@@ -24,11 +24,10 @@ import time
 from datetime import datetime
 from typing import Union
 
+from lm_eval import base, evaluator, models, tasks, utils
 from nemo.utils import logging
 from nemo.utils.get_rank import is_global_rank_zero
 from omegaconf import OmegaConf
-
-from lm_eval import base, evaluator, models, tasks, utils
 
 
 def parse_args(parser_main):
@@ -424,7 +423,7 @@ def main():
                 json.dump(results, fp, indent=4)
 
         # MAKE TABLE
-        from pytablewriter import MarkdownTableWriter, LatexTableWriter
+        from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
         md_writer = MarkdownTableWriter()
         latex_writer = LatexTableWriter()
