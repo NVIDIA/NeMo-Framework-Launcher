@@ -668,7 +668,7 @@ class FWInference(NeMoStage):
             "clip": self._nemo_code_path / "examples/multimodal/foundation/clip/megatron_clip_infer.py",
             "stable_diffusion": self._nemo_code_path / "examples/multimodal/generative/stable_diffusion/sd_infer.py",
             "instruct_pix2pix": self._nemo_code_path / "examples/multimodal/generative/instruct_pix2pix/sd_edit_cli.py",
-            "dreambooth": self._nemo_code_path / "examples/multimodal/generative/stable_diffusion/sd_infer.py",
+            "dreambooth": self._nemo_code_path / "examples/multimodal/generative/dreambooth/dreambooth_infer.py",
         }
         return model_type_to_code_path[model_type]
 
