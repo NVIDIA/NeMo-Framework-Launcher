@@ -303,7 +303,7 @@ def calculate_model_size_params(
     raise Exception("Number of layers not found, config is not possible.")
 
 
-def generic_base_config(cfg: omegaconf.dictconfig.DictConfig, model_name: str = "gpt3") -> dict:
+def generic_base_config(cfg: omegaconf.dictconfig.DictConfig, custom_cfg, model_name: str = "gpt3") -> dict:
     """
     Generates a base config dictionary from a base config yaml file.
     :param omegaconf.dictconfig.DictConfig cfg: hydra-like config object for the HP tool.
@@ -311,7 +311,8 @@ def generic_base_config(cfg: omegaconf.dictconfig.DictConfig, model_name: str = 
     :returns: dictionary containing the base configuration for the model.
     :rtype: dict
     """
-    with open(f"{cfg.auto_configurator_path}/base_configs/{model_name}.yaml") as f:
+    cfg_path = f"{cfg.auto_configurator_path}/base_configs/{model_name}.yaml" if custom_cfg is None else custom_cfg
+    with open(cfg_path) as f:
         base_cfg = yaml.safe_load(f)
     return base_cfg
 
@@ -545,3 +546,7 @@ def add_container_mounts(container_mounts: Optional[List[str]]) -> str:
             if mount is not None and isinstance(mount, str):
                 mounts_str += f",{mount}" if ":" in mount else f",{mount}:{mount}"
     return mounts_str
+
+    
+
+ 

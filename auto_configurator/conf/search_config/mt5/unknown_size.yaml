@@ -11,6 +11,8 @@ train_settings:
   tflops_per_gpu: 140  # Estimated tflops per GPU.
   num_tokens_in_b: 1000  # Unit in billions, typically 300B for GPT3 models.
   vocab_size: 250000
+  seq_length: 512 # available seq_length list for MT5 models: [512]
+  custom_config: null # path to custom .yaml model config instead of using auto-generated
   logs: ${base_results_dir}/${search_config_value}_${.gpu_memory_gb}gb  # Example base_results_dir/mt5/0.17b
   override_search_num_nodes: auto  # auto to use the minimum required number of nodes
   tensor_parallel_sizes: auto  # auto to use our recommendation, or a list, such as [1, 2, 4, 8]

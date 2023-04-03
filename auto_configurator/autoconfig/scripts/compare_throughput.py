@@ -22,9 +22,10 @@ def main(cfg):
     candidate_configs = os.path.join(settings_cfg.get("logs"), "candidate_configs")
     final_result_logs = os.path.join(settings_cfg.get("logs"), "final_result")
 
-    columns = [
+    result_columns = [
         "Model Name",
         "Model Size",
+        "Seq Length",
         "TP",
         "PP",
         "MBS",
@@ -43,7 +44,26 @@ def main(cfg):
         "Model TFLOPS Aggregate",
         "Config Name",
     ]
+    error_columns = [
+        "Model Name",
+        "Model Size",
+        "Seq Length",
+        "TP",
+        "PP",
+        "MBS",
+        "Act Ckpt Layers",
+        "Act Ckpt Micro Bathes",
+        "Act Ckpt Layers per Pipeline",
+        "Num Layers",
+        "Hidden Size",
+        "FFN Hidden Size",
+        "GBS",
+        "Nodes",
+        "GPUs per Node",
+        "Error Message",
+    ]
     result = []
+    errors = []
     dirs = os.listdir(training_logs)
     for candidate_dir in dirs:
         config_path = os.path.join(candidate_configs, f"{candidate_dir}.yaml")
@@ -86,6 +106,30 @@ def main(cfg):
         if f"{nodes}nodes" not in candidate_dir:
             continue
 
+        for f in os.listdir(os.path.join(training_logs, candidate_dir)):
+            if f.endswith(".err"):
+                error_file = os.path.join(training_logs, candidate_dir, f)
+                error = find_error(error_file)
+                if error:
+                    errors.append([
+                            model_name,
+                            model_size,
+                            enc_seq_len,
+                            tp,
+                            pp,
+                            mbs,
+                            act_ckpt_layers,
+                            num_mbs_act,
+                            act_per_pipe,
+                            layers,
+                            hs,
+                            ffn_hs,
+                            gbs,
+                            nodes,
+                            gpus_per_node,
+                            error,
+                        ])
+        
         files = os.listdir(os.path.join(training_logs, candidate_dir, "results"))
         for f in files:
             if f[:6] == "events":
@@ -117,6 +161,7 @@ def main(cfg):
                         [
                             model_name,
                             model_size,
+                            enc_seq_len,
                             tp,
                             pp,
                             mbs,
@@ -154,8 +199,11 @@ def main(cfg):
 
     # Save results as a CSV file.
     os.makedirs(final_result_logs, exist_ok=True)
-    df = pd.DataFrame(result, columns=columns)
-    df.to_csv(os.path.join(final_result_logs, f"final_summary_{nodes}nodes.csv"), index=False)
+    result_df = pd.DataFrame(result, columns=result_columns)
+    result_df.to_csv(os.path.join(final_result_logs, f"final_summary_{nodes}nodes.csv"), index=False)
+
+    error_df = pd.DataFrame(errors, columns=error_columns)
+    error_df.to_csv(os.path.join(final_result_logs, f"failed_jobs_{nodes}nodes.csv"), index=False)
 
     copyfile(
         os.path.join(candidate_configs, f"{top_config}.yaml"),
@@ -225,6 +273,23 @@ def calculate_tflops(
     else:
         raise NotImplementedError("Model type not supported.")
     return round(model_tflops, 2), round(model_tflops_per_gpu, 2)
+
+
+def find_error(error_file: str, errors: list = ["CUDA out of memory"]):
+    """
+    Finds the error among job output. 
+    :param list errors: list of "popular" errors. 
+    :param str error_file: path to the job output.
+    :return: str error if job has been failed because of one of listed errors and None if not.
+    :rtype: str
+    """
+    error = None
+    with open(error_file, 'r') as f:
+        output = f.read()
+    for e in errors:
+        if e in output:
+            error = e
+    return error
 
 
 if __name__ == "__main__":
