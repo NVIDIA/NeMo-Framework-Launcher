@@ -325,18 +325,19 @@ Figure 1: The GPT-3 family architecture. The 5B variant includes 24 transformer 
 |-------------------------|------------------|
 | NVIDIA Triton           | 2.24.0           |
 | FasterTransformer       | v5.1+1c70b45c    |
-| PyTorch                 | 1.13.0a0+d0d6b1f |
-| NeMo                    | 1.13.0+24d824f   |
-| PyTorch Lightning       | 1.7.7            |
-| Hydra                   | 1.1.1            |
-| CUDA                    | NVIDIA CUDA 11.8 |
+| TransformerEngine       | v0.6+f18e6773    |
+| PyTorch                 | 1.14.0a0+44dac51 |
+| NeMo                    | 1.17.0+af076f4   |
+| PyTorch Lightning       | 1.9.4            |
+| Hydra                   | 1.2.0            |
+| CUDA                    | NVIDIA CUDA 12.0 |
 | cuBLAS                  | 11.11.3.6        |
-| cuDNN                   | 8.6.0.163        |
-| NCCL                    | 2.15.1           |
+| cuDNN                   | 8.7.0.84         |
+| NCCL                    | 2.16.5           |
 | Container OS            | Ubuntu 20.04     |
 | rdma-core               | 36.0             |
 | GDRcopy                 | 2.3              |
-| HPC-X                   | 2.12             |
+| HPC-X                   | 2.13             |
 | Base Command Manager    | 1.0.0            |
 | DeepOps                 | 21.06            |
 
@@ -1916,7 +1917,7 @@ launcher_scripts_path: ${auto_configurator_path}/../launcher_scripts
 fastertransformer_path: ${auto_configurator_path}/../FasterTransformer
 base_results_dir: ${auto_configurator_path}/results
 data_dir: ${launcher_scripts_path}/data
-training_container: nvcr.io/ea-bignlp/bignlp-training:22.11-py3
+training_container: nvcr.io/ea-bignlp/bignlp-training:23.03-py3
 container_mounts:
     - null
 wandb:  # Weights and Biases (W&B) logging.
