@@ -3,7 +3,7 @@ from omegaconf import OmegaConf
 
 class TestT5Config:
     def test_t5_config_0_22b(self):
-        conf = OmegaConf.load("../../conf/search_config/t5/0.22b.yaml")
+        conf = OmegaConf.load("conf/search_config/t5/0.22b.yaml")
         s = """
         train_settings:
           model_size_in_b: 0.22
@@ -34,7 +34,7 @@ class TestT5Config:
         ), f"conf/search_config/t5/0.22b.yaml must be set to {expected} but it currently is {conf}."
 
     def test_t5_config_2_8b(self):
-        conf = OmegaConf.load("../../conf/search_config/t5/2.8b.yaml")
+        conf = OmegaConf.load("conf/search_config/t5/2.8b.yaml")
         s = """
         train_settings:
           model_size_in_b: 2.8
@@ -65,7 +65,7 @@ class TestT5Config:
         ), f"conf/search_config/t5/2.8b.yaml must be set to {expected} but it currently is {conf}."
 
     def test_t5_config_11b(self):
-        conf = OmegaConf.load("../../conf/search_config/t5/11b.yaml")
+        conf = OmegaConf.load("conf/search_config/t5/11b.yaml")
         s = """
         train_settings:
           model_size_in_b: 11
@@ -96,7 +96,7 @@ class TestT5Config:
         ), f"conf/search_config/t5/11b.yaml must be set to {expected} but it currently is {conf}."
 
     def test_t5_config_23_5b(self):
-        conf = OmegaConf.load("../../conf/search_config/t5/23.5b.yaml")
+        conf = OmegaConf.load("conf/search_config/t5/23.5b.yaml")
         s = """
         train_settings:
           model_size_in_b: 23.5
@@ -127,7 +127,7 @@ class TestT5Config:
         ), f"conf/search_config/t5/23.5b.yaml must be set to {expected} but it currently is {conf}."
 
     def test_t5_config_41_2b(self):
-        conf = OmegaConf.load("../../conf/search_config/t5/41.2b.yaml")
+        conf = OmegaConf.load("conf/search_config/t5/41.2b.yaml")
         s = """
         train_settings:
           model_size_in_b: 41.2

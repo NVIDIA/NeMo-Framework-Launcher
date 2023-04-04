@@ -1,11 +1,9 @@
 import os
-import sys
-sys.path.insert(1, '../../autoconfig')
 
 import pytest
 from omegaconf import OmegaConf
 
-import utils as ut
+import autoconfig.utils as ut
 
 
 class TestCalculateModelSize:

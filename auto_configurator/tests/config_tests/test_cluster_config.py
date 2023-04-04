@@ -3,7 +3,7 @@ from omegaconf import OmegaConf
 
 class TestClusterConfig:
     def test_cluster_bcm_config(self):
-        conf = OmegaConf.load("../../conf/cluster/bcm.yaml")
+        conf = OmegaConf.load("conf/cluster/bcm.yaml")
         s = """
         partition: null
         account: null

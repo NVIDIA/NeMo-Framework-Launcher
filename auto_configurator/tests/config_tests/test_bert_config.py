@@ -3,7 +3,7 @@ from omegaconf import OmegaConf
 
 class TestBERTConfig:
     def test_bert_config_0_11b(self):
-        conf = OmegaConf.load("../../conf/search_config/bert/0.11b.yaml")
+        conf = OmegaConf.load("conf/search_config/bert/0.11b.yaml")
         s = """
         train_settings:
           model_size_in_b: 0.11 # unit in billion parameters
@@ -34,7 +34,7 @@ class TestBERTConfig:
         ), f"conf/search_config/bert/0.11b.yaml must be set to {expected} but it currently is {conf}."
 
     def test_bert_config_4b(self):
-        conf = OmegaConf.load("../../conf/search_config/bert/4b.yaml")
+        conf = OmegaConf.load("conf/search_config/bert/4b.yaml")
         s = """
         train_settings:
           model_size_in_b: 4 # unit in billion parameters
@@ -66,7 +66,7 @@ class TestBERTConfig:
         ), f"conf/search_config/bert/4b.yaml must be set to {expected} but it currently is {conf}."
 
     def test_bert_config_20b(self):
-        conf = OmegaConf.load("../../conf/search_config/bert/20b.yaml")
+        conf = OmegaConf.load("conf/search_config/bert/20b.yaml")
         s = """
         train_settings:
           model_size_in_b: 20 # unit in billion parameters
@@ -97,7 +97,7 @@ class TestBERTConfig:
         ), f"conf/search_config/bert/20b.yaml must be set to {expected} but it currently is {conf}."
 
     def test_bert_config_100b(self):
-        conf = OmegaConf.load("../../conf/search_config/bert/100b.yaml")
+        conf = OmegaConf.load("conf/search_config/bert/100b.yaml")
         s = """
         train_settings:
           model_size_in_b: 100 # unit in billion parameters

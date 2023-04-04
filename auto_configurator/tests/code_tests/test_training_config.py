@@ -1,11 +1,9 @@
 import os
-import sys
-sys.path.insert(1, '../../autoconfig')
 
 import pytest
 from omegaconf import OmegaConf
 
-import training_config as tc
+import autoconfig.training_config as tc
 
 
 class TestCalculateTpPpMbsGrid:

@@ -3,7 +3,7 @@ from omegaconf import OmegaConf
 
 class TestBaseConfigs:
     def test_gpt3_base_config(self):
-        conf = OmegaConf.load("../../base_configs/gpt3.yaml")
+        conf = OmegaConf.load("base_configs/gpt3.yaml")
         s = """
         run:
           name: gpt3_126m
@@ -178,7 +178,7 @@ class TestBaseConfigs:
         ), f"base_configs/gpt3.yaml must be set to {expected} but it currently is {conf}."
 
     def test_t5_base_config(self):
-        conf = OmegaConf.load("../../base_configs/t5.yaml")
+        conf = OmegaConf.load("base_configs/t5.yaml")
         s = """
         run:
           name: t5_220m
@@ -401,7 +401,7 @@ class TestBaseConfigs:
         ), f"base_configs/t5.yaml must be set to {expected} but it currently is {conf}."
 
     def test_mt5_base_config(self):
-        conf = OmegaConf.load("../../base_configs/mt5.yaml")
+        conf = OmegaConf.load("base_configs/mt5.yaml")
         s = """
         run:
           name: mt5_170m
@@ -624,7 +624,7 @@ class TestBaseConfigs:
         ), f"base_configs/mt5.yaml must be set to {expected} but it currently is {conf}."
 
     def test_bert_base_config(self):
-        conf = OmegaConf.load("../../base_configs/bert.yaml")
+        conf = OmegaConf.load("base_configs/bert.yaml")
         s = """
         run:
           name: bert_110m

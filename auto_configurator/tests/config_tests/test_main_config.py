@@ -3,7 +3,7 @@ from omegaconf import OmegaConf
 
 class TestConfig:
     def test_config(self):
-        conf = OmegaConf.load("../../conf/config.yaml")
+        conf = OmegaConf.load("conf/config.yaml")
         s = """
         defaults:
           - _self_

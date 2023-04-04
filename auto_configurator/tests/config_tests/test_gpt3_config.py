@@ -3,7 +3,7 @@ from omegaconf import OmegaConf
 
 class TestGPT3Config:
     def test_gpt3_config_0_126b(self):
-        conf = OmegaConf.load("../../conf/search_config/gpt3/0.126b.yaml")
+        conf = OmegaConf.load("conf/search_config/gpt3/0.126b.yaml")
         s = """
         train_settings:
           model_size_in_b: 0.126 # unit in billion parameters
@@ -52,7 +52,7 @@ class TestGPT3Config:
         ), f"conf/search_config/gpt3/0.126b.yaml must be set to {expected} but it currently is {conf}."
 
     def test_gpt3_config_5b(self):
-        conf = OmegaConf.load("../../conf/search_config/gpt3/5b.yaml")
+        conf = OmegaConf.load("conf/search_config/gpt3/5b.yaml")
         s = """
         train_settings:
           model_size_in_b: 5 # unit in billion parameters
@@ -101,7 +101,7 @@ class TestGPT3Config:
         ), f"conf/search_config/gpt3/5b.yaml must be set to {expected} but it currently is {conf}."
 
     def test_gpt3_config_20b(self):
-        conf = OmegaConf.load("../../conf/search_config/gpt3/20b.yaml")
+        conf = OmegaConf.load("conf/search_config/gpt3/20b.yaml")
         s = """
         train_settings:
           model_size_in_b: 20.0
@@ -150,7 +150,7 @@ class TestGPT3Config:
         ), f"conf/search_config/gpt3/20b.yaml must be set to {expected} but it currently is {conf}."
 
     def test_gpt3_config_40b(self):
-        conf = OmegaConf.load("../../conf/search_config/gpt3/40b.yaml")
+        conf = OmegaConf.load("conf/search_config/gpt3/40b.yaml")
         s = """
         train_settings:
           model_size_in_b: 40 # unit in billion parameters
@@ -199,7 +199,7 @@ class TestGPT3Config:
         ), f"conf/search_config/gpt3/40b.yaml must be set to {expected} but it currently is {conf}."
 
     def test_gpt3_config_175b(self):
-        conf = OmegaConf.load("../../conf/search_config/gpt3/175b.yaml")
+        conf = OmegaConf.load("conf/search_config/gpt3/175b.yaml")
         s = """
         train_settings:
           model_size_in_b: 175 # unit in billion parameters
