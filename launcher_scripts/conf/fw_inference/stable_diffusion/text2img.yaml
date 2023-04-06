@@ -17,6 +17,7 @@ infer:
   output_type: 'pil'
   save_to_file: True
   out_path: ${fw_inference.run.results_dir}
+  seed: 123
   prompts:
     - 'A photo of a Shiba Inu dog with a backpack riding a bike. It is wearing sunglasses and a beach hat.'
     - 'A cute corgi lives in a house made out of sushi.'
