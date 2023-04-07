@@ -225,7 +225,7 @@ def _gbs_tp_pp_gpt3_80gb(model_size_in_b: float, seq_length: int) -> Tuple[int]:
         elif model_size_in_b <= 13.0:
             gbs, tp, pp = 1024, 4, 1
         elif model_size_in_b <= 20.6:
-            gbs, tp, pp = 1024, 8, 1
+            gbs, tp, pp = 1024, 4, 2
         elif model_size_in_b <= 45.6:
             gbs, tp, pp = 1024, 8, 2
         else:
@@ -240,13 +240,39 @@ def _gbs_tp_pp_gpt3_80gb(model_size_in_b: float, seq_length: int) -> Tuple[int]:
         elif model_size_in_b <= 13.0:
             gbs, tp, pp = 512, 4, 1
         elif model_size_in_b <= 20.6:
-            gbs, tp, pp = 512, 8, 1
+            gbs, tp, pp = 512, 4, 4
         elif model_size_in_b <= 45.6:
             gbs, tp, pp = 512, 8, 2
         else:
             raise ValueError("No GPT-3 model larger than 45.6B parameters is supported with sequnce length 8192.")
+    elif seq_length == 16384:
+        if model_size_in_b <= 1.0:
+            gbs, tp, pp = 32, 2, 1
+        elif model_size_in_b <= 4.0:
+            gbs, tp, pp = 128, 2, 1
+        elif model_size_in_b <= 8.0:
+            gbs, tp, pp = 256, 2, 2
+        elif model_size_in_b <= 13.0:
+            gbs, tp, pp = 256, 4, 1
+        elif model_size_in_b <= 20.6:
+            gbs, tp, pp = 256, 8, 2
+        else:
+            raise ValueError("No GPT-3 model larger than 20.6B parameters is supported with sequnce length 16384.")
+    elif seq_length == 32768:
+        if model_size_in_b <= 1.0:
+            gbs, tp, pp = 16, 2, 1
+        elif model_size_in_b <= 4.0:
+            gbs, tp, pp = 64, 2, 1
+        elif model_size_in_b <= 8.0:
+            gbs, tp, pp = 128, 4, 2
+        elif model_size_in_b <= 13.0:
+            gbs, tp, pp = 128, 4, 2
+        elif model_size_in_b <= 20.6:
+            gbs, tp, pp = 128, 8, 2
+        else:
+            raise ValueError("No GPT-3 model larger than 20.6B parameters is supported with sequnce length 32768.")
     else:
-        raise ValueError(f"seq_length = {seq_length} is not supported. Available seq_length list for GPT-3 models: [2048, 4096, 8192]")
+        raise ValueError(f"seq_length = {seq_length} is not supported. Available seq_length list for GPT-3 models: [2048, 4096, 8192, 16384, 32768]")
     return gbs, tp, pp
 
 

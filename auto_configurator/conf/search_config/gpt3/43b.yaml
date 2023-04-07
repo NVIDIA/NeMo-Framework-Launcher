@@ -11,7 +11,7 @@ train_settings:
   tflops_per_gpu: 140  # Estimated tflops per GPU.
   num_tokens_in_b: 300  # Unit in billions, typically 300B for GPT3 models.
   vocab_size: 51200
-  seq_length: 2048 # available seq_length list for GPT-3 models: [2048, 4096, 8192]
+  seq_length: 2048 # available seq_length list for GPT-3 models: [2048, 4096, 8192, 16384, 32768]
   custom_config: null # path to custom .yaml model config instead of using auto-generated
   logs: ${base_results_dir}/${search_config_value}_${.gpu_memory_gb}gb  # Example base_results_dir/gpt3/126m
   tensor_parallel_sizes: auto  # auto to use our recommendation, or a list, such as [1, 2, 4, 8]
