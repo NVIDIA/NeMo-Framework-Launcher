@@ -5234,3 +5234,4 @@ Fixes for the following issues will be released shortly:
 * Accuracy and performance measurement for GPT-3 is currently not supported. Please use the NeMo Megatron 22.05 inference container to use this feature
 * For running inference on BCP please use the NeMo Megatron 22.03 inference container
 * The fine-tuning SQuAD results for T5 are lower than expected
+* In 23.03, there is a known 20% slowdown for T5 TP8 3B configurations - the other T5 3B configurations are performing well
