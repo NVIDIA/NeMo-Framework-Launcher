@@ -5129,6 +5129,10 @@ The table and chart below show the performance results.
 * Refactored Adapter learning implementation to mimic the Parameter-Efficient Transfer Learning for NLP approach
 * Flash Attention for GPT-3 models in Transformer Engine
 
+**Announcement**
+
+**Coming Soon!**  The data curation module, Prospector-LM, which is a scalable Python library for curating large-scale datasets and can be leveraged for training large language foundation models.
+
 **NeMo Megatron 23.01**
 * BERT with tensor parallelism support (training only)
 * BERT with pipeline parallelism support (training only)
