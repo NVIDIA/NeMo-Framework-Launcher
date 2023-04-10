@@ -21,12 +21,12 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
     + [4.1.3. AWS](#413-aws)
   * [4.2. Cluster Validation](#42-cluster-validation)
     + [4.2.1. Validation Script Usage](#421-validation-script-usage)
-    + [4.2.2. Running tests manually](#421-running-tests-manually)
+    + [4.2.2. Running tests manually](#422-running-tests-manually)
   * [4.3. Config Modifications](#43-config-modifications)
-    + [4.3.1 Set NCCL Topology](#431-set-nccl-topology)
-    + [4.3.2 Environment Variables](#432-environment-variables)
-      - [4.3.2.1 Azure Variables](#4321-azure-variables)
-      - [4.3.2.2 AWS Variables](#4322-aws-variables)
+    + [4.3.1. Set NCCL Topology](#431-set-nccl-topology)
+    + [4.3.2. Environment Variables](#432-environment-variables)
+      - [4.3.2.1. Azure Variables](#4321-azure-variables)
+      - [4.3.2.2. AWS Variables](#4322-aws-variables)
 - [5. Quick Start Guide](#5-quick-start-guide)
   * [5.1. Training NeMo Megatron Models](#51-training-nemo-megatron-models)
     + [5.1.1. Prepare Environment](#511-prepare-environment)
@@ -49,7 +49,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.1.2.4. Data Preparation for BERT Models](#5124-data-preparation-for-bert-models)
         * [5.1.2.4.1. Slurm](#51241-slurm)
         * [5.1.2.4.2. Base Command Platform](#51242-base-command-platform)
-        * [5.1.2.4.3. Common](#51243-common)        
+        * [5.1.2.4.3. Common](#51243-common)
   * [5.2. Training with Predefined Configurations](#52-training-with-predefined-configurations)
     + [5.2.1. Predefined Configurations of GPT-3 Models](#521-predefined-configurations-of-gpt-3-models)
     + [5.2.2. Predefined Configurations of T5 Models](#522-predefined-configurations-of-t5-models)
@@ -70,12 +70,12 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
         * [5.3.2.2.1. Model Config](#53221-model-config)
         * [5.3.2.2.2. Base Config Generation](#53222-base-config-generation)
         * [5.3.2.2.3. Training AutoConfigurator HP Search](#53223-training-autoconfigurator-hp-search)
-        * [5.3.2.2.4. Inference AutoConfigurator-HP Search](#53224-inference-autoconfigurator-hp-search)
+        * [5.3.2.2.4. Inference AutoConfigurator HP Search](#53224-inference-autoconfigurator-hp-search)
       - [5.3.2.3. Running Custom Model Size Configs](#5323-running-custom-model-size-configs)
       - [5.3.2.4. Interpreting the Results](#5324-interpreting-the-results)
       - [5.3.2.5. Logging Runs with Weights and Biases](#5325-logging-runs-with-weights-and-biases)
   * [5.4. Training with Custom Configurations](#54-training-with-custom-configurations)
-    + [5.4.1. Example: Changing Embedding Type for T5 Models](#541-example-changing-embedding-type-for-t5-models)
+    + [5.4.1. Example: Changing Embedding Type for T5 Models](#541-example--changing-embedding-type-for-t5-models)
   * [5.5. Bring Your Own Dataset](#55-bring-your-own-dataset)
     + [5.5.1. Slurm](#551-slurm)
     + [5.5.2. Base Command Platform](#552-base-command-platform)
@@ -92,7 +92,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.6.3.2. Base Command Platform](#5632-base-command-platform)
     + [5.6.4. BERT Training](#564-bert-training)
       - [5.6.4.1. Slurm](#5641-slurm)
-      - [5.6.4.2. Base Command Platform](#5642-base-command-platform)      
+      - [5.6.4.2. Base Command Platform](#5642-base-command-platform)
   * [5.7. Resuming Training with Different Number of Nodes](#57-resuming-training-with-different-number-of-nodes)
   * [5.8. Checkpoint Conversion](#58-checkpoint-conversion)
     + [5.8.1. GPT-3 Conversion](#581-gpt-3-conversion)
@@ -1107,7 +1107,7 @@ The command above assumes you want to prepare the entire dataset (files 0-29), a
 workspace in `/mount/data`, and the results workspace in `/mount/results`. Stdout and stderr are redirected to the `/results/data_bert_log.txt` file, so it can be downloaded from NGC. 
 Any other parameter can also be added to the command to modify its behavior.
 
-###### 5.1.2.1.3. Common
+###### 5.1.2.4.3. Common
 <a id="markdown-51243-common" name="51243-common"></a>
 
 Set the configuration for the data preparation job for BERT models in the YAML file:
@@ -5121,13 +5121,21 @@ The table and chart below show the performance results.
 ## 8. Changelog
 <a id="markdown-changelog" name="changelog"></a>
 
+**NeMo Megatron 23.03**
+* Per micro-batch data loader for GPT-3 and BERT
+* SquaredReLU and SwiGLU activation function support for GPT-3 and T5
+* Rotary Position Embedding (RoPE) for GPT-3 and RETRO
+* Early stopping support when P-Tuning/Prompt Tuning GPT-3, T5, and mT5
+* Refactored Adapter learning implementation to mimic the Parameter-Efficient Transfer Learning for NLP approach
+* Flash Attention for GPT-3 models in Transformer Engine
+
 **NeMo Megatron 23.01**
 * BERT with tensor parallelism support (training only)
 * BERT with pipeline parallelism support (training only)
 * Sequence Parallelism and Selective Activation Checkpointing for BERT (training only)
 * Interleaved Pipeline Scheduling for BERT
 * Distributed Adam Optimizer for BERT
-* AugoConfigurator for BERT
+* AutoConfigurator for BERT
 * 110M, 4B, 20B, and 100B BERT training configurations
 * Support for the Mixture of Experts for T5 (no expert parallelism, training only)
 * Performance improvement for GPT-3 P-Tuning (20% - 25% speed-up)
@@ -5146,8 +5154,8 @@ The table and chart below show the performance results.
 * P-Tuning and Prompt Tuning for T5 and mT5 with pipeline parallelism (training only)
 * Adapter learning for GPT-3 and T5 with tensor parallelism and pipeline parallelism (training only)
 * IA3 learning for GPT-3 and T5 with tensor parallelism and pipeline parallelism (training only)
-* AugoConfigurator to find the highest throughput configs for training on Base Command Platform
-* AugoConfigurator: parallel inference hyperparameter search for GPT-3 on Base Command Manager
+* AutoConfigurator to find the highest throughput configs for training on Base Command Platform
+* AutoConfigurator: parallel inference hyperparameter search for GPT-3 on Base Command Manager
 
 **NeMo Megatron 22.08.01**
 * Cloud service providers: support for Amazon Web Services (performance validated up to 20 `p4d.24xlarge` instances)
@@ -5164,7 +5172,7 @@ The table and chart below show the performance results.
 * XQuAD fine-tuning and evaluation support for mT5 with pipeline parallelism =<2
 
 **NeMo Megatron 22.06-hotfix.01**
-* Fix: AugoConfigurator for T5 and mT5
+* Fix: AutoConfigurator for T5 and mT5
 * Fix: Evaluation harness in GPT-3
 * Fix: Prompt learning in GPT-3
 * Fix: Out of memory when pretraining GPT-3 with Sequence Parallelism
@@ -5173,8 +5181,8 @@ The table and chart below show the performance results.
 * Sequence Parallelism and Selective Activation Checkpointing for GPT-3
 * Relative Position Embeddings for T5
   * We used mC4 dataset (24 Languages) for pretraining the mT5 and verified our results on KNLI, KorQuAD, KLUE-STS, and XNLI tasks
-* AugoConfigurator update with Sequence Parallelism and Selective Activation Checkpointing for GPT-3
-* AugoConfigurator: support for DGX A100 40GB configurations for GPT-3, T5, and mT5
+* AutoConfigurator update with Sequence Parallelism and Selective Activation Checkpointing for GPT-3
+* AutoConfigurator: support for DGX A100 40GB configurations for GPT-3, T5, and mT5
 * P-Tuning and Prompt Tuning for GPT-3 with pipeline parallelism (training only)
 * Operation fusions for higher training throughput (2%-7% speed-up)
 * Default GPT-3 configurations changed to include Sequence Parallelism and Selective Activation Checkpointing: 20B (speed-up: 14%), 40B (speed-up: 9%), 175B (speed-up: 15%) 
@@ -5187,7 +5195,7 @@ The table and chart below show the performance results.
 **NeMo Megatron 22.05**
 * Asynchronous gradient all-reduce for GPT-3, T5, mT5 models with pipeline parallel size equal to 1
 * P-Tuning and Prompt Tuning for GPT-3 with tensor parallelism (training only)
-* AugoConfigurator to find the highest throughput configs for training and inference on Base Command Manager
+* AutoConfigurator to find the highest throughput configs for training and inference on Base Command Manager
 * Custom tokenizer support (training only)
 * GPT-3 with pipeline parallelism support on Base Command Manager (inference)
 * Hyperparameters for text generation: top-p, top-k, and temperature
