@@ -9,7 +9,7 @@ allow_tf32: True
  
 trainer:
   devices: 8 # number of GPUs (0 for CPU), or list of the GPUs to use e.g. [0, 1]
-  num_nodes: 48
+  num_nodes: 64
   max_epochs: -1
   max_steps: 2500000 # precedence over max_epochs
   logger: False  # Provided by exp_manager
@@ -56,8 +56,8 @@ model:
   precision: ${training.trainer.precision}
   # specify micro_batch_size, global_batch_size, and model parallelism
   # gradient accumulation will be done automatically based on data_parallel_size
-  micro_batch_size: 12 # limited by GPU memory
-  global_batch_size: 4608 # will use more micro batches to reach global batch size
+  micro_batch_size: 8 # limited by GPU memory
+  global_batch_size: 4096 # will use more micro batches to reach global batch size
   inductor: False
   inductor_cudagraphs: False
 
