@@ -19,7 +19,7 @@ import hydra
 import omegaconf
 
 from nemo_launcher.core.data_stages import CustomDataPreparation, MC4DataPreparation, PileDataPreparation, \
-    MultimodalDataPreparation, InstructPix2PixDataPreparation
+    MultimodalDataPreparation, InstructPix2PixDataPreparation, FIDEvaluationDataPreparation
 from nemo_launcher.core.export_stages import Export
 from nemo_launcher.core.stages import (
     AdapterLearning,
@@ -55,7 +55,8 @@ STR2STAGECLASS = {
         MC4DataPreparation: ["mt5"],
         CustomDataPreparation: ["generic"],
         MultimodalDataPreparation: ["multimodal"],
-        InstructPix2PixDataPreparation: ["instruct_pix2pix"]
+        InstructPix2PixDataPreparation: ["instruct_pix2pix"],
+        FIDEvaluationDataPreparation: ["fid_evaluation"],
     },
 }
 
