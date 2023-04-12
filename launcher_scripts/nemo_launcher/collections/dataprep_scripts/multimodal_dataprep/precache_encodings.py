@@ -16,11 +16,12 @@ import io
 import os
 import pickle
 import re
-import shutil
+import time
 import tarfile
 from typing import Optional
 
 import hydra
+import numpy as np
 import pytorch_lightning as pl
 import webdataset as wds
 from PIL import Image
@@ -41,8 +42,18 @@ class EncodingCacher(pl.LightningModule, Serialization):
         super().__init__()
         self.automatic_optimization = False  # a LightningModule parameter
         self.output_tar_folder = output_dir
-        # need to wipe this folder, because we're appending to existing tarfiles
-        shutil.rmtree(output_dir, ignore_errors=True)
+        # need to delete tarfiles from this task folder, because we're appending to existing tarfiles
+        if self.global_rank == 0:
+            for fname in glob.glob(f"{self.output_tar_folder}/{tar_prefix}_r*.*"):
+                try:
+                    os.remove(fname)
+                    print("Deleted", fname)
+                except FileNotFoundError:
+                    pass
+        else:
+            while len(glob.glob(f"{self.output_tar_folder}/{tar_prefix}_r*.*")) > 0:
+                time.sleep(1)
+
         os.makedirs(output_dir, exist_ok=True)
         self.encodings_config: ListConfig[DictConfig] = precache_cfg.encodings
         self.save_orig_image = 'image' in (precache_cfg.save_original_in_tar or [])
@@ -57,14 +68,17 @@ class EncodingCacher(pl.LightningModule, Serialization):
 
         self.encoder_models = torch.nn.ModuleList()
         for encoding_config in self.encodings_config:
-            self.encoder_models.append(self.instantiate_encoder(encoding_config.encoder_config))
+            self.encoder_models.append(self.instantiate_encoder(encoding_config.get("encoder_config", None)))
 
         self.output_tar_chunk_size = tar_chunk_size
         self.cur_tar_num = 0
         self.cur_tar_size = 0
         self.tar_prefix = tar_prefix
+        self.pickle_encodings = precache_cfg.get("pickle_encodings", True)
 
     def instantiate_encoder(self, config):
+        if not config:
+            return None
         model = self.from_config_dict(config).eval()  # from the serialization class
         for param in model.parameters():
             param.requires_grad = False
@@ -87,6 +101,8 @@ class EncodingCacher(pl.LightningModule, Serialization):
         print(f'get_input with batch_idx {batch_idx}')
         all_tensors = {}
         for encoding_config, encoder_model in zip(self.encodings_config, self.encoder_models):
+            if encoder_model is None:
+                continue
             x = batch[encoding_config.modality]
             x = self.cast_precision(x, encoding_config.precision)
             if hasattr(encoder_model, 'encode') and callable(encoder_model.encode):
@@ -121,11 +137,17 @@ class EncodingCacher(pl.LightningModule, Serialization):
             with tarfile.open(tar_name, 'a') as tar:
                 print('writing to tar:', tar_name)
                 while idx < batch_size and self.cur_tar_size < self.output_tar_chunk_size:
-                    tensors = {k: v[idx].to('cpu').numpy() for k, v in all_tensors.items()}
-                    # serialize data into a bytestream
-                    with io.BytesIO() as abuf:
-                        pickle.dump(tensors, abuf)
-                        write_fileobj_to_tar(tar, f'{self.cur_tar_size:04d}.pickle', abuf)
+                    if self.pickle_encodings:
+                        tensors = {k: v[idx].to('cpu').numpy() for k, v in all_tensors.items()}
+                        # serialize data into a bytestream
+                        with io.BytesIO() as abuf:
+                            pickle.dump(tensors, abuf)
+                            write_fileobj_to_tar(tar, f'{self.cur_tar_size:04d}.pickle', abuf)
+                    else:
+                        for k, v in all_tensors.items():
+                            with io.BytesIO() as abuf:
+                                np.save(abuf, v[idx].to('cpu').numpy())
+                                write_fileobj_to_tar(tar, f'{self.cur_tar_size:04d}.{k}', abuf)
 
                     if self.save_orig_image:
                         with io.BytesIO() as abuf:
@@ -221,8 +243,6 @@ def get_webdataset_loader(precache_cfg, urls):
             for (i, modality_cfg) in enumerate(precache_cfg.encodings):
                 if modality_cfg.modality.startswith('image'):
                     out_dict[modality_cfg.modality] = img_transform(input[i])
-                    if 'image' in (precache_cfg.save_original_in_tar or []):
-                        out_dict["image_original"] = input[i]
                 else:
                     out_dict[modality_cfg.modality] = input[i]
             # e.g. {'images': input[0], 'text': input[1]}
@@ -230,9 +250,9 @@ def get_webdataset_loader(precache_cfg, urls):
 
     dataset = wds.DataPipeline(
         wds.SimpleShardList(urls),
+        wds.tarfile_to_samples(),
         wds.split_by_node,
         wds.split_by_worker,
-        wds.tarfile_to_samples(),
         wds.decode(pil_loader, handler=wds.warn_and_continue),
         wds.to_tuple(' '.join(modality_cfg.extension for modality_cfg in precache_cfg.encodings))
     ).compose(tuple_to_dict)
@@ -249,8 +269,8 @@ def get_webdataset_loader(precache_cfg, urls):
 
 @hydra.main(config_path="conf", config_name="config", version_base="1.2")
 def main(cfg):
-    task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
-    ntasks = int(os.environ.get("SLURM_ARRAY_TASK_COUNT", 1))
+    task_id = cfg.get("override_task_id", None) or int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
+    ntasks = cfg.get("override_task_count", None) or int(os.environ.get("SLURM_ARRAY_TASK_COUNT", 1))
 
     precache_cfg = OmegaConf.load(cfg.precache_config_path)
     input_tar_dir = cfg.input_dir
@@ -272,6 +292,7 @@ def main(cfg):
 
     model = EncodingCacher(output_tar_folder, tar_chunk_size, precache_cfg, tar_prefix=f"t{task_id}").cuda()
     trainer.predict(model, dataloader)
+    print(f"Task {task_id} finished.")
 
 
 if __name__ == '__main__':
