@@ -2,10 +2,10 @@
 These scripts run a recommended config for GPT pretraining, for 5b and 20b model sizes on a single 8-gpu node
 
 - [a100](https://github.com/NVIDIA/NeMo-Megatron-Launcher/tree/example_run_scripts/examples/training/gpt/a100)
-: Scripts to run GPT pretraining on NVIDIA A100, in bf16 type
+: Scripts to run GPT pretraining on NVIDIA A100, in bf16 data type
 
 - [h100](https://github.com/NVIDIA/NeMo-Megatron-Launcher/tree/example_run_scripts/examples/training/gpt/h100)
-: Scripts to run GPT pretraining for NVIDIA H100, in fp8 type
+: Scripts to run GPT pretraining for NVIDIA H100, in fp8 data type
 
 #### Setup
 1. Update the following bash variables in the example run scripts:
