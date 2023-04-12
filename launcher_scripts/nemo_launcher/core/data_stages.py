@@ -768,3 +768,92 @@ class InstructPix2PixDataPreparation(DataStage):
 
         sub_stage_command = f"bash {code_path} {cfg.dataset_output_root} {cfg.dataset_name}"
         return [sub_stage_command]
+
+
+class FIDEvaluationDataPreparation(DataStage):
+    """
+    DataStage for preparing COCO2014 validation set which is used for FID evaluation of multimodal models
+    """
+
+    def _make_sub_stages(self) -> List[str]:
+        """
+        Create a list of sub-stage names which are required to run in current data stage.
+        Based on the input config, some of sub stages may not need to run.
+
+        :return: a list of sub-stage names which are required to run
+        :rtype: List[str]
+        """
+        sub_stages = []
+        if self.stage_cfg.get("download_data", False):
+            sub_stages.append("download")
+        if self.stage_cfg.get("preprocess_images", False) or self.stage_cfg.get("preprocess_captions", False):
+            sub_stages.append("preprocess")
+        return sub_stages
+
+    def setup_folder_and_data(self) -> None:
+        """Setup job/data folders for each substage"""
+        job_path = self.get_job_path()
+        job_path.folder.mkdir(parents=True, exist_ok=True)
+
+        dataset_output_root = self.stage_cfg.dataset_output_root
+        if os.path.exists(dataset_output_root):
+            print(f"WARNING: dataset_output_root already exists")
+            response = ''
+            while response.lower() not in ['y', 'n']:
+                response = input(f"Do you want to wipe everything at {dataset_output_root}? [y/n] \n>>> ")
+            if response.lower() == 'y':
+                shutil.rmtree(dataset_output_root)
+            else:
+                print("Not removing existing folder. Subsequent processing may produce inaccurate results.")
+        os.makedirs(dataset_output_root, exist_ok=True)
+
+    def _make_private_cluster_parameters(self, cluster: str, sub_stage: str) -> Dict:
+        """
+        A simplifying function to make cluster parameters specific to each cluster type.
+        Shared cluster parameters are handled in _make_cluster_parameters.
+        This is function is introduced because for different dataset preparation the required slurm params are different,
+            but the shared parameters are always the same. As a result, one only needs to override private parameters
+            for different DataStage.
+
+        :param str cluster: cluster type
+        :param str sub_stage: current sub_stage name
+        :return: a dictionary of private cluster parameters, e.g. `bcp_preproc_npernode`
+        :rtype: Dict
+        """
+        container_image = self.cfg.get("container")
+        container_mounts = self._make_container_mounts_string()
+
+        if cluster == "bcm":
+            return {
+                "nodes": 1,
+                "array": None,
+                "container_image": container_image,
+                "container_mounts": container_mounts,
+                "ntasks_per_node": 1,
+            }
+        else:  # will support bcp later
+            raise NotImplementedError
+
+    def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
+        """Make a command of the specified sub-stage"""
+
+        dataprep_path = self._launcher_scripts_path / "nemo_launcher/collections/dataprep_scripts/fid_evaluation_dataprep"
+        cfg = self.stage_cfg
+
+        if sub_stage == "download":
+            code_path = dataprep_path / 'download.sh'
+            sub_stage_command = f"bash {code_path} {cfg.dataset_output_root}"
+        elif sub_stage == "preprocess":
+            code_path = dataprep_path / f'preprocess.py'
+            args = create_args_list(
+                hydra=True,
+                root_dir=cfg.dataset_output_root,
+                num_processes=cfg.num_processes,
+                preprocess_images=cfg.preprocess_images,
+                preprocess_captions=cfg.preprocess_captions
+            )
+            sub_stage_command = [f"python3 -u {code_path}", *args]
+            sub_stage_command = " \\\n  ".join(sub_stage_command)
+        else:
+            raise NotImplementedError
+        return [sub_stage_command]
