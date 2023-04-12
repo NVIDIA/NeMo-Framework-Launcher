@@ -625,8 +625,13 @@ class MultimodalDataPreparation(DataStage):
             else:  # download_parquet, generate_wdinfo
                 node_array_size = 1
 
-            if node_array_size > 1:
-                max_simultaneous_jobs = 100
+            max_simultaneous_jobs = 50
+            if isinstance(node_array_size, str) and "-" in node_array_size:
+                # for advance usage: resuming an interrupted node array job
+                node_array_start, node_array_end = node_array_size.split("-")
+                node_array_size = int(node_array_end) - int(node_array_start) + 1
+                array = f"{node_array_start}-{node_array_end}%{min(max_simultaneous_jobs, node_array_size)}"
+            elif node_array_size > 1:
                 array = f"0-{node_array_size - 1}%{min(max_simultaneous_jobs, node_array_size)}"
             else:
                 array = None

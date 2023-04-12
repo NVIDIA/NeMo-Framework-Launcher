@@ -29,7 +29,7 @@ def generate_wdinfo(tar_folder: str, chunk_size: int, output_path: Optional[str]
         if os.path.getsize(fname) > 0 and not os.path.exists(f"{fname}.INCOMPLETE"):
             tar_files.append(os.path.basename(fname))
     data = {
-        'tar_files': tar_files,
+        'tar_files': sorted(tar_files),
         'chunk_size': chunk_size,
         'total_key_count': len(tar_files) * chunk_size
     }
