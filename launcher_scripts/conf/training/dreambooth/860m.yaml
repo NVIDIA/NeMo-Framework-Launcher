@@ -62,7 +62,7 @@ model:
   pretrained_ckpt:
   prior_loss_weight: 0.5
   train_text_encoder: False
-  restore_from_path: /ckpts/v1-5-pruned.ckpt #This ckpt is only used to generate regularization images
+  restore_from_path: /ckpts/nemo-v1-5-final-ema.nemo #This ckpt is only used to generate regularization images, so as for inference .nemo ckpt is needed
 
   linear_start: 0.00085
   linear_end: 0.012
@@ -103,8 +103,8 @@ model:
 
   unet_config:
     _target_: nemo.collections.multimodal.modules.stable_diffusion.diffusionmodules.openaimodel.UNetModel
-    from_pretrained: /ckpts/unet-v1-5.bin
-    from_NeMo: False #Must be specified when from pretrained is not None, False means loading unet from HF ckpt
+    from_pretrained: /ckpts/nemo-v1-5-188000-ema.ckpt
+    from_NeMo: True #Must be specified when from pretrained is not None, True means loading unet from NeMo trained ckpt
     image_size: 32 # unused
     in_channels: 4
     out_channels: 4
