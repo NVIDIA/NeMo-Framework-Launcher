@@ -49,8 +49,37 @@ def hparams_override(cfg):
             conf.cfg.activations_checkpoint_method = None
         # if "sequence_parallel" in conf.cfg:
         #     conf.cfg.sequence_parallel = False
-        if conf.cfg.optim.name == "distributed_fused_adam":
+        if "optim" in conf.cfg and conf.cfg.optim.name == "distributed_fused_adam":
             conf.cfg.optim.name = "fused_adam"
+
+        # (yaoyu) temporary WAR for stable diffusion legacy
+        if "base_learning_rate" in conf.cfg:
+            import yaml
+
+            conf_dict = OmegaConf.to_container(conf, resolve=True)
+            additional_conf_str = '''
+            precision: 32
+            micro_batch_size: 2
+            global_batch_size: 2
+            seed: 1234
+            resume_from_checkpoint: null
+            apex_transformer_log_level: 30
+            gradient_as_bucket_view: True
+            optim:
+              name: fused_adam
+              lr: 1e-4
+              weight_decay: 0.
+              betas:
+                - 0.9
+                - 0.999
+              sched:
+                name: WarmupHoldPolicy
+                warmup_steps: 10000
+                hold_steps: 10000000000000
+            '''
+            additional_conf_dict = yaml.safe_load(additional_conf_str)
+            conf_dict["cfg"].update(additional_conf_dict)
+            conf = OmegaConf.create(conf_dict)
 
         if is_global_rank_zero():
             with open(hparams_override_file, "w") as f:
