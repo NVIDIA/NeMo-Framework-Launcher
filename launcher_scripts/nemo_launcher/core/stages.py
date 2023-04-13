@@ -692,31 +692,25 @@ class Conversion(NemoMegatronStage):
         """
         choice_model_type, choice_name = self.get_stage_config_choice()
         model_cfg = self.stage_cfg.get("model")
-        if choice_model_type in __LANGUAGE_MODELS_LIST__:
-            hparams_file = model_cfg.get("hparams_file")
-            vocab_file = model_cfg.get("vocab_file")
-            merge_file = model_cfg.get("merge_file")
-            tokenizer_model = model_cfg.get("tokenizer_model")
-            override_configs = {
-                "hparams_file": hparams_file,
-                "output_path": self.get_job_path().results_folder,
-                "vocab_file": vocab_file,
-                "merge_file": merge_file,
-                "tokenizer_model": tokenizer_model,
-            }
-            hparams_override = [f"{k}={v}" for k, v in override_configs.items()]
-            override_command = [
-                f"python3 -u {self._launcher_scripts_path / 'nemo_launcher/collections/hparams_override.py'}",
-                *hparams_override,
-            ]
-            override_command = " \\\n  ".join(override_command)
-            return [override_command]
 
-        else:
-            hparams_file = model_cfg.get("hparams_file")
-            output_path = self.get_job_path().results_folder
-            hparams_override = output_path / "hparams_override.yaml"
-            return [f"cp {hparams_file} {hparams_override}"]
+        hparams_file = model_cfg.get("hparams_file", "null")
+        vocab_file = model_cfg.get("vocab_file", "null")
+        merge_file = model_cfg.get("merge_file", "null")
+        tokenizer_model = model_cfg.get("tokenizer_model", "null")
+        override_configs = {
+            "hparams_file": hparams_file,
+            "output_path": self.get_job_path().results_folder,
+            "vocab_file": vocab_file,
+            "merge_file": merge_file,
+            "tokenizer_model": tokenizer_model,
+        }
+        hparams_override = [f"{k}={v}" for k, v in override_configs.items()]
+        override_command = [
+            f"python3 -u {self._launcher_scripts_path / 'nemo_launcher/collections/hparams_override.py'}",
+            *hparams_override,
+        ]
+        override_command = " \\\n  ".join(override_command)
+        return [override_command]
 
     def _make_checkpoint_search_command(self, **kwargs: Any) -> str:
         """
