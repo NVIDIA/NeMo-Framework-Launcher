@@ -37,7 +37,7 @@ def _inject_model_parallel_rank(filepath, tensor_model_parallel_size=1, pipeline
         return filepath
 
 
-@hydra.main(config_path="conf", config_name="checkpoint_search")
+@hydra.main(config_path="conf", config_name="checkpoint_search", version_base="1.2")
 def checkpoint_search(cfg):
     """
     Search in the checkpoint folder for the latest checkpoint or a regex name.

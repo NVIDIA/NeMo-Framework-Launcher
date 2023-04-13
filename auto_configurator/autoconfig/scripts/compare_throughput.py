@@ -10,7 +10,7 @@ from omegaconf import OmegaConf
 from tensorboard.backend.event_processing import event_accumulator
 
 
-@hydra.main(config_path="../../conf", config_name="config")
+@hydra.main(config_path="../../conf", config_name="config", version_base="1.2")
 def main(cfg):
     auto_configurator_path = cfg.auto_configurator_path
     settings_cfg = cfg.search_config.train_settings

@@ -20,7 +20,7 @@ from nemo.utils.get_rank import is_global_rank_zero
 from omegaconf import OmegaConf
 
 
-@hydra.main(config_path="conf", config_name="hparams_override")
+@hydra.main(config_path="conf", config_name="hparams_override", version_base="1.2")
 def hparams_override(cfg):
     """
     This script verrides hyper-parameters inside NeMo's `hparams.yaml` and will generate

@@ -27,7 +27,7 @@ OmegaConf.register_new_resolver("divide_ceil", lambda x, y: int(math.ceil(x / y)
 OmegaConf.register_new_resolver("divide_floor", lambda x, y: int(x // y), replace=True)
 
 
-@hydra.main(config_path="conf", config_name="config")
+@hydra.main(config_path="conf", config_name="config", version_base="1.2")
 def main(cfg: omegaconf.dictconfig.DictConfig) -> None:
     """
     Main function in the entire pipeline, it reads the config using hydra and calls search_config.

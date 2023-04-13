@@ -27,7 +27,7 @@ from collections import defaultdict
 import hydra
 
 
-@hydra.main(config_path="conf", config_name="auto_blend")
+@hydra.main(config_path="conf", config_name="auto_blend", version_base="1.2")
 def generate_data_blend(cfg):
     """
     Generate data blend as NeMo input `model.data.data_prefix` for binary dataset files
