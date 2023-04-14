@@ -1,8 +1,8 @@
 batch_size_per_GPU: 64  # as much as it can fit in your GPU memory
 dataloader_num_workers: 16
 save_original_in_tar:  # for SD, original images or text are not used during training (if using precached encodings)
-# so we can leave this empty. For models like eDiff-i, this should be [image, text] so that original image and text
-# are copied into tarfiles along with the encodings.
+# so we can leave this empty. If you want the original image and text copied into the tarfile,
+# this should be [image, text]
 encodings: # see README for instructions
   - modality: image
     extension: jpg
@@ -10,7 +10,7 @@ encodings: # see README for instructions
     precision: 16
     encoder_config:
       cls: nemo.collections.multimodal.models.stable_diffusion.ldm.autoencoder.AutoencoderKL
-      from_pretrained: /mingyuanm/huggingface-v1.2/vae.bin  # change me
+      from_pretrained: /path/to/encoder  # change me
       embed_dim: 4
       ddconfig:
         double_z: true
@@ -33,8 +33,8 @@ encodings: # see README for instructions
     extension: txt
     key: clip-vit-large-patch14_text
     precision: 32
-    store_pad_tokens: True  # true for sd, false for ediffi
-    encoder_config: ## default to model.params.cond_stage_config.cls
+    store_pad_tokens: True
+    encoder_config:
       cls: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.FrozenCLIPEmbedder
       version: openai/clip-vit-large-patch14
       device: cuda
