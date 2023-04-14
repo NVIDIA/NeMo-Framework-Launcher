@@ -189,9 +189,7 @@ wide range of applications.
 
 [Instruct Pix2Pix](https://www.timothybrooks.com/instruct-pix2pix/) introduces a method for editing images based on
 human-written instructions. Given an input image and a textual directive, the model follows these instructions to modify
-the image accordingly. We provide scripts to download the generated edit dataset (consisting of the original image,
-edited image, and edit instructions triplet) from
-to [instruct pix2pix repo](https://github.com/timothybrooks/instruct-pix2pix)
+the image accordingly. 
 
 Multimodal NeMo Megatron offers a training pipeline for conditional diffusion models using the edit dataset.
 Additionally, we provide a tool that generates modified images based on user-written instructions during the inference
@@ -216,70 +214,73 @@ modification, and artistic rendering, while still preserving the subject's key f
 
 ### 2.1. ViT Models
 
-| Feature                  | Training                                                 | Inference                                                                                                                                                         |
-|--------------------------|----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Data parallelism         | Yes                                                      | N/A                                                                                                                                                               |
-| Tensor parallelism       | Yes                                                      | Yes                                                                                                                                                               |
-| Pipeline parallelism     | No                                                       | No                                                                                                                                                                |
-| Sequence parallelism     | No                                                       | No                                                                                                                                                                |
-| Activation checkpointing | Yes (Uniform or Block)                                   | No                                                                                                                                                                |
-| FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                                     |
-| AMP/FP16                 | No                                                       | Yes                                                                                                                                                               |
-| BF16                     | Yes                                                      | Yes                                                                                                                                                               |
-| TransformerEngine/FP8    | No                                                       | No                                                                                                                                                                |
-| Multi-GPU                | Yes                                                      | Yes                                                                                                                                                               |
-| Multi-Node               | Yes                                                      | Yes                                                                                                                                                               |
+| Feature                  | Training                                                 | Inference                                                                                                                                     |
+|--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| Data parallelism         | Yes                                                      | N/A                                                                                                                                           |
+| Tensor parallelism       | Yes                                                      | Yes                                                                                                                                           |
+| Pipeline parallelism     | No                                                       | No                                                                                                                                            |
+| Sequence parallelism     | No                                                       | No                                                                                                                                            |
+| Activation checkpointing | Yes (Uniform or Block)                                   | No                                                                                                                                            |
+| FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                 |
+| AMP/FP16                 | No                                                       | Yes                                                                                                                                           |
+| AMP/BF16                 | Yes                                                      | No                                                                                                                                            |
+| BF16 O2                  | Yes                                                      | No                                                                                                                                            |
+| TransformerEngine/FP8    | No                                                       | No                                                                                                                                            |
+| Multi-GPU                | Yes                                                      | Yes                                                                                                                                           |
+| Multi-Node               | Yes                                                      | Yes                                                                                                                                           |
 | Inference deployment     | N/A                                                      | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton) |
-| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                                          |
-| NVfuser                  | No                                                       | N/A                                                                                                                                                               |
-| Distributed Optimizer    | No                                                       | N/A                                                                                                                                                               |
-| TorchInductor            | No                                                       | N/A                                                                                                                                                               |
-| Flash Attention          | No                                                       | N/A                                                                                                                                                               |
+| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                      |
+| NVfuser                  | No                                                       | N/A                                                                                                                                           |
+| Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
+| TorchInductor            | No                                                       | N/A                                                                                                                                           |
+| Flash Attention          | No                                                       | N/A                                                                                                                                           |
 
 ### 2.2 CLIP Models
 
-| Feature                  | Training                                                 | Inference                                                                                                                                                         |
-|--------------------------|----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Data parallelism         | Yes                                                      | N/A                                                                                                                                                               |
-| Tensor parallelism       | Yes                                                      | Yes                                                                                                                                                               |
-| Pipeline parallelism     | No                                                       | No                                                                                                                                                                |
-| Sequence parallelism     | No                                                       | No                                                                                                                                                                |
-| Activation checkpointing | Yes (Uniform or Block)                                   | No                                                                                                                                                                |
-| FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                                     |
-| AMP/FP16                 | No                                                       | Yes                                                                                                                                                               |
-| BF16                     | Yes                                                      | Yes                                                                                                                                                               |
-| TransformerEngine/FP8    | No                                                       | No                                                                                                                                                                |
-| Multi-GPU                | Yes                                                      | Yes                                                                                                                                                               |
-| Multi-Node               | Yes                                                      | Yes                                                                                                                                                               |
+| Feature                  | Training                                                 | Inference                                                                                                                                     |
+|--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| Data parallelism         | Yes                                                      | N/A                                                                                                                                           |
+| Tensor parallelism       | Yes                                                      | Yes                                                                                                                                           |
+| Pipeline parallelism     | No                                                       | No                                                                                                                                            |
+| Sequence parallelism     | No                                                       | No                                                                                                                                            |
+| Activation checkpointing | Yes (Uniform or Block)                                   | No                                                                                                                                            |
+| FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                 |
+| AMP/FP16                 | No                                                       | Yes                                                                                                                                           |
+| AMP/BF16                 | Yes                                                      | No                                                                                                                                            |
+| BF16 O2                  | Yes                                                      | No                                                                                                                                            |
+| TransformerEngine/FP8    | No                                                       | No                                                                                                                                            |
+| Multi-GPU                | Yes                                                      | Yes                                                                                                                                           |
+| Multi-Node               | Yes                                                      | Yes                                                                                                                                           |
 | Inference deployment     | N/A                                                      | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton) |
-| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                                          |
-| NVfuser                  | No                                                       | N/A                                                                                                                                                               |
-| Distributed Optimizer    | No                                                       | N/A                                                                                                                                                               |
-| TorchInductor            | No                                                       | N/A                                                                                                                                                               |
-| Flash Attention          | No                                                       | N/A                                                                                                                                                               |
+| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                      |
+| NVfuser                  | No                                                       | N/A                                                                                                                                           |
+| Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
+| TorchInductor            | No                                                       | N/A                                                                                                                                           |
+| Flash Attention          | No                                                       | N/A                                                                                                                                           |
 
 
 ### 2.3. Stable Diffusion
 
-| Feature                  | Training                                                 | Inference                                                                                                                                                         |
-|--------------------------|----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Data parallelism         | Yes                                                      | N/A                                                                                                                                                               |
-| Tensor parallelism       | No                                                       | Yes                                                                                                                                                               |
-| Pipeline parallelism     | No                                                       | No                                                                                                                                                                |
-| Sequence parallelism     | No                                                       | No                                                                                                                                                                |
-| Activation checkpointing | No                                                       | No                                                                                                                                                                |
-| FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                                     |
-| AMP/FP16                 | Yes                                                      | Yes                                                                                                                                                               |
-| BF16                     | No                                                       | Yes                                                                                                                                                               |
-| TransformerEngine/FP8    | No                                                       | No                                                                                                                                                                |
-| Multi-GPU                | Yes                                                      | Yes                                                                                                                                                               |
-| Multi-Node               | Yes                                                      | Yes                                                                                                                                                               |
+| Feature                  | Training                                                 | Inference                                                                                                                                     |
+|--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| Data parallelism         | Yes                                                      | N/A                                                                                                                                           |
+| Tensor parallelism       | No                                                       | No                                                                                                                                            |
+| Pipeline parallelism     | No                                                       | No                                                                                                                                            |
+| Sequence parallelism     | No                                                       | No                                                                                                                                            |
+| Activation checkpointing | No                                                       | No                                                                                                                                            |
+| FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                 |
+| AMP/FP16                 | Yes                                                      | Yes                                                                                                                                           |
+| AMP/BF16                 | No                                                       | No                                                                                                                                            |
+| BF16 O2                  | No                                                       | No                                                                                                                                            |
+| TransformerEngine/FP8    | No                                                       | No                                                                                                                                            |
+| Multi-GPU                | Yes                                                      | Yes                                                                                                                                           |
+| Multi-Node               | Yes                                                      | Yes                                                                                                                                           |
 | Inference deployment     | N/A                                                      | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton) |
-| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                                          |
-| NVfuser                  | No                                                       | N/A                                                                                                                                                               |
-| Distributed Optimizer    | No                                                       | N/A                                                                                                                                                               |
-| TorchInductor            | Yes                                                      | N/A                                                                                                                                                               |
-| Flash Attention          | Yes                                                      | N/A                                                                                                                                                               |
+| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                      |
+| NVfuser                  | No                                                       | N/A                                                                                                                                           |
+| Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
+| TorchInductor            | Yes                                                      | N/A                                                                                                                                           |
+| Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
 
 ### 2.4. Instruct Pix2Pix / DreamBooth Models
 
@@ -292,7 +293,8 @@ modification, and artistic rendering, while still preserving the subject's key f
 | Activation checkpointing | No                                                       | No                                                                                                                                                                |
 | FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                                     |
 | AMP/FP16                 | Yes                                                      | Yes                                                                                                                                                               |
-| BF16                     | Yes                                                      | Yes                                                                                                                                                               |
+| AMP/BF16                 | Yes                                                      | No                                                                                                                                            |
+| BF16 O2                  | No                                                       | No                                                                                                                                            |
 | TransformerEngine/FP8    | No                                                       | No                                                                                                                                                                |
 | Multi-GPU                | Yes                                                      | Yes                                                                                                                                                               |
 | Multi-Node               | Yes                                                      | Yes                                                                                                                                                               |
@@ -1019,7 +1021,7 @@ precaching batch_size and dataset size, but will be consistent across runs.
 We anticipate that dropping a small percentage of data will not have a significant impact on model training.
 
 
-#### 5.2.3 Instruct-Pix2Pix
+#### 5.2.3 Instruct Pix2Pix
 _Note: It is the responsibility of each user to check the content 
 of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
 Users should review any applicable links associated with the dataset before placing the data on their machine._
