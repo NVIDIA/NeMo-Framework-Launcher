@@ -971,6 +971,234 @@ class EvalHarnessEvaluation(NemoMegatronStage):
         return command_groups
 
 
+class DiffusionModelEvaluation(NemoMegatronStage):
+    """
+    DiffusionModelEvaluation is class for evaluating generative diffusion models.
+    It can hold multiple sub-stages. For example, generation and gathering.
+    They have dependencies on each other and will be launched one by one.
+    """
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "evaluation"
+        self.stage_cfg = cfg.get("evaluation")
+
+    def _make_sub_stages(self) -> List[str]:
+        """
+        Create a list of sub-stage names which are required to run in current data stage.
+        Based on the input config, some of sub stages may not need to run.
+
+        :return: a list of sub-stage names which are required to run
+        :rtype: List[str]
+        """
+        sub_stages = []
+        if self.stage_cfg.get("generate_images", False):
+            sub_stages += ["generate"]
+        if self.stage_cfg.get("compute_fid_scores", False):
+            sub_stages += ["fid"]
+        if self.stage_cfg.get("compute_clip_scores", False):
+            sub_stages += ["clip"]
+        if self.stage_cfg.get("plot_fid_clip", False):
+            sub_stages += ["plot"]
+        return sub_stages
+
+    def _make_sub_stage_command(self, stage_cfg_path: Path, sub_stage: str) -> List[str]:
+        """Make a command of the specified sub-stage"""
+
+        eval_diffusion_path = self._launcher_scripts_path / "nemo_launcher/collections/eval_diffusion_fid_clip"
+        stage_to_code_path = {
+            "fid": eval_diffusion_path / "eval_fid.py",
+            "clip": eval_diffusion_path / "compute_clip_score.py",
+            "plot": eval_diffusion_path / "plot.py",
+        }
+        choice_model_type, choice_name = self.get_stage_config_choice()
+        if choice_model_type == "stable_diffusion":
+            stage_to_code_path["generate"] = self._nemo_code_path / "examples/multimodal/generative/stable_diffusion/generate_fid_images.py"
+
+        code_path = stage_to_code_path[sub_stage]
+
+        args = []
+        stage_cfg = self.stage_cfg
+        if sub_stage == "generate":
+            args = [
+                f"--config-path={stage_cfg_path.parents[0]}",
+                f"--config-name={stage_cfg_path.name}",
+            ]
+        elif sub_stage == "fid":
+            args = create_args_list(
+                coco_images_path=stage_cfg.fid.coco_images_path,
+                fid_images_path=stage_cfg.fid.save_path,
+                output_path=os.path.join(stage_cfg.run.get("results_dir", "."), "fid_scores.csv")
+            )
+        elif sub_stage == "clip":
+            args = create_args_list(
+                captions_path=stage_cfg.fid.coco_captions_path,
+                fid_images_path=stage_cfg.fid.save_path,
+                output_path=os.path.join(stage_cfg.run.get("results_dir", "."), "clip_scores.csv")
+            )
+        elif sub_stage == "plot":
+            args = create_args_list(
+                fid_scores_csv=os.path.join(stage_cfg.run.get("results_dir", "."), "fid_scores.csv"),
+                clip_scores_csv=os.path.join(stage_cfg.run.get("results_dir", "."), "clip_scores.csv"),
+                output_path=os.path.join(stage_cfg.run.get("results_dir", "."), "fid_clip_plot.pdf")
+            )
+
+        sub_stage_command = [f"CUDA_VISIBLE_DEVICES=\${{SLURM_PROCID}} python3 -u {code_path}", *args]
+        sub_stage_command = " \\\n  ".join(sub_stage_command)
+        return [sub_stage_command]
+
+
+    def run(self) -> str:
+        """
+        Run current stage including all of the substages, returns job id on slurm based system otherwise empty string
+
+        :return: job id on slurm based system otherwise empty string
+        :rtype: str
+        """
+        # Setup folders and datasets
+        self.setup_folder_and_data()
+
+        sub_stages = self._make_sub_stages()
+        job_id = ""
+        for sub_stage in sub_stages:
+            # Save stage hydra config
+            job_path = self.get_job_path(sub_stage)
+            job_path.folder.mkdir(parents=True, exist_ok=True)
+
+            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(self.stage_cfg, job_path)
+            if job_id:
+                dependency = f"aftercorr:{job_id}"
+                self.stage_cfg["run"]["dependency"] = dependency
+
+            # Make cluster parameters
+            cluster_parameters = self._make_cluster_parameters(self.cluster, sub_stage)
+
+            # Make command groups
+            command_groups = self.make_stage_command_groups(stage_cfg_path, sub_stage)
+            # Create launcher
+            launcher = AutoLauncher(folder=job_path.folder, cluster=self.cluster, **cluster_parameters, )
+            job_id = launcher.launch(command_groups=command_groups)
+
+        return job_id
+
+    def make_stage_command_groups(self, stage_cfg_path: Path, sub_stage: Optional[str] = None, ) -> List[List[str]]:
+        """
+        Make the command groups for current stage
+        Command groups is a list of command group. A command group is defined as:
+              0. Command group is a list of command strings
+              1. Each command group occupies one bcprun, srun or bash
+              2. Each command group eventually has multiple commands connected by ";"
+
+        :param Path stage_cfg_path: path to interpolated and saved configuration
+        :param Optional sub_stage: current sub_stage name
+        :return: command groups for current stage
+        :rtype: List[List[str]]
+        """
+
+        command_groups = [[]]
+
+        command_groups[0] += self._make_sub_stage_command(stage_cfg_path, sub_stage)
+        command_groups = clean_command_groups(command_groups)
+        return command_groups
+
+    def _make_private_cluster_parameters(self, cluster: str, sub_stage: str) -> Dict:
+        """
+        A simplifying function to make cluster parameters specific to each cluster type.
+        Shared cluster parameters are handled in _make_cluster_parameters.
+        This is function is introduced because for different dataset preparation the required slurm params are different,
+            but the shared parameters are always the same. As a result, one only needs to override private parameters
+            for different DataStage.
+
+        :param str cluster: cluster type
+        :param str sub_stage: current sub_stage name
+        :return: a dictionary of private cluster parameters, e.g. `bcp_preproc_npernode`
+        :rtype: Dict
+        """
+        cfg = self.cfg
+        stage_cfg = self.stage_cfg
+        run_cfg = stage_cfg.get("run")
+
+        node_array_size = run_cfg.get("node_array_size") if sub_stage in ["generate"] else 1
+        array = f"0-{node_array_size - 1}"
+        if sub_stage == "generate":
+            ntasks_per_node = run_cfg.get("ntasks_per_node")
+        else:
+            ntasks_per_node = 1
+
+        container_image = cfg.get("container")
+        container_mounts = self._make_container_mounts_string()
+
+        if cluster == "bcm":
+            return {
+                "nodes": 1,
+                "array": f"{array}%{node_array_size}",
+                "container_image": container_image,
+                "container_mounts": container_mounts,
+                "ntasks_per_node": ntasks_per_node,
+            }
+        if cluster == "bcp":
+            return {
+                "nodes": node_array_size,
+                "ntasks_per_node": ntasks_per_node,
+                "bcp_launcher": "'mpirun --allow-run-as-root'",
+            }
+        return {}
+
+    def _make_cluster_parameters(self, cluster: str, sub_stage: Optional[str] = None, ) -> Dict:
+        """
+        Make a cluster-specific parameters for jobs on different clusters.
+        Current clusters include bcm(slurm), bcp and interactive.
+        For example for bcm, it will return slurm parameters:
+            {'job_name': 'some_name', 'nodes': 2, 'ntasks_per_node': 8, ...}
+
+        :param str cluster: i.e. `bcm`, `bcp`, `interactive`, etc.
+        :param Optional sub_stage: current sub_stage name
+        :return: a dictionary of cluster parameters, e.g. `ntasks_per_node`
+        :rtype: Dict
+        """
+        cfg = self.cfg
+        stage_cfg = self.stage_cfg
+
+        run_cfg = stage_cfg.get("run")
+        job_name = run_cfg.get("name")
+        time_limit = run_cfg.get("time_limit")
+        dependency = run_cfg.get("dependency")
+
+        env_vars = self.get_env_vars()
+        env_vars["PYTHONPATH"] = f"{self._launcher_scripts_path}:${{PYTHONPATH}}"  # Required by pile download
+        env_vars["NGC_ARRAY_TYPE"] = "MPIJob"  # Required by BCP
+        setup = [f"export {k}={v}" for k, v in env_vars.items()]
+
+        cluster_parameters = {}
+        shared_parameters = {
+            "job_name": job_name,
+            "time": time_limit,
+            "setup": setup,
+        }
+        private_parameters = self._make_private_cluster_parameters(cluster, sub_stage, )
+        if cluster == "bcm":
+            cluster_cfg = cfg.get("cluster")
+            slurm_cfg = {**copy.deepcopy(cluster_cfg)}
+            job_name_prefix = slurm_cfg.pop("job_name_prefix")
+            cluster_parameters = {
+                **slurm_cfg,
+                "dependency": dependency,
+            }
+            cluster_parameters.update(
+                {**shared_parameters, **private_parameters, }
+            )
+            cluster_parameters["job_name"] = job_name_prefix + cluster_parameters["job_name"]
+        elif cluster == "bcp":
+            cluster_parameters.update(
+                {**shared_parameters, **private_parameters, }
+            )
+        elif cluster == "interactive":
+            raise ValueError("Data preparation is not supported in interactive mode.")
+
+        return cluster_parameters
+
+
+
 def clean_command_groups(command_groups: List[List[str]]) -> List[List[str]]:
     """
     Remove empty command group in command groups
