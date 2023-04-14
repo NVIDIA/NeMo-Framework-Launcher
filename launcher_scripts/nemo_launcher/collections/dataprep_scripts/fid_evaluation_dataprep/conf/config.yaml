@@ -1,4 +1,3 @@
-download_data: True
 preprocess_images: True
 preprocess_captions: True
 root_dir: /path/to/fid_evaluation/coco2014/

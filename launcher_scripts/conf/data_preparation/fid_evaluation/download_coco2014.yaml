@@ -6,7 +6,6 @@ run:
 
 dataset_output_root: ${data_dir}/fid_evaluation/coco2014
 
-download_data: True
 preprocess_images: True
 preprocess_captions: True
 num_processes: 8  # set to number of CPUs in the job (-1 defaults to slurm cpus_per_task)
