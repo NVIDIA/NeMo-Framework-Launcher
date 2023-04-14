@@ -18,8 +18,13 @@ import sys
 import hydra
 import omegaconf
 
-from nemo_launcher.core.data_stages import CustomDataPreparation, MC4DataPreparation, PileDataPreparation, \
-    MultimodalDataPreparation, FIDEvaluationDataPreparation
+from nemo_launcher.core.data_stages import (
+    CustomDataPreparation,
+    MC4DataPreparation,
+    PileDataPreparation,
+    MultimodalDataPreparation,
+    FIDEvaluationDataPreparation,
+)
 from nemo_launcher.core.export_stages import Export
 from nemo_launcher.core.stages import (
     AdapterLearning,
@@ -31,6 +36,7 @@ from nemo_launcher.core.stages import (
     PromptLearning,
     Training,
     FWInference,
+    DiffusionModelEvaluation,
 )
 
 omegaconf.OmegaConf.register_new_resolver("multiply", lambda x, y: x * y, replace=True)
@@ -48,7 +54,11 @@ STR2STAGECLASS = {
     "fw_inference": FWInference,
     "evaluation": {
         EvalHarnessEvaluation: ["gpt3", "prompt_gpt3"],
-        NeMoEvaluation: ["t5", "mt5", "prompt_t5", "prompt_mt5", "adapter_t5", "adapter_gpt3", "ia3_t5", "ia3_gpt3", "vit", "clip"],
+        NeMoEvaluation: [
+            "t5", "mt5", "prompt_t5", "prompt_mt5", "adapter_t5", "adapter_gpt3",
+            "ia3_t5", "ia3_gpt3", "vit", "clip"
+        ],
+        DiffusionModelEvaluation: ["stable_diffusion", "imagen"],
     },
     "data_preparation": {
         PileDataPreparation: ["gpt3", "t5", "bert"],
@@ -67,9 +77,11 @@ def main(cfg):
     dependency = None
     for stage_name in requested_stages:
         stage_class = STR2STAGECLASS[stage_name]
+
         if isinstance(stage_class, dict):
             stage_config_choice = cfg.get(f"{stage_name}_config")
             choice_model_type = stage_config_choice.rsplit("/", 1)[0]
+
             for cls, model_types in stage_class.items():
                 if choice_model_type in model_types:
                     stage_class = cls
@@ -77,11 +89,13 @@ def main(cfg):
 
         if dependency is not None:
             cfg[stage_name]["run"]["dependency"] = dependency
+
         stage = stage_class(cfg)
         job_id = stage.run()
 
         job_path = stage.get_job_path()
         command = " \\\n  ".join(sys.argv)
+
         with open(job_path.folder / "launcher_cmd.log", "w") as f:
             f.write(command)
 
