@@ -164,8 +164,7 @@ model:
       train:
           batch_size: 32
           dataset_path:
-              - /datasets/coyo/wdinfo/coyo-700m-1024/wdinfo-selene.pkl
-              - /datasets/coyo/wdinfo/laion_aesthetic-1024/wdinfo-selene.pkl
+            - ${data_dir}/your_dataset/wdinfo.pkl
           augmentations:
             resize_smallest_side: 512
             center_crop_h_w: 512, 512
@@ -174,4 +173,4 @@ model:
 
       webdataset:
           infinite_sampler: False
-          local_root_path: /datasets/coyo
+          local_root_path: ${data_dir}/your_dataset/tarfiles_reorganized/  # each tarfile in wdinfo is relative to this

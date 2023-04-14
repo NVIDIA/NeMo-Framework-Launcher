@@ -168,7 +168,7 @@ model:
     # Path to instruct-pix2pix dataset must be specified by the user.
     # https://github.com/timothybrooks/instruct-pix2pix#generated-dataset
     # (train, val, test) splits ratio = (0.95, 0.04, 0.01)
-    data_path: ???
+    data_path: ${data_dir}/instruct_pix2pix/clip-filtered-dataset
     num_workers: 2
     dataloader_type: cyclic # cyclic
     validation_drop_last: True # Set to false if the last partial validation samples is to be consumed
