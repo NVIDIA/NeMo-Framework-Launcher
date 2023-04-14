@@ -61,8 +61,8 @@ model:
   num_timesteps_cond: 1
   log_every_t: 200
   timesteps: 1000
-  first_stage_key: images
-  cond_stage_key: captions # txt for cifar, caption for pbss
+  first_stage_key: images  # if using precached encodings, put `images_encoded`
+  cond_stage_key: captions # if using precached encodings, put `captions_encoded`
   image_size: 64
   channels: 4
   cond_stage_trainable: false
@@ -164,8 +164,7 @@ model:
       train:
           batch_size: 128
           dataset_path:
-            - /datasets/coyo/wdinfo/coyo-700m/wdinfo-selene.pkl
-            - /datasets/coyo/wdinfo/laion_aesthetic/wdinfo-selene.pkl
+            - ${data_dir}/your_dataset/wdinfo.pkl
           augmentations:
             resize_smallest_side: 256
             center_crop_h_w: 256, 256
@@ -174,4 +173,4 @@ model:
 
       webdataset:
           infinite_sampler: False
-          local_root_path: /datasets/coyo
+          local_root_path: ${data_dir}/your_dataset/tarfiles_reorganized/  # each tarfile in wdinfo is relative to this

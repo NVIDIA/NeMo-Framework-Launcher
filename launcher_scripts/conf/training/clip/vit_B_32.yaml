@@ -222,13 +222,13 @@ model:
     num_workers: 8
     train:
       dataset_path: # List of paths to pkl files or tar files
-        - /datasets/coyo/test.pkl
+        - ${data_dir}/your_dataset/wdinfo.pkl
     validation: # List of paths to pkl files or tar files
       dataset_path:
-        - /datasets/coyo/test.pkl
+        - ${data_dir}/your_dataset/wdinfo.pkl
     webdataset:
       infinite_sampler: False
-      local_root_path: /datasets/coyo
+      local_root_path: ${data_dir}/your_dataset/tarfiles_reorganized/  # each tarfile in wdinfo is relative to this
 
     imagenet_val: null # Path to imagenet val set for conducting zero shot evaluation.
 

@@ -137,8 +137,10 @@ model:
   data:
     # Path to image dataset must be specified by the user.
     # Supports List
-    # List: can override from the CLI: "model.data.data_prefix=[/path/to/train, /path/to/val]",
-    data_path: ???
+    # List: can override from the CLI: "model.data.data_path=[/path/to/train, /path/to/val]",
+    data_path:
+      - ${data_dir}/imagenet_1k/train
+      - ${data_dir}/imagenet_1k/val
     num_workers: 8
     dataloader_type: cyclic # cyclic
     validation_drop_last: True # Set to false if the last partial validation samples is to be consumed

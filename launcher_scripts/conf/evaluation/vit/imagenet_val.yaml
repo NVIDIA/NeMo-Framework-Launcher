@@ -21,4 +21,4 @@ model:
 
   data:
     num_workers: 8
-    imagenet_val: ??? # path to imagenet val folder
+    imagenet_val: ${data_dir}/imagenet_1k/val # path to imagenet val folder
