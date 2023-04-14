@@ -43,6 +43,7 @@ exp_manager:
     every_n_epochs: 0
     monitor: reduced_train_loss
     filename: '${name}--{train/loss:.4f}-{epoch}-{step}'
+    save_nemo_on_train_end: False
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
   ema:
