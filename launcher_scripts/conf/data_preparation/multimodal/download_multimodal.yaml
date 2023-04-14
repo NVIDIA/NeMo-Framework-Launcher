@@ -6,7 +6,7 @@ run:
   bcp_preproc_npernode: 2  # 2 should be safe to use and x2 times faster.
 
 dataset_repo_id: ???  # huggingface dataset repo id, in the format of {user_or_company}/{dataset_name}
-  See https://huggingface.co/datasets?task_categories=task_categories:text-to-image&sort=downloads
+#  See https://huggingface.co/datasets?task_categories=task_categories:text-to-image&sort=downloads
 dataset_output_root: ${data_dir}/your_dataset_name
 
 download_parquet:

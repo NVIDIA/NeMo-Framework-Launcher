@@ -1,7 +1,7 @@
 defaults:
   - _self_
   - cluster: bcm  # Leave it as bcm even if using bcp. It will be ignored for bcp.
-  - data_preparation: multimodal/download_multimodal
+  - data_preparation: null
   - training: clip/vit_B_32
   - conversion: null
   - fine_tuning: null
@@ -11,7 +11,6 @@ defaults:
   - override hydra/job_logging: stdout
 
 stages:
-  - data_preparation
   - training
   - fw_inference
   - export
