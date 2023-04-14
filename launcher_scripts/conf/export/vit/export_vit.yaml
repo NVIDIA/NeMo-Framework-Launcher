@@ -10,7 +10,7 @@ run:
 
 model:
   restore_from_path: ${base_results_dir}/${export.run.model_train_name}/results/checkpoints/nemo_vit.nemo  # Path to a trained CLIP .nemo file
-  data_type: 16  # 32|16
+  precision: 16  # 32|16
 
 infer:
   max_batch_size: 8

@@ -367,7 +367,7 @@ class Export(NemoMegatronStage):
         convert_cmd = (
             f"python -u {converter_path} \\\n"
             f" model.restore_from_path={model_cfg.restore_from_path}"
-            f" trainer.precision={model_cfg.data_type} \\\n"
+            f" trainer.precision={model_cfg.precision} \\\n"
             f" {infer_args}"
         )
         return [
@@ -388,7 +388,7 @@ class Export(NemoMegatronStage):
         convert_cmd = (
             f"python -u {converter_path} \\\n"
             f" model.restore_from_path={model_cfg.restore_from_path}"
-            f" trainer.precision={model_cfg.data_type} \\\n"
+            f" trainer.precision={model_cfg.precision} \\\n"
             f" {infer_args}"
         )
         return [
