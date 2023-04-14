@@ -5,9 +5,9 @@ run:
   dependency: "singleton"
   bcp_preproc_npernode: 2  # 2 should be safe to use and x2 times faster.
 
-dataset_repo_id: laion/laion-art  # huggingface dataset repo id
-# e.g. # laion/laion2B-en-aesthetic  kakaobrain/coyo-700m, ChristophSchuhmann/improved_aesthetics_5plus
-dataset_output_root: ${data_dir}/laion--laion-art
+dataset_repo_id: ???  # huggingface dataset repo id, in the format of {user_or_company}/{dataset_name}
+  See https://huggingface.co/datasets?task_categories=task_categories:text-to-image&sort=downloads
+dataset_output_root: ${data_dir}/your_dataset_name
 
 download_parquet:
   enable: True
@@ -20,11 +20,9 @@ download_images:
   parquet_pattern: ${..download_parquet.parquet_pattern}
   input_dir: ${..download_parquet.output_dir}
   output_dir: ${..dataset_output_root}/tarfiles_raw
-  num_parquets_downloaded: 1  # Number of parquet files in huggingface repo.
-  # laion/laion-art: 1
-  # laion/laion2B-en-aesthetic: 128
-  # kakaobrain/coyo-700m: 128
-  # ChristophSchuhmann/improved_aesthetics_5plus: 64
+  num_parquets_downloaded: 1  # Number of parquet files in hugging face repo.
+  # To fill in this parameter, go to the hugging face repo -> Files and versions -> count the number of parquet files
+  # in all directories.
   # Only used if download_images is queued as a dependency before download_parquet finishes.
   # Otherwise script will automatically count the number of parquet files downloaded.
   # Note that node_array_size for this stage will be parquet_subpartitions x num_parquets_downloaded
@@ -33,6 +31,9 @@ download_images:
   img2dataset_additional_arguments: # see https://github.com/rom1504/img2dataset for complete list of parameters
     encode_quality: 95  # jpeg compression quality (100 is best, but still lossy)
     resize_mode: no  # optionally resize after downloading to save disk space
+    # you can also override these arguments to suit your own needs:
+    # input_format (default is parquet), caption_col (default is TEXT), url_col (default is URL)
+    # see https://github.com/rom1504/img2dataset/tree/main/dataset_examples for some examples
 
 reorganize_tar:
   enable: True

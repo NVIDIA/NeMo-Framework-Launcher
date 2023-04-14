@@ -1,356 +1,344 @@
 # NeMo Megatron
+
 ## Open Beta
 
 Scripts and code to provide end-to-end data preparation and training for
 NeMo-Megatron.
 
-The most recent version of the README can be found at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training).
+The most recent version of the README can be found
+at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training).
 
 ## Table of contents
-- [1. Model Overview](#1-model-overview)
-- [2. Feature Matrix](#2-feature-matrix)
-  * [2.1. GPT-3 Models](#21-gpt-3-models)
-  * [2.2. T5 and mT5 Models](#22-t5-and-mt5-models)
-  * [2.3. BERT Models](#23-bert-models)
-- [3. Setup](#3-setup)
-  * [3.1. Support Matrix](#31-support-matrix)
-- [4. Cloud Service Providers](#4-cloud-service-providers)
-  * [4.1. Cluster Bring-Up](#41-cluster-bring-up)
-    + [4.1.1. Common](#411-common)
-    + [4.1.2. OCI](#412-oci)
-    + [4.1.3. AWS](#413-aws)
-  * [4.2. Cluster Validation](#42-cluster-validation)
-    + [4.2.1. Validation Script Usage](#421-validation-script-usage)
-    + [4.2.2. Running tests manually](#421-running-tests-manually)
-  * [4.3. Config Modifications](#43-config-modifications)
-    + [4.3.1 Set NCCL Topology](#431-set-nccl-topology)
-    + [4.3.2 Environment Variables](#432-environment-variables)
-      - [4.3.2.1 Azure Variables](#4321-azure-variables)
-      - [4.3.2.2 AWS Variables](#4322-aws-variables)
-- [5. Quick Start Guide](#5-quick-start-guide)
-  * [5.1. Training NeMo Megatron Models](#51-training-nemo-megatron-models)
-    + [5.1.1. Prepare Environment](#511-prepare-environment)
-      - [5.1.1.1. Slurm](#5111-slurm)
-      - [5.1.1.2. Base Command Platform](#5112-base-command-platform)
-      - [5.1.1.3. General Configuration](#5113-general-configuration)
-    + [5.1.2. Data Preparation](#512-data-preparation)
-      - [5.1.2.1. Data Preparation for GPT-3 Models](#5121-data-preparation-for-gpt-3-models)
-        * [5.1.2.1.1. Slurm](#51211-slurm)
-        * [5.1.2.1.2. Base Command Platform](#51212-base-command-platform)
-        * [5.1.2.1.3. Common](#51213-common)
-      - [5.1.2.2. Data Preparation for T5 Models](#5122-data-preparation-for-t5-models)
-        * [5.1.2.2.1. Slurm](#51221-slurm)
-        * [5.1.2.2.2. Base Command Platform](#51222-base-command-platform)
-        * [5.1.2.2.3. Common](#51223-common)
-      - [5.1.2.3. Data Preparation for mT5 Models](#5123-data-preparation-for-mt5-models)
-        * [5.1.2.3.1. Slurm](#51231-slurm)
-        * [5.1.2.3.2. Base Command Platform](#51232-base-command-platform)
-        * [5.1.2.3.3. Common](#51233-common)
-      - [5.1.2.4. Data Preparation for BERT Models](#5124-data-preparation-for-bert-models)
-        * [5.1.2.4.1. Slurm](#51241-slurm)
-        * [5.1.2.4.2. Base Command Platform](#51242-base-command-platform)
-        * [5.1.2.4.3. Common](#51243-common)        
-  * [5.2. Training with Predefined Configurations](#52-training-with-predefined-configurations)
-    + [5.2.1. Predefined Configurations of GPT-3 Models](#521-predefined-configurations-of-gpt-3-models)
-    + [5.2.2. Predefined Configurations of T5 Models](#522-predefined-configurations-of-t5-models)
-    + [5.2.3. Predefined Configurations of mT5 Models](#523-predefined-configurations-of-mt5-models)
-    + [5.2.4. Training Logs with TensorBoard and Weights and Biases](#524-training-logs-with-tensorboard-and-weights-and-biases)
-    + [5.2.5. Predefined Configurations of BERT Models](#525-predefined-configurations-of-bert-models)
-  * [5.3. Using AutoConfigurator to Find the Optimal Configuration](#53-using-autoconfigurator-to-find-the-optimal-configuration)
-    + [5.3.1. AutoConfigurator Capabilities](#531-autoconfigurator-capabilities)
-      - [5.3.1.1. Model Size Recommendation](#5311-model-size-recommendation)
-      - [5.3.1.2. Base Config Generation](#5312-base-config-generation)
-      - [5.3.1.3. Training AutoConfigurator HP Search](#5313-training-autoconfigurator-hp-search)
-      - [5.3.1.4. Inference AutoConfigurator HP Search](#5314-inference-autoconfigurator-hp-search)
-    + [5.3.2. Usage](#532-usage)
-      - [5.3.2.1. General Configuration](#5321-general-configuration)
-        * [5.3.2.1.1. Slurm](#53211-slurm)
-        * [5.3.2.1.2. Base Command Platform](#53212-base-command-platform)
-      - [5.3.2.2. Running Predefined Configs](#5322-running-predefined-configs)
-        * [5.3.2.2.1. Model Config](#53221-model-config)
-        * [5.3.2.2.2. Base Config Generation](#53222-base-config-generation)
-        * [5.3.2.2.3. Training AutoConfigurator HP Search](#53223-training-autoconfigurator-hp-search)
-        * [5.3.2.2.4. Inference AutoConfigurator-HP Search](#53224-inference-autoconfigurator-hp-search)
-      - [5.3.2.3. Running Custom Model Size Configs](#5323-running-custom-model-size-configs)
-      - [5.3.2.4. Interpreting the Results](#5324-interpreting-the-results)
-      - [5.3.2.5. Logging Runs with Weights and Biases](#5325-logging-runs-with-weights-and-biases)
-  * [5.4. Training with Custom Configurations](#54-training-with-custom-configurations)
-    + [5.4.1. Example: Changing Embedding Type for T5 Models](#541-example-changing-embedding-type-for-t5-models)
-  * [5.5. Bring Your Own Dataset](#55-bring-your-own-dataset)
-    + [5.5.1. Slurm](#551-slurm)
-    + [5.5.2. Base Command Platform](#552-base-command-platform)
-    + [5.5.3. Common](#553-common)
-  * [5.6. Model Training](#56-model-training)
-    + [5.6.1. GPT-3 Training](#561-gpt-3-training)
-      - [5.6.1.1. Slurm](#5611-slurm)
-      - [5.6.1.2. Base Command Platform](#5612-base-command-platform)
-    + [5.6.2. T5 Training](#562-t5-training)
-      - [5.6.2.1. Slurm](#5621-slurm)
-      - [5.6.2.2. Base Command Platform](#5622-base-command-platform)
-    + [5.6.3. mT5 Training](#563-mt5-training)
-      - [5.6.3.1. Slurm](#5631-slurm)
-      - [5.6.3.2. Base Command Platform](#5632-base-command-platform)
-    + [5.6.4. BERT Training](#564-bert-training)
-      - [5.6.4.1. Slurm](#5641-slurm)
-      - [5.6.4.2. Base Command Platform](#5642-base-command-platform)      
-  * [5.7. Resuming Training with Different Number of Nodes](#57-resuming-training-with-different-number-of-nodes)
-  * [5.8. Checkpoint Conversion](#58-checkpoint-conversion)
-    + [5.8.1. GPT-3 Conversion](#581-gpt-3-conversion)
-      - [5.8.1.1. Common](#5811-common)
-      - [5.8.1.2. Slurm](#5812-slurm)
-      - [5.8.1.3. Base Command Platform](#5813-base-command-platform)
-    + [5.8.2. T5 Conversion](#582-t5-conversion)
-      - [5.8.2.1. Common](#5821-common)
-      - [5.8.2.2. Slurm](#5822-slurm)
-      - [5.8.2.3. Base Command Platform](#5823-base-command-platform)
-    + [5.8.3. mT5 Conversion](#583-mt5-conversion)
-      - [5.8.3.1. Common](#5831-common)
-      - [5.8.3.2. Slurm](#5832-slurm)
-      - [5.8.3.3. Base Command Platform](#5833-base-command-platform)
-  * [5.9. Model Fine-tuning](#59-model-fine-tuning)
-    + [5.9.1. T5 Fine-tuning](#591-t5-fine-tuning)
-      - [5.9.1.1. Common](#5911-common)
-      - [5.9.1.2. Slurm](#5912-slurm)
-      - [5.9.1.3. Base Command Platform](#5913-base-command-platform)
-    + [5.9.2. mT5 Fine-tuning](#592-mt5-fine-tuning)
-      - [5.9.2.1. Common](#5921-common)
-      - [5.9.2.2. Slurm](#5922-slurm)
-      - [5.9.2.3. Base Command Platform](#5923-base-command-platform)
-    + [5.9.3. Fine-tuning on Custom Tasks](#593-fine-tuning-on-custom-tasks)
-  * [5.10. Model Prompt Learning](#510-model-prompt-learning)
-    + [5.10.1. GPT-3 Prompt Learning](#5101-gpt-3-prompt-learning)
-      - [5.10.1.1. Common](#51011-common)
-      - [5.10.1.2. Slurm](#51012-slurm)
-      - [5.10.1.3. Base Command Platform](#51013-base-command-platform)
-    + [5.10.2. T5 and mT5 Prompt Learning](#5102-t5-and-mt5-prompt-learning)
-      - [5.10.2.1. Common](#51021-common)
-      - [5.10.2.2. Slurm](#51022-slurm)
-      - [5.10.2.3. Base Command Platform](#51023-base-command-platform)
-  * [5.11. Model Adapter Learning and IA3 Learning](#511-model-adapter-learning-and-ia3-learning)
-    + [5.11.1. GPT-3 Adapter Learning and IA3 Learning](#5111-gpt-3-adapter-learning-and-ia3-learning)
-      - [5.11.1.1. Common](#51111-common)
-      - [5.11.1.2. Slurm](#51112-slurm)
-      - [5.11.1.3. Base Command Platform](#51113-base-command-platform)
-    + [5.11.2. T5 Adapter Learning and IA3 Learning](#5112-t5-adapter-learning-and-ia3-learning)
-      - [5.11.2.1. Common](#51121-common)
-      - [5.11.2.2. Slurm](#51122-slurm)
-      - [5.11.2.3. Base Command Platform](#51123-base-command-platform)
-  * [5.12. Model Evaluation](#512-model-evaluation)
-    + [5.12.1. GPT-3 Evaluation](#5121-gpt-3-evaluation)
-      - [5.12.1.1. Common](#51211-common)
-      - [5.12.1.2. Slurm](#51212-slurm)
-      - [5.12.1.3. Base Command Platform](#51213-base-command-platform)
-    + [5.12.2. T5 Evaluation](#5122-t5-evaluation)
-      - [5.12.2.1. Common](#51221-common)
-      - [5.12.2.2. Slurm](#51222-slurm)
-      - [5.12.2.3. Base Command Platform](#51223-base-command-platform)
-    + [5.12.3. mT5 Evaluation](#5123-mt5-evaluation)
-      - [5.12.3.1. Common](#51231-common)
-      - [5.12.3.2. Slurm](#51232-slurm)
-      - [5.12.3.3. Base Command Platform](#51233-base-command-platform)
-    + [5.12.4. Prompt Learned GPT-3 Evaluation](#5124-prompt-learned-gpt-3-evaluation)
-      - [5.12.4.1. Common](#51241-common)
-      - [5.12.4.2. Slurm](#51242-slurm)
-      - [5.12.4.3. Base Command Platform](#51243-base-command-platform)
-    + [5.12.5. Prompt Learned T5 and mT5 Evaluation](#5125-prompt-learned-t5-and-mt5-evaluation)
-      - [5.12.5.1. Common](#51251-common)
-      - [5.12.5.2. Slurm](#51252-slurm)
-      - [5.12.5.3. Base Command Platform](#51253-base-command-platform)
-    + [5.12.6. Adapter Learned and IA3 Learned GPT-3 Evaluation](#5126-adapter-learned-and-ia3-learned-gpt-3-evaluation)
-      - [5.12.6.1. Common](#51261-common)
-      - [5.12.6.2. Slurm](#51262-slurm)
-      - [5.12.6.3. Base Command Platform](#51263-base-command-platform)
-    + [5.12.7. Adapter Learned and IA3 Learned T5 Evaluation](#5127-adapter-learned-and-ia3-learned-t5-evaluation)
-      - [5.12.7.1. Common](#51271-common)
-      - [5.12.7.2. Slurm](#51272-slurm)
-      - [5.12.7.3. Base Command Platform](#51273-base-command-platform)
-  * [5.13. Model Export](#513-model-export)
-    + [5.13.1. GPT-3 Export](#5131-gpt-3-export)
-      - [5.13.1.1. Common](#51311-common)
-      - [5.13.1.2. Slurm](#51312-slurm)
-      - [5.13.1.3. Base Command Platform](#51313-base-command-platform)
-    + [5.13.2. T5 Export](#5132-t5-export)
-      - [5.13.2.1. Common](#51321-common)
-      - [5.13.2.2. Slurm](#51322-slurm)
-      - [5.13.2.3. Base Command Platform](#51323-base-command-platform)
-    + [5.13.3. mT5 Export](#5133-mt5-export)
-      - [5.13.3.1. Common](#51331-common)
-      - [5.13.3.2. Slurm](#51332-slurm)
-      - [5.13.3.3. Base Command Platform](#51333-base-command-platform)
-- [6. Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
-  * [6.1. Run NVIDIA Triton Server with Generated Model Repository](#61-run-nvidia-triton-server-with-generated-model-repository)
-- [6.2. GPT-3 Text Generation with Ensemble](#62-gpt-3-text-generation-with-ensemble)
-- [6.3. UL2 Checkpoint Deployment](#63-ul2-checkpoint-deployment)
-- [7. Performance](#7-performance)
-  * [7.1. GPT-3 Results](#71-gpt-3-results)
-    + [7.1.1. Training Accuracy Results](#711-training-accuracy-results)
-    + [7.1.2. Training Performance Results](#712-training-performance-results)
-    + [7.1.3. Inference Performance](#713-inference-performance)
-  * [7.2. T5 Results](#72-t5-results)
-    + [7.2.1. Training Accuracy Results](#721-training-accuracy-results)
-    + [7.2.2. Training Performance Results](#722-training-performance-results)
-    + [7.2.3. Inference Performance](#723-inference-performance)
-  * [7.3. mT5 Results](#73-mt5-results)
-    + [7.3.1. Training Accuracy Results](#731-training-accuracy-results)
-    + [7.3.2. Training Performance Results](#732-training-performance-results)
-    + [7.3.3. Inference Performance](#733-inference-performance)
-  * [7.4. BERT Results](#74-bert-results)
-    + [7.4.1. Training Accuracy Results](#741-training-accuracy-results)
-    + [7.4.2. Training Performance Results](#742-training-performance-results)
-- [8. Changelog](#8-changelog)
-- [9. Known Issues](#9-known-issues)
 
+- [NeMo Megatron](#nemo-megatron)
+  * [Open Beta](#open-beta)
+  * [Table of contents](#table-of-contents)
+  * [1. Model Overview](#1-model-overview)
+    + [1.1. Vision Transformer (ViT)](#11-vision-transformer--vit-)
+    + [1.2. CLIP](#12-clip)
+    + [1.3. Stable Diffusion](#13-stable-diffusion)
+    + [1.4. Instruct Pix2Pix](#14-instruct-pix2pix)
+    + [1.5. DreamBooth](#15-dreambooth)
+  * [2. Feature Matrix](#2-feature-matrix)
+    + [2.1. ViT Models](#21-vit-models)
+    + [2.2 CLIP Models](#22-clip-models)
+    + [2.3. Stable Diffusion](#23-stable-diffusion)
+    + [2.4. Instruct Pix2Pix / DreamBooth Models](#24-instruct-pix2pix---dreambooth-models)
+  * [3. Setup](#3-setup)
+    + [3.1. Support Matrix](#31-support-matrix)
+  * [4. Cloud Service Providers](#4-cloud-service-providers)
+    + [4.1. Cluster Bring-Up](#41-cluster-bring-up)
+      - [4.1.1. Common](#411-common)
+      - [4.1.2. OCI](#412-oci)
+      - [4.1.3. AWS](#413-aws)
+    + [4.2. Cluster Validation](#42-cluster-validation)
+      - [4.2.1. Validation Script Usage](#421-validation-script-usage)
+      - [4.2.2 Running tests manually](#422-running-tests-manually)
+    + [4.3. Config Modifications](#43-config-modifications)
+      - [4.3.1 Set NCCL Topology](#431-set-nccl-topology)
+      - [4.3.2 Environment Variables](#432-environment-variables)
+        * [4.3.2.1 Azure Variables](#4321-azure-variables)
+        * [4.3.2.2 AWS Variables](#4322-aws-variables)
+  * [5. Quick Start Guide](#5-quick-start-guide)
+    + [5.1. Getting Started with Multimodal NeMo Megatron](#51-getting-started-with-multimodal-nemo-megatron)
+      - [5.1.1. Prepare Environment](#511-prepare-environment)
+        * [5.1.1.1. Slurm](#5111-slurm)
+        * [5.1.1.2. Base Command Platform](#5112-base-command-platform)
+      - [5.1.2. Configure and Customize Pipeline](#512-configure-and-customize-pipeline)
+        * [5.1.2.1. Cluster Configurations](#5121-cluster-configurations)
+        * [5.1.2.2. Pipeline Configurations](#5122-pipeline-configurations)
+        * [5.1.2.3. Environment Variables Configurations](#5123-environment-variables-configurations)
+        * [5.1.2.4. NUMA Mapping Configurations](#5124-numa-mapping-configurations)
+      - [5.1.3. Launch Pipeline](#513-launch-pipeline)
+      - [5.1.4. Example: Pre-train Stable Diffusion 860M Model for 10 Epochs with Resolution 256](#514-example--pre-train-stable-diffusion-860m-model-for-10-epochs-with-resolution-256)
+    + [5.2. Data Preparation](#52-data-preparation)
+      - [5.2.1 ImageNet](#521-imagenet)
+        * [5.2.1.1 ImageNet 1k](#5211-imagenet-1k)
+        * [5.2.1.2 ImageNet 21k](#5212-imagenet-21k)
+      - [5.2.2 Multimodal Datasets](#522-multimodal-datasets)
+        * [5.2.2.1 Overview](#5221-overview)
+        * [5.2.2.2 Running the Pipeline](#5222-running-the-pipeline)
+        * [5.2.2.3 Configuration for Precaching](#5223-configuration-for-precaching)
+          + [5.2.2.3.1 General Format](#52231-general-format)
+          + [5.2.2.3.2 Precaching Config](#52232-precaching-config)
+          + [5.2.2.3.3 Resume Precaching (Advanced)](#52233-resume-precaching--advanced-)
+      - [5.2.3 Instruct-Pix2Pix](#523-instruct-pix2pix)
+        * [5.2.3.1 Overview](#5231-overview)
+        * [5.2.3.2 Running the Pipeline](#5232-running-the-pipeline)
+      - [5.2.4 MSCOCO for FID Evaluation](#524-mscoco-for-fid-evaluation)
+        * [5.2.4.1 Overview](#5241-overview)
+        * [5.2.4.2 Running the Pipeline](#5242-running-the-pipeline)
+    + [5.3. Model Training](#53-model-training)
+      - [5.3.1. Vision Transformer Training](#531-vision-transformer-training)
+      - [5.3.2. CLIP Training](#532-clip-training)
+      - [5.3.3. Stable Diffusion Training](#533-stable-diffusion-training)
+      - [5.3.4. Instruct Pix2Pix Training](#534-instruct-pix2pix-training)
+      - [5.3.5. DreamBooth Training](#535-dreambooth-training)
+    + [5.4. Checkpoint Conversion](#54-checkpoint-conversion)
+    + [5.5. Model Fine-tuning](#55-model-fine-tuning)
+      - [5.5.1. Vision Transformer Fine-tuning](#551-vision-transformer-fine-tuning)
+    + [5.6. Model Evaluation](#56-model-evaluation)
+      - [5.6.1. Vision Transformer Evaluation](#561-vision-transformer-evaluation)
+      - [5.6.2. CLIP Evaluation](#562-clip-evaluation)
+      - [5.6.3. Stable Diffusion Evaluation](#563-stable-diffusion-evaluation)
+    + [5.7. Model Inference (in NeMo Framework)](#57-model-inference--in-nemo-framework-)
+      - [5.7.1. Vision Transformer Inference (in NeMo Framework)](#571-vision-transformer-inference--in-nemo-framework-)
+      - [5.7.2. CLIP Inference (in NeMo Framework)](#572-clip-inference--in-nemo-framework-)
+      - [5.7.3. Stable Diffusion Inference (in NeMo Framework)](#573-stable-diffusion-inference--in-nemo-framework-)
+      - [5.7.4. Instruct Pix2Pix Inference (in NeMo Framework)](#574-instruct-pix2pix-inference--in-nemo-framework-)
+      - [5.7.5. DreamBooth Inference (in NeMo Framework)](#575-dreambooth-inference--in-nemo-framework-)
+    + [5.8. Model Export](#58-model-export)
+      - [5.8.1. Vision Transformer Export](#581-vision-transformer-export)
+      - [5.8.2. CLIP Export](#582-clip-export)
+      - [5.8.3. Stable Diffusion Export](#583-stable-diffusion-export)
+      - [5.8.4. Instruct Pix2pix Export](#584-instruct-pix2pix-export)
+      - [5.8.5. DreamBooth Export](#585-dreambooth-export)
+  * [6. Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
+    + [6.1 Setup](#61-setup)
+    + [6.2 Start NVIDIA Triton Inference Server](#62-start-nvidia-triton-inference-server)
+      - [6.2.1 Stable Diffusion, Dreambooth](#621-stable-diffusion--dreambooth)
+      - [6.2.2 Instruct Pix2Pix](#622-instruct-pix2pix)
+      - [6.2.3 Vision Transformer](#623-vision-transformer)
+      - [6.2.4 CLIP](#624-clip)
+    + [6.3 Query NVIDIA Triton Inference Server](#63-query-nvidia-triton-inference-server)
+      - [6.3.1 Stable Diffusion and Dreambooth](#631-stable-diffusion-and-dreambooth)
+      - [6.3.2 Instruct Pix2Pix](#632-instruct-pix2pix)
+  * [7. Performance](#7-performance)
+    + [7.1. Vision Transformer Results](#71-vision-transformer-results)
+      - [7.1.1. Training Accuracy Results](#711-training-accuracy-results)
+      - [7.1.2. Training Performance Results](#712-training-performance-results)
+      - [7.1.3. Inference Performance Results](#713-inference-performance-results)
+    + [7.2. CLIP Results](#72-clip-results)
+      - [7.2.1. Training Accuracy Results](#721-training-accuracy-results)
+      - [7.2.2. Training Performance Results](#722-training-performance-results)
+      - [7.2.3. Inference Performance Results](#723-inference-performance-results)
+    + [7.3. Stable Diffusion Results](#73-stable-diffusion-results)
+      - [7.3.1. Training Accuracy Results](#731-training-accuracy-results)
+      - [7.3.2. Training Performance Results](#732-training-performance-results)
+      - [7.3.3. Inference Performance Results](#733-inference-performance-results)
+  * [8. Changelog](#8-changelog)
+  * [9. Known Issues](#9-known-issues)
 
 <!-- /TOC -->
 
 ## 1. Model Overview
-<a id="markdown-model-overview" name="model-overview"></a>
 
-NeMo Megatron is a new version in the NeMo framework that allows developers to effectively train and scale language
-models to billions of parameters. With NeMo Megatron, you can train different variants of GPT-3, Bert and T5 style models,
-and scale them to multiple nodes on NVIDIA DGX SuperPOD deployments. This deep learning (DL) software stack is optimized for DGX
-SuperPOD configurations using NVIDIA InfiniBand technology to provide efficient on-premises compute for training
-and inferring complex workloads.
 
-The model parallelism techniques of NeMo Megatron enable the efficient training of large models that do not fit in
-the memory of a single GPU. In the training tasks, tensor (intra-layer) and pipeline (inter-layer) model parallelism
-are adopted. Tensor model parallelism partitions individual transformer layers over multiple devices. Pipeline
-model parallelism stripes layers of a model over multiple devices. For more details, refer to
-[this paper](https://arxiv.org/pdf/2104.04473.pdf).
+The Multimodal NeMo Megatron is a powerful extension of the NeMo framework, specifically designed for developers who aim
+to efficiently train and scale multimodal models. With Multimodal NeMo Megatron, you can effortlessly train various
+variants of multimodal models, such as CLIP, Stable Diffusion and more. This powerful tool is capable of
+scaling your models to multiple nodes on NVIDIA DGX SuperPOD deployments.
 
-Our latest techniques, sequence parallelism and selective activation recomputation, bring up to `~30%` faster 
-training time for GPT-3 models ranging from 20B to 1T parameters.
-Sequence parallelism expands tensor-level model parallelism, by 
-noticing that the regions of a transformer layer that have not previously been parallelized are independent 
-along the sequence dimension. By splitting these layers along the sequence dimension we can distribute 
-the compute and, most importantly, the activation memory for these regions across the tensor parallel devices.
-Selective activation recomputation improves cases where memory constraints force us to recompute some, 
-but not all, of the activations. For more details, refer to [this paper](https://arxiv.org/abs/2205.05198).
+The deep learning (DL) software stack is meticulously optimized for DGX SuperPOD configurations, utilizing NVIDIA's
+InfiniBand technology to deliver efficient on-premises computing for training and inference of complex workloads.
 
-**GPT-3 architecture**
+The Multimodal NeMo Megatron utilizes model parallelism techniques to efficiently train large models that cannot fit
+within the memory of a single GPU. During the training process, both tensor (intra-layer) and pipeline (inter-layer)
+model parallelism are employed. Tensor model parallelism distributes individual transformer layers across multiple
+devices, while pipeline model parallelism allocates different layers of a model to separate devices. For a more in-depth
+understanding, please refer to [this paper](https://arxiv.org/pdf/2104.04473.pdf). We are currently in the process of
+incorporating this feature into all our models. As of now, Tensor Parallelism is
+available in both **Vision Transformer** and **CLIP** models.
 
-<img src="img/model_overview.png"/>
+### 1.1. Vision Transformer (ViT)
 
-Figure 1: The GPT-3 family architecture. The 5B variant includes 24 transformer layers, a hidden size of 4096, and 32 attention heads. The sequence length is 2048, and the optimizer is Adam. This variant uses tensor parallelism of 2.
+The Vision Transformer, commonly referred to as ViT [[Paper]](https://arxiv.org/pdf/2010.11929v2.pdf), is a foundation
+model for image classification tasks in Multimodal
+NeMo Megatron. It
+leverages a Transformer-like architecture to process image patches, rather than relying on traditional convolutional
+neural networks. In the ViT, an image is divided into fixed-size patches (usually 14x14 or 16x16), which are then
+linearly embedded and augmented
+with position embeddings. The resulting sequence of vectors is fed into a standard Transformer encoder. To enable
+classification, a learnable "classification token" is added to the sequence.
+
+### 1.2. CLIP
+
+Contrastive Language-Image Pre-training (CLIP) [[Paper]](https://arxiv.org/pdf/2103.00020.pdf) offers an efficient
+method for learning image representations using natural language supervision. In essence, CLIP trains both an image
+encoder and a text encoder from scratch. The goal is to predict the correct pairings of a batch of (image, text)
+training examples by jointly training these encoders.
+
+During pre-training, the model is designed to predict which images and texts form a semantically coherent pair by
+maximizing the similarity between the correct (image, text) pairs while minimizing the similarity between incorrect
+pairs. This contrastive learning approach ensures that CLIP learns meaningful and contextually rich representations of
+both visual and textual data.
+
+Upon completion of the pre-training phase, CLIP modules can be fine-tuned for specialized downstream tasks or directly
+employed for zero-shot learning. For instance, the learned text encoder generates high-level representations by
+embedding captions in **stable diffusion**. This robust approach facilitates seamless image and text representation
+learning and has demonstrated exceptional effectiveness across a diverse range of applications.
+
+### 1.3. Stable Diffusion
+
+The Stable Diffusion (SD) [[Paper]](https://arxiv.org/pdf/2112.10752v2.pdf) is a powerful generative model that can
+produce high-quality images based on textual descriptions. By decomposing the image formation process into a sequential
+application of denoising autoencoders, diffusion models (DMs) have achieved state-of-the-art synthesis results on image
+data and beyond. However, due to their direct operation in pixel space, optimization of powerful DMs is computationally
+expensive and can consume hundreds of GPU days. To address this challenge, the SD model is applied in the latent space
+of powerful pretrained autoencoders. This enables DM training on limited computational resources while retaining their
+quality and flexibility, greatly boosting visual fidelity.
+
+The SD model also introduces cross-attention layers into the model architecture, allowing it to turn diffusion models
+into powerful and flexible generators for general conditioning inputs such as text or bounding boxes. As a result, the
+SD model achieves a new state of the art for image inpainting and highly competitive performance on various tasks,
+including unconditional image generation, semantic scene synthesis, and super-resolution. Additionally, the SD model
+significantly reduces computational requirements compared to pixel-based DMs, making it an attractive solution for a
+wide range of applications.
+
+### 1.4. Instruct Pix2Pix
+
+[Instruct Pix2Pix](https://www.timothybrooks.com/instruct-pix2pix/) introduces a method for editing images based on
+human-written instructions. Given an input image and a textual directive, the model follows these instructions to modify
+the image accordingly. We provide scripts to download the generated edit dataset (consisting of the original image,
+edited image, and edit instructions triplet) from
+to [instruct pix2pix repo](https://github.com/timothybrooks/instruct-pix2pix)
+
+Multimodal NeMo Megatron offers a training pipeline for conditional diffusion models using the edit dataset.
+Additionally, we provide a tool that generates modified images based on user-written instructions during the inference
+process.
+
+### 1.5. DreamBooth
+
+Dreambooth is a solution to personalize large diffusion models like stable diffusion, which are powerful but lack the
+ability to mimic subjects of a given reference set. With Dreambooth, you only need a few images of a specific subject to
+fine-tune a pretrained text-to-image model, so that it learns to bind a unique identifier with a special subject. This
+unique identifier can then be used to synthesize fully-novel photorealistic images of the subject contextualized in
+different scenes.
+
+Dreambooth provides a new prior preservation loss, which enables synthesizing the subject in diverse scenes, poses,
+views, and lighting conditions that do not appear in the reference images. With this new approach, Dreambooth achieves
+several previously-unassailable tasks, including subject recontextualization, text-guided view synthesis, appearance
+modification, and artistic rendering, while still preserving the subject's key features.
 
 ## 2. Feature Matrix
-<a id="markdown-feature-matrix" name="feature-matrix"></a>
 
-### 2.1. GPT-3 Models
-<a id="markdown-gpt-3-models" name="gpt-3-models"></a>
 
-| Feature                                                 | Training                             | Inference                                                                                                                                                                                                                                                                                                                 |
-| ------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Data parallelism                | Yes                    | N/A                                                                                                                                                                  |
-| Tensor parallelism              | Yes                    | Yes                                                                                                                                                               |
-| Pipeline parallelism            | Yes                     | Yes (Megatron-LM checkpoints)                                                                                                                          |
-| Interleaved Pipeline Parallelism Schedule            | Yes                     | N/A                                                                                                                          |
-| Sequence parallelism            | Yes                     | No                                                                                                                       |
-| Selective activation checkpointing | Yes                     | No                                                                                                                       |
-| Gradient checkpointing          | Yes                    | N/A                                                                                                                                                                  |
-| Partial gradient checkpointing  | Yes                    | N/A                                                                                                                                                                  |
-| FP32/TF32                       | Yes                    | Yes (FP16 enabled by default)                                                                                                                                     |
-| AMP/FP16                        | No | Yes                                                                                                                                                               |
-| BF16                            | Yes  | Yes                                                                                                                                                                |
-| TransformerEngine/FP8                      | Yes  | No                                                                                                                                                                |
-| Multi-GPU                       | Yes                    | Yes                                                                                                                                                               |
-| Multi-Node                      | Yes                    | Yes                                                                                                                                                               |
-| Inference deployment            | N/A                    | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton), Faster Transformer |
-| SW stack support                | Slurm DeepOps/Base Command Manager/Base Command Platform          | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                                                                                     |
-| Distributed data preprocessing | Yes (the Pile only)       | N/A                                                                                                                                                                  |
-| NVfuser                         | No             | N/A                                                                                                                                                                  |
-| P-Tuning and Prompt Tuning                | Yes             | N/A                                                                                                                                                                  |
-| IA3 and Adapter learning                | Yes             | N/A                                                                                                                                                                  |
-| Distributed Optimizer   | Yes             | N/A                                                                                                                                                                  |
 
-### 2.2. T5 and mT5 Models
-<a id="markdown-t5-and-mt5-models" name="t5-and-mt5-models"></a>
+### 2.1. ViT Models
 
-| Feature                          | Training                                                 | Inference |
-|----------------------------------|----------------------------------------------------------|:---------:|
-| Data parallelism                 | Yes                                                      |    N/A    |
-| Tensor parallelism               | Yes                                                      |    No     |
-| Pipeline parallelism             | Yes                                                      |    No     |
-| Sequence parallelism            | No                     | No                                                                                                                       |
-| Selective activation checkpointing | No                     | No                                                                                                                       |
-| Gradient checkpointing           | Yes                                                      |    N/A    |
-| Partial gradient checkpointing   | Yes                                                      |    N/A    |
-| FP32/TF32                        | Yes                                                      |    No     |
-| AMP/FP16                         | No                                                       |    No     |
-| BF16                             | Yes                                                      |    No     |
-| Multi-GPU                        | Yes                                                      |    No     |
-| Multi-Node                       | Yes                                                      |     No    |
-| Inference deployment             | N/A                                                      |    No     |
-| SW stack support                 | Slurm DeepOps/Base Command Manager/Base Command Platform |    No     |
-| Distributed data preprocessing   | Yes (the Pile dataset for T5, mC4 dataset for mT5)       |    N/A    |
-| NVfuser                          | No                                                       |    N/A    |
-| P-Tuning and Prompt Tuning                | Yes             | N/A                                                                                                                                                                  |
-| IA3 and Adapter learning                | Yes             | N/A                                                                                                                                                                  |
-| AutoConfigurator                          | Yes                                                       |    N/A    |
-| Distributed Optimizer   | Yes             | N/A      |
-| Mixture of Experts   | Yes (no expert parallelism)            | N/A      |
+| Feature                  | Training                                                 | Inference                                                                                                                                                         |
+|--------------------------|----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Data parallelism         | Yes                                                      | N/A                                                                                                                                                               |
+| Tensor parallelism       | Yes                                                      | Yes                                                                                                                                                               |
+| Pipeline parallelism     | No                                                       | No                                                                                                                                                                |
+| Sequence parallelism     | No                                                       | No                                                                                                                                                                |
+| Activation checkpointing | Yes (Uniform or Block)                                   | No                                                                                                                                                                |
+| FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                                     |
+| AMP/FP16                 | No                                                       | Yes                                                                                                                                                               |
+| BF16                     | Yes                                                      | Yes                                                                                                                                                               |
+| TransformerEngine/FP8    | No                                                       | No                                                                                                                                                                |
+| Multi-GPU                | Yes                                                      | Yes                                                                                                                                                               |
+| Multi-Node               | Yes                                                      | Yes                                                                                                                                                               |
+| Inference deployment     | N/A                                                      | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton) |
+| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                                          |
+| NVfuser                  | No                                                       | N/A                                                                                                                                                               |
+| Distributed Optimizer    | No                                                       | N/A                                                                                                                                                               |
+| TorchInductor            | No                                                       | N/A                                                                                                                                                               |
+| Flash Attention          | No                                                       | N/A                                                                                                                                                               |
 
-### 2.3. BERT Models
-<a id="markdown-bert-models" name="bert-models"></a>
+### 2.2 CLIP Models
 
-| Feature                                                 | Training                             | Inference                                                                                                                                                                                                                                                                                                                 |
-| ------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Data parallelism                | Yes                    | N/A                                                                                                                                                                  |
-| Tensor parallelism              | Yes                    | N/A                                                                                                                                                               |
-| Pipeline parallelism            | Yes                     | N/A                                                                                                                           |
-| Sequence parallelism            | Yes                     | N/A                                                                                                                        |
-| Selective activation checkpointing | Yes                     | N/A                                                                                                                        |
-| Gradient checkpointing          | Yes                    | N/A                                                                                                                                                                  |
-| Partial gradient checkpointing  | Yes                    | N/A                                                                                                                                                                  |
-| FP32/TF32                       | Yes                    | N/A                                                                                                                                      |
-| AMP/FP16                        | No | N/A                                                                                                                                                               |
-| BF16                            | Yes  | N/A                                                                                                                                                                |
-| Multi-GPU                       | Yes                    | N/A                                                                                                                                                                |
-| Multi-Node                      | Yes                    | N/A                                                                                                                                                                |
-| Inference deployment            | N/A                    | N/A  |
-| SW stack support                | Slurm DeepOps/Base Command Manager/Base Command Platform          |N/A                                                                                                                                                     |
-| Distributed data preprocessing | Yes (the Pile only)       | N/A                                                                                                                                                                  |
-| NVfuser                         | Yes             | N/A                                                                                                                                                                  |
-| P-Tuning and Prompt Tuning                | N/A             | N/A                                                                                                                                                                  |
-| IA3 and Adapter learning                | N/A             | N/A                                                                                                                                                                  |
-| Distributed Optimizer              | Yes             | N/A                                                                                                                                                                  |
+| Feature                  | Training                                                 | Inference                                                                                                                                                         |
+|--------------------------|----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Data parallelism         | Yes                                                      | N/A                                                                                                                                                               |
+| Tensor parallelism       | Yes                                                      | Yes                                                                                                                                                               |
+| Pipeline parallelism     | No                                                       | No                                                                                                                                                                |
+| Sequence parallelism     | No                                                       | No                                                                                                                                                                |
+| Activation checkpointing | Yes (Uniform or Block)                                   | No                                                                                                                                                                |
+| FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                                     |
+| AMP/FP16                 | No                                                       | Yes                                                                                                                                                               |
+| BF16                     | Yes                                                      | Yes                                                                                                                                                               |
+| TransformerEngine/FP8    | No                                                       | No                                                                                                                                                                |
+| Multi-GPU                | Yes                                                      | Yes                                                                                                                                                               |
+| Multi-Node               | Yes                                                      | Yes                                                                                                                                                               |
+| Inference deployment     | N/A                                                      | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton) |
+| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                                          |
+| NVfuser                  | No                                                       | N/A                                                                                                                                                               |
+| Distributed Optimizer    | No                                                       | N/A                                                                                                                                                               |
+| TorchInductor            | No                                                       | N/A                                                                                                                                                               |
+| Flash Attention          | No                                                       | N/A                                                                                                                                                               |
+
+
+### 2.3. Stable Diffusion
+
+| Feature                  | Training                                                 | Inference                                                                                                                                                         |
+|--------------------------|----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Data parallelism         | Yes                                                      | N/A                                                                                                                                                               |
+| Tensor parallelism       | No                                                       | Yes                                                                                                                                                               |
+| Pipeline parallelism     | No                                                       | No                                                                                                                                                                |
+| Sequence parallelism     | No                                                       | No                                                                                                                                                                |
+| Activation checkpointing | No                                                       | No                                                                                                                                                                |
+| FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                                     |
+| AMP/FP16                 | Yes                                                      | Yes                                                                                                                                                               |
+| BF16                     | No                                                       | Yes                                                                                                                                                               |
+| TransformerEngine/FP8    | No                                                       | No                                                                                                                                                                |
+| Multi-GPU                | Yes                                                      | Yes                                                                                                                                                               |
+| Multi-Node               | Yes                                                      | Yes                                                                                                                                                               |
+| Inference deployment     | N/A                                                      | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton) |
+| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                                          |
+| NVfuser                  | No                                                       | N/A                                                                                                                                                               |
+| Distributed Optimizer    | No                                                       | N/A                                                                                                                                                               |
+| TorchInductor            | Yes                                                      | N/A                                                                                                                                                               |
+| Flash Attention          | Yes                                                      | N/A                                                                                                                                                               |
+
+### 2.4. Instruct Pix2Pix / DreamBooth Models
+
+| Feature                  | Training                                                 | Inference                                                                                                                                                         |
+|--------------------------|----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Data parallelism         | Yes                                                      | N/A                                                                                                                                                               |
+| Tensor parallelism       | No                                                       | Yes                                                                                                                                                               |
+| Pipeline parallelism     | No                                                       | No                                                                                                                                                                |
+| Sequence parallelism     | No                                                       | No                                                                                                                                                                |
+| Activation checkpointing | No                                                       | No                                                                                                                                                                |
+| FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                                     |
+| AMP/FP16                 | Yes                                                      | Yes                                                                                                                                                               |
+| BF16                     | Yes                                                      | Yes                                                                                                                                                               |
+| TransformerEngine/FP8    | No                                                       | No                                                                                                                                                                |
+| Multi-GPU                | Yes                                                      | Yes                                                                                                                                                               |
+| Multi-Node               | Yes                                                      | Yes                                                                                                                                                               |
+| Inference deployment     | N/A                                                      | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton) |
+| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                                          |
+| NVfuser                  | No                                                       | N/A                                                                                                                                                               |
+| Distributed Optimizer    | No                                                       | N/A                                                                                                                                                               |
+| TorchInductor            | Yes                                                      | N/A                                                                                                                                                               |
+| Flash Attention          | Yes                                                      | N/A                                                                                                                                                               |
+
 
 ## 3. Setup
-<a id="markdown-setup" name="setup"></a>
+
+
 
 ### 3.1. Support Matrix
-<a id="markdown-support-matrix" name="support-matrix"></a>
 
-| Software                | Version          |
-|-------------------------|------------------|
-| NVIDIA Triton           | 2.24.0           |
-| FasterTransformer       | v5.1+1c70b45c    |
-| PyTorch                 | 1.13.0a0+d0d6b1f |
-| NeMo                    | 1.13.0+24d824f   |
-| PyTorch Lightning       | 1.7.7            |
-| Hydra                   | 1.1.1            |
-| CUDA                    | NVIDIA CUDA 11.8 |
-| cuBLAS                  | 11.11.3.6        |
-| cuDNN                   | 8.6.0.163        |
-| NCCL                    | 2.15.1           |
-| Container OS            | Ubuntu 20.04     |
-| rdma-core               | 36.0             |
-| GDRcopy                 | 2.3              |
-| HPC-X                   | 2.12             |
-| Base Command Manager    | 1.0.0            |
-| DeepOps                 | 21.06            |
+| Software             | EA               |
+|----------------------|------------------|
+| NVIDIA Triton        | 2.31.0           |
+| FasterTransformer    | v5.3+4402759e    |
+| PyTorch              | 1.14.0a0+44dac51 |
+| NeMo                 | 1.17.0+<FINAL-SHA>     |
+| PyTorch Lightning    | 1.9.4            |
+| Hydra                | 1.2.0            |
+| CUDA                 | NVIDIA CUDA 12.0 |
+| cuBLAS               | 12.0.2.224       |
+| cuDNN                | 8.7.0.84         |
+| NCCL                 | 2.16.5           |
+| Container OS         | Ubuntu 20.04     |
+| rdma-core            | 36.0             |
+| GDRcopy              | 2.3              |
+| HPC-X                | 2.13             |
+| Base Command Manager | 1.0.0            |
+| DeepOps              | 21.06            |
 
 ## 4. Cloud Service Providers
-<a id="markdown-cloud-service-providers" name="cloud-service-providers"></a>
 
 ### 4.1. Cluster Bring-Up
-<a id="markdown-cluster-bring-up" name="cluster-bring-up"></a>
 
 #### 4.1.1. Common
-<a id="markdown-common" name="common"></a>
 
-To set up a Slurm cluster for NeMo Megatron, we recommend using [Nephele](https://github.com/nvidia/nephele). This cluster deployment tool has been tested on Azure, AWS, and Oracle Cloud.
+To set up a Slurm cluster for NeMo Megatron, we recommend using [Nephele](https://github.com/nvidia/nephele). This
+cluster deployment tool has been tested on Azure, AWS, and Oracle Cloud.
 We recommend hosting Nephele on a new VM instance in the CSP of your choice. To get started:
+
 - Clone the Nephele repo
 - Install the dependencies
 - Modify `nephele.conf`
@@ -359,19 +347,21 @@ We recommend hosting Nephele on a new VM instance in the CSP of your choice. To 
 
 You can then run `./nephele init` and `./nephele create`.
 
-We also recommend mounting an external persistent NFS once the cluster is up and running (ensure it is mounted on all nodes) and using this to configure and run NeMo Megatron.
+We also recommend mounting an external persistent NFS once the cluster is up and running (ensure it is mounted on all
+nodes) and using this to configure and run NeMo Megatron.
 
 The above steps apply to all CSPs, including Azure, AWS, and OCI.
 Some modifications are necessary for OCI and AWS and are detailed below.
 Note that for OCI, a custom image must be imported, which should be done before running `./nephele create`.
 
 #### 4.1.2. OCI
-<a id="markdown-oci" name="oci"></a>
 
-NeMo Megatron supports running training and inference containers on OCI. For detail orchestration scripts, reach out to [oci_nm@nvidia.com](mailto:oci_nm@nvidia.com)
+NeMo Megatron supports running training and inference containers on OCI. For detail orchestration scripts, reach out
+to [oci_nm@nvidia.com](mailto:oci_nm@nvidia.com)
 
 #### 4.1.3. AWS
-<a id="markdown-aws" name="aws"></a>
+
+
 To launch jobs on AWS, the EFA driver and NCCL plugin first need to be installed on top of the training container.
 We recommend building a new container image with Docker, then creating an Enroot image.
 
@@ -380,54 +370,67 @@ On the scheduler node:
 - Install Docker
 - Build the image with EFA drivers and NCCL plugin from `csp_tools/aws/Dockerfile`
 - Run this command on the Docker image to create an Enroot image:
+
 ```
     enroot import --output nemo_megatron_training.sqsh dockerd://<image name>:<tag>
 ```
+
 - Move the `.sqsh` file to the root of NeMo-Megatron-Launcher
 - Set the container path in `launcher_scripts/conf/config.yaml` to the new Enroot image:
+
 ```
 container: /path/to/nemo_megatron_launcher/nemo_megatron_training.sqsh
 ```
 
 ### 4.2. Cluster Validation
-<a id="markdown-cluster-validation" name="cluster-validation"></a>
 
-Before running the cluster validation script, ensure your NGC credentials have been added to `~/.config/enroot/.credentials` on all nodes.
+Before running the cluster validation script, ensure your NGC credentials have been added
+to `~/.config/enroot/.credentials` on all nodes.
 
-The cluster validation script at `csp_tools/<csp>/cluster_validation.sh` will run GPU diagnostics and test NCCL node-to-node bus bandwidth.
-The logs from these tests will be stored at `results/cluster_validation`. The script will list any nodes that fail these tests.
+The cluster validation script at `csp_tools/<csp>/cluster_validation.sh` will run GPU diagnostics and test NCCL
+node-to-node bus bandwidth.
+The logs from these tests will be stored at `results/cluster_validation`. The script will list any nodes that fail these
+tests.
 These nodes should be replaced or restarted through the CSP UI.
 
 #### 4.2.1. Validation Script Usage
-<a id="markdown-validation-script-usage" name="validation-script-usage"></a>
 
 The script has 3 required parameters:
+
 - `--nodes`: the number of nodes
 - `--nodelist`: the list of node names
 - `--partition`: the Slurm partition the nodes are assigned to
 
 The values for these parameters should be in the same format that is found in `sinfo`.
 With the following example:
+
 ```
 PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
 x8a100       up   infinite      8   idle x8a100-[0000-0007]
 ```
+
 To test all 8 idle nodes, the script would be run as:
+
 ```
 bash cluster_validation.sh --nodes=8 --nodelist=x8a100-[0000-0007] --partition=x8a100
 ```
 
-By default, the script will run both the GPU diagnostics and the NCCL test. You can choose to run only one or the other by specifying:
+By default, the script will run both the GPU diagnostics and the NCCL test. You can choose to run only one or the other
+by specifying:
+
 - `--dcgm`: run GPU diagnostics only
 - `--nccl`: run NCCL test only
 
 See `bash cluster_validation.sh -h` for more information.
 
 #### 4.2.2 Running tests manually
-<a id="markdown-running-tests-manually" name="running-tests-manually"></a>
 
-The `cluster_validation.sh` script is essentially a wrapper of the 2 Slurm job scripts in the CSP directories. If you prefer, you can run these jobs manually.
-Make sure to use the Slurm job script in your corresponding CSP's path (`csp_tools/<csp>/dcgmi_diag.sh` and `csp_tools/<csp>/nccl.sh`)
+
+
+The `cluster_validation.sh` script is essentially a wrapper of the 2 Slurm job scripts in the CSP directories. If you
+prefer, you can run these jobs manually.
+Make sure to use the Slurm job script in your corresponding CSP's path (`csp_tools/<csp>/dcgmi_diag.sh`
+and `csp_tools/<csp>/nccl.sh`)
 
 For the GPU diagnostics job, provide these arguments when submitting the job to Slurm:
 
@@ -435,14 +438,17 @@ For the GPU diagnostics job, provide these arguments when submitting the job to 
 sbatch -p <partition> -w <node list> -o <job log file> dcgmi_diag.sh
 ```
 
-For the NCCL test job, `cluster_validation.sh` performs a pair-wise sweep of the nodes, as this is a sufficient test, but you can test with a different number of nodes if desired.
+For the NCCL test job, `cluster_validation.sh` performs a pair-wise sweep of the nodes, as this is a sufficient test,
+but you can test with a different number of nodes if desired.
 
 First build the test binaries:
+
 ```
 sbatch -N 1 build-nccl-tests.sh
 ```
 
 Then, to run a 2-node `all_reduce_perf` job:
+
 ```
 sbatch -w <node 1>,<node 2> -o <job log file> nccl.sh
 ```
@@ -450,31 +456,39 @@ sbatch -w <node 1>,<node 2> -o <job log file> nccl.sh
 To run the job with more nodes, simply add the node names to the `-w` flag in the same comma-separated list format.
 
 ### 4.3. Config Modifications
-<a id="markdown-config-modifications" name="config-modifications"></a>
+
+
 Before launching jobs some changes to the config must be made.
 
 #### 4.3.1 Set NCCL Topology
-<a id="markdown-generate-nccl-topology" name="generate-nccl-topology"></a>
-The NCCL topology file is unique for each CSP, and can be found in their corresponding folders (`csp_tools/<csp>/topo.xml`)
+
+
+The NCCL topology file is unique for each CSP, and can be found in their corresponding
+folders (`csp_tools/<csp>/topo.xml`)
 
 In `launcher_scripts/conf/config.yaml`, mount the directory containing the topology file:
+
 ```
 container_mounts:
   - /path/to/nemo_megatron_laujncher/csp_tools/<csp>/:/nccl
 ```
 
 Then set the path of the file in the container:
+
 ```
 env_vars:
     NCCL_TOPO_FILE: /nccl/topo.xml
 ```
 
 #### 4.3.2 Environment Variables
-<a id="markdown-environment-variables" name="environment-variables"></a>
+
+
 
 ##### 4.3.2.1 Azure Variables
-<a id="markdown-azure-variables" name="azure-variables"></a>
+
+
 Set these environment variables in `config.yaml` (these are only needed for Azure):
+
 ```
 env_vars:
   UCX_IB_PCI_RELAXED_ORDERING: auto
@@ -484,8 +498,10 @@ env_vars:
 ```
 
 ##### 4.3.2.2 AWS Variables
-<a id="markdown-aws-variables" name="aws-variables"></a>
+
+
 AWS recommends setting the following flag to avoid data corruption:
+
 ```
 env_vars:
   NCCL_PROTO: simple
@@ -494,13 +510,10 @@ env_vars:
 Setting this flag reduces training throughput by roughly 2%.
 
 ## 5. Quick Start Guide
-<a id="markdown-quick-start-guide" name="quick-start-guide"></a>
 
-### 5.1. Training NeMo Megatron Models
-<a id="markdown-training-nemo-megatron-models" name="training-nemo-megatron-models"></a>
+### 5.1. Getting Started with Multimodal NeMo Megatron
 
 #### 5.1.1. Prepare Environment
-<a id="markdown-prepare-environment" name="prepare-environment"></a>
 
 <!--
 The whole solution uses a set of Docker containers executed at the Slurm
@@ -531,24 +544,22 @@ node(s) at the same path as on the compute nodes.
 
 The whole solution uses a set of Docker containers executed on a Slurm
 cluster (using the [pyxis](https://github.com/NVIDIA/pyxis) plug-in) or
-a Base Command Platform cluster. The training container also includes 
+a Base Command Platform cluster. The training container also includes
 conversion scripts. The inference container
-comprises the NVIDIA Triton Inference Server with the FasterTransformer 
+comprises the NVIDIA Triton Inference Server with the FasterTransformer
 backend installed.
 
 ##### 5.1.1.1. Slurm
-<a id="markdown-slurm" name="slurm"></a>
 
 The NeMo Megatron codebase is included as part of the training container. To
 copy it to a local directory in the cluster, it needs to be extracted from the
 container. To copy the code to a directory named /path/to/local/dir the
-following command can be executed. The NeMo Megatron repository for 
-Slurm has been verified on both Slurm-based DeepOps clusters as well as Base 
-Command Manager. 
-
+following command can be executed. The NeMo Megatron repository for
+Slurm has been verified on both Slurm-based DeepOps clusters as well as Base
+Command Manager.
 
 ```
-srun -p [partition] -N 1 --container-mounts=/path/to/local/dir:/workspace/mount_dir --container-image=[container_tag] bash -c "cp -r /opt/NeMo-Megatron-Launcher/launcher_scripts /opt/NeMo-Megatron-Launcher/auto_configurator /opt/FasterTransformer /workspace/mount_dir/"
+srun -p [partition] -N 1 --container-mounts=/path/to/local/dir:/workspace/mount_dir --container-image=[container_tag] bash -c "cp -r /opt/NeMo-Megatron-Launcher/launcher_scripts /workspace/mount_dir/"
 ```
 
 Install the NeMo Megatron scripts dependencies on the head node of the cluster:
@@ -556,39 +567,145 @@ Install the NeMo Megatron scripts dependencies on the head node of the cluster:
 ```
 pip install -r requirements.txt
 ```
+
 You can use virtualenv to prevent polluting your head node environment for
 other Python projects. If your configuration lacks pip, then you can
 install pip using use [get_pip.py](https://github.com/pypa/get-pip) with just `python3`.
 
 ##### 5.1.1.2. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
 
-The nemo_megatron_launcher codebase is included as part of the training
-container. Before starting, set up the ngc cli and configuration as described 
-in the Base Command Platform User Guide. In this guide, we will mainly 
+The NeMo Megatron Launcher codebase is included as part of the training
+container. Before starting, set up the ngc cli and configuration as described
+in the Base Command Platform User Guide. In this guide, we will mainly
 use two Base Command Platform workspaces, one for storing the training dataset,
-and another for storing the results, checkpoints and logs. Therefore, start by 
-creating these workspaces (e.g. `nemo_megatron_data_ws` and `nemo_megatron_results_ws`). See 
-the Base Command Platform User Guide for how to create and work with Base 
+and another for storing the results, checkpoints and logs. Therefore, start by
+creating these workspaces (e.g. `nemo_megatron_data_ws` and `nemo_megatron_results_ws`). See
+the Base Command Platform User Guide for how to create and work with Base
 Command Platform workspaces.
 
-##### 5.1.1.3. General Configuration
-<a id="markdown-general-configuration" name="general-configuration"></a>
+#### 5.1.2. Configure and Customize Pipeline
+
+This section provides instructions for configuring and customizing the pipeline in NeMo-Megatron-Launcher. It covers
+four areas: cluster configurations, pipeline configurations, environment variables configurations, and NUMA mapping
+configurations.
+
+##### 5.1.2.1. Cluster Configurations
 
 The first parameter that must be set is the `launcher_scripts_path` parameter inside the
-`conf/config.yaml` file.    This parameter must point to the absolute path where
-the `nemo_megatron_launcher` repository is stored in the file system.    
-Additionally, if using a Slurm based 
-cluster, the config file in the subfolder of `conf/cluster/bcm.yaml` has the 
-parameters to set the generic cluster related information, such as the 
-`partition` or `account` parameters.
+`conf/config.yaml` file. This parameter must point to the absolute path where
+the `launcher_scripts` folder (pulled from the container) is stored in the file system.    
+Additionally, if using a Slurm based
+cluster, the config file in the subfolder of `conf/cluster/bcm.yaml` has the
+parameters to set the generic cluster related information, such as the
+`partition` or `account` parameters. Tailor the cluster configuration below to match your cluster setup.
 
-The NUMA mapping can also be configured from the `conf/config.yaml` file. The 
-mapping should be automatic; the code will read the number of CPU cores available 
-in your cluster, and provide the best possible mapping, to maximize performance. 
-The mapping is enabled by default, but it can be disabled by setting 
-`enable: False` in the `numa_mapping` section of the `conf/config.yaml` file. 
-The type of mapping can also be configured using the same file. See the full 
+```yaml
+partition: null
+account: null
+exclusive: True
+gpus_per_task: null
+gpus_per_node: 8
+mem: 0
+overcommit: False
+job_name_prefix: "nemo-multimodal-"
+```
+
+**Slurm**: The `launcher_scripts_path` parameter will automatically be mounted to the
+container at the same path as in the local file system. Any additional
+directories that should be mounted must be specified using the
+`container_mounts` parameter. If the paths contain the colon character (`:`),
+the code will assume both the source and destination paths are provided.
+Otherwise, the given paths will be mounted to the same path inside the container.
+The `data_dir` parameter can also be
+modified to point to where the dataset will be loaded from or saved (an existing folder). The
+`base_results_dir` can also be modified to point to where the results,
+checkpoints and logs will be stored. These last two parameters will be
+automatically mounted into the container. The parameters `cluster` and `cluster_type`
+must be set to `bcm` for all the tasks.
+
+**Base Command Platform**: The `launcher_scripts_path` should be set to
+`/opt/NeMo-Megatron-Launcher/launcher_scripts` , which is the default location where the scripts
+are located inside the container. The `data_dir` parameter can also be
+modified to point to where the dataset will be loaded from or saved. The
+`base_results_dir` can also be modified to point to where the results,
+checkpoints and logs will be stored. In the case of Base Command Platform, we recommend
+that `data_dir` points to one of the workspaces, and `base_results_dir`
+points to the other. They should both be mounted in read and write (RW)
+mode. The parameter `cluster_type` must be set to `bcp` for all the tasks.
+
+##### 5.1.2.2. Pipeline Configurations
+
+The `conf/config.yaml` file contains default configuration settings for various stages of your pipeline, including data
+preparation, training, fine-tuning, evaluation, and more. The `stages` field specifies the stages that will be executed
+during the pipeline run.
+
+```yaml
+defaults:
+  - _self_
+  - cluster: bcm  # Leave it as bcm even if using bcp. It will be ignored for bcp.
+  - data_preparation: multimodal/download_multimodal
+  - training: clip/vit_B_32
+  - conversion: null
+  - fine_tuning: null
+  - evaluation: clip/imagenet_zeroshot
+  - fw_inference: null
+  - export: clip/export_clip
+  - override hydra/job_logging: stdout
+
+stages:
+  - data_preparation
+  - training
+  - fw_inference
+  - export
+```
+
+All configuration options for each stage can be found in the `conf` folder, organized by stage. The configuration files
+are structured as `conf/(stage_name)/(model_type)/(model_name).yaml`. To use your desired
+configuration, simply edit the fields accordingly. For example, you can find training configuration options in
+the `conf/training` folder. The `training` field in the `defaults` section, such as `clip/vit_B_32`, indicates that the
+training configuration for the CLIP model is sourced from the `conf/clip/vit_B_32.yaml` file. To view or modify the
+training configuration, you can check this specific file.
+
+**Customize the Pipeline for Your Needs:**
+
+1. **Include or exclude a stage**: To include or exclude a stage in the pipeline, add or remove the stage name from
+   the `stages` list.
+2. **Modify configuration settings**: To modify the configuration settings for a specific stage, navigate to the
+   appropriate folder in the `conf` directory (e.g., `conf/training` for training options) and edit the relevant fields.
+3. **Use a different configuration file**: To use a different configuration file for a stage, update the corresponding
+   field in the `defaults` section (e.g., change `training: clip/vit_B_32` to `training: (model_type)/(model_name)`).
+4. **Update specific stage configurations**: Modify the YAML files in `conf/(stage_name)/(model_type)/(model_name).yaml`
+   to update specific stage configurations, such as the number of nodes, precision, and model configurations.
+
+##### 5.1.2.3. Environment Variables Configurations
+
+To configure or add additional environment variables when running pipelines, you can modify or include new fields under
+the env_vars section in the conf/config.yaml file. If a variable is set to null, it will be ignored.
+
+```yaml
+env_vars:
+  NCCL_TOPO_FILE: null # Should be a path to an XML file describing the topology
+  UCX_IB_PCI_RELAXED_ORDERING: null # Needed to improve Azure performance
+  ...
+  TRANSFORMER_OFFLINE: 1
+```
+
+By adjusting these settings, you can customize the environment variables to better suit your specific needs and
+requirements during pipeline execution.
+
+##### 5.1.2.4. NUMA Mapping Configurations
+
+NUMA mapping is a technique used with multiple processors, where memory access times can vary depending on which
+processor is accessing the memory. The goal of NUMA mapping is to assign memory to processors in a way that minimizes
+non-uniform memory access times and ensures that each processor has access to the memory it needs with minimal delay.
+This technique is important for maximizing system performance in high-performance computing environments.
+
+The NUMA mapping can also be configured from the `conf/config.yaml` file. The
+mapping should be automatic; the code will read the number of CPU cores available
+in your cluster, and provide the best possible mapping, to maximize performance.
+The mapping is enabled by default, but it can be disabled by setting
+`enable: False` in the `numa_mapping` section of the `conf/config.yaml` file.
+The type of mapping can also be configured using the same file. See the full
 config parameters below:
 
 ```yaml
@@ -602,4525 +719,1469 @@ numa_mapping:
   max_cores: 8  # Maximum number of physical cores per process. Can be null to use all available cores.
 ```
 
+#### 5.1.3. Launch Pipeline
 
-**Slurm**: The `launcher_scripts_path` parameter will automatically be mounted to the
-container at the same path as in the local file system. Any additional
-directories that should be mounted must be specified using the
-`container_mounts` parameter. If the paths contain the colon character (`:`), 
-the code will assume both the source and destination paths are provided. 
-Otherwise, the given paths will be mounted to the same path inside the container.
-The `data_dir` parameter can also be
-modified to point to where the dataset will be loaded from or saved. The 
-`base_results_dir` can also be modified to point to where the results, 
-checkpoints and logs will be stored. These last two parameters will be 
-automatically mounted into the container. The parameters `cluster` and `cluster_type`
-must be set to `bcm` for all the tasks.
+`main.py` is the primary file to execute for running various stages in your pipeline, including data preparation,
+training, conversion, fine-tuning, and evaluation.
 
-**Base Command Platform**: The `launcher_scripts_path` should be set to 
-/opt/NeMo-Megatron-Launcher/launcher_scripts , which is the default location where the scripts 
-are located inside the container. The `data_dir` parameter can also be
-modified to point to where the dataset will be loaded from or saved. The 
-`base_results_dir` can also be modified to point to where the results, 
-checkpoints and logs will be stored. In the case of Base Command Platform, we recommend 
-that `data_dir` points to one of the workspaces, and `base_results_dir` 
-points to the other. They should both be mounted in read and write (RW) 
-mode. The parameter `cluster_type` must be set to `bcp` for all the tasks.
-
-`main.py` is the main file that needs to be executed to run the data
-preparation, training, conversion, fine-tuning, and evaluation pipelines. Each of these 
-pipelines has a parameter in the `conf/config.yaml` file that decides whether 
-to run that pipeline or not. In slurm based clusters, all of them can be set 
-to `True` at the same time, and they will be executed in order. However, in Base Command Platform, 
-only one of them should be set to `True` at a time.
-
-[//]: # (##### 5.1.1.3.1. Settings for GPT-3 Models )
-
-[//]: # (<a id="markdown-settings-for-gpt-3-models" name="settings-for-gpt-3-models"></a>)
-
-**Settings for GPT-3 Models**: Default settings for GPT-3 models are in the `config/config.yaml` file:
-
-```yaml
-stages:
-  - data_preparation
-  - training
-  - conversion
-  - evaluation
-  - export
-```
-
-[//]: # (##### 4.1.1.3.2. Settings for T5 Models )
-
-[//]: # (<a id="markdown-settings-for-t5-models" name="settings-for-t5-models"></a>)
-
-**Settings for T5 Models**: Default settings for T5 models are in the `config/config.yaml` file:
-```yaml
-# default values:
-cluster: bcm  # Leave it as bcm even if using bcp. It will be ignored for bcp.
-data_preparation: t5/download_t5_pile
-training: t5/220m
-conversion: t5/convert_t5
-fine_tuning: t5/squad
-evaluation: t5/squad
-export: t5/export_t5
-
-stages:
-  - data_preparation
-  - training
-  - conversion
-  - fine_tuning
-  - prompt_learning
-  - evaluation
-  - export
-```
-
-**Settings for mT5 Models**: Default settings for T5 models are in the `config/config.yaml` file:
-```yaml
-# default values:
-cluster: bcm  # Leave it as bcm even if using bcp. It will be ignored for bcp.
-data_preparation: mt5/download_mc4
-training: mt5/390m
-conversion: mt5/convert_mt5
-fine_tuning: mt5/xquad
-evaluation: mt5/xquad
-export: mt5/export_mt5
-
-stages:
-  - data_preparation
-  - training
-  - conversion
-  - fine_tuning
-  - prompt_learning
-  - evaluation
-  - export
-```
-
-**Settings for Bert Models**: Default settings for T5 models are in the `config/config.yaml` file:
-```yaml
-# default values:
-cluster: bcm  # Leave it as bcm even if using bcp. It will be ignored for bcp.
-data_preparation: bert/download_bert_pile
-training: bert/4b
-
-stages:
-  - data_preparation
-  - training
-```
-
-To run these pipelines execute:
+To run the specified pipelines with the provided configurations, simply execute:
 
 ```
 python3 main.py
 ```
 
-The entire repository uses `hydra/omegaconf` to handle job configuration using
-YAML files, so look at the documentation for those projects to learn more.
-
-#### 5.1.2. Data Preparation
-<a id="markdown-data-preparation" name="data-preparation"></a>
-
-**The Pile**: We provide utilities to download and prepare [the Pile](https://pile.eleuther.ai/)
-dataset ([mirror](https://mystic.the-eye.eu/public/AI/pile/train/)),
-which is formed by 22 smaller datasets. The dataset is already blended
-by using the mix described in their [paper](https://arxiv.org/pdf/2101.00027.pdf).
-It is recommended to store this repository and the datasets in a file system
-shared by all the nodes (gpfs) in the case of Slurm based clusters, and in a shared 
-workspace with RW permissions in the case of Base Command Platform based clusters.
-
-The Pile dataset consists of 30 shards. Downloading, extracting, and
-preprocessing each file takes approximately 1 hour assuming a 30 MB/s download
-speed. The data preparation can be parallelized by using up to 30 nodes. 
-
-
-**mC4**: We provide utilities to download and prepare [mC4](https://www.tensorflow.org/datasets/catalog/c4)
-dataset ([allen-ai version](https://huggingface.co/datasets/allenai/c4)). Multilingual C4 (mC4) 
-has 101 languages and is generated from 71 [Common Crawl](https://commoncrawl.org/) dumps. 
-It is recommended to store this repository and the datasets in a file system
-shared by all the nodes (gpfs) in the case of Slurm based clusters, and in a shared 
-workspace with RW permissions in the case of Base Command Platform based clusters.
-
-Our scripts give user options to choose any subset of 101 languages to download and preprocess.
-We curated 24 languages as our default language list. The raw size of default languages is around 5 TB.
-Parallelization is enabled in downloading and preprocessing scripts. It will help to automatically
-distribute and balance the work on multi-node systems and provide significant speed up.
-Downloading and preprocessing the default language list takes approximately 7 hours 
-assuming a 30 MB/s download speed and parallelization by using 20 nodes. The preprocessed dataset has a size 
-of around 12 TB. It's recommended to use a file system with larger than 20 TB storage to prepare the data.
-
-Currently, we don't support training with more than 25 languages, see [Known Issues].
-
-The configuration used for data preparation for the Pile dataset or mC4 dataset must be specified in the
-`conf/config.yaml` file and `data_preparation` must be included in `stages` to run it.
-
-
-##### 5.1.2.1. Data Preparation for GPT-3 Models
-<a id="markdown-data-preparation-for-gpt-3-model" name="data-preparation-for-gpt-3-model"></a>
-The `data_preparation` parameter in `conf/config.yaml` specifies which file to use for data preparation
-configuration purposes. The default value is set to `download_gpt3_pile`, which can be
-found in `conf/data_preparation/download_gpt3_pile.yaml`. It is used to download, extract,
-and preprocess the Pile dataset for GPT-3 model. The parameters can be
-modified to perform the different tasks and to decide where to store the
-datasets, vocab, and merge files.
-
-To download a reduced portion of the dataset to run tests, the 
-`file_numbers` parameter can be updated to download only one of the 
-shards by changing “0-29” to “0” (the syntax must be a combination of
-numbers separated by dashes "-" or commas ",") For example, 
-`file_numbers`="0,3,5-7" will download and prepare 
-files 0, 3, 5, 6, and 7.
-
-###### 5.1.2.1.1. Slurm
-<a id="markdown-41211-slurm" name="41211-slurm"></a>
-
-First, ensure the cluster related configuration in the `conf/cluster/bcm.yaml` file is correct.
-The `cluster` and `cluster_type` parameters in `conf/config.yaml` must be set to `bcm`.
-Then, modify the `time_limit` or any other parameter related to the job in the `download_gpt3_pile.yaml`
-file for GPT-3 models.
-The data preparation can be parallelized by using up to 30 nodes to download all 30 files in parallel.
-
-Example:
-
-To run only the data preparation pipeline and not the training, evaluation or
-inference pipelines, set the `conf/config.yaml` file to:
-```yaml
-stages:
-  - data_preparation
-```
-
-And then run:
-```
-python3 main.py
-```
-
-###### 5.1.2.1.2. Base Command Platform
-<a id="markdown-41212-base-command-platform" name="41212-base-command-platform"></a>
-
-In order to run the data preparation script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. 
-By default, the data preparation script will download the data into the `data/` directory.
-We recommend that the `data_dir` parameter is set to a workspace, so that the data 
-is visible across multiple jobs later on. The vocab and merge files should also be 
-stored to the same workspace as the dataset, for later usage. The data preparation code 
-must be launched in a multi-node job. It can be parallelized to use between 2 and 30 nodes for faster preparation of the dataset.
-
-With Base Command Platform, the 700+ GB dataset can be downloaded once and then
-shared by multiple users in the same ACE by setting the permissions of the `nemo_megatron_data_ws` workspace.
-
-To run the data preparation pipeline for GPT-3 models, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[data_preparation] \
-cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_gpt3 \
-base_results_dir=/mount/results data_preparation.file_numbers='0-29' \
-data_preparation.vocab_save_dir=/mount/data/bpe data_preparation.merges_save_dir=/mount/data/bpe >> /results/data_gpt3_log.txt 2>&1
-```
-
-The command above assumes you want to prepare the entire dataset (files 0-29), and you mounted the data 
-workspace in `/mount/data`, and the results workspace in `/mount/results`. Stdout and stderr are redirected to the `/results/data_gpt3_log.txt` file, so it can be downloaded from NGC. 
-Any other parameter can also be added to the command to modify its behavior.
-
-###### 5.1.2.1.3. Common
-<a id="markdown-41213-common" name="41213-common"></a>
-
-Set the configuration for the data preparation job for GPT-3 models in the YAML file:
-```yaml
-run:
-  name: download_gpt3_pile
-  results_dir: ${base_results_dir}/${.name}
-  time_limit: "4:00:00"
-  dependency: "singleton"
-  node_array_size: 30
-  array: ${..file_numbers}
-  bcp_preproc_npernode: 2 # 2 should be safe to use and x2 times faster.
-
-dataset: pile
-download_the_pile: True  # Whether to download the pile dataset from the internet.
-the_pile_url: "https://mystic.the-eye.eu/public/AI/pile/train/"  # Source URL to download The Pile dataset from.
-file_numbers: "0-29"  # The pile dataset consists of 30 files (0-29), choose which ones to download.
-preprocess_data: True  # True to preprocess the data from a jsonl file, False otherwise.
-download_vocab_url: "https://huggingface.co/gpt2/resolve/main/vocab.json"  # URL to download the vocab from.
-download_merges_url: "https://huggingface.co/gpt2/resolve/main/merges.txt"  # URL to download the merges from.
-vocab_save_dir: ${data_dir}/bpe
-merges_save_dir: ${data_dir}/bpe
-tokenizer_type: GPT2BPETokenizer
-rm_downloaded: True # Extract script will remove downloaded zst after extraction
-rm_extracted: True # Preprocess script will remove extracted files after preproc.
-```
-
-##### 5.1.2.2. Data Preparation for T5 Models
-<a id="markdown-data-preparation-for-t5-models" name="data-preparation-for-t5-models"></a>
-The `data_preparation` parameter in `conf/config.yaml` specifies which file to use for data preparation
-configuration purposes. The `data_preparation` parameter needs to be specified as `t5/download_t5_pile` for
-preparing the Pile dataset for T5 models. The config file can be found in 
-`conf/data_preparation/t5/download_t5_pile.yaml`. GPT-3 models and T5 models use
-different tokenizer and vocab files. The default parameters can be found in the
-corresponding config files.
-
-To download a reduced portion of the dataset to run tests, the 
-`file_numbers` parameter can be updated to download only one of the 
-shards by changing `“0-29”` to `“0”` (the syntax must be a combination of
-numbers separated by dashes "-" or commas ",").
- For example, `file_numbers`=`"0,3,5-7"` will download and prepare 
-files 0, 3, 5, 6, and 7.
-
-###### 5.1.2.2.1. Slurm
-<a id="markdown-41221-slurm" name="41221-slurm"></a>
-
-First, ensure the cluster configuration settings in the `conf/cluster/bcm.yaml` file are correct.
-The `cluster` and `cluster_type` parameters in `conf/config.yaml` must be set to `bcm`.
-Then, modify the `time_limit` or any other parameter related to the job in the `t5/download_t5_pile.yaml`
-file for T5 models.
-The data preparation can be parallelized by using up to 30 nodes to download all 30 files in parallel.
-
-Example:
-
-To run only the data preparation pipeline and not the training, evaluation or
-inference pipelines, set the `conf/config.yaml` file to:
-```yaml
-stages:
-  - data_preparation: True
-```
-
-And then run:
-```
-python3 main.py
-```
-
-###### 5.1.2.2.2. Base Command Platform
-<a id="markdown-41222-base-command-platform" name="41222-base-command-platform"></a>
-
-In order to run the data preparation script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. 
-By default, the data preparation script will download the data into the `data/` directory.
-We recommend that the `data_dir` parameter is set to a workspace, so that the data 
-is visible across multiple jobs later on. The vocab and merge files should also be 
-stored to the same workspace as the dataset. The data preparation code 
-must be launched in a multi-node job, and can be parallelized to use between 2 and 30 nodes, 
-for faster parallel preparation of the dataset.
-
-With Base Command Platform, the 700+ GB dataset can be downloaded once and then
-shared by multiple users in the same ACE by setting the permissions of the `nemo_megatron_data_ws` workspace.
-
-To run the data preparation pipeline for T5 models, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py data_preparation=t5/download_t5_pile \
-stages=[data_preparation] \
-cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
-base_results_dir=/mount/results data_preparation.file_numbers='0-29' \
-data_preparation.vocab_save_dir=/mount/data/bpe >> /results/data_t5_log.txt 2>&1
-```
-
-The command above assumes you want to prepare the entire dataset (files 0-29), and you mounted the data 
-workspace in `/mount/data`, and the results workspace in `/mount/results`. The stdout and stderr outputs will
-also be redirected to the `/results/data_t5_log.txt` file, to be able to download the logs from NGC. 
-Any other parameter can also be added to the command to modify its behavior.
-
-###### 5.1.2.2.3. Common
-<a id="markdown-41223-common" name="41223-common"></a>
-
-Set the configuration for the data preparation job for T5 models in the YAML file:
-```yaml
-dataset: pile
-download_the_pile: True    # Whether to download the pile dataset from the internet.
-the_pile_url: "https://mystic.the-eye.eu/public/AI/pile/train/"    # Source URL to download The Pile dataset from.
-file_numbers: "0-29"    # The pile dataset consists of 30 files (0-29), choose which ones to download.
-preprocess_data: True    # True to preprocess the data from a jsonl file, False otherwise.
-download_vocab_url: "https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-cased-vocab.txt"    # URL to download the vocab from.
-download_merges_url: null
-vocab_save_dir: ${data_dir}/bpe
-merges_save_dir: ${data_dir}/bpe
-tokenizer_type: BertWordPieceCase # T5 models use BertWordPieceCase tokenizer
-log_dir: ${base_results_dir}/data_preparation/t5_pile_logs    # Where to save the logs
-rm_downloaded: True # Extract script will remove downloaded zst after extraction
-rm_extracted: True # Preprocess script will remove extracted files after preproc.
-nodes: 30
-time_limit: "4:00:00"
-bcp_preproc_npernode: 2 # 2 should be safe to use and x2 times faster.
-```
-
-
-##### 5.1.2.3. Data Preparation for mT5 Models
-<a id="markdown-data-preparation-for-mt5-models" name="data-preparation-for-mt5-models"></a>
-The `data_preparation` parameter in `conf/config.yaml` specifies which file to use for data preparation
-configuration purposes. The `data_preparation` parameter needs to be specified as `download_mc4` for
-preparing the mC4 dataset for mT5 models. The config file can be found in 
-`conf/data_preparation/download_mc4.yaml`. mT5 models use SentencePiece multilingual tokenzier.
-
-To download a reduced portion of the dataset to run tests, the 
-`languages` parameter can be updated to download only one of the 
-languages by changing it to `lv`. The list of all 101 languages can be
-found in [mC4 dataset](https://www.tensorflow.org/datasets/catalog/c4#c4multilingual).
-
-The data preparation can be parallelized by using multiple nodes (default 20 nodes) to download and preprocess 
-all language files in parallel.
-
-
-###### 5.1.2.3.1. Slurm
-<a id="markdown-41231-slurm" name="41231-slurm"></a>
-
-First, ensure the cluster configuration settings in the `conf/cluster/bcm.yaml` file are correct.
-The `cluster` and `cluster_type` parameters in `conf/config.yaml` must be set to `bcm`.
-Then, modify the `time_limit` or any other parameter related to the job in the `download_mc4.yaml`
-file for mT5 models.
-
-Example:
-
-To run only the data preparation pipeline and not the training, evaluation or
-inference pipelines, set the `conf/config.yaml` file to:
-```yaml
-stages:
-  - data_preparation
-```
-
-And then run:
-```
-python3 main.py
-```
-
-###### 5.1.2.3.2. Base Command Platform
-<a id="markdown-41232-base-command-platform" name="41232-base-command-platform"></a>
-
-In order to run the data preparation script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. 
-By default, the data preparation script will download the data into the `data/` directory.
-We recommend that the `data_dir` parameter is set to a workspace, so that the data 
-is visible across multiple jobs later on. The tokenizer model file should also be 
-stored to the same workspace as the dataset. The data preparation code 
-must be launched in a multi-node job, and can be parallelized to use between 2 and 30 nodes, 
-for faster parallel preparation of the dataset.
-
-With Base Command Platform, the dataset can be downloaded once and then
-shared by multiple users in the same ACE by setting the permissions of the `nemo_megatron_data_ws` workspace.
-
-To run the data preparation pipeline for mT5 models, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py data_preparation=mt5/download_mc4 \
-stages=[data_preparation] \
-cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data \
-base_results_dir=/mount/results data_preparation.languages=\'cs,da,de,el,en,es,fi,fr,hi,hu,it,ja,ko,lt,lv,nl,no,pl,pt,ro,ru,sk,sv,zh\' \
-data_preparation.run.node_array_size=20 data_preparation.run.workers_per_node=4 >> /results/data_mt5_log.txt 2>&1
-```
-
-The command above assumes you want to prepare the mC4 dataset with 24 languages, and you mounted the data 
-workspace in `/mount/data`, and the results workspace in `/mount/results`. The stdout and stderr outputs will
-also be redirected to the `/results/data_mt5_log.txt` file, to be able to download the logs from NGC. The full dataset may not fit into BCP workspaces. We recommand using a smaller subset of languages (total size is 1TB, e.g. `cs,da,de,el,fr,hi`).
-Any other parameter can also be added to the command to modify its behavior.
-
-###### 5.1.2.3.3. Common
-<a id="markdown-41233-common" name="41233-common"></a>
-
-Set the configuration for the data preparation job for mT5 models in the YAML file:
-```yaml
-run:
-  name: download_mc4
-  results_dir: ${base_results_dir}/${.name}
-  time_limit: "24:00:00"
-  dependency: "singleton"
-  node_array_size: 20
-  cpus_per_node: 256
-  workers_per_node: 4 # Number of workers per node in preprocessing step.
-dataset: mc4
-download_mc4: True  # Whether to download the mC4 dataset from the internet.
-preprocess_data: True  # True to preprocess the data from a json.gz file, False otherwise.
-mc4_dir: ${data_dir}/mc4 # Path to (m)C4 dataset repo.
-git_lfs_dir: ${.mc4_dir}/lfs # Path to store git lfs files.
-download_vocab_url: https://storage.googleapis.com/t5-data/vocabs/mc4.250000.100extra/sentencepiece.vocab # URL to download the vocab from.
-download_tokenizer_url: https://storage.googleapis.com/t5-data/vocabs/mc4.250000.100extra/sentencepiece.model # URL to download tokenizer from
-vocab_save_dir: ${.mc4_dir}/bpe
-tokenizer_save_dir: ${.mc4_dir}/bpe
-tokenizer_model: ${.tokenizer_save_dir}/mt5_tokenizer.model
-languages: cs,da,de,el,en,es,fi,fr,hi,hu,it,ja,ko,lt,lv,nl,no,pl,pt,ro,ru,sk,sv,zh # language list in mC4 dataset to download and preprocess. Use `all` to download and preprocess all languages or specify language list as `en,es,ko,zh,...`
-use_cleaned_english: True # whether to use cleaned version of english data
-softlinks_dir: ${.mc4_dir}/softlinks # Path to languages soft links for preprocessing
-preprocessed_dir: ${.mc4_dir}/preprocessed
-max_split_size: 200 # (GB) Each split will be preprocessed individually. Tune this down to accommodate short wall time on clusters
-download_worker_mapping: ${.mc4_dir}/download_mapping
-preprocess_worker_mapping: ${.mc4_dir}/preprocess_mapping
-rm_downloaded: False # Script will not remove downloaded after preprocessing
-```
-
-##### 5.1.2.4. Data Preparation for BERT Models
-<a id="markdown-data-preparation-for-bert-model" name="data-preparation-for-bert-model"></a>
-The `data_preparation` parameter in `conf/config.yaml` specifies which file to use for data preparation
-configuration purposes. The default value is set to `download_bert_pile`, which can be
-found in `conf/data_preparation/download_bert_pile.yaml`. It is used to download, extract,
-and preprocess the Pile dataset for BERT model. The parameters can be
-modified to perform the different tasks and to decide where to store the
-datasets, vocab etc.
-
-To download a reduced portion of the dataset to run tests, the 
-`file_numbers` parameter can be updated to download only one of the 
-shards by changing “0-29” to “0” (the syntax must be a combination of
-numbers separated by dashes "-" or commas ",") For example, 
-`file_numbers`="0,3,5-7" will download and prepare 
-files 0, 3, 5, 6, and 7.
-
-###### 5.1.2.4.1. Slurm
-<a id="markdown-51241-slurm" name="51241-slurm"></a>
-
-First, ensure the cluster related configuration in the `conf/cluster/bcm.yaml` file is correct.
-The `cluster` and `cluster_type` parameters in `conf/config.yaml` must be set to `bcm`.
-Then, modify the `time_limit` or any other parameter related to the job in the `download_bert_pile.yaml`
-file for BERT models.
-The data preparation can be parallelized by using up to 30 nodes to download all 30 files in parallel.
-
-Example:
-
-To run only the data preparation pipeline and not the training, evaluation or
-inference pipelines, set the `conf/config.yaml` file to:
-```yaml
-stages:
-  - data_preparation
-```
-
-And then run:
-```
-python3 main.py
-```
-
-###### 5.1.2.4.2. Base Command Platform
-<a id="markdown-51242-base-command-platform" name="51242-base-command-platform"></a>
-
-In order to run the data preparation script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. 
-By default, the data preparation script will download the data into the `data/` directory.
-We recommend that the `data_dir` parameter is set to a workspace, so that the data 
-is visible across multiple jobs later on. The vocab and merge files should also be 
-stored to the same workspace as the dataset, for later usage. The data preparation code 
-must be launched in a multi-node job. It can be parallelized to use between 2 and 30 nodes for faster preparation of the dataset.
-
-With Base Command Platform, the 700+ GB dataset can be downloaded once and then
-shared by multiple users in the same ACE by setting appropriate permissions of the `nemo_megatron_data_ws` the workspace.
-
-To run the data preparation pipeline for Bert models, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[data_preparation] \
-cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_bert \
-base_results_dir=/mount/results data_preparation.file_numbers='0-29' \
-data_preparation.vocab_save_dir=/mount/data/bpe data_preparation.merges_save_dir=/mount/data/bpe >> /results/data_bert_log.txt 2>&1
-```
-
-The command above assumes you want to prepare the entire dataset (files 0-29), and you mounted the data 
-workspace in `/mount/data`, and the results workspace in `/mount/results`. Stdout and stderr are redirected to the `/results/data_bert_log.txt` file, so it can be downloaded from NGC. 
-Any other parameter can also be added to the command to modify its behavior.
-
-###### 5.1.2.1.3. Common
-<a id="markdown-51243-common" name="51243-common"></a>
-
-Set the configuration for the data preparation job for BERT models in the YAML file:
-```yaml
-run:
-  name: download_bert_pile
-  results_dir: ${base_results_dir}/${.name}
-  time_limit: "4:00:00"
-  dependency: "singleton"
-  node_array_size: 30
-  array: ${..file_numbers}
-  bcp_preproc_npernode: 2 # 2 should be safe to use and x2 times faster.
-
-dataset: pile
-download_the_pile: True  # Whether to download the pile dataset from the internet.
-the_pile_url: "https://mystic.the-eye.eu/public/AI/pile/train/"  # Source URL to download The Pile dataset from.
-file_numbers: "0-29"  # The pile dataset consists of 30 files (0-29), choose which ones to download.
-preprocess_data: True  # True to preprocess the data from a jsonl file, False otherwise.
-download_vocab_url: "https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-cased-vocab.txt"  # URL to download the vocab from.
-vocab_save_dir: ${data_dir}/bpe
-tokenizer_type: BertWordPieceLowerCase
-rm_downloaded: True # Extract script will remove downloaded zst after extraction
-rm_extracted: True # Preprocess script will remove extracted files after preproc.
-```
-
-### 5.2. Training with Predefined Configurations
-<a id="markdown-training-with-predefined-configurations" name="training-with-predefined-configurations"></a>
-
-#### 5.2.1. Predefined Configurations of GPT-3 Models
-<a id="markdown-predefined-configurations-of-gpt-3-models" name="predefined-configurations-of-gpt-3-models"></a>
-
-We provide five configurations for several different GPT-3 model sizes: 126M, 5B, 20B, 
-40B, and 175B parameters. These configurations include carefully selected
-hyperparameters, which should be used as a guideline for any custom model
-configurations. All these configurations are provided in the `conf/training/gpt3/`
-directory. The desired configuration can be chosen by selecting the `training` 
-parameter in the `conf/config.yaml` file.
-For Base Command Platform, all jobs must be launched in multi-node mode.
-
-**126M configuration:**
-
-The 126M model uses the bf16 data type. It can be trained in about 20 hours using 8 nodes with 8 GPUs per node. The model includes 12 transformer layers, a hidden size of 768,
-and 12 attention heads. The sequence length is 2048, and the optimizer is
-Distributed Adam. This model does not use any model parallelism. See the `gpt3/126m.yaml` config file for parameter details.
-
-To train a 126M model on a Slurm cluster, modify the `conf/config.yaml` file to set:
-```yaml
-- training: gpt3/126m
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 126M GPT-3 model on Base Command Platform cluster on 8 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=gpt3/126m \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_gpt3 \
-base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
-training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.json \
-training.model.tokenizer.merge_file=/mount/data/bpe/merges.txt cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively, and that the $NGC_ARRAY_SIZE will use the number of nodes selected when 
-creating the job (number of replicas). 
-
-To train with fewer or a different number of nodes, the relevant parameters 
-can be adjusted either in the yaml config file or 
-from the command line. More on this in [section 5.7](#57-resuming-training-from-fewer-nodes). 
-For Base Command Platform, all jobs must be launched in multi-node mode.
-
-**5B configuration:**
-
-The 5B model uses the bf16 data type. It can be trained in about 5 days using 16 nodes with 8 GPUs per node. The model includes 24
-transformer layers, a hidden size of 4096, and 32 attention heads. The
-sequence length is 2048, and the optimizer is Distributed Adam. This model uses tensor
-parallelism of 1. For the details on all the parameters, see the 5b.yaml
-config file.
-
-To train a 5B GPT-3 model, modify the `conf/config.yaml` file to set:
-```yaml
-- training: gpt3/5b
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 5B GPT-3 model on Base Command Platform cluster on 16 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=gpt3/5b \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_gpt3 \
-base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
-training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.json \
-training.model.tokenizer.merge_file=/mount/data/bpe/merges.txt cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively, and that the $NGC_ARRAY_SIZE will use the number of nodes selected when 
-creating the job (number of replicas).
-
-
-**20B configuration:**
-
-The 20B model uses the bf16 data type. It can be trained in about 6 days using 64 nodes with 8 GPUs per node. The model includes 44
-transformer layers, a hidden size of 6144, and 48 attention heads. The
-sequence length is 2048, and the optimizer is Distributed Adam. This model uses tensor
-parallelism of 4 and pipeline parallelism of 1. For the details on all the parameters, see the 20b.yaml
-config file.
-
-To train a 20B GPT-3 model, modify the `conf/config.yaml` file to set:
-```yaml
-- training: gpt3/20b
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 20B GPT-3 model on Base Command Platform cluster on 64 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=gpt3/20b \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_gpt3 \
-base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
-training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.json \
-training.model.tokenizer.merge_file=/mount/data/bpe/merges.txt cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively, and that the $NGC_ARRAY_SIZE will use the number of nodes selected when 
-creating the job (number of replicas).
-
-**40B configuration:**
-
-The 40B model uses the bf16 data type. It can be trained in about 6 days using 128 nodes with 8 GPUs per node. The model includes 48
-transformer layers, a hidden size of 8192, and 64 attention heads. The
-sequence length is 2048, and the optimizer is Distributed Adam. This model uses tensor
-parallelism of 8 and pipeline parallelism of 1. 
-For the details on all the parameters, see the 40b.yaml config file.
-
-To train a 40B GPT-3 model, modify the `conf/config.yaml` file to set:
-```yaml
-- training: gpt3/40b
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 40B GPT-3 model on Base Command Platform cluster on 128 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=gpt3/40b \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_gpt3 \
-base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
-training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.json \
-training.model.tokenizer.merge_file=/mount/data/bpe/merges.txt cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively, and that the $NGC_ARRAY_SIZE will use the number of nodes selected when 
-creating the job (number of replicas).
-
-**175B configuration:**
-
-The 175B model uses the bf16 data type. It can be trained in about 24 days using 128 nodes with 8 GPUs per node. The model includes 96
-transformer layers, a hidden size of 12288, and 96 attention heads. The
-sequence length is 2048, and the optimizer is Distributed Adam. This model uses tensor
-parallelism of 8 and pipeline parallelism of 16. This model uses interleaved pipeline scheduling, 
-with a virtual pipeline chunk size of 6.
-For the details on all the parameters, see the 175b.yaml config file.
-
-To train a 175B GPT-3 model, modify the `conf/config.yaml` file to set:
-```yaml
-- training: gpt3/175b
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 175B GPT-3 model on Base Command Platform cluster on 128 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=gpt3/175b \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_gpt3 \
-base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
-training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.json \
-training.model.tokenizer.merge_file=/mount/data/bpe/merges.txt cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively, and that the $NGC_ARRAY_SIZE will use the number of nodes selected when 
-creating the job (number of replicas).
-
-
-**FP8 with Transformer Engine**
-Transformer Engine (TE) is a library for accelerating Transformer-based models on **NVIDIA Hopper GPUs**. It enables using 8-bit floating point (FP8) precision to provide better performance with lower memory utilization in both training and inference. NVIDIA open-sourced TE on [github](https://github.com/NVIDIA/TransformerEngine).
-
-In NeMo Megatron, you can now use `fp8` to pre-train GPT-3 models. For example, if you want to turn on `fp8` to pre-train a 
-GPT3 5B model, you can modify `gpt3/5b` training config inside `conf/training/gpt3/5b.yaml` file as following.
-```yaml
-  ## Transformer Engine
-  transformer_engine: True # turn on Transformer Engine
-  fp8: True # enables fp8 in TransformerLayer forward
-  fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
-  fp8_hybrid: True # sets fp8_format = recipe.Format.HYBRID
-  fp8_margin: 0 # scaling margin
-  fp8_interval: 1 # scaling update interval
-  fp8_amax_history_len: 32 # Number of steps for which amax history is recorded per tensor
-  fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
-  use_emha: False
-```
-We observed similar convergence behavior but significant speed-up comparing `fp8` and `bf16` precision.
-
-#### 5.2.2. Predefined Configurations of T5 Models
-<a id="markdown-predefined-configurations-of-t5-models" name="predefined-configurations-of-t5-models"></a>
-
-We provide configuration files for five T5 model sizes: 220M,
-3B, 11B, 23B, and 41B parameters. These configurations include carefully selected
-hyperparameters, which should be used as guidelines for any custom model
-configurations. The configuration files are provided in the `conf/training/t5`
-directory. The desired configuration can be chosen by selecting the training
- parameter in the `conf/config.yaml` file.
-For Base Command Platform, all jobs must be launched in multi-node mode.
-
-**220M configuration:**
-
-The 220M model uses the bf16 data type. It can be trained in about 3.5 days using 4 nodes with 8 GPUs per node. 
-The model includes 12 transformer layers, a hidden size of 768, a feedforward network size of 2048,
-and 12 attention heads with GeGLU activation function. The sequence length is 512, and the optimizer is
-Distributed Adam. This model does not use any model parallelism. See the `t5/220m.yaml` config file for parameter details.
-
-To train a 220M model on a Slurm cluster, modify the `conf/config.yaml` file to set:
-```yaml
-training: t5/220m
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 220M model on Base Command Platform cluster on 4 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=t5/220m \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
-base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
-training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.txt cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas). 
-
-To train with a different number of nodes, the relevant parameters 
-(e.g. `micro_batch_size`) can be adjusted either in the appropriate yaml config file or 
-from the command line. More on this in [section 5.7](#57-resuming-training-from-fewer-nodes). 
-For Base Command Platform, all jobs must be launched in multi-node mode.
-
-**3B configuration:**
-
-The 3B model uses the bf16 data type. It can be trained in about 7.5 days using 20 nodes with 8 GPUs per node. The model includes 24
-transformer layers, a hidden size of 2048, a feedforward network size of 5120, and 32 attention heads  with GeGLU activation function. The
-sequence length is 512, and the optimizer is Distributed Adam. 
-For the details on all the parameters, see the `t5/3b.yaml` config file.
-
-To train a 3B model, modify the `conf/config.yaml` file to set:
-```yaml
-training: t5/3b
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 3B model on Base Command Platform cluster on 20 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=t5/3b \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
-base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
-training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.txt cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas).
-
-
-
-**11B configuration:**
-
-The 11B model uses the bf16 data type. It can be trained in about 26.5 days using 20 nodes with 8 GPUs per node. The model includes 24
-transformer layers, a hidden size of 4096, a feedforward network size of 10240, and 64 attention heads  with GeGLU activation function. The
-sequence length is 512, and the optimizer is Distributed Adam. This model uses tensor
-parallelism of 4. For the details on all the parameters, see the `t5/11b.yaml`
-config file.
-
-To train a 11B model, modify the `conf/config.yaml` file to set:
-```yaml
-training: t5/11b
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 11B model on Base Command Platform cluster on 20 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=t5/11b \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
-base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
-training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.txt cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas).
-
-
-
-**23B configuration:**
-
-The 23B model uses the bf16 data type. It can be trained in about 36 days using 40 nodes with 8 GPUs per node. The model includes 36
-transformer layers, a hidden size of 5120, a feedforward network size of 10880, and 64 attention heads with GeGLU activation function. The
-sequence length is 512, and the optimizer is Distributed Adam. This model uses tensor
-parallelism of 4 and pipeline parallelism of 2. For the details on all the parameters, see the `t5/23b.yaml`
-config file.
-
-To train a 23B model, modify the `conf/config.yaml` file to set:
-```yaml
-training: t5/23b
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 23B model on Base Command Platform cluster on 40 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=t5/23b \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
-base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
-training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.txt cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas).
-
-
-**41B configuration:**
-
-The 41B model uses the bf16 data type. It can be trained in about 60 days using 40 nodes with 8 GPUs per node. The model includes 36
-transformer layers, a hidden size of 6144, a feedforward network size of 10880, and 96 attention heads with GeGLU activation function. The
-sequence length is 512, and the optimizer is Distributed Adam. This model uses tensor
-parallelism of 4 and pipeline parallelism of 2. For the details on all the parameters, see the `t5/23b.yaml`
-config file.
-
-To train a 41B model, modify the `conf/config.yaml` file to set:
-```yaml
-training: t5/41b
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 41B model on Base Command Platform cluster on 40 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=t5/41b \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
-base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
-training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.txt cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas).
-
-
-
-#### 5.2.3. Predefined Configurations of mT5 Models
-<a id="markdown-predefined-configurations-of-mt5-models" name="predefined-configurations-of-mt5-models"></a>
-
-We provide configuration files for three mT5 model sizes: 170M, 390M, and
-3B parameters. These configurations include carefully selected
-hyperparameters, which should be used as guidelines for any custom model
-configurations. The configuration files are provided in the `conf/training/mt5`
-directory. The desired configuration can be chosen by selecting the training
- parameter in the `conf/config.yaml` file.
-For Base Command Platform, all jobs must be launched in multi-node mode.
-
-**170M configuration:**
-
-The 170M model uses the bf16 data type. It can be trained in about 4 days using 4 nodes with 8 GPUs per node. 
-The model includes 8 transformer layers, a hidden size of 512, a feedforward network size of 1024,
-and 6 attention heads with GeGLU activation function. The sequence length is 512, and the optimizer is Distributed
-Adam. This model does not use any model parallelism. See the `mt5/170m.yaml` config file for parameter details.
-
-To train a 170M model on a Slurm cluster, modify the `conf/config.yaml` file to set:
-```yaml
-training: mt5/170m
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 170M model on Base Command Platform cluster on 4 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=mt5/170m \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data base_results_dir=/mount/results \
-training.trainer.num_nodes=\$NGC_ARRAY_SIZE cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas). 
-
-To train with a different number of nodes, the relevant parameters 
-(e.g. `micro_batch_size`) can be adjusted either in the appropriate yaml config file or 
-from the command line. More on this in [section 5.7](#57-resuming-training-from-fewer-nodes). 
-For Base Command Platform, all jobs must be launched in multi-node mode.
-
-
-
-**390M configuration:**
-
-The 390M model uses the bf16 data type. It can be trained in about 4 days using 8 nodes with 8 GPUs per node. 
-The model includes 8 transformer layers, a hidden size of 512, a feedforward network size of 2048,
-and 12 attention heads with GeGLU activation function. The sequence length is 512, and the optimizer is Distributed 
-Adam. This model does not use any model parallelism. See the `mt5/390m.yaml` config file for parameter details.
-
-To train a 390M model on a Slurm cluster, modify the `conf/config.yaml` file to set:
-```yaml
-training: mt5/390m
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 390M model on Base Command Platform cluster on 8 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=mt5/390m \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data base_results_dir=/mount/results \
-training.trainer.num_nodes=\$NGC_ARRAY_SIZE cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas). 
-
-
-
-**3B configuration:**
-
-The 3B model uses the bf16 data type. It can be trained in about 14 days using 20 nodes with 8 GPUs per node. The model includes 24
-transformer layers, a hidden size of 2048, a feedforward network size of 5120, and 32 attention heads with GeGLU activation function. The
-sequence length is 512, and the optimizer is Distributed Adam. This model uses tensor
-parallelism of 2. For the details on all the parameters, see the `mt5/3b.yaml`
-config file.
-
-To train a 3B model, modify the `conf/config.yaml` file to set:
-```yaml
-training: mt5/3b
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 3B model on Base Command Platform cluster on 20 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=mt5/3b \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data base_results_dir=/mount/results \
-training.trainer.num_nodes=\$NGC_ARRAY_SIZE cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas).
-
-
-
-#### 5.2.4. Training Logs with TensorBoard and Weights and Biases
-<a id="markdown-training-with-tb-wandb" name="training-with-tb-wandb"></a>
-The training code can log the model and system related metrics to both TensorBoard and 
-Weights & Biases (W&B). The local files will be stored in the directory specified in the 
-`training.exp_manager.explicit_log_dir` parameter. TensorBoard logs are saved by default.
-
-However, W&B needs the API key to be specified to work properly. To upload the logs to W&B, 
-the user must first store the W&B API key to a file (on the first line of the file), and 
-select the path to the file that contains the key using the `wandb_api_key_file` parameter. 
-For Base Command Platform, this file can be stored in a dataset or workspace mounted to the job.
-To enable the logging of the training metrics to W&B, the following training parameters must be set:
-```yaml
-exp_manager:
-        create_wandb_logger: True
-        wandb_logger_kwargs:
-            project: [W&B project name]
-            name: [W&B run name]
-```
-
-The logs show the reduced_train_loss, val_loss, train_step_timing (which is the best way 
-to measure the time it takes to finish each global step), and other relevant metrics.
-
-#### 5.2.5. Predefined Configurations of BERT Models
-<a id="markdown-predefined-configurations-of-bert-models" name="predefined-configurations-of-bert-models"></a>
-
-We provide configuration files for four BERT model sizes: 110M, 4B, 20B, 
-and 100B parameters. These configurations include carefully selected
-hyperparameters, which should be used as guidelines for any custom model
-configurations. The configuration files are provided in the `conf/training/bert`
-directory. The desired configuration can be chosen by selecting the training
- parameter in the `conf/config.yaml` file.
-For Base Command Platform, all jobs must be launched in multi-node mode.
-
-**110M configuration:**
-
-The 110M model uses the bf16 data type. The model includes 12 transformer layers, a hidden size of 768, 
-a feedforward network size of 3072 and 12 attention heads with GeGLU activation function. The sequence length is 512,
-and the optimizer is Distributed Adam. This model does not use any model parallelism. See the `bert/110m.yaml` config file for parameter details.
-
-To train a 110M model on a Slurm cluster, modify the `conf/config.yaml` file to set:
-```yaml
-training: bert/110m
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 110M model on Base Command Platform cluster on 4 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=bert/110m \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
-base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
-training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.txt cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas). 
-
-To train with a different number of nodes, the relevant parameters 
-(e.g. `micro_batch_size`) can be adjusted either in the appropriate yaml config file or 
-from the command line. More on this in [section 5.7](#57-resuming-training-from-fewer-nodes). 
-For Base Command Platform, all jobs must be launched in multi-node mode.
-
-**4B configuration:**
-
-The 4B model uses the bf16 data type. The model includes 48 transformer layers, a hidden size of 2560, 
-a feedforward network size of 10240, and 40 attention heads  with GeGLU activation function. The
-sequence length is 512, and the optimizer is Distributed Adam. For the details on all the parameters, see the `bert/4b.yaml`
-config file.
-
-To train a 4B model, modify the `conf/config.yaml` file to set:
-```yaml
-training: bert/4b
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 4B model on Base Command Platform cluster on 20 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=bert/4b \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
-base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
-training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.txt cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas).
-
-
-**20B configuration:**
-
-The 20B model uses the bf16 data type. The model includes 48 transformer layers, a hidden size of 6144, 
-a feedforward network size of 24576, and 96 attention heads  with GeGLU activation function. The
-sequence length is 512, and the optimizer is Distributed Adam. For the details on all the parameters, see the `bert/20b.yaml`
-config file.
-
-To train a 20B model, modify the `conf/config.yaml` file to set:
-```yaml
-training: bert/20b
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 20B model on Base Command Platform cluster on 20 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=bert/20b \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
-base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
-training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.txt cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas).
-
-**100B configuration:**
-
-The 100B model uses the bf16 data type. The model includes 96 transformer layers, a hidden size of 9216, 
-a feedforward network size of 36864, and 96 attention heads  with GeGLU activation function. The
-sequence length is 512, and the optimizer is Distributed Adam. For the details on all the parameters, see the `bert/100b.yaml`
-config file.
-
-To train a 100B model, modify the `conf/config.yaml` file to set:
-```yaml
-training: bert/100b
-stages:
-  - training
-```
-
-And run:
-```
-python3 main.py
-```
-
-To train a 100B model on Base Command Platform cluster on 20 nodes, use the command:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=bert/100b \
-stages=[training] \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
-base_results_dir=/mount/results training.trainer.num_nodes=\$NGC_ARRAY_SIZE \
-training.model.tokenizer.vocab_file=/mount/data/bpe/vocab.txt cluster_type=bcp
-```
-The command above assumes that the data and results workspaces are mounted in the `/mount/data` and `/mount/results` 
-directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number of nodes that will be used when creating the job (number of replicas).
-
-
-### 5.3. Using AutoConfigurator to Find the Optimal Configuration
-<a id="markdown-using-autoconfigurator-to-find-the-optimal-configuration" name="using-autoconfigurator-to-find-the-optimal-configuration"></a>
-AutoConfigurator searches for the Hyper-Parameters (HPs) that achieve the highest throughput for training and inference for
-Large Language Models (LLMs) using NeMo-Megatron.
-
-Note: The inference HP search is only available for GPT-3 models.
-
-#### 5.3.1. AutoConfigurator Capabilities
-<a id="markdown-autoconfigurator-capabilities" name="autoconfigurator-capabilities"></a>
-
-AutoConfigurator is intended to quickly iterate over different model configurations, 
-to find the best configuration with minimal time and money spending. To achieve that, AutoConfigurator provides several different capabilities, as shown in the table below:
-
-| Feature                              | GPT-3    | T5       | mT5      | Bert     |
-| ------------------------------------ | -------- | -------- | -------- | -------- |
-| Model Size Recommendation            | Yes      | Yes      | Yes      | Yes      |
-| Base Config Generation               | Yes      | Yes      | Yes      | Yes      |
-| Training HP Search                   | Yes      | Yes      | Yes      | Yes      |
-| Parallel Training HP Search          | BCM Only | BCM Only | BCM Only | BCM Only |
-| Inference HP Search                  | BCM Only | No       | No       | No       |
-| Parallel Inference HP Search         | BCM Only | No       | No       | No       |
-| Slurm Based Clusters                 | Yes      | Yes      | Yes      | Yes      |
-| Base Command Platform Based Clusters | Yes      | Yes      | Yes      | Yes      |
-
-##### 5.3.1.1. Model Size Recommendation
-<a id="markdown-model-size-recommendation" name="model-size-recommendation"></a>
-
-For users who do not know what model size they wish to train, AutoConfigurator is capable of recommending 
-a model size, given the hardware and training constraints. If the number of GPUs, the TFLOPS per GPU, 
-the maximum time to train, and the number of tokens to train for are known, then it tool can 
-recommend a model size that can be trained with the specified hardware and time constraints.
-
-For example, if the user has 20 NVIDIA DGX nodes available (80GB GPU memory), and wants to train a 
-GPT-3 model for a maximum of 5 days, AutoConfigurator will recommend using a 5B parameter GPT-3 model. 
-
-
-##### 5.3.1.2. Base Config Generation
-<a id="markdown-base-config-generation" name="base-config-generation"></a>
-
-If the model size is provided by the user, or after the model size is suggested, 
-AutoConfigurator will generate a base configuration for the target model. This configuration will be a 
-valid configuration in YAML format, which can be trained using NeMo-Megatron. However, the 
-throughput optimization will happen at the next step (Training AutoConfigurator HP Search).
-
-
-##### 5.3.1.3. Training AutoConfigurator HP Search
-<a id="markdown-training-autoconfigurator-hp-search" name="training-autoconfigurator-hp-search"></a>
-
-Given the input model size and the base configuration, 
-AutoConfigurator will now search over four different critical Hyper-Parameters, that have great impact on the 
-training throughput but do not affect model convergence: Tensor Parallelism (TP), Pipeline Parallelism (PP), 
-Micro Batch Size (MBS), and Activation Checkpointing Layers (ActCkpt).
-
-First, AutoConfigurator will use heuristics to choose good candidates for those four parameters, and generate 
-the grid of candidate configurations. All the candidate configurations will be saved to the results directory, 
-and will include YAML files with the corresponding config. NOTE: some of these configurations might not work, 
-due to high memory usage or for other reasons. The next step will determine which configurations are valid.
-
-Once all the candidate configurations are generated, it will use heuristics to sort the most promising 
-candidate configurations. Then, it will launch the most promising candidates in parallel, where the number 
-of candidates can be set by the `limit_search_runs` parameter, to perform a grid search over the four training 
-parameters. This search will launch the jobs using NeMo-Megatron, and it will train each config for a maximum 
-of `max_minutes_per_run` minutes and a maximum of `max_steps_per_run` training steps, whichever is reached first 
-on the target cluster. During this search, the jobs will run with the number of nodes specified in the configuration 
-files, using the `num_nodes` parameter. Once all the jobs have finished running, the final result will be 
-summarized in a CSV file.
-
-##### 5.3.1.4. Inference AutoConfigurator HP Search
-<a id="markdown-inference-autoconfigurator-hp-search" name="inference-autoconfigurator-hp-search"></a>
-
-AutoConfigurator can also search the best HPs for inference purposes. It will empirically measure the
-throughput and latency for each given configuration in the grid search space, and return a comprehensive
-table with all the numbers. It will search over three different critical HPs, which have great
-impact on the inference throughput and latency: Tensor Parallelism (TP), Pipeline Parallelism (PP), and
-Batch Size (BS). Technically, AutoConfigurator is also capable of searching over different input/output sequence
-lengths. However, we do not recommend adding multiple different sequence lengths to the same search,
-since the model that uses the shortest sequence lengths will always achieve higher throughput and lower
-latency. Therefore, we recommend performing several different inference searches for different sequence
-lengths. Once the search space has been defined, it will launch a job for each config in parallel, 
-and measure the throughput and latency. This search will launch the jobs using NeMo-Megatron on the target cluster.
-Once all the jobs have finished running, the final result will be summarized in a CSV file.
-
-#### 5.3.2. Usage
-<a id="markdown-usage" name="usage"></a>
-
-In this section, we will explain how to run each of the stages described above. 
-
-##### 5.3.2.1. General Configuration
-<a id="markdown-general-configuration" name="general-configuration"></a>
-
-###### 5.3.2.1.1. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-First, our configuration setup assumes that the `/opt/NeMo-Megatron-Launcher/auto_configurator`, `/opt/NeMo-Megatron-Launcher/launcher_scripts` 
-and `/opt/FasterTransformer` directories have been copied from the container to the local file system.
-
-The first parameter that must be set is the `auto_configurator_path` parameter inside the `conf/config.yaml` 
-file. This parameter must point to the absolute path where the `auto_configurator` directory is stored in  
-the file system. Additionally, if using a Slurm-based cluster, the config file in the 
-`conf/cluster/bcm.yaml` subfolder has the parameters to set the generic cluster related information, 
-such as the `partition` or `account` parameters.
-
-The `auto_configurator_path` parameter will automatically be mounted to the container at the same path as 
-in the local file system. Any additional directories that should be mounted must be specified using the
-`container_mounts` parameter. If the paths contain the colon character (`:`), the code will assume both 
-the source and destination paths are provided. Otherwise, the given paths will be mounted to the same 
-path inside the container.
-
-The `launcher_scripts_path` and `fastertransformer_path` must point to the path where `launcher_scripts` and 
-`FasterTransformer` directories are located in the local file system. The locations
-specified in the default config should be valid if `/opt` was extracted correctly. Next, the 
-`data_dir` value must point to the path where the training dataset is located. Note that the dataset 
-for GPT-3, T5 and mT5 values will be different, so modify this parameter accordingly. Follow the data 
-preparation steps to learn how to download and preprocess the datasets for each model. The dataset in 
-this path does not need to be the full size dataset; only a small representative sample of the dataset 
-is needed, since AutoConfigurator does not train the models to convergence. Finally, the `base_results_dir` 
-parameter can be modified to point to the location where the results will be stored. See all the 
-parameters for the `conf/config.yaml` file below:
-
+**Modifying Configurations**: NeMo launcher uses Hydra and OmegaConf to manage job configurations with YAML files. There
+are **two ways** to modify the configurations:
+
+1. Edit the configuration file directly: As mentioned in Section 5.1.2., you can directly edit the corresponding
+   configuration file to make the necessary changes.
+2. Override configurations through the command line: You can also override some configurations directly through the
+   command line when calling main.py. For example, to override the stages list inside `conf/config.yaml`, use:
+   ```
+   python3 main.py stages=[training]
+   ```
+
+**Pipeline Execution Details**: After calling `main.py`, the NeMo launcher scripts perform several tasks to
+set up and run your customized pipeline. Here's an overview of these tasks:
+
+1. **Interpolate the configs**: The NeMo launcher scripts will first interpolate the configuration files based on Hydra
+   overwriting. This process ensures that any modifications or auto-calculated fields are incorporated into the
+   configuration.
+2. **Save the YAML file**: After interpolating the configs, the NeMo launcher scripts will save the updated YAML file.
+   This file will contain all the customizations specified through the command line or by editing the configuration
+   files directly.
+3. **Generate submission scripts**: Next, the NeMo launcher scripts will generate submission scripts. This script
+   includes the necessary calls to NeMo, as well as other collections needed for the pipeline. If there are multiple
+   scripts, they will be streamlined with dependency.
+4. **Submit the scripts**: Finally, the NeMo launcher scripts will submit the generated scripts, which will execute your
+   customized pipeline with the specified configurations.
+
+**Dry Run**: To perform a dry run of your pipeline without actually executing it, you can set the environment
+variable `NEMO_LAUNCHER_DEBUG=1`. With this environment variable set, running `main.py` will generate the interpolated
+configuration files, save the YAML file, and create the launch script as usual, but it will not submit or launch the
+scripts. This allows you to inspect and verify the generated files and scripts before proceeding with the actual
+execution of the pipeline.
+
+By automating these tasks, the NeMo launcher scripts streamline the process of setting up and running the pipeline,
+making it easier for you to focus on your experiments and analyses.
+
+**Note for Base Command Platform Users**: When using the Base Command Platform, directly modifying the configuration
+file is not recommended. This is because different nodes on the Base Command Platform do not share the same file system,
+so changes made on one node will not be reflected on other nodes. To ensure consistency across nodes, always use command
+line overrides for configuration changes on Base Command Platform.
+
+#### 5.1.4. Example: Pre-train Stable Diffusion 860M Model for 10 Epochs with Resolution 256
+
+In this example, we will demonstrate how to customize the pipeline according to the following instructions:
+
+1. Run only the training stage.
+2. Train the `stable_diffusion` model with the `860m_res_256` configuration.
+3. Change the training epoch from `1` to `10`.
+
+**Step-by-Step Guide**
+
+1. **Include only the training stage**: To run only the training stage, update the `stages` list in `conf/config.yaml`:
+   ```yaml
+   stages:
+     - training
+   ```
+2. **Select the `stable_diffusion` model with `860m_res_256` configuration**: Update the `training` field in
+   the `defaults` section of `conf/config.yaml`:
+   ```yaml
+   training: stable_diffusion/860m_res_256
+   ```
+3. **Change the training epochs**: Navigate to the `conf/training/stable_diffusion/860m_res_256.yaml` file and update
+   the `max_epochs` field under the `trainer` section:
+   ```yaml
+    trainer:
+      max_epochs: 10
+   ```
+4. **Pipeline Execution**: With these customizations in place, the pipeline will now execute only the `training` stage,
+   using
+   the `stable_diffusion` model with the `860m_res_256` configuration, and train for a total of `10` epochs.
+   To run the customized pipeline, simply execute:
+   ```
+   python3 main.py
+   ```
+
+Instead of manually editing the configuration files, you can also use **Hydra's override feature** to achieve the same
+customizations in a single command. This allows you to quickly test different configurations without modifying the
+original files. To run the customized pipeline according to the instructions provided earlier, use the following
+command:
+
+```
+python3 main.py stages=[training] training=stable_diffusion/860m_res_256 training.trainer.max_epochs=10
+```
+**Note**: When using Hydra's override feature, make sure to include the stage name (training in this example) for
+overriding a stage configuration found in conf/(stage_name)/(model_type)/(model_name).yaml. This ensures that the
+correct stage and configuration file are targeted for the override.
+
+
+### 5.2. Data Preparation
+
+#### 5.2.1 ImageNet
+_Note: It is the responsibility of each user to check the content 
+of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
+Users should review any applicable links associated with the dataset before placing the data on their machine._
+
+Please note that according to the ImageNet terms and conditions, automated scripts for downloading the dataset are not 
+provided. Instead, kindly follow the steps outlined below to download and extract the data.
+
+##### 5.2.1.1 ImageNet 1k
+
+1. Create an account on [ImageNet](http://image-net.org/download-images) and navigate to ILSVRC 2012.
+Download "Training images (Task 1 & 2)" and "Validation images (all tasks)" to `data/imagenet_1k`.
+2. Extract the training data:
+  ```bash
+  mkdir train && mv ILSVRC2012_img_train.tar train/ && cd train
+  tar -xvf ILSVRC2012_img_train.tar && rm -f ILSVRC2012_img_train.tar
+  find . -name "*.tar" | while read NAME ; do mkdir -p "${NAME%.tar}"; tar -xvf "${NAME}" -C "${NAME%.tar}"; rm -f "${NAME}"; done
+  cd ..
+  ```
+3. Extract the validation data and move the images to subfolders:
+  ```bash
+  mkdir val && mv ILSVRC2012_img_val.tar val/ && cd val && tar -xvf ILSVRC2012_img_val.tar
+  wget -qO- https://raw.githubusercontent.com/soumith/imagenetloader.torch/master/valprep.sh | bash
+  ```
+
+##### 5.2.1.2 ImageNet 21k
+1. Create an account on [ImageNet](http://image-net.org/download-images) and download "ImageNet21k" to 
+`data/imagenet_21k`.
+2. Extract the data:
+  ```bash
+  tar -xvf winter21_whole.tar.gz && rm -f winter21_whole.tar.gz
+  find . -name "*.tar" | while read NAME ; do mkdir -p "${NAME%.tar}"; tar -xvf "${NAME}" -C "${NAME%.tar}"; rm -f "${NAME}"; done
+  ```
+
+#### 5.2.2 Multimodal Datasets
+_Note: It is the responsibility of each user to check the content 
+of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
+Users should review any applicable links associated with the dataset before placing the data on their machine._
+
+##### 5.2.2.1 Overview
+
+For all multimodal models (except Instruct-Pix2Pix; see Section 5.2.3), we provide a generic pipeline as detailed below
+to download and prepare the dataset. The pipeline is suitable for any multimodal datasets hosted on the 
+[Hugging Face data repository](https://huggingface.co/datasets?task_categories=task_categories:text-to-image) 
+where the data is stored as one or more parquet files. The pipeline processes the dataset into the
+[WebDataset](https://github.com/webdataset/webdataset) format, consisting of tar files of equal sizes for 
+efficient training.
+
+The 5 sub-stages are as follows. 
+
+1. `download_parquet`: Parquet files consisting of text (captions) and image URLs are downloaded from a Hugging Face 
+repository.
+2. `download_images`: The images are downloaded from their respective URLs and, along with the captions, are
+packed into tar files following the Webdataset format.
+3. `reorganize_tar`: (Optional) Due to a variety of reasons (such as unstable network or removal of images), 
+some images may fail to download, resulting in uneven tar files with varying number of examples each. 
+If you are using a training sampler that does not support uneven tar files, you need to re-organize the contents of the 
+tar files so that each one contains an equal number of image-text pairs. 
+4. `precache_encodings`: (Optional) If you are training a model with frozen encoders (e.g. Stable Diffusion), 
+you have the option to precache (precompute) image and/or text encodings (embeddings) in this sub-stage. 
+Precaching these encodings can significantly enhance training throughput. 
+5. `generate_wdinfo`: (Optional) The `wdinfo.pkl` file, which stores information on dataset shards, is generated.
+
+Depending on your specific circumstance, not all sub-stages need to be run all at once. 
+For example, for parquet datasets not hosted on HuggingFace or whose format is not parquet,
+sub-stages 2-5 can be used to process locally downloaded datasets. 
+For webdatasets already downloaded locally, sub-stages 4-5 can be used to precache the encoding to reduce training time.
+For models that encode image and text on-the-fly, only sub-stages 1-3 need to be run. 
+
+Instruction for configuring each sub-stage is provided as a comment next to each field in 
+`conf/data_preparation/multimodal/download_multimodal.yaml`
+
+
+##### 5.2.2.2 Running the Pipeline
+Follow Section 5.1.1 to set up the environment.
+To run the data preparation pipeline for multimodal, set the `conf/config.yaml` file to:
 ```yaml
 defaults:
-  - _self_
-  - cluster: bcm
-  - search_config: gpt3/5b
-  - override hydra/job_logging: stdout
+  - data_preparation: multimodal/download_multimodal
 
-run_training_hp_search: True
-run_inference_hp_search: True
-
-cluster_type: bcm  # bcm or bcp
-auto_configurator_path: ???  # Path to the location of auto_configurator codebase.
-launcher_scripts_path: ${auto_configurator_path}/../launcher_scripts
-fastertransformer_path: ${auto_configurator_path}/../FasterTransformer
-base_results_dir: ${auto_configurator_path}/results
-data_dir: ${launcher_scripts_path}/data
-training_container: nvcr.io/ea-bignlp/bignlp-training:22.11-py3
-container_mounts:
-    - null
-wandb:  # Weights and Biases (W&B) logging.
-  enable: False  # Whether to save logs to W&B.
-  api_key_file: null # Path to the file where the w&B api key is stored. Key must be on the first line.
-  project: nemo-megatron-autoconfig # Name of the W&B project to store the logs in. The name of the run will be populated automatically.
-```
-
-###### 5.3.2.1.2. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-
-In Base Command Platform, the dataset, vocabulary, and merge files used for the training HP search must be available as a 
-dataset and mounted accordingly. This guide assumes the dataset will be mounted to `/mount/data`. 
-The results of running the AutoConfigurator will be stored in `/mount/results/auto_configurator`, so we recommend to mount a workspace 
-to `/mount/results`.
-
-The main configuration file can be found in `conf/config.yaml`. All the parameters can be overridden from the 
-CLI, as we will show in the next section.
-
-
-##### 5.3.2.2. Running Predefined Configs
-<a id="markdown-running-predefined-configs" name="running-predefined-configs"></a>
-
-The predefined configs we provide have been well tested, and the outputs produced by AutoConfigurator 
-have been verified manually. Running one of these configs will first generate a base config file for 
-the specified model size. Then, it will launch the training and inference grid search jobs. When 
-all the jobs have finished, a final recommendation will be produced for both training and inference, 
-which will show the optimal hyper-parameters for the given model.
-
-The predefined configs can be found in the `conf/search_config` directory. Each YAML file shows one 
-model type (GPT-3, T5 or mT5) and one model size (up to 175B parameters for GPT-3 and up to 42B 
-parameters for T5 and mT5). To run the desired config, we will need to modify the `search_config` 
-parameter in the `conf/config.yaml` file. For example, if we wish to run a 5B GPT-3 model, we can 
-set this value to `gpt3/5b` (the .yaml ending should not be included). 
-
-###### 5.3.2.2.1. Model Config
-<a id="markdown-model-config" name="model-config"></a>
-
-To run the `gpt3/5b` config, we need to set up the `conf/search_config/gpt3/5b.yaml` file correctly.
-
-```yaml
-train_settings:
-  model_size_in_b: 5 # unit in billion parameters
-  num_nodes: 16
-  gpus_per_node: 8
-  gpu_memory_gb: 80  # Memory per GPU, in GB. Currently 40GB and 80GB A100s supported.
-  max_training_days: 5 # unit in days
-  limit_search_runs: 100 # Max number of runs to be launched in parallel for grid search.
-  output_top_n: 10  # The result will print the top N fastest training configs.
-  max_steps_per_run: 50 # Max steps per run for the grid search.
-  max_minutes_per_run: 10 # minutes per run for the grid search.
-  tflops_per_gpu: 140  # Estimated tflops per GPU.
-  num_tokens_in_b: 300  # Unit in billions, typically 300B for GPT3 models.
-  vocab_size: 51200
-  logs: ${base_results_dir}/${search_config_value}_${.gpu_memory_gb}gb  # Example base_results_dir/gpt3/126m
-  tensor_parallel_sizes: auto  # auto to use our recommendation, or a list, such as [1, 2, 4, 8]
-  pipeline_parallel_sizes: auto  # auto to use our recommendation, or a list, such as [1, 2, 4, 8, 10]
-  min_model_parallel_size: auto  # auto to use our recommendation, or a value for the minimum desired parallelism
-  max_model_parallel_size: auto  # auto to use our recommendation, or a value for the maximum desired parallelism
-  micro_batch_sizes: auto  # auto to use our recommendation, or a list, such as [1, 2, 4, 8, 16]
-  act_ckpt_layers: auto  # auto to use our recommendation, or a list, such as [0, 1, 2, 3]
- 
-inference_settings:
-  run:
-    model_type: gpt3
-    model_train_name: gpt3_5b
-    gpus_per_node: 8
-    data_type: "fp16" # fp32|fp16|bf16
-    time_limit: 0:30:00
-    results_dir: ${base_results_dir}/${search_config_value}_${search_config.train_settings.gpu_memory_gb}gb
-    tensor_parallel_sizes: [1,2,4]
-    pipeline_parallel_sizes: [1,2]
-  benchmark:
-    input_len: 60
-    output_len: 20
-    batch_sizes: [4,8,16,32,64,128,256]
-    beam_width: 1
-    topk: 4
-    topp: 0.0
-```
-
-For the training parameters, the `model_size_in_b` parameter indicates how many billions of parameters the model should contain, and 
-AutoConfigurator will provide a config and HPs for a model of that size. The `num_nodes` parameter indicates 
-how many nodes AutoConfigurator should use to run each training job. The `gpus_per_node` parameter 
-indicates how many GPUs are available in each 
-node. To modify the behavior of the heuristics depending on whether 40GB or 80GB A100 GPUs are 
-available, the `gpu_memory_gb` can be set to 40 or 80, respectively, and it will recommend 
-candidate configs that are more suitable to each setting. 
-The `max_training_days` parameter shows how many days this model will be trained for, when 
-training to full convergence. It will be written to the final config YAML files. This parameter can 
-also be used when `model_size_in_b` is set to `null`. The 
-`limit_search_runs` parameter can be used to limit the number of configs that will be searched 
-during the HP search stage. We recommend selecting a value between 30 and 100 for this parameter. 
-AutoConfigurator will probably need to search at least 30 different configs to find the optimal one. However, 
-if the computing resources are available in your cluster, we recommend increasing this parameter to a value close 
-to 100. The `output_top_n` parameter can be used to configure how much details the output summary file 
-will include. By default, when set to 10, it will output the top 10 configurations. The 
-`max_steps_per_run` parameter indicates how many steps to train each configuration for. The 
-`max_minutes_per_run` parameter indicates how long to run each configuration for, in minutes. We 
-recommend using at least 20 minutes per run for the smaller models, and increasing it to over 60 
-minutes for the larger models. The training run will be stopped when either `max_steps_per_run` or 
-`max_minutes_per_run` is reached. The `tflops_per_gpu` parameter provides an estimate of the TFLOPs 
-each GPU can achieve when training large language models with NeMo Megatron. This value is only used to provide an 
-estimate of how long the model will take to train to full convergence, so you can know the time to 
-train before you even begin training your model. The `num_tokens_in_b` parameter indicates how many 
-billions of tokens you will train your model for, when training to full convergence. It will be used 
-when estimating how long it will take to train the model, to the desired number of tokens. The 
-`vocab_size` parameter must show the vocabulary size that will be used during training. The `logs` 
-parameter can be used to configure where the result logs will be saved. By default, this directory 
-will be created inside the `base_results_dir` indicated in the `conf/config.yaml` file. Finally, 
-the `tensor_parallel_sizes`, `pipeline_parallel_sizes`, `min_model_parallel_size`, `max_model_parallel_size`, 
-`micro_batch_sizes`, and `act_ckpt_layers` parameters can be used to override the heuristics that choose 
-the grid search space and the maximum and minimum parallelism allowed for each model. If these are left as `auto`, 
-AutoConfigurator will select appropriate values. However, if you wish to override them, you can use these parameters. 
-For example, if you only wish to search for configurations with Tensor Parallelism (TP) values of 1 and 2, you can set 
-`tensor_parallel_sizes: [1, 2]` and leave the other parameters as `auto`.
-
-In the inference parameters, `gpus_per_node` must be used to tell the system how many GPUs are available in each node. 
-`tensor_parallel_sizes` is used to set the TP values to perform the HP search. `pipeline_parallel_sizes` is used to 
-set the PP values to perform the HP search.  `batch_sizes` is used to set all the possible batch sizes for the HP 
-search. `input_len` can be set to the sequence length of the input that will be passed to the model. `output_len` can 
-be set to the output length that will be produced by the model. 
-
-
-###### 5.3.2.2.2. Base Config Generation
-<a id="markdown-base-config-generation" name="base-config-generation"></a>
-
-Every time we call `python3 main.py`, a base configuration will be generated for the given model, 
-and it will be saved to the `logs` directory indicated in your config files. The base configuration 
-consists of a YAML file that can be run using the NeMo-Megatron training container. However, this 
-base configuration has not yet been optimized to achieve the highest possible throughput, the 
-optimization will take place in the next step (Training HP Search).
-
-
-###### 5.3.2.2.3. Training AutoConfigurator HP Search
-<a id="markdown-training-autoconfigurator-hp-search" name="training-autoconfigurator-hp-search"></a>
-
-
-####### 5.3.2.2.3.1. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-To run the training HP search pipeline, the parameter `run_training_hp_search` must be set to `True` 
-in the `conf/config.yaml` file. The model used to search the best training HPs must be selected 
-using the `search_config` parameter in `conf/config.yaml`. For example, by default, this parameter 
-will be set to `gpt3/5b`, so AutoConfigurator will search the optimal training HPs for a 5B parameter GPT-3 
-model. The configuration for this model can be found in the `conf/search_config/gpt3/5b.yaml` file. 
-To configure the behavior of the HP search, the following parameters can be modified in the 
-correspoinding YAML file. To run the training AutoConfigurator HP search after all the parameters are set, you should call 
-`python3 main.py`.
-
-####### 5.3.2.2.3.2. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-
-To run the HP Tool in BCP, the `cluster_type` parameter must be set to `bcp`. All the parameters can be configured 
-through CLI overrides. For example, to launch a training HP search for the 126m GPT-3 model, run this command:
-```
-python3 /opt/NeMo-Megatron-Launcher/auto_configurator/main.py search_config=gpt3/0.126b run_inference_hp_search=False auto_configurator_path=/opt/NeMo-Megatron-Launcher/auto_configurator data_dir=/mount/data/the_pile_gpt3 base_results_dir=/mount/results/auto_configurator search_config.train_settings.num_nodes=$NGC_ARRAY_SIZE cluster_type=bcp
-```
-
-This command assumes that the dataset directory and the results directory are datasets and workspaces mounted correctly. 
-The user can also override any training parameters, by overriding any parameter in the `search_config` dictionary with the 
-`search_config.train_settings.*` parameter, using hydra overrides. The values that can be overridden are shown below:
-
-
-```yaml
-train_settings:
-  model_size_in_b: 5 # unit in billion parameters
-  num_nodes: 16
-  gpus_per_node: 8
-  gpu_memory_gb: 80  # Memory per GPU, in GB. Currently 40GB and 80GB A100s supported.
-  max_training_days: 5 # unit in days
-  limit_search_runs: 100 # Max number of runs to be launched in parallel for grid search.
-  output_top_n: 10  # The result will print the top N fastest training configs.
-  max_steps_per_run: 50 # Max steps per run for the grid search.
-  max_minutes_per_run: 10 # minutes per run for the grid search.
-  tflops_per_gpu: 140  # Estimated tflops per GPU.
-  num_tokens_in_b: 300  # Unit in billions, typically 300B for GPT3 models.
-  vocab_size: 51200
-  logs: ${base_results_dir}/${search_config_value}_${.gpu_memory_gb}gb  # Example base_results_dir/gpt3/126m
-  tensor_parallel_sizes: auto  # auto to use our recommendation, or a list, such as [1, 2, 4, 8]
-  pipeline_parallel_sizes: auto  # auto to use our recommendation, or a list, such as [1, 2, 4, 8, 10]
-  min_model_parallel_size: auto  # auto to use our recommendation, or a value for the minimum desired parallelism
-  max_model_parallel_size: auto  # auto to use our recommendation, or a value for the maximum desired parallelism
-  micro_batch_sizes: auto  # auto to use our recommendation, or a list, such as [1, 2, 4, 8, 16]
-  act_ckpt_layers: auto  # auto to use our recommendation, or a list, such as [0, 1, 2, 3]
-```
-
-###### 5.3.2.2.4. Inference AutoConfigurator HP Search
-<a id="markdown-inference-autoconfigurator-hp-search" name="inference-autoconfigurator-hp-search"></a>
-
-To run the inference HP search pipeline, the parameter `run_inference_hp_search` must be set to `True`
-in the `conf/config.yaml` file. The model used to search the best inference HPs must be selected
-using the `search_config` parameter in `conf/config.yaml`. For example, by default, this parameter
-will be set to `gpt3/5b`, so AutoConfigurator will search the optimal inference HPs for a 5B parameter GPT-3
-model. The configuration for this model can be found in the `conf/search_config/gpt3/5b.yaml` file.
-To configure the behavior of the HP search, the following parameters can be modified in the
-correspoinding YAML file.
-
-##### 5.3.2.3. Running Custom Model Size Configs
-<a id="markdown-running-custom-model-size-configs" name="running-custom-model-size-configs"></a>
-
-The HP Tool is capable of recommending a model size, based on your hardware and training time 
-constraints. For instance, if you want to train a GPT-3 model, but don't know what model size is 
-appropriate, you can input the number of nodes (and GPUs per node) available in your cluster, 
-the amount of time you want to spend training the model, and AutoConfigurator will recommend a model size
-that can be trained in that time with your hardware. To see an example of this, you can look at 
-the `conf/search_config/gpt3/unknown_size.yaml` file. In this file, the `model_size_in_b` 
-parameter is set to null. This is how you can tell it to recommend a model size to you. 
-For the recommendation to work correctly, the `num_nodes`, `gpus_per_node`, and `max_training_days` 
-parameters must indicate the number of nodes and GPUs per node available, and how long you wish to 
-train the model for. Also, AutoConfigurator needs to know the vocabulary size, number of tokens you will 
-train the model for, and the estimated TFLOPS per GPU your hardware can achieve. These can be 
-modified using the `vocab_size`, `num_tokens_in_b`, and `tflops_per_gpu` parameters, respectively. 
-Once all these parameters are set correctly, and after selecting the `gpt3/unknown_size` as the 
-config to run in the `search_config` parameter in the `conf/config.yaml` file, the training 
-pipeline can be executed calling `python3 main.py`. This will produce a base configuration for 
-the suggested model size. If `run_training_hp_search` or `run_inference_hp_search` are set to
-`True`, it will also search for the HPs for training or inference, using the rest of the
-configuration yaml file as input. AutoConfigurator will behave the same way as when using a predefined config.
-
-##### 5.3.2.4. Interpreting the Results
-<a id="markdown-interpreting-the-results" name="interpreting-the-results"></a>
-
-When AutoConfigurator generates the base configuration for a model, it will be saved inside the directory 
-specified in the `logs` parameter in your config files. By default, this will be 
-`.../results/<model_name>/<model_size>_<gpu_mem_size>/`. As the default 
-`search_config` value is set to `gpt3/5b` and the default `gpu_memory_gb` is set to 80, the results 
-can be found in the `.../results/gpt3/5b_80gb/` directory. The base config will be 
-available inside that directory, with the name `base_cfg_<model_size>.yaml`. 
-
-If the training HP search pipeline is run, the results will be in three different directories inside 
-your `logs` directory. The `candidate_configs` directory contains all the YAML files with all the 
-configurations generated by the HP search. The `training_logs` directory contains all the logs of 
-training each of the individual configs AutoConfigurator generated. If `limit_search_runs` was set to 30, 
-then there should be 30 different directories with the logs for each model. 
-
-Finally, after all the training runs have finished and the final run has analyzed the throughput 
-of each configuration, the final model recommendation will be stored in the `final_results` 
-directory. This directory will contain a log file which lists the `output_top_n` fastest configs, 
-sorted from fastest to slowest. The directory will also contain a csv file with all the results 
-from every config that was run with AutoConfigurator for a given model size. The results will be sorted 
-from highest throughput to slowest throughput. The CSV file also includes information such as the 
-samples per second achieved by each model, the time per global step, the TFLOPS per GPU achieved, 
-and so on. The `final_results` directory will also contain a YAML file, which corresponds to the 
-config with the lowest training time. This is the recommended model for training. 
-
-For the inference HP search, the results can be found inside the directory specified in the
-`results_dir` parameter of the YAML config file. Inside that directory, you will find:
-.../inference/final_summary/final_output.csv.
-This csv file will have the results of every model that was run by the AutoConfigurator HP search.
-
-Notes: 
- - The result of the Training HP Search will vary when it is run with different numbers of nodes. 
- This is mainly caused by the new distributed optimizer, which provides higher memory savings when 
- using more nodes (i.e. higher data parallel value).
-
-##### 5.3.2.5. Logging Runs with Weights and Biases
-<a id="markdown-logging-runs-with-weights-and-biases" name="logging-runs-with-weights-and-biases"></a>
-
-Weights and Biases (W&B) can be used to log all the training search runs. To achieve this, the 
-`wandb` parameters must be modified in the `conf/config.yaml` file. First, `enable` must be set to 
-`True`. Then, the `api_key_file` must be set to point to the path where the file which contains 
-the W&B API key. The API key must be in the first line of that file. Finally, the `project` parameter
-must have the name of the W&B project where the metrics will be stored. The name of each run does not 
-need to be provided. It will be automatically generated by AutoConfigurator, using the model name, model size, 
-and hyper-parameters used for each specific run.
-
-```yaml
-wandb:  # Weights and Biases (W&B) logging.
-    enable: True 
-    api_key_file: null
-    project: nemo-megatron-autoconfig
-```
-
-### 5.4. Training with Custom Configurations
-<a id="markdown-training-with-custom-configurations" name="training-with-custom-configurations"></a>
-
-The training config files can be modified, or other files can be created to be
-used for training. They should follow the same structure and guidelines as the
-existing model configurations.
-
-#### 5.4.1. Example: Changing Embedding Type for T5 Models
-<a id="markdown-example-changing-embedding-time-for-t5-models" name="example-changing-embedding-time-for-t5-models"></a>
-
-Here we show an example to change the embedding type for T5 models. Let's assume a case you want to
-train a 220M T5 model. Instead of using default absolute learnable position embeddings, you 
-want to use relative position embeddings.
-
-First of all, you might want to check the training configuration file in `conf/training/(model_type)/(model_size).yaml`. 
-In this case it will be `conf/training/t5/220m.yaml`. In the configuration file, you can find all the options we support.
-You can find the parameters of your interests, in this case they will be
-```yaml
-position_embedding_type: 'learned_absolute' # Position embedding type. Options ['learned_absolute', 'relative']
-relative_attention_num_buckets: 32 # Relative position number of buckets for computing the bias
-relative_attention_max_distance: 128 # max_distance to keep relative distance in the attention_num_buckets.
-```
-
-For Slurm based systems, you can directly modify the configuration file in line. In this case, you can
-change above three lines into
-```yaml
-position_embedding_type: 'relative' # Position embedding type. Options ['learned_absolute', 'relative']
-relative_attention_num_buckets: 32 # Relative position number of buckets for computing the bias
-relative_attention_max_distance: 128 # max_distance to keep relative distance in the attention_num_buckets.
-```
-and submit the training job.
-
-For BCP, you can override the default configurations by adding argument 
-`training.model.position_embedding_type='relative'` when submitting the training job. 
-
-For more details of submitting training jobs on Slurm and BCP, please check [Section 5.6](#56-model-training). 
-
-### 5.5. Bring Your Own Dataset
-<a id="markdown-bring-your-own-dataset" name="bring-your-own-dataset"></a>
-If you want to train the GPT-3, T5, or mT5 models on your own dataset (which is already
-filtered and cleaned), you must first convert the dataset files to jsonl files.
-
-As discussed in previous sections, the `data_preparation` parameter in `conf/config.yaml` 
-specifies which file to use for data preparation
-configuration purposes. The `data_preparation` parameter needs to be specified as `generic/custom_dataset` for
-bringing your own dataset and `data_preparation` must be included in `stages` to run it. 
-The `custom_dataset` config file can be found in `conf/data_preparation/generic/custom_dataset.yaml`.
-With our scripts, you can train your own tokenizer and preprocess your own dataset into a format
-that can be consumed by our training scripts. 
-
-Custom dataset only supports SentencePiece tokenizers at the moment. You can either train 
-a fresh SentencePiece tokenizer with our scripts or load existing ones.
-
-The data preparation can be parallelized by using multiple nodes (by default 20 nodes) to preprocess 
-all custom dataset files in parallel.
-
-#### 5.5.1. Slurm
-<a id="markdown-451-slurm" name="451-slurm"></a>
-
-First, ensure the cluster related configuration in the `conf/cluster/bcm.yaml` file is correct.
-The `cluster` and `cluster_type` parameters in `conf/config.yaml` must be set to bcm.
-Then, modify the `time_limit` or any other parameter related to the job in the `custom_dataset.yaml`
-file.
-The data preparation can be parallelized by using `nodes * workers_per_node` number of workers (up to one workder for each dataset file).
-
-Example:
-
-To run only the data preparation pipeline and not the training, evaluation or
-inference pipelines, set the `conf/config.yaml` file to:
-```yaml
 stages:
   - data_preparation
 ```
 
-And then run:
+In `multimodal/download_multimodal.yaml`, set the `dataset_repo_id` and the `dataset_output_root` path. 
+Enable the desired sub-stages by setting the `enable` flag, and modify other parameters as needed.
+
+Then run:
 ```
 python3 main.py
 ```
 
-#### 5.5.2. Base Command Platform
-<a id="markdown-452-base-command-platform" name="452-base-command-platform"></a>
+##### 5.2.2.3 Configuration for Precaching
+###### 5.2.2.3.1 General Format
 
-In order to run the data preparation script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. 
-By default, the data preparation script will put the preprocessed data into the `data/` directory.
-We recommend that the `data_dir` parameter is set to a workspace, so that the data 
-is visible across multiple jobs later on. The tokenizer model files should also be 
-stored to the same workspace as the dataset, for later usage. The data preparation code 
-must be launched in a multi-node job. It can be parallelized to use up to number of
-nodes which is equal to the number of custom dataset files for faster preparation of the dataset.
+Precaching refers to the offline computation of image and text encodings prior to training a model. This technique 
+is suitable for any model that uses pretrained, frozen encoders during training. 
+By using precached encodings, embeddings for image and textx do not need to be recomputed in each epoch, 
+thereby significantly improving training throughput (up to 60% higher).
 
-To run the data preparation pipeline, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[data_preparation] \
-cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts
-data_dir=/mount/data \
-base_results_dir=/mount/results data_preparation=custom_dataset \
-dataprepartion.train_tokenizer_args.inp=/path/to/text/file/for/training/tokenizer \
-datapreparation.raw_dataset_files=[/path/to/custom_data_files] \
->> /results/data_custom_dataset_log.txt 2>&1
-```
+Precached encodings are saved in the format of WebDataset. 
+Each tar file contains one pickle file to store all the modality embeddings for each training example. Optionally, 
+the tar file may also include the original image or text files
 
-The command above assumes you mounted the data 
-workspace in `/mount/data`, and the results workspace in `/mount/results`. Stdout and stderr are redirected to the `/results/data_gpt3_log.txt` file, so it can be downloaded from NGC. 
-Any other parameter can also be added to the command to modify its behavior.
-
-#### 5.5.3. Common
-<a id="markdown-453-common" name="453-common"></a>
-
-Set the configuration for the custom data preparation job in the YAML file:
-```yaml
-run:
-  name: custom_dataset
-  results_dir: ${base_results_dir}/${.name}
-  time_limit: "24:00:00"
-  dependency: "singleton"
-  node_array_size: 4
-  cpus_per_node: 256
-  workers_per_node: 4 # Number of workers per node in preprocessing step.
-dataset: custom_dataset
-custom_dataset_dir: ${data_dir}/custom_dataset
-train_tokenizer: True # True to train a sentence piece tokenizer
-train_tokenizer_args: # For all options please check: https://github.com/google/sentencepiece/blob/master/doc/options.md
-   input: null # text file for training tokenizer
-   input_format: "text" # text or tsv
-   model_prefix: "custom_sp_tokenizer"
-   model_type: "bpe" # model algorithm: unigram, bpe, word or char
-   vocab_size: 8000 # Vocabulary size
-   character_coverage: 0.9995 # character coverage to determine the minimum symbols
-   unk_id: 1
-   bos_id: 2
-   eos_id: 3
-   pad_id: 0
-bpe_save_dir: ${.custom_dataset_dir}/bpe # Dir to save sentence piece tokenizer model and vocab files
-
-preprocess_data: True  # True to preprocess the data from json, jsonl or json.gz files, False otherwise.
-raw_dataset_files:
-  - null # Each file should be input json, jsonl or json.gz file
-tokenizer_model: ${.bpe_save_dir}/${data_preparation.train_tokenizer_args.model_prefix}.model # trained SentencePiece tokenizer model
-preprocess_worker_mapping: ${.custom_dataset_dir}/preprocess_mapping
-preprocessed_dir: ${.custom_dataset_dir}/preprocessed
+```text
+t0_r0_0.tar
+|---- 00000.pickle
+|---- 00000.jpg (optional)
+|---- 00000.txt (optional)
+|---- 00001.pickle
+|---- 00001.jpg (optional)
+|---- 00001.txt (optional)
+...
 ```
 
-*Note*: depending on the dataset and system, it's possible that system memory gets OOM with very large dataset shard files. The solution
-to this issue is to reduce dataset shard sizes. If you see similar issue,
-please consider breaking up json, jsonl or json.gz files into smaller chunks before running preprocessing. 
+Each pickle file stores one python dictionary, with key value pairs storing the embedding name and the embedding as a 
+numpy array.
 
+###### 5.2.2.3.2 Precaching Config
 
-### 5.6. Model Training
-<a id="markdown-model-training" name="model-training"></a>
-We provide an easy-to-use yet powerful pipeline to perform distributed training
-of both GPT-3, T5 and mT5 models across multiple nodes and GPUs. We also provide
-well-established recipes for different sizes models, where the
-throughput has been maximized, and the convergence properties of the
-models have been tested and confirmed.
-
-#### 5.6.1. GPT-3 Training
-<a id="markdown-gpt-3-training" name="gpt-3-training"></a>
-The configuration used for the training pipeline must be specified in the
-`conf/config.yaml` file, specifying the training parameter, specifying which file
-to use for training purposes. The `training` must be included in `stages` to
-run the training pipeline. The default value is set to `gpt3/5b`, which can be found
-in `conf/training/gpt3/5b.yaml`. The parameters can be modified to adjust the
-hyperparameters of the training runs. All supported model types and sizes can be found
-in `conf/training` folder.
-
-##### 5.6.1.1. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for your Slurm cluster in the `conf/cluster/bcm.yaml` file:
+Configuration for precaching can be extensive and intricate for some models. To maintain clarity and ensure an
+organized workflow, we utilize a separate YAML file for these configurations.
+An example can be found here: `mulimodal/precache_sd.yaml`.
 
 ```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-
+encodings:
+  - modality: image
+    extension: jpg
+    key: autoencoderkl_image
+    precision: 16
+    encoder_config:
+      cls: nemo.collections.multimodal.models.stable_diffusion.ldm.autoencoder.AutoencoderKL
+      ... (kwargs to initialize the encoder)
+  - modality: text
+    extension: txt
+    key: clip-vit-large-patch14_text
+    precision: 32
+    store_pad_tokens: True 
+    encoder_config:
+      cls: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.FrozenCLIPEmbedder
+      ... (kwargs to initialize the encoder)
 ```
 
-And set the training job specific parameters in the `conf/training/(model_type)/(model_size).yaml` file, 
-using the run section:
+In this YAML file, the `encodings` field specifies a list of embeddings to be saved in the pickle file. 
+Each entry can have the following attributes:
+- `modality`: either image or text
+- `extension`: file extension for this modality in the tar file (e.g. 'jpg', 'txt')
+- `key`: dictionary key for the encoding. 
+It is recommended to follow the format `{model_name}-{model_variant}_{modality}`, if applicable. 
+e.g. `clip-vit-large-patch14_text`
+- `precision`: precision of the stored tensors (32 or 16)
+- `store_pad_tokens`: Whether to store the PAD tokens. Not storing PAD tokens can significantly reduce disk usage, 
+but the training script must account for this. Ignored for image modality.
+- `encoder_config`: This dictionary must contain `cls` which points to the location of the encoder class. 
+The rest of the parameters are treated as kwargs to initiate the encoder class.
+  - Note: the encoder class must implement an `encode` or `__call__` function. If `store_pad_tokens`, this function must 
+return the encoded tensor. Otherwise, this function must return a tuple of (encoded_tensor, text_mask).
+
+Note that it is not required to have only one encoding per modality, if there are multiple encoders. 
+The `encodings` field is designed as a list to account for this. For example, it's possible to have one image embedding 
+from CLIP, one text embedding from CLIP, and a second text embedding from T5. 
+
+###### 5.2.2.3.3 Resume Precaching (Advanced)
+The precaching module is able to launch multiple tasks (as specified by `precache_encodings.node_array_size`) 
+in parallel in order to reduce the time required for each task. In the event of failed or interrupted run, we provide the option
+to resume precaching by specifying the exact `task_id` or range of `task_id`s to re-run. This option eliminates the need
+to rerun the entire precaching process which can be lengthy.
+
+Consider the following two scenarios as examples.
+
+1. Interrupted runs: suppose 100 tasks (0-99) were launched, but tasks 50-99 did not complete before the cluster went
+down. To resume the runs, specify a string in `node_array_size` in 
+`conf/data_preparation/multimodal/download_multimodal.yaml`
 ```yaml
-run:
-    name: gpt3_126m
-    results_dir: ${base_results_dir}/${.name}
-    time_limit: "1-12:00:00"
-    dependency: "singleton"
+precache_encodings:
+  node_array_size: 50-99
+```
+In addition, in `nemo_launcher/collections/dataprep_scripts/multimodal_dataprep/conf/config.yaml`, specify 
+```yaml
+override_task_count: 100
 ```
 
-To run only the training pipeline and not the data preparation, evaluation or
-inference pipelines, set the `conf/config.yaml` file to:
+2. Failed run: suppose 100 tasks (0-99) were launched, but task 67 experienced node failure. 
+To re-run task 67, specify in `conf/data_preparation/multimodal/download_multimodal.yaml`
 ```yaml
+precache_encodings:
+  node_array_size: 1
+```
+In addition, in `nemo_launcher/collections/dataprep_scripts/multimodal_dataprep/conf/config.yaml`, specify 
+```yaml
+override_task_id: 67
+override_task_count: 100
+```
+###### 5.2.2.3.4 Known Issue
+Due to a [Lightning DDP limitation](https://github.com/Lightning-AI/lightning/issues/3325), the precaching module may
+drop about 0.01% to 0.1% of input data. The specific ratio will depend on the cluster configuration, tarfile chunk_size,
+precaching batch_size and dataset size, but will be consistent across runs.
+We anticipate that dropping a small percentage of data will not have a significant impact on model training.
+
+
+#### 5.2.3 Instruct-Pix2Pix
+_Note: It is the responsibility of each user to check the content 
+of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
+Users should review any applicable links associated with the dataset before placing the data on their machine._
+
+To download and prepare the custom dataset used for training Instruct-Pix2Pix, please follow the instruction from 
+the official [Instruct-Pix2Pix](https://github.com/timothybrooks/instruct-pix2pix#generated-dataset) 
+repository.
+
+Move the downloaded data to `${data_dir}/instruct_pix2pix/clip-filtered-dataset`
+
+
+#### 5.2.4 MSCOCO for FID Evaluation
+_Note: It is the responsibility of each user to check the content 
+of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
+Users should review any applicable links associated with the dataset before placing the data on their machine._
+
+For more details on the evaluation workflow, please see Section 5.6.3.
+
+##### 5.2.4.1 Download and Setup
+1. Review the terms of use from the official [COCO](https://cocodataset.org/#download) website.
+2. Download the 2014 validation images, and extract the images to `${data_dir}/fid_evaluation/coco2014/val2014`
+3. Download the 2014 train/val annotations, and extract `captions_val2014.json` to 
+`${data_dir}/fid_evaluation/coco2014/captions_val2014.json`
+4. Review the terms of use of [COCO API](https://github.com/cocodataset/cocoapi), then install the Python API following
+the instructions.
+5. Install the dependencies for the preprocessing script: `pip install matplotlib cython Pillow`
+
+##### 5.2.4.2 Preprocess Images and Captions
+Follow Section 5.1.1 to set up the environment.
+To run the data preparation pipeline for FID evaluation, set the `conf/config.yaml` file to:
+```yaml
+defaults:
+  - data_preparation: fid_evaluation/download_coco2014
+
 stages:
-  - training
-```
-And then run:
-```
-python3 main.py
+  - data_preparation
 ```
 
-##### 5.6.1.2. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
+In `fid_evaluation/download_coco2014`, set the `dataset_output_root` path to a desired location, and specify
+whether to preprocess images and captions.
 
-Select the cluster related configuration following the NGC documentation. 
-Then, use the `python3 main.py` command to launch the job and override the 
-desired parameters from the training job parameters.
-
-
-#### 5.6.2. T5 Training
-<a id="markdown-t5-training" name="t5-training"></a>
-The configuration used for the training pipeline must be specified in the
-`conf/config.yaml` file, specifying the training parameter, specifying which file
-to use for training purposes. The `training` must be included in `stages` to
-run the training pipeline. The `training` parameter needs to be set to `t5/(model_size)`
-for T5 models. For example, one can use `t5/220m` which can be found
-in `conf/training/t5/220m.yaml`. The parameters can be modified to adjust the
-hyperparameters of the training runs. All supported model types and sizes can be found
-in `conf/training` folder.
-
-##### 5.6.2.1. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for your Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-And set the training job specific parameters in the `conf/training/(model_type)/(model_size).yaml` file, 
-using the run section:
-```yaml
-run:
-    name: t5_220m
-    results_dir: ${base_results_dir}/${.name}
-    time_limit: "7-00:00:00"
-    dependency: "singleton"
-```
-
-To run only the training pipeline and not the data preparation, evaluation or
-inference pipelines, set the `conf/config.yaml` file to:
-```yaml
-stages:
-  - training
-```
-And then run:
+Then run:
 ```
 python3 main.py
 ```
 
-##### 5.6.2.2. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-
-Select the cluster related configuration following the NGC documentation. 
-Then, use the python3 main.py command to launch the job and override the 
-desired parameters from the training job parameters.
-
-
-
-#### 5.6.3. mT5 Training
-<a id="markdown-mt5-training" name="mt5-training"></a>
-The configuration used for the training pipeline must be specified in the
-`conf/config.yaml` file, specifying the training parameter, specifying which file
-to use for training purposes. The `training` must be included in `stages` to
-run the training pipeline. The `training` parameter needs to be set to `t5/(model_size)`
-for T5 models. For example, one can use `mt5/390m` which can be found
-in `conf/training/mt5/390m.yaml`. The parameters can be modified to adjust the
-hyperparameters of the training runs. All supported model types and sizes can be found
-in `conf/training` folder.
-
-##### 5.6.3.1. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for your Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-And set the training job specific parameters in the `conf/training/(model_type)/(model_size).yaml` file, 
-using the run section:
-```yaml
-run:
-    name: mt5_390m
-    results_dir: ${base_results_dir}/${.name}
-    time_limit: "7-00:00:00"
-    dependency: "singleton"
-```
-
-To run only the training pipeline and not the data preparation, evaluation or
-inference pipelines, set the `conf/config.yaml` file to:
-```yaml
-stages:
-  - training
-```
-And then run:
-```
-python3 main.py
-```
-
-##### 5.6.3.2. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-
-Select the cluster related configuration following the NGC documentation. 
-Then, use the python3 main.py command to launch the job and override the 
-desired parameters from the training job parameters.
-
-
-#### 5.6.4. BERT Training
-<a id="markdown-bert-training" name="bert-training"></a>
-The configuration used for the training pipeline must be specified in the
-`conf/config.yaml` file, specifying the training parameter, specifying which file
-to use for training purposes. The `training` must be included in `stages` to
-run the training pipeline. The `training` parameter needs to be set to `bert/(model_size)`
-for T5 models. For example, one can use `bert/110m` which can be found
-in `conf/training/bert/110m.yaml`. The parameters can be modified to adjust the
-hyperparameters of the training runs. All supported model types and sizes can be found
-in `conf/training` folder.
-
-##### 5.6.4.1. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for your Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-And set the training job specific parameters in the `conf/training/(model_type)/(model_size).yaml` file, 
-using the run section:
-```yaml
-run:
-    name: bert_110m
-    results_dir: ${base_results_dir}/${.name}
-    time_limit: "7-00:00:00"
-    dependency: "singleton"
-```
-
-To run only the training pipeline and not the data preparation, evaluation or
-inference pipelines, set the `conf/config.yaml` file to:
-```yaml
-stages:
-  - training
-```
-And then run:
-```
-python3 main.py
-```
-
-##### 5.6.4.2. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-
-Select the cluster related configuration following the NGC documentation. 
-Then, use the python3 main.py command to launch the job and override the 
-desired parameters from the training job parameters.
-
-
-### 5.7. Resuming Training with Different Number of Nodes
-<a id="markdown-resuming-training-with-different-number-of-nodes" name="resuming-training-with-different-number-of-nodes"></a>
-
-To be able to resume a training run with a different number of nodes, we recommend to keep
-the global batch size unchanged. This ensures that each training step will be
-almost identical, regardless of the number of nodes. The number of nodes selected must be 
-compatible with the rest of the parameters: GBS must be a multiple of 
-(MBS * num_gpus) / (tensor_parallelism * pipeline parallelism)
-
-where MBS is the micro batch size. For instance, the default GBS for the 5B GPT-3
-model is 1440; the MBS is 2; the number of GPUs is 20\*8 = 160; 
-the `tensor_parallelism` value is set to 2; and the `pipeline_parallelism` value is set to 1.
-Therefore, the GBS is set to a valid value:
-```
-1440 % (2 * 160) / (2 * 1) == 0
-```
-
-
-### 5.8. Checkpoint Conversion
-<a id="markdown-checkpoint-conversion" name="checkpoint-conversion"></a>
-
-We provide a simple tool to convert the checkpoints from `.ckpt` format to `.nemo` format, 
-which will later be used for evaluation (in T5 models) and inference purposes. 
-
-#### 5.8.1. GPT-3 Conversion
-<a id="markdown-gpt-3-conversion" name="gpt-3-conversion"></a>
-
-The configuration used for the checkpoint conversion needs to be specified in the 
-`conf/config.yaml` file, specifying the conversion parameter, which specifies the file 
-to use for conversion purposes. The default value is set to `gpt3/convert_gpt3`, which can be found 
-in `conf/conversion/gpt3/convert_gpt3.yaml` for GPT-3 models. 
-
-The `conversion` must be included in `stages` to run the conversion pipeline.
-
-##### 5.8.1.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the input checkpoint to be used for conversion for GPT-3 models, use the `model` parameters
-in `conf/conversion/convert_gpt3.yaml`:
-```yaml
-model:
-    model_type: gpt # gpt or t5
-    checkpoint_folder: ${conversion.run.train_dir}/results/checkpoints
-    checkpoint_name: latest # latest OR name pattern of a checkpoint (e.g. megatron_gpt-*last.ckpt)
-    hparams_file: ${conversion.run.train_dir}/results/hparams.yaml
-    tensor_model_parallel_size: 2 # 1 for 126m, 2 for 5b, and 8 for 20b or larger models
-    pipeline_model_parallel_size: 1 
-    model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
-    vocab_file: ${data_dir}/bpe/vocab.json
-    merge_file: ${data_dir}/bpe/merges.txt
-```
-
-To specify the output location and file name of the converted `.nemo` file for GPT-3 models, use the `run` parameters
-in `conf/conversion/gpt3/convert_gpt3.yaml`:
-```yaml
-run:
-    name: convert_${conversion.run.model_train_name}
-    nodes: ${divide_ceil:${conversion.model.model_parallel_size}, 8} # 8 gpus per node
-    time_limit: "2:00:00"
-    ntasks_per_node: ${divide_ceil:${conversion.model.model_parallel_size}, ${.nodes}}
-    convert_name: convert_nemo
-    model_train_name: gpt3_5b
-    train_dir: ${base_results_dir}/${.model_train_name}
-    results_dir: ${.train_dir}/${.convert_name}
-    output_path: ${.train_dir}/${.convert_name}
-    nemo_file_name: megatron_gpt.nemo # name of nemo checkpoint; must be .nemo file
-```
-
-##### 5.8.1.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the conversion pipeline and not the data preparation, training, 
-evaluation or inference pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - conversion
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.8.1.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the conversion script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The conversion script must be launched in a multi-node job.
-
-To run the conversion pipeline to convert a 126M checkpoint stored in 
-`/mount/results/gpt3_126m/results/checkpoints`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[conversion] \
-cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_gpt3 \
-base_results_dir=/mount/results conversion.run.model_train_name=gpt3_126m conversion.model.vocab_file=/mount/data/bpe/vocab.json \
-conversion.model.merge_file=/mount/data/bpe/merges.txt conversion.run.results_dir=/mount/results/gpt3_126m/convert_nemo \
-conversion.model.checkpoint_folder=/mount/results/gpt3_126m/results/checkpoints conversion.model.tensor_model_parallel_size=1 \
->> /results/convert_gpt3_log.txt 2>&1
-```
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/convert_gpt3_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-#### 5.8.2. T5 Conversion
-<a id="markdown-t5-conversion" name="t5-conversion"></a>
-
-The configuration used for the checkpoint conversion needs to be specified in the 
-`conf/config.yaml` file, specifying the conversion parameter, which specifies the file 
-to use for conversion purposes. 
-The conversion parameter needs to be set to `t5/convert_t5` for T5 models, which can be found 
-in `conf/conversion/t5/convert_t5.yaml`.
-
-The `conversion` must be included in `stages` to run the conversion pipeline.
-
-##### 5.8.2.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the input checkpoint to be used for conversion for T5 models, use the `model` parameters
-in `conf/conversion/t5/convert_t5.yaml`:
-```yaml
-model:
-    model_type: t5 # gpt or t5
-    checkpoint_folder: ${conversion.run.train_dir}/results/checkpoints
-    checkpoint_name: latest # latest OR name pattern of a checkpoint (e.g. megatron_gpt-*last.ckpt)
-    hparams_file: ${conversion.run.train_dir}/results/hparams.yaml
-    tensor_model_parallel_size: 1 # 1 for 220m, 2 for 3b
-    pipeline_model_parallel_size: 1 
-    model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
-    vocab_file: ${data_dir}/bpe/vocab.txt
-    merge_file: null
-```
-
-To specify the output location and file name of the converted `.nemo` file for T5 models, use the `run` parameters
-in `conf/conversion/t5/convert_t5.yaml`:
-```yaml
-run:
-    name: convert_${conversion.run.model_train_name}
-    nodes: ${divide_ceil:${conversion.model.model_parallel_size}, 8} # 8 gpus per node
-    time_limit: "2:00:00"
-    ntasks_per_node: ${divide_ceil:${conversion.model.model_parallel_size}, ${.nodes}}
-    convert_name: convert_nemo
-    model_train_name: t5_220m
-    train_dir: ${base_results_dir}/${.model_train_name}
-    results_dir: ${.train_dir}/${.convert_name}
-    output_path: ${.train_dir}/${.convert_name}
-    nemo_file_name: megatron_t5.nemo # name of nemo checkpoint; must be .nemo file
-```
-
-##### 5.8.2.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the conversion pipeline and not the data preparation, training, 
-evaluation or inference pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - conversion
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.8.2.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the conversion script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The conversion script must be launched in a multi-node job.
-
-To run the conversion pipeline to convert a T5 220M checkpoint stored in 
-`/mount/results/t5_220m/results/checkpoints`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py conversion=convert_t5 \
-stages=[conversion] \
-cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
-base_results_dir=/mount/results conversion.model.vocab_file=/mount/data/bpe/vocab.txt \
-conversion.run.model_train_name=t5_220m conversion.run.results_dir=/mount/results/t5_220m/results/convert_nemo \
-conversion.model.checkpoint_folder=/mount/results/t5_220m/checkpoints \
-conversion.model.tensor_model_parallel_size=1 conversion.model.pipeline_model_parallel_size=1 \
->> /results/convert_t5_log.txt 2>&1
-```
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/convert_t5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-#### 5.8.3. mT5 Conversion
-<a id="markdown-mt5-conversion" name="mt5-conversion"></a>
-
-The configuration used for the checkpoint conversion needs to be specified in the 
-`conf/config.yaml` file, specifying the conversion parameter, which specifies the file 
-to use for conversion purposes. 
-The conversion parameter needs to be set to `mt5/convert_mt5` for mT5 models, which can be found 
-in `conf/conversion/mt5/convert_mt5.yaml`.
-
-The `conversion` must be included in `stages` to run the conversion pipeline.
-
-##### 5.8.3.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the input checkpoint to be used for conversion for mT5 models, use the `model` parameters
-in `conf/conversion/mt5/convert_mt5.yaml`:
-```yaml
-model:
-  model_type: t5 # gpt or t5, use t5 for mt5 as well
-  checkpoint_folder: ${conversion.run.train_dir}/results/checkpoints
-  checkpoint_name: latest # latest OR name pattern of a checkpoint (e.g. megatron_gpt-*last.ckpt)
-  hparams_file: ${conversion.run.train_dir}/results/hparams.yaml
-  tensor_model_parallel_size: 1 
-  pipeline_model_parallel_size: 1
-  model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
-  vocab_file: null
-  merge_file: null
-  tokenizer_model: ${data_dir}/mc4/bpe/mt5_tokenizer.model
-```
-
-To specify the output location and file name of the converted `.nemo` file for mT5 models, use the `run` parameters
-in `conf/conversion/convert_mt5.yaml`:
-```yaml
-run:
-  name: convert_${conversion.run.model_train_name}
-  nodes: ${divide_ceil:${conversion.model.model_parallel_size}, 8} # 8 gpus per node
-  time_limit: "2:00:00"
-  ntasks_per_node: ${divide_ceil:${conversion.model.model_parallel_size}, ${.nodes}}
-  convert_name: convert_nemo
-  model_train_name: mt5_390m
-  train_dir: ${base_results_dir}/${.model_train_name}
-  results_dir: ${.train_dir}/${.convert_name}
-  output_path: ${.train_dir}/${.convert_name}
-  nemo_file_name: megatron_mt5.nemo # name of nemo checkpoint; must be .nemo file
-```
-
-##### 5.8.3.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the conversion pipeline and not the data preparation, training, 
-evaluation or inference pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - conversion
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.8.3.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the conversion script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The conversion script must be launched in a multi-node job.
-
-To run the conversion pipeline to convert a mT5 390M checkpoint stored in 
-`/mount/results/mt5_390m/results/checkpoints`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py conversion=convert_mt5 \
-stages=[conversion] \
-cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts 
-data_dir=/mount/data \
-conversion.run.model_train_name=mt5_390m \
-base_results_dir=/mount/results conversion.run.results_dir=/mount/results/mt5_390m/results/convert_nemo \
-conversion.model.checkpoint_folder=/mount/results/mt5_390m/checkpoints \
-conversion.model.tensor_model_parallel_size=1 conversion.model.pipeline_model_parallel_size=1 \
->> /results/convert_mt5_log.txt 2>&1
-```
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/convert_mt5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-### 5.9. Model Fine-tuning
-<a id="markdown-model-fine_tuning" name="model-fine_tuning"></a>
-
-We also provide an easy-to-use tool to help fine-tuning the trained checkpoints
-on SQuAD for T5 models and on XQuAD for mT5 models. Fine-tuning for GPT-3 models is not supported.
-
-#### 5.9.1. T5 Fine-tuning
-<a id="markdown-t5-fine_tuning" name="t5-fine_tuning"></a>
-
-
-The configuration used for the fine-tuning needs to be specified in the
-`conf/config.yaml` file, specifying the `fine_tuning` parameter, which specifies the
-file to use for fine-tuning purposes. The `fine_tuning` parameter must be included in `stages` 
-to run the fine-tuning pipeline. To fine-tune checkpoint on `squad` task, set
-`fine_tuning` parameter to `t5/squad`, which can be found in `conf/fine_tuning/t5/squad.yaml`. The
-parameters can be modified to adapt different GLUE tasks and checkpoints
-in fine-tuning runs. One will need to tune the fine-tuning hyper parameters
-to reach the best accuracy for a specific GLUE task. The provided hyper parameters
-are only optimized for T5 220M model on `squad` task.
-
-##### 5.9.1.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the configuration for what tasks to run for fine_tuning, 
-use the `run.task_name` parameter. 
-And use all the `run` parameters to define the job specific config:
-```yaml
-run:
-    name: ${.task_name}_${.model_train_name}
-    time_limit: "04:00:00"
-    dependency: "singleton"
-    convert_name: convert_nemo
-    model_train_name: t5_220m
-    task_name: "squad"
-    results_dir: ${base_results_dir}/${.model_train_name}/${.task_name}
-```
-
-To specify which model checkpoint to load and its definition, use the `model` parameter:
-
-```yaml
-model:
-    restore_from_path: ${base_results_dir}/${fine_tuning.run.model_train_name}/${fine_tuning.run.convert_name}/megatron_t5.nemo # Path to a trained T5 .nemo file
-    tensor_model_parallel_size: 1
-    pipeline_model_parallel_size: 1
-```
-
-##### 5.9.1.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the evaluation pipeline and not the data preparation, training, 
-conversion or inference pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - fine_tuning
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.9.1.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the fine-tuning script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The evaluation script must be launched in a multi-node job.
-
-To run the fine-tuning pipeline to fine-tune a 220M T5 model converted checkpoint stored in 
-/mount/results/t5_220m/convert_nemo, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py fine_tuning=t5/squad stages=[fine_tuning] \
- cluster_type=bcp \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data base_results_dir=/mount/results \
-fine_tuning.run.model_train_name=t5_220m \
-fine_tuning.model.restore_from_path=/mount/results/t5_220m/convert_nemo/results/megatron_t5.nemo \
->> /results/finetune_t5_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in /mount/data, and the results workspace in /mount/results. 
-The stdout and stderr outputs will also be redirected to the /results/finetune_t5_log.txt file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-
-
-#### 5.9.2. mT5 Fine-tuning
-<a id="markdown-mt5-fine_tuning" name="mt5-fine_tuning"></a>
-
-XQuAD benchmark are supported for mT5 models.
-
-The configuration used for the fine-tuning needs to be specified in the
-`conf/config.yaml` file, specifying the `fine_tuning` parameter, which specifies the
-file to use for fine-tuning purposes. The `fine_tuning` parameter must be included in `stages` 
- to run the fine-tuning pipeline. To fine-tune checkpoint on `xquad` task, set
-`fine_tuning` parameter to `mt5/xquad`, which can be found in `conf/fine_tuning/mt5/xquad.yaml`.
-
-##### 5.9.2.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the configuration for what tasks to run for fine-tuning, 
-use the `run.task_name` parameter. 
-And use all the `run` parameters to define the job specific config:
-```yaml
-run:
-  name: ${.task_name}_${.model_train_name}
-  time_limit: "04:00:00"
-  dependency: "singleton"
-  convert_name: convert_nemo
-  model_train_name: mt5_220m
-  task_name: "xquad"
-  results_dir: ${base_results_dir}/${.model_train_name}/${.task_name}
-```
-
-To specify which model checkpoint to load and its definition, use the `model` parameter:
-
-```yaml
-model:
-  restore_from_path: ${base_results_dir}/${fine_tuning.run.model_train_name}/${fine_tuning.run.convert_name}/megatron_mt5.nemo # Path to a trained mt5 .nemo file
-  tensor_model_parallel_size: 1
-  pipeline_model_parallel_size: 1
-```
-
-##### 5.9.2.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the evaluation pipeline and not the data preparation, training, 
-conversion or inference pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - fine_tuning
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.9.2.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the fine-tuning script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The evaluation script must be launched in a multi-node job.
-
-To run the fine-tuning pipeline to fine-tune a 390M mT5 model converted checkpoint stored in 
-/mount/results/mt5_390m/convert_nemo, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py  fine_tuning=mt5/xquad stages=[fine_tuning] \
- cluster_type=bcp \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data base_results_dir=/mount/results \
-fine_tuning.run.model_train_name=mt5_390m \
-fine_tuning.model.restore_from_path=/mount/results/mt5_390m/convert_nemo/results/megatron_mt5_xquad.nemo \
->> /results/finetune_mt5_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in /mount/data, and the results workspace in /mount/results. 
-The stdout and stderr outputs will also be redirected to the /results/finetune_mt5_log.txt file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-#### 5.9.3. Fine-tuning on Custom Tasks
-<a id="markdown-fine-tuning-on-custom-tasks" name="fine-tuning-on-custom-tasks"></a>
-We also support fine-tuning on custom down-stream tasks in T5 and mT5. In order to benchmark on your own
-dataset, you are required to split the original dataset into two files, i.e. a txt file corresponding to the 
-source (context) data, and txt file corresponding to the target data. Each line of these two files forms a 
-fine-tuning sample.
-
-Custom fine-tuning configuration files can be found in `conf/fine_tuning/t5/custom_task.yaml` for T5 models
-and `conf/fine_tuning/mt5/custom_task.yaml` for mT5 models. The essential parameters are listed below. You need
-to specify the dataset paths and preferred benchmark metrics.
-```yaml
-  data:
-    train_ds:
-      src_file_name: ??? # Path to the txt file corresponding to the source data.
-      tgt_file_name: ??? # Path to the txt file corresponding to the target data.
-
-    validation_ds:
-      src_file_name: ??? # Path to the txt file corresponding to the source data.
-      tgt_file_name: ??? # Path to the txt file corresponding to the target data.
-      metric:
-        name: "exact_string_match" # Name of the evaluation metric to use.
-        average: null # Average the metric over the dataset. Options: ['macro', 'micro']. Works only for 'F1', 'accuracy' etc. Refer to torchmetrics for metrics where this is supported.
-        num_classes: null
-```
-You can follow the instructions in T5 and mT5 fine-tuning sections to submit a custom task job.
-
-
-
-### 5.10. Model Prompt Learning
-<a id="markdown-model-prompt-learning" name="model-prompt-learning"></a>
-
-
-Within NeMo Megatron we refer to **p-tuning** and **prompt tuning** methods collectively as prompt
-learning. Both methods are parameter efficient alternatives to fine-tuning pretrained language
-models. Our NeMo implementation makes it possible to use one pretrained GPT-3, T5 or mT5 models on many downstream
-tasks without needing to tune the model's full set of parameters. It also allows for adding new tasks
-to your model without overwriting or disrupting previous tasks for which the model has already been
-p-tuned/prompt-tuned. Because the original model parameters are frozen and never altered by either
-method, p-tuning/prompt-tuning also avoid cartographic forgetting issues often encountered when
-fine-tuning models. 
-
-Instead of selecting discrete text prompts in a manual or automated fashion, prompt tuning and p-tuning utilize virtual prompt embeddings that can be optimized via gradient decent. The only difference between prompt tuning and p-tuning within NeMo-Megatron is the architecture used to tune the soft prompt tokens during training.
-
-- Our prompt tuning implementation is based off Lester et. al’s EMNLP 2021 paper "[The Power of Scale for Parameter-Efficient Prompt Tuning](https://arxiv.org/abs/2104.08691)"
-- Our p-tuning implementation is based off Liu et al's paper "[GPT Understands, Too](https://arxiv.org/abs/2103.10385)"
-
-For more details of our implementation, please check [Prompt Learning](https://docs.nvidia.com/deeplearning/nemo/user-guide/docs/en/stable/nlp/nemo_megatron/prompt_learning.html) in NeMo.
-
-
-#### 5.10.1. GPT-3 Prompt Learning
-<a id="markdown-gpt-3-prompt-learning" name="gpt-3-prompt-learning"></a>
-
-SQuAD v1.1 benchmark is supported for prompt learning. With default prompt learning config file, 
-our scripts will download and preprocess original SQuAD v1.1 dataset to prompt learning dataset format.
-You can also bring your own task dataset as long as it has been processed into the prompt learning dataset 
-format.
-
-The configuration used for the prompt learning needs to be defined in the
-`conf/config.yaml` file by modifying the `prompt_learning` parameter, which specifies the
-file to use for prompt learning purposes. The `prompt_learning` parameter must be included
-in `stages` to run the prompt learning pipeline. To prompt learning on `squad` task, set
-`prompt_learning` parameter to `gpt3/squad`, which can be found in `conf/prompt_learning/gpt3/squad.yaml`. It is possible to use optimizations such as sequence-parallelism from the base GPT model while prompt-learning as well. To enable this, set `model.sequence_sequence_parallel=True`.
-
-##### 5.10.1.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the configuration for prompt learning, 
-use all the `run` parameters to define the job specific config:
-```yaml
-run:
-  name: ${.task_name}_${.model_train_name}
-  time_limit: "04:00:00"
-  dependency: "singleton"
-  convert_name: convert_nemo
-  model_train_name: gpt3_5b
-  task_name: "squad"
-  results_dir: ${base_results_dir}/${.model_train_name}/prompt_learning_${.task_name}
-```
-
-To specify which language model checkpoint to load and its definition, use the `model` parameter:
-
-```yaml
-model:
-  language_model_path: ${base_results_dir}/${prompt_learning.run.model_train_name}/${prompt_learning.run.convert_name}/megatron_gpt.nemo # Restore lanugage model from pre-trained .nemo checkpoint
-  tensor_model_parallel_size: 1
-  pipeline_model_parallel_size: 1
-```
-
-##### 5.10.1.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: 1
-gpus_per_node: null
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the prompt learning pipeline and not the data preparation, training, 
-conversion or other pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - prompt_learning
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.10.1.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the prompt learning script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The evaluation script must be launched in a multi-node job.
-
-To run the prompt learning pipeline to prompt-learn a 5B GPT-3 model converted checkpoint stored in 
-`/mount/results/gpt3_5b/convert_nemo`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py prompt_learning=gpt3/squad \
-stages=[prompt_learning] cluster_type=bcp \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data base_results_dir=/mount/results \
-prompt_learning.run.model_train_name=gpt3_5b \
-prompt_learning.model.language_model_path=/mount/results/gpt3_5b/convert_nemo/results/megatron_gpt.nemo \
->> /results/prompt_learning_gpt3_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/prompt_learning_gpt3_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-#### 5.10.2. T5 and mT5 Prompt Learning
-<a id="markdown-t5-and-mt5-prompt-learning" name="t5-and-mt5-prompt-learning"></a>
-
-The configuration used for the prompt learning needs to be defined in the
-`conf/config.yaml` file by modifying the `prompt_learning` parameter, which specifies the
-file to use for prompt learning purposes. The `prompt_learning` parameter must be included
-in `stages` to run the prompt learning pipeline. To prompt learning on `squad` task, set
-`prompt_learning` parameter to `t5/squad`, which can be found in `conf/prompt_learning/t5/squad.yaml` for T5 models
-(or `mt5/squad`, which can be found in `conf/prompt_learning/mt5/squad.yaml` for mT5 models). 
-
-##### 5.10.2.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the configuration for prompt learning, 
-use all the `run` parameters to define the job specific config:
-```yaml
-run:
-  name: ${.task_name}_${.model_train_name}
-  time_limit: "04:00:00"
-  dependency: "singleton"
-  convert_name: convert_nemo
-  model_train_name: t5_220m # or mt5_390m
-  task_name: "squad"
-  results_dir: ${base_results_dir}/${.model_train_name}/prompt_learning_${.task_name}
-```
-
-To specify which language model checkpoint to load and its definition, use the `model` parameter:
-
-```yaml
-model:
-  language_model_path: ${base_results_dir}/${prompt_learning.run.model_train_name}/${prompt_learning.run.convert_name}/megatron_t5.nemo # or megatron_mt5.nemo
-  tensor_model_parallel_size: 1
-  pipeline_model_parallel_size: 1
-```
-
-##### 5.10.2.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: 1
-gpus_per_node: null
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the prompt learning pipeline and not the data preparation, training, 
-conversion or other pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - prompt_learning
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.10.2.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the prompt learning script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The evaluation script must be launched in a multi-node job.
-
-To run the prompt learning pipeline to prompt-learn a 220M T5 model converted checkpoint stored in 
-`/mount/results/t5_220m/convert_nemo`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py prompt_learning=t5/squad \
-stages=[prompt_learning] cluster_type=bcp \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts  data_dir=/mount/data base_results_dir=/mount/results \
-prompt_learning.run.model_train_name=t5_220m \
-prompt_learning.model.language_model_path=/mount/results/t5_220m/convert_nemo/results/megatron_t5.nemo \
->> /results/prompt_learning_t5_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/prompt_learning_t5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-To run the prompt learning pipeline to prompt-learn a 390M mT5 model converted checkpoint stored in 
-`/mount/results/mt5_390m/convert_nemo`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py prompt_learning=mt5/squad \
-stages=[prompt_learning] cluster_type=bcp \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data base_results_dir=/mount/results \
-prompt_learning.run.model_train_name=mt5_390m \
-prompt_learning.model.language_model_path=/mount/results/t5_220m/convert_nemo/results/megatron_mt5.nemo \
->> /results/prompt_learning_mt5_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/prompt_learning_mt5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-
-### 5.11. Model Adapter Learning and IA3 Learning
-<a id="markdown-model-adapter-learning" name="model-adapter-learning"></a>
-
-
-NeMo Megatron supports Adapter Learning and Infused Adapter by Inhibiting and Amplifying Inner Activations (IA3) learning. Both methods are parameter-efficient alternatives to fine-tuning pretrained language
-models. Our NeMo implementation makes it possible to use one pretrained GPT-3 or T5 models on many downstream
-tasks without tuning the model's full set of parameters. Because the original model parameters are frozen and never altered by either
-method, these also avoid cartographic forgetting issues often encountered when fine-tuning models. 
-
-Unlike prompt-learning and p-tuning, Adapter learning and IA3 do not insert virtual prompts into the input. Adapter learning introduces feedforward layers within the core transformer architecture which are updated for specific downstream tasks. IA3 adds even fewer parameters that simply scale the hidden representations in the transformer layer, these scaling parameters can be trained for specific downstream tasks.
-
-- Our Adapter learning implementation for GPT3 and T5 is based of "[Parameter-Efficient Transfer Learning for NLP](https://arxiv.org/pdf/1902.00751.pdf)"
-- Our IA3 implementation is based of "[Few-Shot Parameter-Efficient Fine-Tuning is Better
-and Cheaper than In-Context Learning](https://arxiv.org/pdf/2205.05638.pdf)". Note that the paper proposes a recipe called *t-few* which also introduces an unlikelihood loss function and a continued training procedure. Our IA3 implementation does not support these additions and only focuses on the core architectural change.
-
-
-#### 5.11.1. GPT-3 Adapter Learning and IA3 Learning
-<a id="markdown-gpt-3-adapter-learning" name="gpt-3-adapter-learning"></a>
-
-SQuAD v1.1 benchmark is supported for Adapter learning and IA3. With default adapter learning and IA3 config file, 
-our scripts will download and preprocess original SQuAD v1.1 dataset to adapter learning and IA3 dataset format 
-(the same format as prompt learning).
-You can also bring your own task dataset as well.
-
-The configuration used for the adapter learning needs to be defined in the
-`conf/config.yaml` file by modifying the `adapter_learning` parameter, which specifies the
-file to use for adapter learning purposes. The `adapter_learning` parameter must be included
-in `stages` to run the adapter learning pipeline. To adapter learning on `squad` task, set
-`adapter_learning` parameter to `gpt3/squad`, which can be found in `conf/adapter_learning/gpt3/squad.yaml`.
-
-IA3 learning can be defined in the same way inside
-`conf/config.yaml` file by modifying the `ia3_learning` parameter, which specifies the
-file to use for IA3 learning purposes. The `ia3_learning` parameter must be included
-in `stages` to run the IA3 learning pipeline. To IA3 learning on `squad` task, set
-`ia3_learning` parameter to `gpt3/squad`, which can be found in `conf/ia3_learning/gpt3/squad.yaml`.
-
-##### 5.11.1.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the configuration for adapter learning (or IA3 learning), 
-use all the `run` parameters to define the job specific config:
-```yaml
-run:
-  name: ${.task_name}_${.model_train_name}
-  time_limit: "04:00:00"
-  dependency: "singleton"
-  convert_name: convert_nemo
-  model_train_name: gpt3_5b
-  task_name: "squad"
-  results_dir: ${base_results_dir}/${.model_train_name}/adapter_learning_${.task_name} # or ia3_learning
-```
-
-To specify which language model checkpoint to load and its definition, use the `model` parameter:
-
-```yaml
-model:
-  language_model_path: ${base_results_dir}/${adapter_learning.run.model_train_name}/${adapter_learning.run.convert_name}/megatron_gpt.nemo # # or ia3_learning
-  tensor_model_parallel_size: 1
-  pipeline_model_parallel_size: 1
-```
-
-##### 5.11.1.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: 1
-gpus_per_node: null
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the adapter learning pipeline and not the data preparation, training, 
-conversion or other pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - adapter_learning # or ia3_learning
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.11.1.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the adapter learning script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The evaluation script must be launched in a multi-node job.
-
-To run the adapter learning pipeline to adapter-learn a 5B GPT-3 model converted checkpoint stored in 
-`/mount/results/gpt3_5b/convert_nemo`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py adapter_learning=gpt3/squad \
-stages=[adapter_learning] cluster_type=bcp \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts  data_dir=/mount/data base_results_dir=/mount/results \
-adapter_learning.run.model_train_name=gpt3_5b \
-adapter_learning.model.language_model_path=/mount/results/gpt3_5b/convert_nemo/results/megatron_gpt.nemo \
->> /results/adapter_learning_gpt3_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/adapter_learning_gpt3_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-To run the IA3 learning pipeline ro IA3-learn a 5B GPT-3 model converted checkpoint stored in 
-`/mount/results/gpt3_5b/convert_nemo`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py ia3_learning=gpt3/squad \
-stages=[ia3_learning] cluster_type=bcp \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data base_results_dir=/mount/results \
-ia3_learning.run.model_train_name=gpt3_5b \
-ia3_learning.model.language_model_path=/mount/results/gpt3_5b/convert_nemo/results/megatron_gpt.nemo \
->> /results/ia3_learning_gpt3_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/ia3_learning_gpt3_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-#### 5.11.2. T5 Adapter Learning and IA3 Learning
-<a id="markdown-t5-and-mt5-adapter-learning" name="t5-and-mt5-adapter-learning"></a>
-
-The configuration used for the adapter learning needs to be defined in the
-`conf/config.yaml` file by modifying the `adapter_learning` parameter, which specifies the
-file to use for adapter learning purposes. The `adapter_learning` parameter must be included
-in `stages` to run the adapter learning pipeline. To adapter learning on `squad` task, set
-`adapter_learning` parameter to `t5/squad`, which can be found in `conf/adapter_learning/t5/squad.yaml` for T5 models.
-
-IA3 learning can be defined in the same way inside
-`conf/config.yaml` file by modifying the `ia3_learning` parameter, which specifies the
-file to use for IA3 learning purposes. The `ia3_learning` parameter must be included
-in `stages` to run the IA3 learning pipeline. To IA3 learning on `squad` task, set
-`ia3_learning` parameter to `t5/squad`, which can be found in `conf/adapter_learning/t5/squad.yaml` for T5 models.
-
-##### 5.11.2.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the configuration for adapter learning (or IA3 learning), 
-use all the `run` parameters to define the job specific config:
-```yaml
-run:
-  name: ${.task_name}_${.model_train_name}
-  time_limit: "04:00:00"
-  dependency: "singleton"
-  convert_name: convert_nemo
-  model_train_name: t5_220m
-  task_name: "squad"
-  results_dir: ${base_results_dir}/${.model_train_name}/adapter_learning_${.task_name} # or ia3_learning
-```
-
-To specify which language model checkpoint to load and its definition, use the `model` parameter:
-
-```yaml
-model:
-  language_model_path: ${base_results_dir}/${adapter_learning.run.model_train_name}/${adapter_learning.run.convert_name}/megatron_t5.nemo # or ia3_learning
-  tensor_model_parallel_size: 1
-  pipeline_model_parallel_size: 1
-```
-
-##### 5.11.2.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: 1
-gpus_per_node: null
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the adapter learning pipeline and not the data preparation, training, 
-conversion or other pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - adapter_learning # or ia3_learning
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.11.2.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the adapter learning script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The evaluation script must be launched in a multi-node job.
-
-To run the adapter learning pipeline to adapter-learn a 220M T5 model converted checkpoint stored in 
-`/mount/results/t5_220m/convert_nemo`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py adapter_learning=t5/squad \
-stages=[adapter_learning] cluster_type=bcp \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data base_results_dir=/mount/results \
-adapter_learning.run.model_train_name=t5_220m \
-adapter_learning.model.language_model_path=/mount/results/t5_220m/convert_nemo/results/megatron_t5.nemo \
->> /results/adapter_learning_t5_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/adapter_learning_t5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-To run the IA3 learning pipeline to IA3-learn a 220M T5 model converted checkpoint stored in 
-`/mount/results/t5_220m/convert_nemo`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py ia3_learning=t5/squad \
-stages=[ia3_learning] cluster_type=bcp \
-launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data base_results_dir=/mount/results \
-ia3_learning.run.model_train_name=t5_220m \
-ia3_learning.model.language_model_path=/mount/results/t5_220m/convert_nemo/results/megatron_t5.nemo \
->> /results/ia3_learning_t5_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/ia3_learning_t5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-
-### 5.12. Model Evaluation
-<a id="markdown-model-evaluation" name="model-evaluation"></a>
-
-#### 5.12.1. GPT-3 Evaluation
-<a id="markdown-gpt-3-evaluation" name="gpt-3-evaluation"></a>
-
-We also provide a simple tool to help evaluate the trained checkpoints. You can
-evaluate the capabilities of the GPT-3 model on the following ZeroShot
-downstream evaluation tasks: `lambada`, `boolq`, `race`, `piqa`, `hellaswag`, `winogrande`,
-`wikitext2`, and `wikitext103`.
-
-The model evaluation must be performed using a training checkpoint (.ckpt format), not
-a converted checkpoint (`.nemo` format).
-
-The configuration used for the evaluation needs to be specified in the
-`conf/config.yaml` file, specifying the `evaluation` parameter, which specifies the
-file to use for evaluation purposes. The `evaluation` parameter must be included in `stages`
- to run the evaluation pipeline. The default value is set to
-`gpt3/evaluate_all`, which can be found in `conf/evaluation/gpt3/evaluate_all.yaml`. The
-parameters can be modified to adapt different evaluation tasks and checkpoints
-in evaluation runs. For Base Command Platform, all these parameters should be overridden from the command line.
-
-##### 5.12.1.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the configuration for what tasks to run for evaluation, use the `run.tasks` parameter. 
-And use all the `run` parameters to define the job specific config:
-```yaml
-run:
-    name: ${.eval_name}_${.model_train_name}
-    time_limit: "4:00:00"
-    nodes: ${divide_ceil:${evaluation.model.model_parallel_size}, 8} # 8 gpus per node
-    ntasks_per_node: ${divide_ceil:${evaluation.model.model_parallel_size}, ${.nodes}}
-    eval_name: eval_all
-    model_train_name: gpt3_5b
-    train_dir: ${base_results_dir}/${.model_train_name}
-    tasks: all_tasks    # supported: lambada, boolq, race, piqa, hellaswag, winogrande, wikitext2, wikitext103 OR all_tasks
-    results_dir: ${base_results_dir}/${.model_train_name}/${.eval_name}
-```
-
-To specify which model checkpoint to load and its definition, use the `model` parameter:
-
-```yaml
-model:
-    model_type: nemo-gpt3
-    checkpoint_folder: ${evaluation.run.train_dir}/results/checkpoints
-    checkpoint_name: latest # latest OR name pattern of a checkpoint (e.g. megatron_gpt-*last.ckpt)
-    hparams_file: ${evaluation.run.train_dir}/results/hparams.yaml
-    tensor_model_parallel_size: 2 #1 for 126m, 2 for 5b, 8 for 20b
-    pipeline_model_parallel_size: 1
-    model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
-    precision: bf16 # must match training precision - 32, 16 or bf16
-    eval_batch_size: 4
-    vocab_file: ${data_dir}/bpe/vocab.json
-    merge_file: ${data_dir}/bpe/merges.txt
-```
-
-##### 5.12.1.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the evaluation pipeline and not the data preparation, training, 
-conversion or inference pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - evaluation
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.12.1.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the evaluation script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The evaluation script must be launched in a multi-node job.
-
-To run the evaluation pipeline to evaluate a 126M GPT-3 model checkpoint stored in 
-`/mount/results/gpt3_126m/checkpoints`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[evaluation] \
- cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_gpt3 \
-base_results_dir=/mount/results evaluation.model.vocab_file=/mount/data/bpe/vocab.json \
-evaluation.model.merge_file=/mount/data/bpe/merges.txt evaluation.run.results_dir=/mount/results/gpt3_126m/evaluation \
-evaluation.model.checkpoint_folder=/mount/results/gpt3_126m/results/checkpoints evaluation.model.eval_batch_size=16 \
-evaluation.model.tensor_model_parallel_size=1 \
->> /results/eval_gpt3_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/eval_gpt3_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-
-#### 5.12.2. T5 Evaluation
-<a id="markdown-t5-evaluation" name="gpt-3-evaluation"></a>
-
-
-On top of fine-tuned checkpoint, you can run the evaluation scripts to
-evaluate the capabilities of the finetuned T5 model on SQuAD.
-The model evaluation must be performed with a fine-tuned checkpoint in `.nemo` format.
-
-The configuration used for the evaluation needs to be specified in the
-`conf/config.yaml` file, specifying the `evaluation` parameter, which specifies the
-file to use for evaluation purposes. The `evaluation` parameter must be included in `stages`
- to run the evaluation pipeline. The default value is set to
-`t5/squad`, which can be found in `conf/evaluation/t5/squad.yaml`. The
-parameters can be modified to adapt different evaluation tasks and checkpoints
-in evaluation runs. For Base Command Platform, all these parameters should be overridden from the command line.
-
-
-##### 5.12.2.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the configuration for what tasks to run for evaluation, use the `run.task_name` parameter. 
-And use all the `run` parameters to define the job specific config: 
-```yaml
-run:
-    name: eval_${.task_name}_${.model_train_name}
-    time_limit: "04:00:00"
-    dependency: "singleton"
-    model_train_name: t5_220m
-    task_name: "squad"
-    fine_tuning_results_dir: ${base_results_dir}/${.model_train_name}/${.task_name}
-    results_dir: ${base_results_dir}/${.model_train_name}/${.task_name}_eval
-```
-
-To specify which fine-tuned checkpoint to load and its definition, use the `model` parameter:
-
-```yaml
-model:
-    restore_from_path: ${evaluation.run.fine_tuning_results_dir}/checkpoints/megatron_t5_glue.nemo # Path to a finetuned T5 .nemo file
-    tensor_model_parallel_size: 1
-    pipeline_model_parallel_size: 1
-```
-
-##### 5.12.2.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the evaluation pipeline and not the data preparation, training, 
-conversion or inference pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - evaluation
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.12.2.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the evaluation script on Base Command Platform for T5 models, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The evaluation script must be launched in a multi-node job.
-
-To run the evaluation pipeline to evaluate a 220M T5 model which has been fine-tuned
-on `squad` task and checkpoint stored in `/mount/results/t5_220m/squad/results/checkpoints`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py evaluation=t5/squad \
-stages=[evaluation] \
- cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts  data_dir=/mount/data \
-base_results_dir=/mount/results evaluation.run.model_train_name=t5_220m \
-evaluation.model.restore_from_path=/mount/results/t5_220m/squad/results/checkpoints/megatron_t5_glue.nemo \
->> /results/eval_t5_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/eval_t5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-
-#### 5.12.3. mT5 Evaluation
-<a id="markdown-mt5-evaluation" name="mt5-evaluation"></a>
-
-
-On top of fine-tuned checkpoint, you can run the evaluation scripts to
-evaluate the capabilities of the finetuned mT5 model on the following 
-downstream evaluation tasks: `xquad`. Usually the task of fine-tuning and evaluation
-should be the same.
-
-The model evaluation must be performed with a fine-tuned checkpoint in `.nemo` format.
-
-The configuration used for the evaluation needs to be specified in the
-`conf/config.yaml` file, specifying the `evaluation` parameter, which specifies the
-file to use for evaluation purposes. The `evaluation` parameter must be included in `stages`
- to run the evaluation pipeline. The default value is set to
-`mt5/xquad`, which can be found in `conf/evaluation/mt5/xquad.yaml`. The
-parameters can be modified to adapt different evaluation tasks and checkpoints
-in evaluation runs. For Base Command Platform, all these parameters should be overridden from the command line.
-
-
-##### 5.12.3.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the configuration for what tasks to run for evaluation, use the `run.task_name` parameter. 
-And use all the `run` parameters to define the job specific config: 
-```yaml
-run:
-    name: eval_${.task_name}_${.model_train_name}
-    time_limit: "04:00:00"
-    dependency: "singleton"
-    model_train_name: mt5_390m
-    task_name: "xquad"
-    fine_tuning_results_dir: ${base_results_dir}/${.model_train_name}/${.task_name}
-    results_dir: ${base_results_dir}/${.model_train_name}/${.task_name}_eval
-```
-
-To specify which fine-tuned checkpoint to load and its definition, use the `model` parameter:
-
-```yaml
-model:
-    restore_from_path: ${evaluation.run.fine_tuning_results_dir}/checkpoints/megatron_mt5_xquad.nemo # Path to a finetuned T5 .nemo file
-    tensor_model_parallel_size: 1
-    pipeline_model_parallel_size: 1
-```
-
-##### 5.12.3.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the evaluation pipeline and not the data preparation, training, 
-conversion or inference pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - evaluation
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.12.3.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the evaluation script on Base Command Platform for mT5 models, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The evaluation script must be launched in a multi-node job.
-
-To run the evaluation pipeline to evaluate a 390M mT5 model which has been fine-tuned
-on `xquad` task and checkpoint stored in `/mount/results/mt5_390m/xquad/results/checkpoints`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py evaluation=mt5/xquad \
-stages=[evaluation] cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data \
-base_results_dir=/mount/results evaluation.run.model_train_name=mt5_390m \
-evaluation.model.restore_from_path=/mount/results/mt5_390m/xquad/results/checkpoints/megatron_mt5_xquad.nemo \
->> /results/eval_mt5_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/eval_mt5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-
-#### 5.12.4. Prompt Learned GPT-3 Evaluation
-<a id="markdown-prompt-learned-gpt-3-evaluation" name="prompt-learned-gpt-3-evaluation"></a>
-
-We also provide a simple tool to help evaluate the prompt learned GPT-3 checkpoints. You can
-evaluate the capabilities of the prompt learned GPT-3 model on a customized prompt learning test dataset.
-We provide an example to evaluate our checkpoint, which went through prompt learning on SQuAD v1.1,
-on the SQuAD v1.1 test dataset created in prompt learning step.
-
-The configuration used for the evaluation needs to be defined in the
-`conf/config.yaml` file by modifying the `evaluation` parameter, which specifies the
-file to be used for evaluation purposes. The `evaluation` parameter must be included in `stages`
- to run the evaluation pipeline. The value should be set to
-`prompt_gpt3/squad.yaml`, which can be found in `conf/evaluation/prompt_gpt3/squad.yaml`. The
-parameters can be modified to adapt different evaluation tasks and checkpoints
-in evaluation runs. For Base Command Platform, all these parameters should be overridden from the command line.
-
-##### 5.12.4.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the configuration, use all the `run` parameters to define the job specific config. (
-`run.tasks` has to be set to `prompt` to run evaluation on prompt learning test tasks):
-```yaml
-run:
-  name: ${.eval_name}_${.model_train_name}
-  time_limit: "4:00:00"
-  nodes: ${divide_ceil:${evaluation.model.model_parallel_size}, 8} # 8 gpus per node
-  ntasks_per_node: ${divide_ceil:${evaluation.model.model_parallel_size}, ${.nodes}}
-  eval_name: eval_prompt_squad
-  model_train_name: gpt3_5b
-  tasks: "prompt" # general prompt task
-  prompt_learn_dir: ${base_results_dir}/${.model_train_name}/prompt_learning_squad # assume prompt learning was on squad task
-  results_dir: ${base_results_dir}/${.model_train_name}/${.eval_name}
-```
-
-To specify which model checkpoint to load and which prompt learning test dataset to evaluate, 
-use the `model` parameter:
-
-```yaml
-model:
-  model_type: nemo-gpt3-prompt
-  nemo_model: ${evaluation.run.prompt_learn_dir}/megatron_gpt_prompt.nemo
-  tensor_model_parallel_size: 2 #1 for 126m, 2 for 5b, 8 for 20b
-  pipeline_model_parallel_size: 1
-  model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
-  precision: bf16 # must match training precision - 32, 16 or bf16
-  eval_batch_size: 4
-  prompt_dataset_paths: ${data_dir}/prompt_data/v1.1/squad_test.jsonl
-  disable_special_tokens: False # Whether to disable virtual tokens in prompt model evaluation. This is equivalent to evaluate without prompt-/p-tuning.
-```
-
-##### 5.12.4.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: 1
-gpus_per_node: null
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the evaluation pipeline and not the data preparation, training, 
-conversion or inference pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - evaluation
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.12.4.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the evaluation script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The evaluation script must be launched in a multi-node job.
-
-To run the evaluation pipeline to evaluate a prompt learned 5B GPT-3 model checkpoint stored in 
-`/mount/results/gpt3_5b/checkpoints`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[evaluation] evaluation=prompt_gpt3/squad \
- cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data \
-base_results_dir=/mount/results evaluation.run.results_dir=/mount/results/gpt3_5b/eval_prompt_squad \
-evaluation.model.nemo_model=/mount/results/gpt3_5b/prompt_learning_squad/results/megatron_gpt_prompt.nemo \
-evaluation.model.nemo_model=4 evaluation.model.tensor_model_parallel_size=2 \
->> /results/eval_prompt_gpt3_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/eval_prompt_gpt3_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-
-#### 5.12.5. Prompt Learned T5 and mT5 Evaluation
-<a id="markdown-prompt-learned-t5-and-mt5-evaluation" name="prompt-learned-t5-and-mt5-evaluation"></a>
-
-We also provide a simple tool to help evaluate the prompt learned T5 or mT5 checkpoints. You can
-evaluate the capabilities of the prompt learned models on a customized prompt learning test dataset.
-We provide an example to evaluate our checkpoint, which went through prompt learning on SQuAD v1.1,
-on the SQuAD v1.1 test dataset created in prompt learning step.
-
-The configuration used for the evaluation needs to be defined in the
-`conf/config.yaml` file by modifying the `evaluation` parameter, which specifies the
-file to use for evaluation purposes. The `evaluation` parameter must be included in `stages`
- to run the evaluation pipeline. The value should be set to
-`prompt_t5/squad.yaml`, which can be found in `conf/evaluation/prompt_t5/squad.yaml` for T5 models (or 
-`prompt_mt5/squad.yaml`, which can be found in `conf/evaluation/prompt_mt5/squad.yaml` for mT5 models). The
-parameters can be modified to adapt different evaluation tasks and checkpoints
-in evaluation runs. For Base Command Platform, all these parameters should be overridden from the command line.
-
-##### 5.12.5.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the configuration, use all the `run` parameters to define the job specific config (
-`run.tasks` has to be set to `prompt` to run evaluation on prompt learning test tasks):
-```yaml
-run:
-  name: eval_${.task_name}_${.model_train_name}
-  time_limit: "04:00:00"
-  dependency: "singleton"
-  model_train_name: t5_220m # or mt5_390m
-  task_name: "squad"
-  prompt_learning_dir: ${base_results_dir}/${.model_train_name}/prompt_learning_squad # assume prompt learning was on squad task
-  results_dir: ${base_results_dir}/${.model_train_name}/${.task_name}_eval
-```
-
-To specify which model checkpoint to load and which prompt learning test dataset to evaluate, 
-use the following parameters:
-
-```yaml
-data:
-  test_ds:
-    - ${data_dir}/prompt_data/v1.1/squad_test.jsonl
-  num_workers: 4
-  global_batch_size: 16
-  micro_batch_size: 16
-tensor_model_parallel_size: 1
-pipeline_model_parallel_size: 1
-pipeline_model_parallel_split_rank: ${divide_floor:${.pipeline_model_parallel_size}, 2}
-model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
-language_model_path: ${base_results_dir}/${evaluation.run.model_train_name}/convert_nemo/results/megatron_t5.nemo  # or megatron_mt5.nemo
-virtual_prompt_model_file: ${evaluation.run.prompt_learning_dir}/results/megatron_t5_prompt.nemo # or megatron_mt5_prompt.nemo
-```
-
-##### 5.12.5.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: 1
-gpus_per_node: null
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the evaluation pipeline and not the data preparation, training, 
-conversion or inference pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - evaluation
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.12.5.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the evaluation script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The evaluation script must be launched in a multi-node job.
-
-To run the evaluation pipeline to evaluate a prompt learned 220M T5 model checkpoint stored in 
-`/mount/results/t5_220m/prompt_learning_squad`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[evaluation] evaluation=prompt_t5/squad \
- cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data \
-base_results_dir=/mount/results evaluation.run.results_dir=/mount/results/t5_220m/eval_prompt_squad \
-evaluation.model.virtual_prompt_model_file=/mount/results/t5_220m/prompt_learning_squad/results/megatron_t5_prompt.nemo \
->> /results/eval_prompt_t5_log.txt 2>&1
-```
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/eval_prompt_t5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-To run the evaluation pipeline to evaluate a prompt learned 390M mT5 model checkpoint stored in 
-`/mount/results/mt5_390m/prompt_learning_squad`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[evaluation] evaluation=prompt_mt5/squad \
- cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data \
-base_results_dir=/mount/results evaluation.run.results_dir=/mount/results/mt5_390m/eval_prompt_squad \
-evaluation.model.virtual_prompt_model_file=/mount/results/mt5_390m/prompt_learning_squad/results/megatron_mt5_prompt.nemo \
->> /results/eval_prompt_mt5_log.txt 2>&1
-```
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/eval_prompt_mt5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-#### 5.12.6. Adapter Learned and IA3 Learned GPT-3 Evaluation
-<a id="markdown-prompt-learned-and-ia3-learned-gpt-3-evaluation" name="prompt-learned-and-ia3-learned-gpt-3-evaluation"></a>
-
-We also provide a simple tool to help evaluate the adapter and IA3 learned GPT-3 checkpoints. You can
-evaluate the capabilities of the adapter learned GPT-3 model on a customized adapter learning test dataset.
-We provide an example to evaluate our checkpoint, which went through adapter learning or IA3 learning on SQuAD v1.1.
-
-The configuration used for the evaluation needs to be defined in the
-`conf/config.yaml` file by modifying the `evaluation` parameter, which specifies the
-file to be used for evaluation purposes. The `evaluation` parameter must be included in `stages`
- to run the evaluation pipeline. The value should be set to
-`adapter_gpt3/squad.yaml` for adapter learning, which can be found in `conf/evaluation/adapter_gpt3/squad.yaml`. 
- The value should be set to `ia3_gpt3/squad.yaml` for IA3 learning, which can be found in `conf/evaluation/ia3_gpt3/squad.yaml`.
-The parameters can be modified to adapt different evaluation tasks and checkpoints
-in evaluation runs. For Base Command Platform, all these parameters should be overridden from the command line.
-
-##### 5.12.6.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the configuration, use all the `run` parameters to define the job specific config. (
-`run.tasks` has to be set to `adapter` to run evaluation on adapter learning test tasks):
-```yaml
-run:
-  name: ${.eval_name}_${.model_train_name}
-  time_limit: "4:00:00"
-  nodes: ${divide_ceil:${evaluation.model.model_parallel_size}, 8} # 8 gpus per node
-  ntasks_per_node: ${divide_ceil:${evaluation.model.model_parallel_size}, ${.nodes}}
-  eval_name: eval_adapter_squad # or eval_ia3_squad
-  model_train_name: gpt3_5b
-  tasks: "adapter" # general adapter task
-  adapter_learn_dir: ${base_results_dir}/${.model_train_name}/adapter_learning_squad # or ia3_learning_squad
-  results_dir: ${base_results_dir}/${.model_train_name}/${.eval_name}
-```
-
-To specify which model checkpoint to load and which adapter learning test dataset to evaluate, 
-use the `model` parameter:
-
-```yaml
-data:
-  test_ds:
-    - ${data_dir}/prompt_data/v1.1/squad_test.jsonl
-  num_workers: 4
-  global_batch_size: 16
-  micro_batch_size: 16
-tensor_model_parallel_size: 1
-pipeline_model_parallel_size: 1
-pipeline_model_parallel_split_rank: ${divide_floor:${.pipeline_model_parallel_size}, 2}
-model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
-language_model_path: ${base_results_dir}/${evaluation.run.model_train_name}/convert_nemo/results/megatron_gpt.nemo 
-adapter_model_file: ${evaluation.run.adapter_learning_dir}/results/megatron_gpt_adapter.nemo # or megatron_gpt_ia3.nemo
-```
-
-##### 5.12.6.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: 1
-gpus_per_node: null
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the evaluation pipeline and not the data preparation, training, 
-conversion or inference pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - evaluation
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.12.6.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the evaluation script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The evaluation script must be launched in a multi-node job.
-
-
-To run the evaluation pipeline to evaluate an adapter learned 220M T5 model checkpoint stored in 
-`/mount/results/gpt3_5b/adapter_learning_squad`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[evaluation] evaluation=adapter_gpt3/squad \
- cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data \
-base_results_dir=/mount/results evaluation.run.results_dir=/mount/results/gpt3_5b/eval_adapter_squad \
-evaluation.model.adapter_model_file=/mount/results/gpt3_5b/adapter_learning_squad/results/megatron_gpt3_adapter.nemo \
->> /results/eval_adapter_gpt3_log.txt 2>&1
-```
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/eval_adapter_gpt3_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-To run the evaluation pipeline to evaluate an IA3 learned 220M T5 model checkpoint stored in 
-`/mount/results/gpt3_5b/ia3_learning_squad`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[evaluation] evaluation=ia3_gpt3/squad \
- cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data \
-base_results_dir=/mount/results evaluation.run.results_dir=/mount/results/gpt3_5b/eval_ia3_squad \
-evaluation.model.adapter_model_file=/mount/results/gpt3_5b/ia3_learning_squad/results/megatron_t5_ia3.nemo \
->> /results/eval_ia3_t5_log.txt 2>&1
-```
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/eval_ia3_t5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-
-#### 5.12.7. Adapter Learned and IA3 Learned T5 Evaluation
-<a id="markdown-adapter-learned-and-ia3-t5-evaluation" name="adapter-learned-and-ia3-t5-evaluation"></a>
-
-The configuration used for the evaluation needs to be defined in the
-`conf/config.yaml` file by modifying the `evaluation` parameter, which specifies the
-file to use for evaluation purposes. The `evaluation` parameter must be included in `stages`
- to run the evaluation pipeline. The value should be set to
-`adapter_t5/squad.yaml`, which can be found in `conf/evaluation/adapter_t5/squad.yaml` for adapter learned T5 models (or 
-`ia3_t5/squad.yaml`, which can be found in `conf/evaluation/ia3_t5/squad.yaml` for IA3 learned models). The
-parameters can be modified to adapt different evaluation tasks and checkpoints
-in evaluation runs. For Base Command Platform, all these parameters should be overridden from the command line.
-
-##### 5.12.7.1. Common
-<a id="markdown-common" name="common"></a>
-To specify the configuration, use all the `run` parameters to define the job specific config:
-```yaml
-run:
-  name: eval_${.task_name}_${.model_train_name}
-  time_limit: "04:00:00"
-  dependency: "singleton"
-  model_train_name: t5_220m
-  task_name: "squad"
-  adapter_learning_dir: ${base_results_dir}/${.model_train_name}/adapter_learning_squad # or ia3_learning_squad
-  results_dir: ${base_results_dir}/${.model_train_name}/${.task_name}_eval
-```
-
-To specify which model checkpoint to load and which test dataset to evaluate, 
-use the following parameters:
-
-```yaml
-data:
-  test_ds:
-    - ${data_dir}/prompt_data/v1.1/squad_test.jsonl
-  num_workers: 4
-  global_batch_size: 16
-  micro_batch_size: 16
-tensor_model_parallel_size: 1
-pipeline_model_parallel_size: 1
-pipeline_model_parallel_split_rank: ${divide_floor:${.pipeline_model_parallel_size}, 2}
-model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
-language_model_path: ${base_results_dir}/${evaluation.run.model_train_name}/convert_nemo/results/megatron_t5.nemo 
-adapter_model_file: ${evaluation.run.adapter_learning_dir}/results/megatron_t5_adapter.nemo # or megatron_t5_ia3.nemo
-```
-
-##### 5.12.7.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: 1
-gpus_per_node: null
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the evaluation pipeline and not the data preparation, training, 
-conversion or inference pipelines set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - evaluation
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.12.7.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the evaluation script on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The evaluation script must be launched in a multi-node job.
-
-To run the evaluation pipeline to evaluate an adapter learned 220M T5 model checkpoint stored in 
-`/mount/results/t5_220m/adapter_learning_squad`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[evaluation] evaluation=adapter_t5/squad \
- cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data \
-base_results_dir=/mount/results evaluation.run.results_dir=/mount/results/t5_220m/eval_adapter_squad \
-evaluation.model.adapter_model_file=/mount/results/t5_220m/adapter_learning_squad/results/megatron_t5_adapter.nemo \
->> /results/eval_adapter_t5_log.txt 2>&1
-```
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/eval_adapter_t5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-To run the evaluation pipeline to evaluate an IA3 learned 220M T5 model checkpoint stored in 
-`/mount/results/t5_220m/ia3_learning_squad`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[evaluation] evaluation=ia3_t5/squad \
- cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data \
-base_results_dir=/mount/results evaluation.run.results_dir=/mount/results/t5_220m/eval_ia3_squad \
-evaluation.model.adapter_model_file=/mount/results/t5_220m/ia3_learning_squad/results/megatron_t5_ia3.nemo \
->> /results/eval_ia3_t5_log.txt 2>&1
-```
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/eval_ia3_t5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-### 5.13. Model Export
-<a id="markdown-model-export" name="model-export"></a>
-
-We also provide a tool to enable deployment of the NeMo Megatron model on the NVIDIA Triton
-Inference Server with FasterTransformer Backend.
-
-The export supports only GPT-3. You can checkout T5 and mT5 support
-in FasterTransformer repository but it is limited to older versions of
-NeMo and Megatron-LM.
-
-#### 5.13.1. GPT-3 Export
-<a id="markdown-gpt-3-export" name="gpt-3-export"></a>
-
-GPT-3 model is evaluated with `lambada` task which results can be compared with results from evaluation stage.
-
-The configuration used for the export needs to be specified in the
-`conf/config.yaml` file, specifying the `export` parameter, which specifies the
-file to use for export purposes. The `export` parameter must be inclueded in `stages`
-to run the training pipeline export stage. The default value is set to
-`gpt3/export_gpt3`, which can be found in `conf/export/gpt3/export_gpt3.yaml`. The
-parameters can be modified to adapt different export and set of tests run on prepared Triton Model Repository.
-For Base Command Platform, all these parameters should be overridden from the command line.
-
-##### 5.13.1.1. Common
-<a id="markdown-common" name="common"></a>
-Also the other `run` parameters might be used to define the job specific config:
-```yaml
-run:
-  name: export_${.model_train_name}
-  time_limit: "2:00:00"
-  model_train_name: "gpt3_5b"
-  training_dir: ${base_results_dir}/${.model_train_name}
-  config_summary: tp${export.model.tensor_model_parallel_size}_pp${export.triton_deployment.pipeline_model_parallel_size}_${export.model.weight_data_type}_${export.triton_deployment.data_type}
-  results_dir: ${base_results_dir}/${.model_train_name}/export_${.config_summary}
-  model_type: "gpt3"
-```
-
-To specify which trained model checkpoint to use as source model
-and parameters of conversion to the FasterTransformer format, use the `model` parameter:
-
-```yaml
-model:
-  checkpoint_path: ${export.run.training_dir}/checkpoints
-  # FT checkpoint will be saved in ${.triton_model_dir}/1/${.tensor_model_parallel_size}-gpu
-  tensor_model_parallel_size: 8
-  weight_data_type: fp16   # fp32|fp16
-  processes: 16
-  load_checkpoints_to_cpu: False
-```
-
-To specify the NVIDIA Triton Inference Server 
-[model directory](https://github.com/triton-inference-server/server/blob/main/docs/model_repository.md#repository-layout) and
-[FasterTransformer backend](https://github.com/triton-inference-server/fastertransformer_backend/blob/main/docs/gpt_guide.md#how-to-set-the-model-configuration) parameters, 
-use the `triton_deployment` parameter.
-
-```yaml
-triton_deployment:
-  triton_model_dir: ${export.run.results_dir}/model_repo/${export.run.model_train_name}
-  max_batch_size: 1
-  pipeline_model_parallel_size: 1
-  int8_mode: False
-  enable_custom_all_reduce: False
-  data_type: fp16  # fp32|fp16|bf16
-```
-
-
-##### 5.13.1.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the export pipeline, include `export` under `stages` in the `conf/config.yaml`:
-
-```yaml
-stages:
-  - export
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.13.1.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the export stage on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The export scripts must be launched in a multi-node job.
-
-To run the export pipeline to evaluate a 126M GPT-3 model checkpoint stored in 
-`/mount/results/gpt3_126m/checkpoints`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py \
-stages=[export] \
-cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_gpt3 \
-base_results_dir=/mount/results \
-export.run.model_train_name=gpt3_126m \
-export.model.tensor_model_parallel_size=2 \
-export.triton_deployment.pipeline_model_parallel_size=1 \
->> /results/export_gpt3_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/export_gpt3_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-#### 5.13.2. T5 Export
-<a id="markdown-t5-export" name="t5-export"></a>
-
-T5 models are evaluated with `lambada` task which results can be compared with results from evaluation stage.
-
-The configuration used for the export needs to be specified in the
-`conf/config.yaml` file, specifying the `export` parameter, which specifies the
-file to use for export purposes. The `export` parameter must be inclueded in `stages`
-to run the training pipeline export stage. The value can be set to `t5/export_t5`, which can be found in `conf/export/t5/export_t5.yaml`. The parameters can be modified to adapt different export and set of tests run on prepared Triton Model Repository.
-For Base Command Platform, all these parameters should be overridden from the command line.
-
-##### 5.13.2.1. Common
-<a id="markdown-common" name="common"></a>
-Also the other `run` parameters might be used to define the job specific config:
-```yaml
-run:
-  name: export_${.model_train_name}
-  time_limit: "2:00:00"
-  model_train_name: "t5_220m"
-  training_dir: ${base_results_dir}/${.model_train_name}
-  config_summary: tp${export.model.tensor_model_parallel_size}_pp${export.triton_deployment.pipeline_model_parallel_size}_${export.model.weight_data_type}_${export.triton_deployment.data_type}
-  results_dir: ${base_results_dir}/${.model_train_name}/export_${.config_summary}
-  model_type: "t5"
-```
-
-To specify which trained model checkpoint to use as source model
-and parameters of conversion to the FasterTransformer format, use the `model` parameter:
-
-```yaml
-model:
-  checkpoint_path: ${export.run.training_dir}/checkpoints
-  # FT checkpoint will be saved in ${.triton_model_dir}/1/${.tensor_model_parallel_size}-gpu
-  tensor_model_parallel_size: 8
-  weight_data_type: fp16   # fp32|fp16
-  processes: 16
-  load_checkpoints_to_cpu: False
-```
-
-To specify the NVIDIA Triton Inference Server 
-[model directory](https://github.com/triton-inference-server/server/blob/main/docs/model_repository.md#repository-layout) and
-[FasterTransformer backend](https://github.com/triton-inference-server/fastertransformer_backend/blob/main/docs/gpt_guide.md#how-to-set-the-model-configuration) parameters, 
-use the `triton_deployment` parameter.
-
-```yaml
-triton_deployment:
-  triton_model_dir: ${export.run.results_dir}/model_repo/${export.run.model_train_name}
-  max_batch_size: 1
-  pipeline_model_parallel_size: 1
-  int8_mode: False
-  enable_custom_all_reduce: False
-  data_type: fp16  # fp32|fp16|bf16
-```
-
-##### 5.13.2.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the export pipeline, include `export` under `stages` in the `conf/config.yaml`:
-
-```yaml
-stages:
-  - export
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.13.2.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the export stage on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The export scripts must be launched in a multi-node job.
-
-To run the export pipeline to evaluate a 220M T5 model checkpoint stored in 
-`/mount/results/t5_220m/checkpoints`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py \
-stages=[export] \
-cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_t5 \
-base_results_dir=/mount/results \
-export.run.model_train_name=t5_220m \
-export.model.tensor_model_parallel_size=1 \
-export.triton_deployment.pipeline_model_parallel_size=1 \
->> /results/export_t5_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/export_t5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
-
-
-
-#### 5.13.3. mT5 Export
-<a id="markdown-mt5-export" name="mt5-export"></a>
-
-T5 models are evaluated with `lambada` task which results can be compared with results from evaluation stage.
-
-The configuration used for the export needs to be specified in the
-`conf/config.yaml` file, specifying the `export` parameter, which specifies the
-file to use for export purposes. The `export` parameter must be inclueded in `stages`
-to run the training pipeline export stage. The value can be set to `mt5/export_mt5`, which can be found in `conf/export/mt5/export_mt5.yaml`. The parameters can be modified to adapt different export and set of tests run on prepared Triton Model Repository.
-For Base Command Platform, all these parameters should be overridden from the command line.
-
-##### 5.13.3.1. Common
-<a id="markdown-common" name="common"></a>
-Also the other `run` parameters might be used to define the job specific config:
-```yaml
-run:
-  name: export_${.model_train_name}
-  time_limit: "2:00:00"
-  model_train_name: "mt5_125m"
-  training_dir: ${base_results_dir}/${.model_train_name}
-  config_summary: tp${export.model.tensor_model_parallel_size}_pp${export.triton_deployment.pipeline_model_parallel_size}_${export.model.weight_data_type}_${export.triton_deployment.data_type}
-  results_dir: ${base_results_dir}/${.model_train_name}/export_${.config_summary}
-  model_type: "mt5"
-```
-
-To specify which trained model checkpoint to use as source model
-and parameters of conversion to the FasterTransformer format, use the `model` parameter:
-
-```yaml
-model:
-  checkpoint_path: ${export.run.training_dir}/checkpoints
-  # FT checkpoint will be saved in ${.triton_model_dir}/1/${.tensor_model_parallel_size}-gpu
-  tensor_model_parallel_size: 8
-  weight_data_type: fp16   # fp32|fp16
-  processes: 16
-  load_checkpoints_to_cpu: False
-```
-
-To specify the NVIDIA Triton Inference Server 
-[model directory](https://github.com/triton-inference-server/server/blob/main/docs/model_repository.md#repository-layout) and
-[FasterTransformer backend](https://github.com/triton-inference-server/fastertransformer_backend/blob/main/docs/gpt_guide.md#how-to-set-the-model-configuration) parameters, 
-use the `triton_deployment` parameter.
-
-```yaml
-triton_deployment:
-  triton_model_dir: ${export.run.results_dir}/model_repo/${export.run.model_train_name}
-  max_batch_size: 1
-  pipeline_model_parallel_size: 1
-  int8_mode: False
-  enable_custom_all_reduce: False
-  data_type: fp16  # fp32|fp16|bf16
-```
-
-
-##### 5.13.3.2. Slurm
-<a id="markdown-slurm" name="slurm"></a>
-
-Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
-
-```yaml
-partition: null
-account: null
-exclusive: True
-gpus_per_task: null
-gpus_per_node: 8
-mem: 0
-overcommit: False
-job_name_prefix: "nemo-megatron-"
-```
-
-**Example:**
-
-To run only the export pipeline, include `export` under `stages` in the `conf/config.yaml`:
-
-```yaml
-stages:
-  - export
-```
-
-then run:
-```
-python3 main.py
-```
-
-##### 5.13.3.3. Base Command Platform
-<a id="markdown-base-command-platform" name="base-command-platform"></a>
-In order to run the export stage on Base Command Platform, set the
-`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
-from the command line, using hydra. The export scripts must be launched in a multi-node job.
-
-To run the export pipeline to evaluate a 125M mT5 model checkpoint stored in 
-`/mount/results/mt5_125m/checkpoints`, run:
-```
-python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py \
-stages=[export] \
-cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_mt5 \
-base_results_dir=/mount/results \
-export.run.model_train_name=mt5_125m \
-export.model.tensor_model_parallel_size=1 \
-export.triton_deployment.pipeline_model_parallel_size=1 \
->> /results/export_mt5_log.txt 2>&1
-```
-
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
-The stdout and stderr outputs will also be redirected to the `/results/export_mt5_log.txt` file, to be able to download the logs from NGC.
-Any other parameter can also be added to the command to modify its behavior.
+
+### 5.3. Model Training
+
+We provide predefined training configurations for all released model types, which can be found in the `conf/training/`
+directory. These configurations include carefully selected hyper parameters that serve as a guideline for creating
+custom model configurations. To choose the desired configuration, simply update the training parameter in
+the `conf/config.yaml` file. For additional guidance on customizing configurations, please refer
+to [Section 5.1](#51-getting-started-with-multimodal-nemo-megatron) in the
+documentation.
+
+For the Base Command Platform (BCP), it is important to note that all jobs must be launched in multi-node mode. This
+requirement ensures proper setup of BCP pytorch environment.
+
+#### 5.3.1. Vision Transformer Training
+
+We have curated 5 configurations with suggested hyperparameters specifically for the NVIDIA DGX SuperPOD, which is
+equipped with 8 NVIDIA A100 80GB GPUs. The configurations for the curated models can be found in the `conf/training/vit`
+directory. You can access and modify the parameters to adjust the hyperparameters for your specific training runs. By
+customizing these settings, you can tailor the model's performance and training efficiency to better suit your needs and
+requirements.
+
+| Model | Model size (M) | Hidden size | FFN_dim | Attention heads | Number of layers | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Total Training Samples |
+|-------|----------------|-------------|---------|-----------------|------------------|--------------------|-------------------------------|-----------|-----------|------------------------|
+| B/16  | 86             | 768         | 3072    | 12              | 12               | 512                | 4096                          | BF16      | O2        | 400M                   |
+| L/16  | 303            | 1024        | 4096    | 16              | 24               | 256                | 4096                          | BF16      | O2        | 400M                   |
+| H/14  | 632            | 1280        | 5120    | 16              | 32               | 128                | 4096                          | BF16      | O2        | 400M                   |
+| g/14  | 1011           | 1408        | 6144    | 16              | 40               | 64                 | 4096                          | BF16      | O2        | 400M                   |
+| G/14  | 1843           | 1664        | 8192    | 16              | 48               | 32                 | 4096                          | BF16      | O2        | 400M                   |
+
+To enable the training stage with a Vision Transformer (ViT) model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `training` field to point to the desired ViT
+   configuration file. For example,
+   if you want to use the `B/16`(i.e. `B_16`) configuration, change the `training` field to `vit/B_16`.
+   ```yaml
+    defaults:
+      - _self_
+      - cluster: bcm
+      - data_preparation: null
+      - training: vit/vit_B_16
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the training stage is included. For example,
+   ```yaml
+    stages:
+      - training
+      ...
+   ```
+
+**Remarks**: The correctness of our Vision Transformer implementation has been verified by pretraining `ViT B/16` for
+300 epochs on the ImageNet 1K dataset. This demonstrates that our implementation is consistent with the expected
+performance and results of Vision Transformers in general.
+
+#### 5.3.2. CLIP Training
+
+We have curated 3 configurations with suggested hyperparameters specifically for the NVIDIA DGX SuperPOD, which is
+equipped with 8 NVIDIA A100 80GB GPUs. The configurations for the curated models can be found in
+the `conf/training/clip` directory. You can access and modify the parameters to adjust the hyperparameters for your
+specific training runs. By customizing these settings, you can tailor the model's performance and training efficiency to
+better suit your needs and requirements.
+
+| Model    | Image size | Text Model size (M) | Image Model size (M) | Output dim | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Total Training Samples |
+|----------|------------|---------------------|----------------------|------------|--------------------|-------------------------------|-----------|-----------|------------------------|
+| ViT B/32 | 224        | 63                  | 87                   | 512        | 500                | 32000                         | BF16      | O2        | 12B                    |
+| ViT L/14 | 224        | 123                 | 303                  | 768        | 112                | 32256                         | BF16      | O2        | 12B                    |
+| ViT H/14 | 224        | 354                 | 638                  | 1024       | 80                 | 32000                         | BF16      | O2        | 12B                    |
+
+To enable the training stage with a CLIP model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `training` field to point to the desired CLIP
+   configuration file. For example,
+   if you want to use the `ViT B/32` (i.e. `vit_B_32`), change the `training` field to `clip/vit_B_32`.
+   ```yaml
+    defaults:
+      - _self_
+      - cluster: bcm
+      - data_preparation: multimodal/download_multimodal
+      - training: clip/vit_B_32
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the training stage is included. For example,
+   ```yaml
+    stages:
+      - data_preparation
+      - training
+      ...
+   ```
+
+**Remarks**:
+
+1. NeMo CLIP does not yet support gradient accumulation. Therefore, please
+   ensure `micro_batch_size * num_gpus = global_batch_size` (i.e. gradient accumulation step is 1).
+2. For CLIP models, you can enable Exponential Moving Average (EMA) by setting `training.exp_manager.ema.enable=True`.
+   However, EMA is currently not compatible with AMP O2. To use EMA, you must disable AMP O2 by
+   setting `training.model.megatron_amp_O2=False`. Enabling EMA can help your model converge faster, but be aware that
+   it may result in a slight performance penalty.
+
+#### 5.3.3. Stable Diffusion Training
+
+We have curated configurations with suggested hyperparameters specifically for the NVIDIA DGX SuperPOD, which is
+equipped with 8 NVIDIA A100 80GB GPUs. The configurations for the curated models can be found in
+the `conf/training/stable_diffusion` directory. You can access and modify the parameters to adjust the hyperparameters
+for your
+specific training runs. By customizing these settings, you can tailor the model's performance and training efficiency to
+better suit your needs and requirements.
+
+The training process for stable diffusion typically involves multiple stages, wherein different resolutions and datasets
+are alternated in a deliberate manner to achieve superior image quality. We provide two training configurations here,
+one is for pretraining at resolution 256x256, another one is to resume from the pretraining weights and continue
+improving the model performance.
+
+| Stage       | Resolution | Unet model size (M) | Text conditioning model       | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Dataset                        | Dataset Filtering       | Total Training Samples |
+|-------------|------------|---------------------|-------------------------------|--------------------|-------------------------------|-----------|-----------|--------------------------------|-------------------------|------------------------|
+| Pretraining | 256        | 859                 | openai/clip-vit-large-patch14 | 128                | 8192                          | FP16      | O1        | Multimodal Image-caption Pairs | None                    | 680M                   |
+| SD v1.1     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | Multimodal Image-caption Pairs | Resolution >= 1024x1024 | 409M                   |
+
+To enable the training stage with Stable Diffusion, make sure:
+
+1. In the `defaults` section, update the `training` field to point to the desired stable diffusion configuration file.
+   For example,
+   if you want to start the pretraining from scratch, change the training field to `stable_diffusion/860m_res_256.yaml`.
+   ```yaml
+    defaults:
+      - _self_
+      - cluster: bcm
+      - data_preparation: multimodal/download_multimodal
+      - training: stable_diffusion/860m_res_256.yaml
+      ...
+   ```
+2. In the stages field, make sure the training stage is included. For example,
+   ```yaml
+    stages:
+      - data_preparation
+      - training
+      ...
+   ```
+
+**Remark**: To continue training the Stable Diffusion model from the pretraining results, we reset the trainig process
+by only loading the UNet weights. You can do this by using the last checkpoint from the previous training and passing it
+to `training.model.unet_config.from_pretrained`. Due to different naming in model parameters, indicating you are loading
+from checkpoint trained by NeMo , set `training.model.unet_config.from_NeMo=True`. If you are resuming training from a
+Huggingface checkpoint, you can also load the Unet weights from that source. In this case, you need to
+set `training.model.unet_config.from_NeMo=False`.
+
+
+#### 5.3.4. Instruct Pix2Pix Training
+
+Instruct Pix2Pix essentially performs tuning on top of an existing Stable Diffusion checkpoint. The recommended
+configuration can be found in the `conf/training/instruct_pix2pix` directory. You can access and modify the parameters
+to customize the hyperparameters according to your specific training requirements.
+
+To enable the training stage with an Instruct Pix2Pix model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `training` field to point to the desired Instruct Pix2Pix
+   configuration file. For example,
+   if you want to use the `860m_sd_edit`, change the `training` field to `instruct_pix2pix/860m_sd_edit`.
+   ```yaml
+    defaults:
+      - _self_
+      - cluster: bcm
+      - data_preparation: null
+      - training: instruct_pix2pix/860m_sd_edit
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the training stage is included. For example,
+   ```yaml
+    stages:
+      - data_preparation
+      - training
+      ...
+   ```
+
+**Remarks**: You can feed the trained Stable Diffusion checkpoint into Instruct Pix2Pix training by
+specifying `training.model.ckpt_path` (or set `ckpt_path` field in the `model` section of `860m_sd_edit.yaml`). The
+checkpoint can be sourced from either NeMo or Hugging Face in the form of a `.ckpt` file.
+
+#### 5.3.5. DreamBooth Training
+
+Dreambooth is also fine-tuning on top of an existing Stable Diffusion checkpoint. The recommended configuration can be
+found in the `conf/training/dreambooth` directory. You can access and modify the parameters to customize the
+hyperparameters according to your specific training requirements. The instance dataset should contain several pictures of 
+object you want to inject to the model. To achieve better quality, 3-5 pictures from different angles is preferred. 
+To enable the training stage with a dreambooth model, make sure:
+
+1. In the defaults section, update the training field to point to the desired configuration file. For example, `dreambooth/860m.yaml`.
+
+   ```yaml
+    defaults:
+       - _self_
+       - cluster: bcm
+       - data_preparation: null
+       - training: dreambooth/860m.yaml
+       ...
+   ```
+
+
+
+2. In the stages field, make sure the training stage is included. For example,
+
+   ```yaml
+    stages:
+      ...
+      - training
+      ...
+   ```
+
+**Remarks**: 
+1. In order to train dreambooth with prior preservation loss, you need to prepare regularization dataset. The
+regularization dataset is usually populated by images generate from a similar prompt without special token by the
+original stable diffusion ckpt we fine tune on. For example, the instance prompt you train is "a photo of a sks dog",
+then regularization data could be generated by a prompt like "a photo of a dog".
+2. To generate regularization images, pass the stable diffusion ckpt you want to use
+to `training.model.restore_from_path`, note that `.nemo` ckpt is required here. The unet weights you want to fine-tune
+on should be set at `training.model.unet_config.from_pretrained`, you can follow the same manner here as described above
+at section [5.3.3. Stable Diffusion Training](#533-stable-diffusion-training).
+
+
+
+### 5.4. Checkpoint Conversion
+
+We provide a convenient tool for converting checkpoints from the `.ckpt` format to the `.nemo` format. The `.nemo`
+format checkpoints can be used later in evaluation and inference stages. Users don't need to run the checkpoint
+conversion explicitly, as a `.nemo` checkpoint will be automatically generated and saved in the checkpoints folder at
+the end of training or fine-tuning. However, if you want to perform inference with an intermediate checkpoint, you will
+need to use the conversion script to convert the checkpoint from the `.ckpt` format to the `.nemo` format.
+
+The usage of the conversion script is consistent across different model types. All conversion configuration files can be
+found in the `conf/conversion` folder. For additional guidance on customizing configurations, please refer
+to [Section 5.1](#51-getting-started-with-multimodal-nemo-megatron) in the
+documentation.
+
+To enable the `conversion` stage and configure conversion settings, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `conversion` field to point to the desired model type's
+   configuration file. For example, if you want to convert a CLIP model, change the `conversion` field
+   to `clip/convert_clip`.
+   ```yaml
+    defaults:
+      - conversion: clip/convert_clip
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `conversion` stage is included. For example,
+   ```yaml
+    stages:
+      ...
+      - conversion
+      ...
+   ```
+3. In the target conversion YAML file, modify required fields like `checkpoint_folder` and `checkpoint_name`. For
+   example, if you want to convert a CLIP model, modify or override the following fields
+   inside `conf/conversion/clip/convert_clip.yaml`.
+   ```yaml
+   run:
+     model_train_name: clip_vit_B_32
+     train_dir: ${base_results_dir}/${.model_train_name}
+   model:
+     model_type: megatron_clip
+     checkpoint_folder: ${conversion.run.train_dir}/results/checkpoints
+     checkpoint_name: latest # latest OR name pattern of a checkpoint (e.g. megatron_gpt_*last.ckpt)
+     hparams_file: ${conversion.run.train_dir}/results/hparams.yaml # Optional
+   ```
+
+**Remark**:
+
+1. The `checkpoint_name` can be set to `latest`, which means it will get the latest checkpoint in the folder, or to a
+   regex pattern such as `megatron_clip_*last.ckpt`.
+2. By default, the checkpoint folder will link to the training or fine-tuning checkpoints folder and find the latest
+   checkpoint.
+3. **Advanced**: The hparams_file field is optional. If you want to change any hyperparameters for model initialization,
+   you can override them in the hparams.yaml file. However, be cautious when making changes, as altering the model
+   architecture may prevent the model weights from loading correctly.
+
+### 5.5. Model Fine-tuning
+
+We provide predefined fine-tuning configurations for Vision Transformer models, which can be found in
+the `conf/fine_tuning/`
+directory. These configurations include carefully selected hyper parameters that serve as a guideline for creating
+custom model configurations. For additional guidance on customizing configurations, please refer
+to [Section 5.1](#51-getting-started-with-multimodal-nemo-megatron) in the
+documentation.
+
+#### 5.5.1. Vision Transformer Fine-tuning
+
+We provide a predefined fine-tuning configuration for the `ViT B/16` model on ImageNet-1K, which can be found in
+the `conf/fine_tuning/imagenet1k.yaml` file. The following table highlights the key differences between ViT pretraining
+and fine-tuning:
+
+| Aspect               | ViT Pretraining           | ViT Fine-tuning              |
+|----------------------|---------------------------|------------------------------|
+| Configuration Folder | `conf/training/vit`       | `conf/fine_tuning/vit`       |
+| Training Samples     | 400M                      | 10M                          |
+| Optimizer            | Fused AdamW               | SGD                          |
+| Resolution           | 224x224                   | 384x384                      |
+| Classification Head  | MLP with one hidden layer | MLP with single linear layer |
+
+To enable the fine-tuning stage with a ViT model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `fine_tuning` field to point to the desired ViT
+   configuration file. For example,
+   if you want to use the `vit/imagenet1k` configuration, change the `fine_tuning` field to `vit/imagenet1k`.
+   ```yaml
+    defaults:
+      - fine_tuning: vit/imagenet1k
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `fine_tuning` stage is included. For example,
+   ```yaml
+    stages:
+      - fine_tuning
+      ...
+   ```
+
+**Remarks**: To load a pretrained checkpoint for fine-tuning, set the `restore_from_path` field in the `model` section
+to the path of the pretrained checkpoint in `.nemo` format. By default, this field links to the `.nemo` format
+checkpoint located in the training checkpoints folder.
+
+### 5.6. Model Evaluation
+
+In Multimodal NeMo Megatron, we also provide simple scripts for users to benchmark their trained models, including ViT,
+CLIP and Stable Diffusion. The configuration files for these evaluations can be found in the `conf/evaluation`
+directory. These scripts allow you to assess the performance of your trained models on various metrics. For additional
+guidance on customizing configurations, please refer to [Section 5.1](#51-getting-started-with-multimodal-nemo-megatron)
+in the
+documentation.
+
+#### 5.6.1. Vision Transformer Evaluation
+
+For the Vision Transformer, our evaluation script processes the ImageNet 1K validation folder and computes the final
+validation accuracy.
+
+To enable the evaluation stage with a ViT model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `evaluation` field to point to the desired ViT
+   configuration file. For example,
+   if you want to use the `vit/imagenet_val` configuration, change the `evaluation` field to `vit/imagenet_val`.
+   ```yaml
+    defaults:
+      - evaluation: vit/imagenet_val
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `evaluation` stage is included. For example,
+   ```yaml
+    stages:
+      - evaluation
+      ...
+   ```
+3. Configure `imagenet_val` field of `conf/evaluation/vit/imagenet_val.yaml` to be the ImageNet 1K validation folder.
+
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/evaluation/vit/imagenet_val.yaml`. By default, this field
+   links to the `.nemo` format checkpoint located in the ImageNet 1K fine-tuning checkpoints folder.
+2. We highly recommend users to use the same precision (i.e. `trainer.precision`) for evaluation as was used during
+   training.
+
+#### 5.6.2. CLIP Evaluation
+
+For CLIP models, our evaluation script calculates zero-shot ImageNet 1K validation accuracy.
+
+To enable the evaluation stage with a CLIP model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `evaluation` field to point to the desired CLIP
+   configuration file. For example,
+   if you want to use the `clip/imagenet_zeroshot` configuration, change the `evaluation` field
+   to `clip/imagenet_zeroshot`.
+   ```yaml
+    defaults:
+      - evaluation: clip/imagenet_zeroshot
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `evaluation` stage is included. For example,
+   ```yaml
+    stages:
+      - evaluation
+      ...
+   ```
+3. Configure `imagenet_val` field of `conf/evaluation/clip/imagenet_zeroshot.yaml` to be the ImageNet 1K validation
+   folder.
+
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/evaluation/clip/imagenet_zeroshot.yaml`. By default, this
+   field links to the `.nemo` format checkpoint located in the CLIP trainning checkpoints folder.
+2. **Knonw issue**: In CLIP model evaluation, using `fp32` for inference with a trained model in `bf16` or `fp16` does
+   not produce expected results. We highly recommend users to use the same precision (i.e. `trainer.precision`) for
+   inference as was used during training.
+
+#### 5.6.3. Stable Diffusion Evaluation
+
+For the Stable Diffusion, our evaluation script processes the MS COCO dataset to perform image generation, FID score computation, CLIP score computation, and plotting of the FID-CLIP graph. This is a multi-stage evaluation, and our scripts will automatically generate SLURM jobs with dependencies.
+
+To enable the evaluation stage with a Stable Diffusion model, follow these steps to configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `evaluation` field to point to the desired Stable Diffusion
+   configuration file. For example,
+   if you want to use the `stable_diffusion/fid_clip` configuration, change the `evaluation` field to `stable_diffusion/fid_clip`.
+   ```yaml
+    defaults:
+      - evaluation: stable_diffusion/fid_clip
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `evaluation` stage is included. For example,
+   ```yaml
+    stages:
+      - evaluation
+      ...
+   ```
+3. Configure `conf/evaluation/stable_diffusion/fid_clip.yaml` to specify `node_array_size` and `ntasks_per_node`, as well as which sub-stages to run.
+   ```yaml
+    generate_images: True
+    compute_fid_scores: True
+    compute_clip_scores: True
+    plot_fid_clip: True
+   ```
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/evaluation/stable_diffusion/fid_clip.yaml`. By default, this field links to the `.nemo` format checkpoint located in the Stable Diffusion training checkpoints folder.
+2. We highly recommend users to use the same precision (i.e. `trainer.precision`) for evaluation as was used during
+   training.
+3. The `generate_images` sub-stage involves a multi-node run, whereas the other stages utilize only a single GPU.
+
+
+### 5.7. Model Inference (in NeMo Framework)
+
+In Multimodal NeMo Megatron, we provide scripts to perform inference directly via NeMo framework, rather than using
+NVIDIA Triton Inference Server. This allows you to infer with your pretrained models directly without the need for a
+separate deployment or inference server. It is particularly useful when you want to experiment with different model
+configurations, perform quick evaluations, or prototype a solution before deploying it at scale with Triton Inference
+Server or another deployment option.
+
+Our framework inference configurations are provided in the folder `conf/fw_inference`. For additional guidance on
+customizing configurations, please refer to [Section 5.1](#51-getting-started-with-multimodal-nemo-megatron) in the
+documentation.
+
+#### 5.7.1. Vision Transformer Inference (in NeMo Framework)
+
+For Vision Transformer, our inference script processes a folder of images. For each image in the folder, the script
+classifies it into one of the ImageNet 1K classes.
+
+To enable the inference stage with a ViT model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `fw_inference` field to point to the desired ViT
+   configuration file. For example,
+   if you want to use the `vit/imagenet1k` configuration, change the `fw_inference` field to `vit/imagenet1k`.
+   ```yaml
+    defaults:
+      - fw_inference: vit/imagenet1k
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `fw_inference` stage is included. For example,
+   ```yaml
+    stages:
+      - fw_inference
+      ...
+   ```
+3. Configure `data_path` of `conf/fw_inference/vit/imagenet1k.yaml` to be the folder containing images for inference.
+
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/fw_inference/vit/imagenet1k.yaml`. By default, this field
+   links to the `.nemo` format checkpoint located in the ImageNet 1K fine-tuning checkpoints folder.
+2. We highly recommend users to use the same precision (i.e. `trainer.precision`) for inference as was used during
+   training.
+
+#### 5.7.2. CLIP Inference (in NeMo Framework)
+
+For CLIP models, our inference script calculates CLIP similarity scores between a given image and a list of provided
+texts.
+
+To enable the inference stage with a CLIP model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `fw_inference` field to point to the desired CLIP
+   configuration file. For example,
+   if you want to use the `clip/clip_similarity` configuration, change the `fw_inference` field
+   to `clip/clip_similarity`.
+   ```yaml
+    defaults:
+      - fw_inference: clip/clip_similarity
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `fw_inference` stage is included. For example,
+   ```yaml
+    stages:
+      - fw_inference
+      ...
+   ```
+3. Configure `image_path` and `texts` fields of `conf/fw_inference/clip/clip_similarity.yaml`. Set `image_path` to the path of
+   the image for inference, and provide a list of texts for the `texts` field.
+
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/fw_inference/clip/clip_similarity.yaml`. By default, this
+   field links to the `.nemo` format checkpoint located in the CLIP training checkpoints folder.
+2. **Knonw issue**: In CLIP model inference, using `fp32` for inference with a trained model in `bf16` or `fp16` does
+   not produce expected results. We highly recommend users to use the same precision (i.e. `trainer.precision`) for
+   inference as was used during training.
+
+#### 5.7.3. Stable Diffusion Inference (in NeMo Framework)
+
+For text-to-image models, the inference script generates images from text prompts defined in the config file.
+
+To enable the inference stage with stable diffusion, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `fw_inference` field to point to the desired Stable
+   Diffusion inference configuration file. For example,
+   if you want to use the `stable_diffusion/text2img.yaml` configuration, change the `fw_inference` field
+   to `stable_diffusion/text2img`.
+   ```yaml
+    defaults:
+      - fw_inference: stable_diffusion/text2img
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `fw_inference` stage is included. For example,
+   ```yaml
+    stages:
+      - fw_inference
+      ...
+   ```
+3. Configure `prompts` and `num_images_per_prompt` fields of `conf/fw_inference/stable_diffusion/text2img.yaml`.
+   Set `model.restore_from_path` to the `.nemo` ckpt you want generate images with.
+
+#### 5.7.4. Instruct Pix2Pix Inference (in NeMo Framework)
+
+For Instruct Pix2Pix models, our inference script processes an original image based on a provided edit prompt, modifies
+the image accordingly, and saves the edited image as a new file.
+
+To enable the inference stage with a Instruct Pix2Pix model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `fw_inference` field to point to the desired Instruct
+   Pix2Pix configuration file. For example,
+   if you want to use the `instruct_pix2pix/edit_cli` configuration, change the `fw_inference` field
+   to `instruct_pix2pix/edit_cli`.
+   ```yaml
+    defaults:
+      - fw_inference: instruct_pix2pix/edit_cli
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `fw_inference` stage is included. For example,
+   ```yaml
+    stages:
+      - fw_inference
+      ...
+   ```
+3. Configure the `edit` section in `conf/fw_inference/instruct_pix2pix/edit_cli.yaml`. Most importantly, set the `input`
+   field to the path of the original image for inference, and provide an edit prompt in the `prompt` field. The script
+   will generate `num_images_per_prompt` images at once based on the provided prompt.
+   ```yaml
+   edit:
+     resolution: 512
+     steps: 100
+     input: ??? # path/to/input/picture
+     outpath: ${fw_inference.run.results_dir}
+     prompt: ""
+     cfg_text: 7.5
+     cfg_image: 1.2
+     num_images_per_prompt: 8
+     combine_images: [2, 4] # [row, column], set to null if don't want to combine
+     seed: 1234
+   ```
+
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/fw_inference/vit/imagenet1k.yaml`. By default, this field
+   links to the `.nemo` format checkpoint located in the ImageNet 1K fine-tuning checkpoints folder.
+2. We highly recommend users to use the same precision (i.e. `trainer.precision`) for inference as was used during
+   training.
+3. Tips for getting better quality results: https://github.com/timothybrooks/instruct-pix2pix#tips
+
+#### 5.7.5. DreamBooth Inference (in NeMo Framework)
+
+For Dreambooth, the inference script generates images from text prompts defined in the config file, similar to section
+5.7.3. Note that, dreambooth is a fine-tuning model based on diffusion models to link a special token with certain
+subject, so make sure the special token you trained on is included in the text prompt. For
+example, `a photo of sks dog sleeping`.
+
+To enable the inference stage with dreambooth, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `fw_inference` field to point to the desired DreamBooth inference configuration file. For example,
+   if you want to use the `dreambooth/text2img.yaml` configuration, change the `fw_inference` field
+   to `dreambooth/text2img`.
+   ```yaml
+    defaults:
+      - fw_inference: dreambooth/text2img
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `fw_inference` stage is included. For example,
+   ```yaml
+    stages:
+      - fw_inference
+      ...
+   ```
+3. Configure `prompts` and `num_images_per_prompt` fields of `conf/fw_inference/dreambooth/text2img.yaml`.
+   Set `model.restore_from_path` to the ckpt generated from dreambooth training.
+
+### 5.8. Model Export
+
+
+In Multimodal NeMo Megatron, we provide scripts to perform export directly via NeMo framework to ONNX and NVIDIA
+TensorRT.  This allows us to run accelerated inference on the NVIDIA Triton Inference Server detailed in the next section, section 6.
+For the CLIP and ViT models, setting `infer.max_batch_size`, will create ONNX and NVIDIA TensorRT models that accept batch_sizes
+from `1` to `infer.max_batch_size`.  For the Stable Diffusion, Instruct Pix2Pix, and Dreambooth pipelines, the `infer.num_images_per_prompt` (`edit.num_images_per_prompt` in Instruct Pix2Pix) will
+act as the `batch_size`, but the NVIDIA TensorRT engines will only work for that size.
+
+The `trainer.precision` config can be set to 16 or 32.  Setting to 16 will build the NVIDIA TensorRT engines with fp16 acceleration enabled, expect
+longer build times.  
+
+Please set `model.restore_from_path` before running export to the correct `.nemo` file.  
+
+All relevant inference config fields will be saved for deployment to be automatically read in as defaults.
+
+#### 5.8.1. Vision Transformer Export
+
+To enable the export stage with a ViT model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `export` field to point to the desired ViT
+   configuration file. For example,
+   if you want to use the `vit/export_vit` configuration, change the `export` field to `vit/export_vit`.
+   ```yaml
+    defaults:
+      - export: vit/export_vit
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `export` stage is included. For example,
+   ```yaml
+    stages:
+      - export
+      ...
+   ```
+3. Configure `infer.max_batch_size` of the `conf/export/vit/export_vit.yaml` file to set the max_batch_size to use for the ONNX and
+NVIDIA TensorRT model. 
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/export/vit/export_vit.yaml`. By default, this field
+   links to the `.nemo` format checkpoint located in the ImageNet 1K fine-tuning checkpoints folder.
+2. Set the resolution of the model with `max_dim` in the `infer` field.  This will be used to generate the ONNX and NVIDIA TensorRT formats.
+
+#### 5.8.2. CLIP Export
+
+
+To enable the export stage with a CLIP model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `export` field to point to the desired CLIP
+   configuration file. For example,
+   if you want to use the `clip/export_clip` configuration, change the `export` field
+   to `clip/export_clip`.
+   ```yaml
+    defaults:
+      - export: clip/export_clip
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `export` stage is included. For example,
+   ```yaml
+    stages:
+      - export
+      ...
+   ```
+3. Configure `infer.max_batch_size` of the `conf/export/clip/export_clip.yaml` file to set the max_batch_size to use for the ONNX and
+NVIDIA TensorRT model. 
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/export/clip/export_clip.yaml`.
+2. Set the resolution of the model with `max_dim` in the `infer` field.  One can also set the `infer.max_text` to be the maximum text size for the text_encoder.
+   This will be used to generate the ONNX and NVIDIA TensorRT formats.
+
+#### 5.8.3. Stable Diffusion Export
+
+For text-to-image models, the export script generates three different optimized inference models.
+The first model is the VAE Decoder, the second model is the UNet, and the third model is the CLIP Encoder.
+
+1. In the `defaults` section of `conf/config.yaml`, update the `export` field to point to the desired stable diffusion inference configuration file. For example,
+   if you want to use the `stable_diffusion/export_stable_diffusion.yaml` configuration, change the `export` field to `stable_diffusion/export_stable_diffusion`.
+   ```yaml
+    defaults:
+      - export: stable_diffusion/export_stable_diffusion
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `export` stage is included. For example,
+   ```yaml
+    stages:
+      - export
+      ...
+   ```
+3. Configure `infer.num_images_per_prompt` of the `conf/export/stable_diffusion/export_stable_diffusion.yaml` file to set the batch_size to use for the ONNX and
+NVIDIA TensorRT models. 
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/export/stable_diffusion/export_stable_diffusion.yaml`.
+
+#### 5.8.4. Instruct Pix2pix Export
+
+For Instruct Pix2Pix models, the export script generates four different optimized inference models.
+The first model is the VAE Decoder, the second model is the UNet, the third model is the CLIP Encoder, and the fourth model
+is the VAE Encoder.
+
+1. In the `defaults` section of `conf/config.yaml`, update the `export` field to point to the desired stable diffusion inference configuration file. For example,
+   if you want to use the `instruct_pix2pix/export_instruct_pix2pix.yaml` configuration, change the `export` field to `instruct_pix2pix/export_instruct_pix2pix`.
+   ```yaml
+    defaults:
+      - export: instruct_pix2pix/export_instruct_pix2pix
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `export` stage is included. For example,
+   ```yaml
+    stages:
+      - export
+      ...
+   ```
+3. Configure `edit.num_images_per_prompt` of the `conf/export/instruct_pix2pix/export_instruct_pix2pix.yaml` file to set the batch_size to use for the ONNX and
+NVIDIA TensorRT models. 
+4. Set a path to an example image to use in `edit.input`.
+
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
+   of the pretrained checkpoint in `.nemo` format in the `conf/export/instruct_pix2pix/export_instruct_pix2pix.yaml` file.
+
+#### 5.8.5. DreamBooth Export
+
+For Dreambooth, the export script generates three different optimized inference models.
+The first model is the VAE Decoder, the second model is the UNet, and the third model is the CLIP Encoder.
+
+1. In the `defaults` section of `conf/config.yaml`, update the `export` field to point to the desired stable diffusion inference configuration file. For example,
+   if you want to use the `dreambooth/export_dreambooth.yaml` configuration, change the `export` field to `dreambooth/export_dreambooth`.
+   ```yaml
+    defaults:
+      - export: dreambooth/export_dreambooth
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `export` stage is included. For example,
+   ```yaml
+    stages:
+      - export
+      ...
+   ```
+3. Configure `infer.num_images_per_prompt` of the `conf/export/dreambooth/export_dreambooth.yaml` file to set the batch_size to use for the ONNX and
+NVIDIA TensorRT models. 
+
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/export/dreambooth/export_dreambooth.yaml`.
+...
 
 ## 6. Deploying the NeMo Megatron Model
 
-This section describes the deployment of the NeMo Megatron model on the NVIDIA Triton
-Inference Server with FasterTransformer Backend on both single and multiple
-node environments.    NVIDIA Triton Inference Server supports many inference
-scenarios, of which two most important are:
-* Offline inference scenario - with a goal to maximize throughput regardless
-    of the latency, usually achieved with increasing batch size and using server
-    static batching feature.
-* Online inference scenario - with a goal to maximize throughput within a given
-    latency budget, usually achieved with small batch sizes and increasing
-    concurrency requests to the server, using dynamic batching feature.
+### 6.1 Setup
 
+Prior to deploying a model or pipeline, the model or pipeline must be exported following the steps in section 5.8.
+No other additional setup is required as the NeMo container comes with the relevant NVIDIA Triton Inference Server libraries
+preinstalled and ready to go.
 
-### 6.1. Run NVIDIA Triton Server with Generated Model Repository
-<a id="markdown-run-nvidia-triton-server-with-selected-model-repository"
-name="run-nvidia-triton-server-with-selected-model-repository"></a>
+### 6.2 Start NVIDIA Triton Inference Server
 
-The inputs:
-* NVIDIA Triton model repository with FasterTransformer checkpoint
-     ready for inference at production.
-* Docker image with NVIDIA Triton and FasterTransformer backend.
-
-The outputs:
-* Running NVIDIA Triton model instance serving model in cluster.
-
-To run at slurm FasterTransformer backend, do the following:
-```sh
-srun \
-     --nodes=<NUMBER OF NODES>\
-     --partition=<SLURM PARITION>\
-     --mpi <MPI MODE>\
-     --container-image <NEMO_LAUNCHER INFERENCE CONTAINER>\
-     --container-mounts <TRITON MODEL REPOSITORY>:<TRITON MODEL REPOSITORY> \
-     bash -c "export CUDA_VISIBLE_DEVICES=<LIST OF CUDA DEVICES> && tritonserver --model-repository <TRITON MODEL REPOSITORY>"
-
+Starting the NVIDIA Triton Inference Server is a simple command.  First, however, please read the model specific section below
+to make sure everything is in the correct place.
+To start the NVIDIA Triton Inference Server
 ```
-
-Parameters:
-* `NUMBER OF NODES`: Number of machines in cluster, which should be used to run inference.
-* `SLURM PARTITION`: Slurm partition with DGX machines for inference.
-* `MPI MODE`: FasterTransformer uses MPI for interprocess communication like `pmix` library.
-* `NEMO_LAUNCHER INFERENCE CONTAINER`: Separate docker container streamlined for just inference.
-* `TRITON MODEL REPOSITORY`: Triton model repository created by FasterTransformer export stage.
-* `LIST OF CUDA DEVICES`: List of CUDA devices, which should be used by inference like `0,1,2,3`.
-
-When you run inference, then number of machines and GPUs must match configuration
-set during FasterTransformer export. You set tensor parallel (TP) and pipeline
-parallel configuration (PP). This created wight files divided between GPUs and machines.
-A tensor parallel configuration determines how many GPUs are used to process
-one transformer layer. If you set TP to 16 but your cluster contains just 8 GPU
-machines, then you need 2 nodes to run inference. FasterTransformer consumes all GPUs
-accessible to Triton process. If you set TP to 4 but your machines contain 8 GPUs,
-then you must hide some GPUs from the process. An environment variable
-`CUDA_VISIVLE_DEVICES` can be used to list devices accessible to CUDA library
-for a process, so you can use it to limit number of GPUs used by Triton instance.
-The example configuration for 126m can't be run with tensor parallel set to 8
-because head number in transformer layer must be divisible by tensor parallel
-value.
-
-Table below contains example configurations for DGX 8 GPU machines:
-
-| TP   | PP   | #GPUs | #Nodes | CUDA DEVICES       |
-| ---- | ---- | ----- | ------ | ------------------ |
-| 1    | 1    | 1     | 1      | 0                  |
-| 2    | 1    | 2     | 1      | 0,1                |
-| 4    | 1    | 4     | 1      | 0,1,2,3            |
-| 8    | 1    | 8     | 1      | Not necessary      |
-| 8    | 2    | 16    | 2      | Not necessary      |
-| 16   | 1    | 16    | 2      | Not necessary      |
-| 8    | 3    | 24    | 3      | Not necessary      |
-| 8    | 4    | 32    | 4      | Not necessary      |
-| 16   | 2    | 32    | 4      | Not necessary      |
-
-
-
-The script saves NVIDIA Triton logs so you can verify what happens when
-FasterTransformer loads a checkpoint. The command above starts the server, so
-that users can test it with other tools created later. You can use this
-script to demo inference. The job does not stop on its own, if you don't stop it
-manually, it will stop when the time limit is reached on the cluster.
-
-FasterTransformer backend ignores missing files for weights and uses random
-tensors in such a scenario. You should make sure that your NVIDIA Triton
-instance is serving requests with real weights by inspecting logs.
-
-
-If you notice warning about missing files, you should double check your model:
-
+/opt/tritonserver/bin/tritonserver --log-verbose 2 --model-repository /opt/NeMo-Megatron-Launcher/deployment/server --model-control-mode=explicit --load-model <model>
 ```
-[WARNING] file /triton-model-repository/model_name/1/1-gpu/model.wpe.bin cannot be opened, loading model fails!
-[WARNING] file /triton-model-repository/model_name/1/1-gpu/model.wte.bin cannot be opened, loading model fails!
-[WARNING] file /triton-model-repository/model_name/1/1-gpu/model.final_layernorm.bias.bin cannot be opened, loading model fails!
-[WARNING] file /triton-model-repository/model_name/1/1-gpu/model.final_layernorm.weight.bin cannot be opened, loading model fails!
-```
+`<model>` can be substitued for the `stable_diffusion`, `instruct_pix2pix`, `clip_trt`, `clip_vision_trt`, `vit_trt`.
 
-## 6.2. GPT-3 Text Generation with Ensemble
+#### 6.2.1 Stable Diffusion, Dreambooth
 
-FasterTransformer for GPT-3 implements a part of whole text generation application.
+For Stable Diffusion and Dreambooth, copy the generated `plan` directory to the `deployment/server/stable_diffusion/1/` directory.
 
-An
-[ensemble](https://github.com/triton-inference-server/server/blob/main/docs/architecture.md#ensemble-models)
-model represents a pipeline of models and the connection of input
-and output tensors between those models. Ensemble models are intended to be used
-to encapsulate a procedure that involves multiple models, such as
-"data preprocessing -> inference -> data postprocessing".
-Using ensemble models for this purpose can avoid the overhead of
-transferring intermediate tensors and minimize the number of requests
-that must be sent to Triton.
+#### 6.2.2 Instruct Pix2Pix
 
+For Instruct Pix2Pix, copy the generated `plan` directory to the `deployment/server/instruct_pix2pix/1/` directory.
 
-A text generation example for GPT is implemented as ensemble example:
-[gpt](https://github.com/triton-inference-server/fastertransformer_backend/tree/main/all_models/gpt)
-folder. This example contains four folders:
-* `ensemble`: ensemble definition folder.
-* `fastertransformer`: FasterTransformer backend folder.
-* `postprocessing`: Detokeniser to generate text.
-* `preprocessing`: Tokenizer to translate text into token IDs.
+#### 6.2.3 Vision Transformer
 
-You should replace your `fastertransformer` folder with model store generated
-by FasterTransformer export described above. The ensemble expects a `model name`
-to be `fastertransformer` so make sure that your generated configuration uses
-such `model name`.
+Move the generated `.plan` file to `deployment/server/vit_trt/1/model.plan`. 
 
-The inference container doesn't contain PyTorch so you need to install dependencies
-for ensemble. You can start you compute node for Triton in interactive mode to access terminal directly.
+#### 6.2.4 CLIP
 
+Move the generated `.plan` file to `deployment/server/clip_vision_trt/1/model.plan`.  For this model, two separate Triton models need to be loaded
+`--load-model clip_vision_trt --load-model clip_trt`.  Querying `clip_trt` will provide tokenization and automatically call `clip_vision_trt` using BLS.
 
-Inside machine running container for Triton Inference server install PyTorch and regex packages:
+### 6.3 Query NVIDIA Triton Inference Server
 
-```
-pip install torch regex
+In a separate instance of the NeMo container, we can setup a client to query the server.  In `deployment/client`, there are a few examples of the clients.
 
-```
+#### 6.3.1 Stable Diffusion and Dreambooth
 
-Execute Triton inference server like described above in point 6.1. You can demonize process.
+At query time, the values, `seed`, `unconditional_guidance_scale`, `inference_steps`, `eta` can be used as optional inputs.  If these are not set, the defaults are the values set during export.
+The return is a single numpy array containing `num_images_per_prompt` images.
 
-```
-CUDA_VISIBLE_DEVICES=0 mpirun -n 1 --allow-run-as-root tritonserver --model-store /your/folders/fastertransformer_backend/all_models/gpt &
-```
+#### 6.3.2 Instruct Pix2Pix
 
-Install Triton client:
-
-```
-pip install tritonclient[all]
-```
-Execute `end_to_end_test.py` example:
-
-```
-python3 /your/folders/fastertransformer_backend/tools/end_to_end_test.py
-```
-
-The `end_to_end_test.py` script contains a string examples, which you can replace with your text.
-
-
-
-## 6.3. UL2 Checkpoint Deployment
-
-You can deploy UL2 T5 checkpoints using
-[readme](https://github.com/NVIDIA/FasterTransformer/blob/main/docs/t5_guide.md#running-ul2-on-fastertransformer-pytorch-op)
-created by FasterTransformer.
-
-You can use huggingface t5 conversion script see below:
-
-```
-python3 FasterTransformer/examples/pytorch/t5/utils/huggingface_t5_ckpt_convert.py \
-        -in_file <UL2 checkpoint folder from training> \
-        -saved_dir <FasterTransformer destination folder> \
-        -inference_tensor_para_size <tensor parallel size> \
-        -weight_data_type <data type>
-```
-
-Triton FasterTransformer backend repo contains configuration example [config.pbtxt](https://github.com/triton-inference-server/fastertransformer_backend/blob/main/all_models/t5/fastertransformer/config.pbtxt).
-
-You can use Triton configuration script
-[prepare\_triton\_model\_config.py](nemo_megatron/collections/export_scripts/prepare_triton_model_config.py)
-to modify config.pbtxt to match
-configuration of your UL2 checkpoint and your cluster configuration.
-
-
+At query time, the values, `seed`, `text_cfg_scale`, `steps`, `image_cfg_scale` can be used as optional inputs.  If these are not set, the defaults are the values set during export.
+The return is a single numpy array containing `num_images_per_prompt` images.  In the client example, make sure to set the path to the input image.
 
 
 ## 7. Performance
-<a id="markdown-performance" name="performance"></a>
 
-### 7.1. GPT-3 Results
-<a id="markdown-gpt-3-results" name="gpt-3-results"></a>
+### 7.1. Vision Transformer Results
 
 #### 7.1.1. Training Accuracy Results
-Training Accuracy: NVIDIA DGX SuperPOD (8 x 8 x A100 80GB for 126M GPT-3 Model; 16 x 8 x A100 80GB for 5B GPT-3 Model)
 
-We evaluated the 126M parameter and 5B parameter models on 8 different language
-tasks. The results can be found in the table below. All the tasks are provided
-as part of the evaluation harness, so the user can evaluate any `.nemo`
-checkpoint file on all these tasks.
+Training Accuracy: NVIDIA DGX SuperPOD (4 x 8 x A100 80GB for ViT B/16 Model)
 
-|Task                            |Metric                        | 126M                         | 5B                             |
-| ---------------- | ---------------- | ---------------- | ---------------- |
-|Lambada                     |Accuracy                    | 38.70%                     | 68.93%                     |
-|                                    |PPL                             | 25.8                         | 4.22                         |
-|Boolq                         |Accuracy                    | 56.94%                     | 65.29%                     |
-|Race                            |Accuracy                    | 28.71%                     | 38.66%                     |
-|                                    |Accuracy Norm         | 34.74%                     | 41.62%                     |
-|Piqa                            |Accuracy                    | 61.21%                     | 73.88%                     |
-|                                    |Accuracy Norm         | 61.97%                     | 75.40%                     |
-|Hellaswag                 |Accuracy                    | 28.48%                     | 46.45%                     |
-|                                    |Accuracy Norm         | 29.54%                     | 60.85%                     |
-|Winogrande                |Accuracy                    | 50.43%                     | 60.77%                     |
-|Wikitext2                 |Word PPL                    | 31.35                        | 12.36                        |
-|                                    |Byte PPL                    | 1.9                            | 1.6                            |
-|                                    |Bits per Byte PPL | 0.64                         | 0.47                         |
-|Wikitext103             |Word PPL                    | 31.35                        | 12.36                        |
-|                                    |Byte PPL                    | 1.9                            | 1.6                            |
-|                                    |Bits per Byte PPL | 0.64                         | 0.47                         |
+We pretrained a ViT B/16 model on the ImageNet 1K dataset and fine-tuned it on the same dataset at a higher resolution,
+following the recipe outlined in the [ViT paper](https://arxiv.org/abs/2010.11929). As a result, we achieved a Top-1
+accuracy of **79.47%**, which is **1.56%** higher than the reported accuracy of 77.91% in the paper. Below are the
+highlights of the training and fine-tuning recipe we used:
 
-Training the 5B GPT-3 model to convergence takes 6.5 days, and the loss curve can be seen in the figure below:
-
-<img src="img/5B_GPT_3_loss_final.svg"/>
-
-The table below shows the converged training loss, the throughput, and the
-total time to train for the 5B GPT-3 model, using a given number of GPUs and a
-given Global Batch Size (GBS).
-
-| \#GPUs | GBS    | Seq Length | \#Tokens | Loss    | Throughput (Tokens/sec) | Time to Train (days) |
-| ------ | ---- | ---------- | -------- | ----- | ----------------------- | -------------------- |
-| 160    | 1440 | 2048       | 300B     | 1.685 | 726,384                 | 4.8                  |
-
+- Model: ViT B/16
+- Dataset: ImageNet 1K
+- Pretraining:
+    - Epochs: 300
+    - Batch Size: 4096
+    - Training Resolution: 224
+    - Optimizer: Adam (0.9, 0.999)
+    - Base Learning Rate: 3.00E-03
+    - Learning Rate Decay: Cosine
+    - Weight Decay: 0.3
+    - Dropout: 0.1
+- Fine-tuning:
+    - Steps: 20,000
+    - Batch Size: 512
+    - Fine-tuning Resolution: 512
+    - Optimizer: SGD (0.9)
+    - Base Learning Rate: 0.003 - 0.06
+    - Learning Rate Decay: Cosine
+    - Weight Decay: 0
 
 #### 7.1.2. Training Performance Results
-<a id="markdown-training-performance-results" name="training-performance-results"></a>
-Training performance: 
- - NVIDIA DGX SuperPOD (16 x 8 x A100 80GB for 5B GPT-3 model)
- - NVIDIA DGX SuperPODs (128 x 8 x A100 80GB for 175B GPT-3 model)
 
-We measured the throughput of training 5B and 175B parameter GPT-3 models on 
-different numbers of DGX nodes, and we achieved near-linear
-scaling. For example, when scaling from 1 node to 32 nodes with a 5B model, we achieve a 28.73x
-speed-up. When scaling from 8 nodes to 128 (16x more nodes) nodes with a 175B model, we achieve 14.62x speed-up.
+We measured the throughput of training Vision Transformer models on
+different numbers of DGX A100 nodes and DGX H100 nodes, and we achieved near-linear
+scaling on both platforms. 
+
+We are comparing the out-of-box performance on DGX H100 machines with the same configuration from DGX A100 machines. This comparison is an apple-to-apple assessment, ensuring that we evaluate the relative performance of the two machine types under equivalent conditions and configurations. 
+
 The tables and charts below show the performance results.
 
-|      |                                 |        |        |        | Nodes  |        |         |
-| ---- | ------------------------------- | ------ | ------ | ------ | ------ | ------ | ------- |
-|      |                                 | 1      | 2      | 4      | 8      | 16     | 32      |
-|      | Tokens per Second               | 40345  | 79815  | 161754 | 312774 | 659481 | 1159288 |
-| 5B   | Perfect Linear Scaling (Tokens) | 40345  | 80690  | 161380 | 322760 | 645520 | 1291040 |
-|      | Speed-up                        | 1x     | 1.98x  | 4.01x  | 7.75x  | 16.35x | 28.73x  |
+- NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for ViT g/14 model)
 
-<img src="img/5B_GPT_3_throughput.svg"/>
+|          |                                  |        |         |         | Nodes   |          |
+|----------|----------------------------------|--------|---------|---------|---------|----------|
+|          |                                  | 1      | 2       | 4       | 8       | 16       |
+|          | Samples per Second               | 708.06 | 1369.35 | 2729.57 | 5397.29 | 10837.41 |
+| ViT g/14 | Perfect Linear Scaling (Samples) | 708.06 | 1416.13 | 2832.25 | 5664.50 | 11329.00 |
+|          | Speedup                          | 1x     | 1.93x   | 3.85x   | 7.62x   | 15.31x   |
 
-|      |                                 |        | Nodes  |        |       |        |
-| ---- | ------------------------------- | ------ | ------ | ------ | ----- | ------ |
-|      |                                 | 8      | 16     | 32     | 64    | 128    |
-|      | Tokens per Second               | 7500   | 14950  | 29537  | 58211 | 109684 |
-| 175B | Perfect Linear Scaling (Tokens) | 7500   | 15000  | 30000  | 60000 | 120000 |
-|      | Speed-up                        | 1x     | 1.99x  | 3.94x  | 7.76x | 14.62x |
+<img src="img/ViT g_14 NeMo Megatron Throughput (A100).svg"/>
 
-<img src="img/175B_GPT_3_throughput.svg"/>
+- NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for ViT g/14 model)
 
-#### 7.1.3. Inference Performance
-<a id="markdown-inference-performance" name="inference-performance"></a>
+|          |                                  |      |       |       | Nodes |        |
+|----------|----------------------------------|------|-------|-------|-------|--------|
+|          |                                  | 1    | 2     | 4     | 8     | 16     |
+|          | Samples per Second               | 1527 | 3006  | 5900  | 11743 | 24002  |
+| ViT g/14 | Perfect Linear Scaling (Samples) | 1527 | 3054  | 6109  | 12219 | 24439  |
+|          | Speedup                          | 1x   | 1.97x | 3.86x | 7.69x | 15.71x |
 
-Inference performance was measured for NVIDIA DGX SuperPOD (1 x 8 x A100 80GB).
+<img src="img/ViT g_14 NeMo Megatron Throughput (H100).svg"/>
 
-Inference parameters:
-* batch size: 1
-* input tokens length: 60
-* output tokens length: 20
+- DGX A100 vs. DGX H100: A Comparative Analysis of Vision Transformer Training
 
-<img src="img/infer_model_size_gpt3.svg"/>
+| Model       | Nodes | Global Batch Size | Micro Batch Size | Precision | Global Batch / Sec (A100) | Global Batch / Sec (H100) | Speedup (x) |
+|-------------|-------|-------------------|------------------|-----------|---------------------------|---------------------------|-------------|
+| ViT B/16    | 2     | 4096              | 256              | bf16 (O2) | 2.65                      | 5.88                      | 2.2         |
+| ViT L/16    | 2     | 4096              | 256              | bf16 (O2) | 1.34                      | 2.84                      | 2.1         |
+| ViT H/14    | 4     | 4096              | 128              | bf16 (O2) | 1.02                      | 2.17                      | 2.1         |
+| ViT g/14    | 4     | 4096              | 64               | bf16 (O2) | 0.70                      | 1.52                      | 2.2         |
+| ViT bigG/14 | 4     | 4096              | 32               | bf16 (O2) | 0.42                      | 0.86                      | 2.1         |
 
-| GPT Model size | Average latency [ms]           | TP | PP | GPUs |
-|----------------|--------------------------------|----|----|------|
-| 5B             |                             87 |  8 |  4 |   32 |
-| 20B            |                            202 |  8 |  4 |   32 |
-| 175B           |                            893 |  8 |  4 |   32 |
-| 530B           |                            977 | 32 |  1 |   32 |
+<img src="img/Vision Transformer Training Throughput Comparison.svg"/>
 
-### 7.2. T5 Results
-<a id="markdown-t5-results" name="t5-results"></a>
+#### 7.1.3. Inference Performance Results
+Latency times are taken as starting with an image on CPU and stopped on output.
+For framework we use the Torch Automated Mixed Precision (AMP) for FP16 computation.  For TRT, we export the various models
+with the FP16 acceleration.  We use the optimized TRT engine setup present in the deployment directory to get the numbers
+in the same environment as the framework.
+
+GPU: NVIDIA DGX A100 (1x A100 80 GB)
+Batch Size: Batch Size of the Image
+
+| Model   | Batch Size | TRT FP16 Latency (s) | FW FP 16 (AMP) Latency (s) |
+|---------|------------|----------------------|----------------------------|
+|         | 1          | 0.006                | 0.014                      |
+|         | 2          | 0.008                | 0.015                      |
+| ViT b/16| 4          | 0.011                | 0.015                      |
+|         | 8          | 0.018                | 0.017                      |
+
+
+### 7.2. CLIP Results
 
 #### 7.2.1. Training Accuracy Results
 
-The user can also prompt-learn on top of any `.nemo` trained checkpoint file on `SQuAD` task mentioned in T5 prompt-learning section.
-The results can be found in the table below.
+Training Accuracy: NVIDIA DGX SuperPOD (8 x 8 x A100 80GB for CLIP B/32 Model)
 
-| Task   | Metric      | 220M  | 3B    |
-|--------|-------------|-------|-------|
-| SQuAD  | Exact Match | 74.20 | 78.52 |
-| SQuAD  | F1          | 84.54 | 87.17 |
+We followed the training recipe from [Open CLIP blog](https://laion.ai/blog/large-openclip/#12b-samples-seen) to verify
+our training pipeline. Our results are displayed in the table below:
 
-Training the 220M T5 model to convergence takes 4 days, and the loss curve can be seen in the figure below:
+| Framework | Dataset                | Model Name | Batch Size | Samples Seen | ImageNet Top-1 |
+|-----------|------------------------|------------|------------|--------------|----------------|
+| OpenCLIP  | Laion 400m             | B/32       | 32k        | 12B          | 62.90%         |
+| NeMo      | Our Multimodal Blend*  | B/32       | 32k        | 12B          | 60.13%         |
 
-<img src="img/220M_T5_loss_final.svg"/>
+\**Our multimodal dataset is originated from Common Crawl with custom filtering.*
 
-The table below shows the converged training loss, the throughput, and the
-total time to train for the 220M T5 model, using a given number of GPUs and a
-given Global Batch Size (GBS).
-
-| \#GPUs | GBS    | Seq Length | \#Tokens | Loss    | Throughput (Tokens/sec) | Time to Train (days) |
-|--------|------|------------|----------|-------|-------------------------|----------------------|
-| 32         | 2048 | 512                | 1T             | 1.501 | 3,273,728                             | 4                                        |
-
-
-Training the 3B T5 model to convergence takes 11 days, and the loss curve of a fully trained model can be seen in the figure below:
-
-<img src="img/3B_T5_loss_100percent.svg"/>
-
-The table below shows the converged training loss, the throughput, and the
-total time to train for the 3B T5 model, using a given number of GPUs and a
-given Global Batch Size (GBS).
-
-| \#GPUs | GBS    | Seq Length | \#Tokens | Loss  | Throughput (Tokens/sec) | Time to Train (days) |
-|--------|------|------------|----------|--------------------|-------------------------|----------------------|
-| 160        | 2160 | 512                | 1T             | 1.147                            | 1,395,131                             | 11                                     |
-
-
+We believe the final accuracy difference is due to the dataset, as Laion datasets are filtered with CLIP scores. We also
+compared locally running Open CLIP vs. NeMo on the same dataset, and the loss curve and validation accuracy were almost
+identical.
 
 #### 7.2.2. Training Performance Results
-<a id="markdown-training-performance-results" name="training-performance-results"></a>
-Training Performance: NVIDIA DGX SuperPOD (20 x 8 x A100 80GB for 3B T5 Model)
 
-We measured the throughput of training a 3B parameter T5 model on NVIDIA DGX
-SuperPOD using a different number of nodes. When scaling from 1 node to 20 nodes, we achieve 16.38x
-speed-up. We are actively working on improving the scaling performance for T5 models. The table and chart below show the performance results.
+We measured the throughput of training CLIP models on
+different numbers of DGX A100 nodes and DGX H100 nodes, and we achieved near-linear
+scaling on both platforms. 
+
+We are comparing the out-of-box performance on DGX H100 machines with the same configuration from DGX A100 machines. This comparison is an apple-to-apple assessment, ensuring that we evaluate the relative performance of the two machine types under equivalent conditions and configurations. 
+
+The tables and charts below show the performance results.
+
+- NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for CLIP g/14 model)
+
+|             |                                  |        |         |         | Nodes   |          |
+|-------------|----------------------------------|--------|---------|---------|---------|----------|
+|             |                                  | 1      | 2       | 4       | 8       | 16       |
+|             | Samples per Second              | 621.90| 1230.88| 2446.72| 4863.68 | 9650.36 |
+| CLIP g/14   | Perfect Linear Scaling (Samples)| 621.90| 1243.81| 2487.61| 4975.22 | 9950.44 |
+|             | Speedup                         | 1x    | 1.98x | 3.93x  | 7.82x   | 15.52x  |
+
+<img src="img/CLIP g_14 NeMo Megatron Throughput (A100).svg"/>
+
+- NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for CLIP g/14 model)
+
+|            |                                  |      |       |       | Nodes |        |
+|------------|----------------------------------|------|-------|-------|-------|--------|
+|            |                                  | 1    | 2     | 4     | 8     | 16     |
+|            | Samples per Second              | 1039.81| 2005.48| 4013.33| 7627.56 | 14913.53|
+| CLIP g/14  | Perfect Linear Scaling (Samples)| 1039.81| 2079.61| 4159.22| 8318.44 | 16636.88|
+|            | Speedup                         | 1x    | 1.93x | 3.86x  | 7.34x   | 14.34x  |
+
+<img src="img/CLIP g_14 NeMo Megatron Throughput (H100).svg"/>
+
+- DGX A100 vs. DGX H100: A Comparative Analysis of CLIP Training
+
+| Model   | Nodes | Global Batch Size | Micro Batch Size | Precision | Global Batch / Sec (A100) | Global Batch / Sec (H100) | Speedup (x) |
+|---------|-------|------------------|------------------|-----------|--------------------------|---------------------------|-------------|
+| CLIP B/32 | 4     | 16000            | 500              | bf16 (O2) | 1.49                     | 4.83                      | 3.2         |
+| CLIP H/14 | 4     | 3584             | 112              | bf16 (O2) | 0.96                     | 1.92                      | 2.0         |
+| CLIP g/14 | 4     | 2560             | 80               | bf16 (O2) | 1.08                     | 2.25                      | 2.1         |
+
+<img src="img/CLIP Training Throughput Comparison.svg"/>
 
 
-|        |                                    |           |          |          | Nodes    |          |          |
-|--------|------------------------------------|-----------|----------|----------|----------|----------|----------|
-|        |                                    | 1         | 2        | 4        | 5        | 10       | 20       |
-|        | Tokens per Second                  | 110769    | 215579   | 417644   | 515100   | 957506   |  1626353 |
-| 3B     | Perfect Linear Scaling (Tokens)    | 110769    | 221538   | 443077   | 553846   | 1107692  | 2215385  |
-|        | Speed-up                           | 1x        | 1.95x    | 3.77x    | 4.65x    | 8.64x    | 14.68x   |
+#### 7.2.3. Inference Performance Results
+Latency times are taken as starting with an image on CPU and text input (of length 64) and stopped on output.
+For framework we use the Torch Automated Mixed Precision (AMP) for FP16 computation.  For TRT, we export the various models
+with the FP16 acceleration.  We use the optimized TRT engine setup present in the deployment directory to get the numbers
+in the same environment as the framework.
 
-<img src="img/3B_T5_throughput_2208.svg"/>
+GPU: NVIDIA DGX A100 (1x A100 80 GB)
+Batch Size: Batch Size of the Image
 
-#### 7.2.3. Inference Performance
-Inference performance was measured for NVIDIA DGX SuperPOD (1 x 8 x A100 80GB).
+| Model    | Batch Size | TRT FP16 Latency (s) | FW FP 16 (AMP) Latency (s) |
+|----------|------------|----------------------|----------------------------|
+|          | 1          | 0.014                | 0.032                      |
+|          | 2          | 0.014                | 0.033                      |
+| CLIP B/32| 4          | 0.014                | 0.028                      |
+|          | 8          | 0.015                | 0.028                      |
 
-Inference parameters:
-* batch size: 1
-* input tokens length: 60
-* output tokens length: 20
-
-<img src="img/infer_model_size_t5.svg"/>
-
-| T5 Model size | Average latency [ms] | TP | PP | GPUs |
-|---------------|----------------------|----|----|------|
-| 3B            |                   94 |  2 |  1 |    2 |
-| 11B           |                  123 |  4 |  1 |    4 |
-| 23B           |                  213 |  4 |  1 |    4 |
-| 41B           |                  332 |  8 |  1 |    8 |
-
-
-### 7.3. mT5 Results
-<a id="markdown-t5-results" name="t5-results"></a>
+### 7.3. Stable Diffusion Results
 
 #### 7.3.1. Training Accuracy Results
-Training Accuracy: NVIDIA DGX SuperPOD (4 x 8 x A100 80GB for 170M mT5 Model; 8 x 8 x A100 80GB for 390M mT5 Model; 20 x 8 x A100 80GB for 3B mT5 Model)
+We evaluate stable diffusion model with FID-CLIP curve, and comparing it to other open-source ckpt at same scale of consumed sample.
 
-We evaluated our mT5 models on XQuAD task. The results can be found in the table below. The user can 
-fine-tune on top of any `.nemo` trained checkpoint file on `XQuAD` task mentioned in mT5 fine-tuning section.
+FID (Fréchet Inception Distance) is a metric used to evaluate the quality of generated images in machine learning. It measures the distance between the real image distribution and the distribution of generated images using the features extracted by a pre-trained Inception model.
 
-| Task-Language | Metric      | 170M  | 390M  |
-|---------------|-------------|-------|-------|
-| XQuAD-de      | Exact Match | 43.0  | 54.7  |
-| XQuAD-en      | Exact Match | 63.8  | 68.8  |
-| XQuAD-es      | Exact Match | 47.0  | 55.3  |
-| XQuAD-hi      | Exact Match | 34.5  | 47.1  |
-| XQuAD-zh      | Exact Match | 46.8  | 56.1  |
+The VIT-L/14 version of the CLIP model was utilized to assess the relevance between image prompts and generated images. 
 
-The user can also prompt-learn on top of any `.nemo` trained checkpoint file on `SQuAD` task mentioned in mT5 prompt-learning section.
-The results can be found in the table below.
+The evaluation was conducted using different classifier-free guidance scales, specifically 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, and 8.0. The evaluation process involved generating 30,000 images from randomly selected prompts from the COCO2014 validation dataset, with 50 PLMS steps, and evaluating the results at a resolution of 256x256. 
 
-| Task   | Metric      | 390M  | 3B    |
-|--------|-------------|-------|-------|
-| SQuAD  | Exact Match | 76.86 | 81.55 |
-| SQuAD  | F1          | 84.67 | 89.34 |
+These results are presented below.
 
-
-
-Training the 170M mT5 model to convergence takes 4 days, and the loss curve can be seen in the figure below:
-
-<img src="img/170M_mT5_loss_final.svg"/>
-
-The table below shows the converged training loss, the throughput, and the
-total time to train for the 170M mT5 model, using a given number of GPUs and a
-given Global Batch Size (GBS).
-
-| \#GPUs | GBS    | Seq Length | \#Tokens | Loss  | Throughput (Tokens/sec) | Time to Train (days) |
-|--------|------|------------|----------|-------|-------------------------|----------------------|
-| 32         | 2048 | 512                | 1T             | 1.980 | 4,112,062               | 4                                        |
-
-
-
-
-Training the 390M mT5 model to convergence takes 4 days, and the loss curve can be seen in the figure below:
-
-<img src="img/390M_mT5_loss_final.svg"/>
-
-The table below shows the converged training loss, the throughput, and the
-total time to train for the 390M mT5 model, using a given number of GPUs and a
-given Global Batch Size (GBS).
-
-| \#GPUs | GBS    | Seq Length | \#Tokens | Loss  | Throughput (Tokens/sec) | Time to Train (days) |
-|--------|------|------------|----------|-------|-------------------------|----------------------|
-| 64     | 2048 | 512                | 1T             | 1.584 | 3,744,914               | 4                                        |
-
-
-Training the 3B mT5 model to convergence takes 14 days, and the loss curve of a fully trained model can be seen in the figure below:
-
-<img src="img/3B_mT5_loss_final.svg"/>
-
-The table below shows the converged training loss, the throughput, and the
-total time to train for the 3B T5 model, using a given number of GPUs and a
-given Global Batch Size (GBS).
-
-| \#GPUs | GBS  | Seq Length | \#Tokens | Loss   | Throughput (Tokens/sec) | Time to Train (days) |
-|--------|------|------------|----------|--------|-------------------------|----------------------|
-| 160        | 1920 | 512                | 1T             | 1.134  | 911,065                 | 14                   |
-
+<img src='img/Stable Diffusion FID-CLIP.png'/>
 
 #### 7.3.2. Training Performance Results
-<a id="markdown-training-performance-results" name="training-performance-results"></a>
-Training Performance: NVIDIA DGX SuperPOD (20 x 8 x A100 80GB for 3B mT5 Model)
 
-We measured the throughput of training a 3B parameter mT5 model on NVIDIA DGX
-SuperPOD using a different number of nodes. When scaling from 1 node to 20 nodes, we achieve 14.87x
-speed-up. We are actively working on improving the scaling performance for mT5 models. 
-The table and chart below show the performance results.
+We measured the throughput of training Stable Diffusion models on
+different numbers of DGX A100 nodes and DGX H100 nodes, and we achieved near-linear
+scaling on both platforms. 
 
+We are comparing the out-of-box performance on DGX H100 machines with the same configuration from DGX A100 machines. This comparison is an apple-to-apple assessment, ensuring that we evaluate the relative performance of the two machine types under equivalent conditions and configurations. 
 
-|         |                                    |        |         |         | Nodes   |         |          |
-|---------|------------------------------------|--------|---------|---------|---------|---------|----------|
-|         |                                    | 1      | 2       | 4       | 5       | 10      | 20       |
-|         | Tokens per Second                  | 91166  | 179583  | 346263  | 429088  | 798570  | 1303767  |
-| 3B      | Perfect Linear Scaling (Tokens)    | 91166  | 182331  | 364663  | 455829  | 911657  | 1823314  |
-|         | Speed-up                           | 1x     | 1.97x   | 3.8x    | 4.71x   | 8.76x   | 14.3x    |
+The tables and charts below show the performance results.
 
+- NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for Stable Diffusion Res=512 model)
 
-<img src="img/3B_mT5_throughput_2208.svg"/>
+|                           |                                  |        |         |         | Nodes   |          |
+|---------------------------|----------------------------------|--------|---------|---------|---------|----------|
+|                           |                                  | 1      | 2       | 4       | 8       | 16       |
+|                           | Samples per Second              | 199.98| 390.60| 786.78 | 1504.99 | 2952.49 |
+| Stable Diffusion Res=512  | Perfect Linear Scaling (Samples)| 199.98| 399.97| 799.94 | 1599.87 | 3199.75 |
+|                           | Speedup                         | 1x    | 1.95x | 3.93x  | 7.53x   | 14.76x  |
 
-#### 7.3.3. Inference Performance
-Inference performance was measured for NVIDIA DGX SuperPOD (1 x 8 x A100 80GB).
+<img src="img/Stable Diffusion (Res=512) NeMo Megatron Throughput (A100).svg"/>
 
-Inference parameters:
-* batch size: 1
-* input tokens length: 60
-* output tokens length: 20
+- NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for Stable Diffusion Res=512 model)
 
-<img src="img/infer_model_size_mt5.svg"/>
+|                           |                                  |      |       |       | Nodes |        |
+|---------------------------|----------------------------------|------|-------|-------|-------|--------|
+|                           |                                  | 1    | 2     | 4     | 8     | 16     |
+|                           | Samples per Second              | 419.47| 840.86| 1591.79| 3090.85 | 6056.48 |
+| Stable Diffusion Res=512  | Perfect Linear Scaling (Samples)| 419.47| 838.93| 1677.86| 3355.73 | 6711.45 |
+|                           | Speedup                         | 1x    | 2x    | 3.79x  | 7.37x   | 14.44x  |
 
-| mT5 Model size | Average latency [ms] | TP | PP | GPUs |
-|----------------|----------------------|----|----|------|
-| 380M           |                   35 |  1 |  1 |    1 |
-| 3B             |                  102 |  2 |  1 |    2 |
-| 11B            |                  134 |  4 |  1 |    4 |
-| 23B            |                  230 |  4 |  1 |    4 |
+<img src="img/Stable Diffusion (Res=512) NeMo Megatron Throughput (H100).svg"/>
 
-### 7.4. BERT Results
-<a id="markdown-bert-results" name="bert-results"></a>
+- DGX A100 vs. DGX H100: A Comparative Analysis of Stable Diffusion Training
 
-#### 7.4.1. Training Accuracy Results
-Training Accuracy: NVIDIA DGX SuperPOD (16 x 8 x A100 80GB for 4b Bert Model)
-
-Training the 4B BERT model for 95 Billion takes 1.5 days, and the loss curve can be seen in the figure below:
-
-<img src="img/4b_bert_loss_final.png"/>
-
-The table below shows the converged training loss, the throughput, and the
-total time to train for the 4B BERT model, using a given number of GPUs and a
-given Global Batch Size (GBS).
-
-| \#GPUs | GBS    | Seq Length | \#Tokens | Loss  | Throughput (Tokens/sec) | Time to Train (days) |
-|--------|------|------------|----------|-------|-------------------------|----------------------|
-| 16         | 2048 | 512                | 217B             | 1.44 | 728178               | 1.5                                        |
+| Model                          | Nodes | Global Batch | Micro Batch | Precision | Sec/Batch (A100) | Sec/Batch (H100) | Speedup (x) |
+|--------------------------------|-------|--------------|--------------|-----------|------------------|------------------|-------------|
+| Stable Diffusion (Res=256)    | 4     | 4096         | 128          | amp fp16  | 0.829            | 1.709            | 2.1         |
+| Stable Diffusion (Res=512)    | 4     | 1024         | 32           | amp fp16  | 0.758            | 1.603            | 2.1         |
 
 
-#### 7.4.2. Training Performance Results
-<a id="markdown-training-performance-results" name="training-performance-results"></a>
-Training Performance: NVIDIA DGX SuperPOD (20 x 8 x A100 80GB for 4B BERT Model)
+<img src="img/Stable Diffusion Training Throughput Comparison.svg"/>
 
-We measured the throughput of training a 4B parameter BERT model on NVIDIA DGX
-SuperPOD using a different number of nodes. When scaling from 1 node to 16 nodes, we achieve 12.71x
-speed-up. 
-The table and chart below show the performance results.
+#### 7.3.3. Inference Performance Results
+Latency times are started directly before the text encoding (CLIP) and stopped directly after the output image decoding (VAE).
+For framework we use the Torch Automated Mixed Precision (AMP) for FP16 computation.  For TRT, we export the various models
+with the FP16 acceleration.  We use the optimized TRT engine setup present in the deployment directory to get the numbers
+in the same environment as the framework.
 
+GPU: NVIDIA DGX A100 (1x A100 80 GB)
+Batch Size: Synonymous with `num_images_per_prompt`
 
-|         |                                    |        |         |         | Nodes   |         |
-|---------|------------------------------------|--------|---------|---------|---------|---------|
-|         |                                    | 1      | 2       | 4       | 8       | 16      | 
-|         | Tokens per Second                  | 57287  | 108695  | 215358  | 393167  | 728178  | 
-| 4B      | Perfect Linear Scaling (Tokens)    | 57287  | 114574  | 229148  | 458296  | 916592  | 
-|         | Speed-up                           | 1x     | 1.89x   | 3.75x    | 6.86x   | 12.71x   | 
+| Model                            | Batch Size |  Sampler  | Inference Steps | TRT FP 16 Latency (s) | FW FP 16 (AMP) Latency (s) |
+|----------------------------------|------------|-----------|-----------------|-----------------------|----------------------------|
+| Stable Diffusion (Res=512)       | 1          |  PLMS     |    50           | 0.9                   | 3.3                        |
+| Stable Diffusion (Res=512)       | 2          |  PLMS     |    50           | 1.7                   | 5.2                        |
+| Stable Diffusion (Res=512)       | 4          |  PLMS     |    50           | 2.9                   | 9.2                        |               
 
+### 7.4. Instruct Pix2Pix Results
+#### 7.4.1. Training Quality Results
+Instruct Pix2Pix is an image editing tool that transforms original images based on user instructions. For example, when provided with the iconic painting "Girl with a Pearl Earring," the AI can seamlessly edit the image according to your creative vision.
 
-<img src="img/4B_bert_throughput_2211.png"/>
+Here are some examples generated using our NeMo Stable Diffusion 1.2 model, fine-tuned with NeMo Instruct Pix2Pix. For each instruction, we showcase 8 distinct images generated from different seeds:
+
+- Instruction: Make the person younger
+  <img src="img/make_the_person_younger_combine.jpg"/>
+- Instruction: Make it Van Gogh style
+  <img src="img/make_it_Van_Gogh_style_combine.jpg"/>
+- Instruction: Make it in a forest
+  <img src="img/make_it_in_a_forest_combine.jpg"/>
+
+#### 7.4.2. Inference Performance Results
+Latency times are started directly before the text encoding (CLIP) and stopped directly after the output image decoding (VAE).
+For framework we use the Torch Automated Mixed Precision (AMP) for FP16 computation.  For TRT, we export the various models
+with the FP16 acceleration.  We use the optimized TRT engine setup present in the deployment directory to get the numbers
+in the same environment as the framework.
+
+GPU: NVIDIA DGX A100 (1x A100 80 GB)
+Batch Size: Synonymous with `num_images_per_prompt`
+
+| Model                            | Batch Size |  Sampler  | Inference Steps | TRT FP 16 Latency (s) | FW FP 16 (AMP) Latency (s) |
+|----------------------------------|------------|-----------|-----------------|-----------------------|----------------------------|
+| Instruct Pix2Pix (Res=256)       | 1          |  N/A      |    100          | 1.0                   | 3.6                        |
+| Instruct Pix2Pix (Res=256)       | 2          |  N/A      |    100          | 1.3                   | 3.7                        |
+| Instruct Pix2Pix (Res=256)       | 4          |  N/A      |    100          | 2.2                   | 4.9                        |     
+
+### 7.5. DreamBooth Results
+#### 7.5.1. Training Quality Results
+Here we show some insteresting results as an example of dreambooth script. 
+
+Prompt: A 'sks' dog in a bucket.
+
+<img src="img/Dreambooth dog in a bucket.png" width="30%">
+
+Prompt: A 'sks' dog in Acropolis.
+
+<img src="img/Dreambooth dog at Acropolis.png" width="30%">
+
+Prompt: A 'sks' dog in front of Eiffel tower.
+
+<img src="img/Dreambooth Eiffel towel.png" width="30%">
+
+Prompt: A 'sks' dog mecha robot.
+
+<img src="img/Dreambooth mecha robot.png" width="30%">
+
+#### 7.5.2. Inference Performance Results
+Latency times are started directly before the text encoding (CLIP) and stopped directly after the output image decoding (VAE).
+For framework we use the Torch Automated Mixed Precision (AMP) for FP16 computation.  For TRT, we export the various models
+with the FP16 acceleration.  We use the optimized TRT engine setup present in the deployment directory to get the numbers
+in the same environment as the framework.
+
+GPU: NVIDIA DGX A100 (1x A100 80 GB)
+Batch Size: Synonymous with `num_images_per_prompt`
+
+| Model                            | Batch Size |  Sampler  | Inference Steps | TRT FP 16 Latency (s) | FW FP 16 (AMP) Latency (s) |
+|----------------------------------|------------|-----------|-----------------|-----------------------|----------------------------|
+| Dreambooth (Res=256)             | 1          |  DDIM     |    100          | 2.0                   | 5.6                        |
+| Dreambooth (Res=256)             | 2          |  DDIM     |    100          | 3.1                   | 9.0                        |
+| Dreambooth (Res=256)             | 4          |  DDIM     |    100          | 5.7                   | 16.0                       |   
 
 
 
 ## 8. Changelog
-<a id="markdown-changelog" name="changelog"></a>
 
 **NeMo Megatron 23.01**
+
 * BERT with tensor parallelism support (training only)
 * BERT with pipeline parallelism support (training only)
 * Sequence Parallelism and Selective Activation Checkpointing for BERT (training only)
@@ -5134,14 +2195,18 @@ The table and chart below show the performance results.
 * Log total model size (across modal parallel ranks) for GPT-3, T5, mT5, and BERT
 
 **NeMo Megatron 22.11**
+
 * Interleaved Pipeline Scheduling for GPT-3 (training only)
 * FP8 support using Transformer Engine (training only)
 * Distributed Adam Optimizer for T5 and mT5
 * P-Tuning and Prompt Tuning for GPT-3 with Sequence Parallelism
-* Training configurations improved throughput by 7.9% (5B GPT-3), 9.6% (3B T5), 4.3% (11B T5), 52.4% (23B T5), and 26.6% (41B T5) 
+* Training configurations improved throughput by 7.9% (5B GPT-3), 9.6% (3B T5), 4.3% (11B T5), 52.4% (23B T5), and
+  26.6% (41B T5)
 
 **NeMo Megatron 22.09**
-* NeMo Megatron supports training and inference containers on OCI. For detail orchestration scripts, reach out to [oci_nm@nvidia.com](mailto:oci_nm@nvidia.com)
+
+* NeMo Megatron supports training and inference containers on OCI. For detail orchestration scripts, reach out
+  to [oci_nm@nvidia.com](mailto:oci_nm@nvidia.com)
 * P-Tuning and Prompt Tuning for T5 and mT5 with pipeline parallelism (training only)
 * Adapter learning for GPT-3 and T5 with tensor parallelism and pipeline parallelism (training only)
 * IA3 learning for GPT-3 and T5 with tensor parallelism and pipeline parallelism (training only)
@@ -5149,10 +2214,12 @@ The table and chart below show the performance results.
 * AugoConfigurator: parallel inference hyperparameter search for GPT-3 on Base Command Manager
 
 **NeMo Megatron 22.08.01**
+
 * Cloud service providers: support for Amazon Web Services (performance validated up to 20 `p4d.24xlarge` instances)
 * Cloud service providers: switched orchestration from Azure CycleCloud to NVIDIA Nephele for Microsoft Azure
 
 **NeMo Megatron 22.08**
+
 * Distributed Adam Optimizer for GPT-3
 * Asymmetric encoder-decoder configuration for T5 and mT5
 * Support for untying embeddings from the classifier layer for T5 and mT5
@@ -5163,27 +2230,34 @@ The table and chart below show the performance results.
 * XQuAD fine-tuning and evaluation support for mT5 with pipeline parallelism =<2
 
 **NeMo Megatron 22.06-hotfix.01**
+
 * Fix: AugoConfigurator for T5 and mT5
 * Fix: Evaluation harness in GPT-3
 * Fix: Prompt learning in GPT-3
 * Fix: Out of memory when pretraining GPT-3 with Sequence Parallelism
 
 **NeMo Megatron 22.06**
+
 * Sequence Parallelism and Selective Activation Checkpointing for GPT-3
 * Relative Position Embeddings for T5
-  * We used mC4 dataset (24 Languages) for pretraining the mT5 and verified our results on KNLI, KorQuAD, KLUE-STS, and XNLI tasks
+    * We used mC4 dataset (24 Languages) for pretraining the mT5 and verified our results on KNLI, KorQuAD, KLUE-STS,
+      and XNLI tasks
 * AugoConfigurator update with Sequence Parallelism and Selective Activation Checkpointing for GPT-3
 * AugoConfigurator: support for DGX A100 40GB configurations for GPT-3, T5, and mT5
 * P-Tuning and Prompt Tuning for GPT-3 with pipeline parallelism (training only)
 * Operation fusions for higher training throughput (2%-7% speed-up)
-* Default GPT-3 configurations changed to include Sequence Parallelism and Selective Activation Checkpointing: 20B (speed-up: 14%), 40B (speed-up: 9%), 175B (speed-up: 15%) 
+* Default GPT-3 configurations changed to include Sequence Parallelism and Selective Activation Checkpointing: 20B (
+  speed-up: 14%), 40B (speed-up: 9%), 175B (speed-up: 15%)
 
 **NeMo Megatron 22.05.01**
-* Cloud service providers: support for Microsoft Azure (performance validated up to 36 `Standard_ND96amsr_A100_v4` instances)
+
+* Cloud service providers: support for Microsoft Azure (performance validated up to 36 `Standard_ND96amsr_A100_v4`
+  instances)
 * Cluster validation tools (DGMI, NCCL)
 * 20B GPT-3 training configuration improved by 2.7% for higher throughput
 
 **NeMo Megatron 22.05**
+
 * Asynchronous gradient all-reduce for GPT-3, T5, mT5 models with pipeline parallel size equal to 1
 * P-Tuning and Prompt Tuning for GPT-3 with tensor parallelism (training only)
 * AugoConfigurator to find the highest throughput configs for training and inference on Base Command Manager
@@ -5192,6 +2266,7 @@ The table and chart below show the performance results.
 * Hyperparameters for text generation: top-p, top-k, and temperature
 
 **NeMo Megatron 22.04**
+
 * T5 with pipeline parallelism support (training only)
 * Switched from GeLU to GeGLU as activation function for T5
 * mT5 with tensor parallelism and pipeline parallelism support (training only)
@@ -5200,24 +2275,29 @@ The table and chart below show the performance results.
 * Automatic and configurable Non-Uniform Memory Access (NUMA) mapping
 
 **NeMo Megatron 22.03**
+
 * T5 with tensor parallelism support (optimized for <20B parameters, training only)
 * 220M and 3B T5 training configurations
 * GLUE fine-tuning and evaluation support for T5
 
 **NeMo Megatron 22.02**
+
 * GPT-3 with pipeline parallelism support (training only)
 * 40B and 175B GPT-3 training configurations
 
 **NeMo Megatron 22.01**
+
 * GPT-3 with tensor parallelism support on Base Command Platform
 * O2-style AMP (accelerated training of larger models)
 * Chatbot sample application using your trained GPT-3 model
 * Training metric monitoring and visualization with Weights & Biases
 
 ## 9. Known Issues
-<a id="markdown-known-issues" name="known-issues"></a>
+
 Fixes for the following issues will be released shortly:
+
 * The inference hyperparameter search is not available in this release for T5 and mT5
-* Accuracy and performance measurement for GPT-3 is currently not supported. Please use the NeMo Megatron 22.05 inference container to use this feature
+* Accuracy and performance measurement for GPT-3 is currently not supported. Please use the NeMo Megatron 22.05
+  inference container to use this feature
 * For running inference on BCP please use the NeMo Megatron 22.03 inference container
 * The fine-tuning SQuAD results for T5 are lower than expected

@@ -1,29 +1,19 @@
 defaults:
   - _self_
   - cluster: bcm  # Leave it as bcm even if using bcp. It will be ignored for bcp.
-  - data_preparation: gpt3/download_gpt3_pile
-  - training: gpt3/5b
-  - conversion: gpt3/convert_gpt3
+  - data_preparation: multimodal/download_multimodal
+  - training: clip/vit_B_32
+  - conversion: null
   - fine_tuning: null
-  - prompt_learning: null
-  - adapter_learning: null
-  - ia3_learning: null
-  - evaluation: gpt3/evaluate_all
+  - evaluation: clip/imagenet_zeroshot
   - fw_inference: null
-  - export: gpt3/export_gpt3
+  - export: clip/export_clip
   - override hydra/job_logging: stdout
 
-hydra:
-  run:
-    dir: .
-  output_subdir: null
-
-debug: False
-
 stages:
+  - data_preparation
   - training
-  - conversion
-  - evaluation
+  - fw_inference
   - export
 
 cluster_type: bcm  # bcm or bcp. If bcm, it must match - cluster above.
@@ -54,6 +44,12 @@ numa_mapping:
   balanced: True  # Whether to assing an equal number of physical cores to each process.
   min_cores: 1  # Minimum number of physical cores per process.
   max_cores: 8  # Maximum number of physical cores per process. Can be null to use all available cores.
+
+# hydra settings
+hydra:
+  run:
+    dir: .
+  output_subdir: null
 
 # Do not modify below, use the values above instead.
 data_preparation_config: ${hydra:runtime.choices.data_preparation}
