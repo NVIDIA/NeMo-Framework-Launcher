@@ -11,113 +11,118 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
 ## Table of contents
 
 - [NeMo Megatron](#nemo-megatron)
-  * [Open Beta](#open-beta)
-  * [Table of contents](#table-of-contents)
-  * [1. Model Overview](#1-model-overview)
-    + [1.1. Vision Transformer (ViT)](#11-vision-transformer--vit-)
-    + [1.2. CLIP](#12-clip)
-    + [1.3. Stable Diffusion](#13-stable-diffusion)
-    + [1.4. Instruct Pix2Pix](#14-instruct-pix2pix)
-    + [1.5. DreamBooth](#15-dreambooth)
-  * [2. Feature Matrix](#2-feature-matrix)
-    + [2.1. ViT Models](#21-vit-models)
-    + [2.2 CLIP Models](#22-clip-models)
-    + [2.3. Stable Diffusion](#23-stable-diffusion)
-    + [2.4. Instruct Pix2Pix / DreamBooth Models](#24-instruct-pix2pix---dreambooth-models)
-  * [3. Setup](#3-setup)
-    + [3.1. Support Matrix](#31-support-matrix)
-  * [4. Cloud Service Providers](#4-cloud-service-providers)
-    + [4.1. Cluster Bring-Up](#41-cluster-bring-up)
+  - [Open Beta](#open-beta)
+  - [Table of contents](#table-of-contents)
+  - [1. Model Overview](#1-model-overview)
+    - [1.1. Vision Transformer (ViT)](#11-vision-transformer-vit)
+    - [1.2. CLIP](#12-clip)
+    - [1.3. Stable Diffusion](#13-stable-diffusion)
+    - [1.4. Instruct Pix2Pix](#14-instruct-pix2pix)
+    - [1.5. DreamBooth](#15-dreambooth)
+  - [2. Feature Matrix](#2-feature-matrix)
+    - [2.1. ViT Models](#21-vit-models)
+    - [2.2 CLIP Models](#22-clip-models)
+    - [2.3. Stable Diffusion](#23-stable-diffusion)
+    - [2.4. Instruct Pix2Pix / DreamBooth Models](#24-instruct-pix2pix--dreambooth-models)
+  - [3. Setup](#3-setup)
+    - [3.1. Support Matrix](#31-support-matrix)
+  - [4. Cloud Service Providers](#4-cloud-service-providers)
+    - [4.1. Cluster Bring-Up](#41-cluster-bring-up)
       - [4.1.1. Common](#411-common)
       - [4.1.2. OCI](#412-oci)
       - [4.1.3. AWS](#413-aws)
-    + [4.2. Cluster Validation](#42-cluster-validation)
+    - [4.2. Cluster Validation](#42-cluster-validation)
       - [4.2.1. Validation Script Usage](#421-validation-script-usage)
       - [4.2.2 Running tests manually](#422-running-tests-manually)
-    + [4.3. Config Modifications](#43-config-modifications)
+    - [4.3. Config Modifications](#43-config-modifications)
       - [4.3.1 Set NCCL Topology](#431-set-nccl-topology)
       - [4.3.2 Environment Variables](#432-environment-variables)
-        * [4.3.2.1 Azure Variables](#4321-azure-variables)
-        * [4.3.2.2 AWS Variables](#4322-aws-variables)
-  * [5. Quick Start Guide](#5-quick-start-guide)
-    + [5.1. Getting Started with Multimodal NeMo Megatron](#51-getting-started-with-multimodal-nemo-megatron)
+        - [4.3.2.1 Azure Variables](#4321-azure-variables)
+        - [4.3.2.2 AWS Variables](#4322-aws-variables)
+  - [5. Quick Start Guide](#5-quick-start-guide)
+    - [5.1. Getting Started with Multimodal NeMo Megatron](#51-getting-started-with-multimodal-nemo-megatron)
       - [5.1.1. Prepare Environment](#511-prepare-environment)
-        * [5.1.1.1. Slurm](#5111-slurm)
-        * [5.1.1.2. Base Command Platform](#5112-base-command-platform)
+        - [5.1.1.1. Slurm](#5111-slurm)
+        - [5.1.1.2. Base Command Platform](#5112-base-command-platform)
       - [5.1.2. Configure and Customize Pipeline](#512-configure-and-customize-pipeline)
-        * [5.1.2.1. Cluster Configurations](#5121-cluster-configurations)
-        * [5.1.2.2. Pipeline Configurations](#5122-pipeline-configurations)
-        * [5.1.2.3. Environment Variables Configurations](#5123-environment-variables-configurations)
-        * [5.1.2.4. NUMA Mapping Configurations](#5124-numa-mapping-configurations)
+        - [5.1.2.1. Cluster Configurations](#5121-cluster-configurations)
+        - [5.1.2.2. Pipeline Configurations](#5122-pipeline-configurations)
+        - [5.1.2.3. Environment Variables Configurations](#5123-environment-variables-configurations)
+        - [5.1.2.4. NUMA Mapping Configurations](#5124-numa-mapping-configurations)
       - [5.1.3. Launch Pipeline](#513-launch-pipeline)
-      - [5.1.4. Example: Pre-train Stable Diffusion 860M Model for 10 Epochs with Resolution 256](#514-example--pre-train-stable-diffusion-860m-model-for-10-epochs-with-resolution-256)
-    + [5.2. Data Preparation](#52-data-preparation)
+      - [5.1.4. Example: Pre-train Stable Diffusion 860M Model for 10 Epochs with Resolution 256](#514-example-pre-train-stable-diffusion-860m-model-for-10-epochs-with-resolution-256)
+    - [5.2. Data Preparation](#52-data-preparation)
       - [5.2.1 ImageNet](#521-imagenet)
-        * [5.2.1.1 ImageNet 1k](#5211-imagenet-1k)
-        * [5.2.1.2 ImageNet 21k](#5212-imagenet-21k)
+        - [5.2.1.1 ImageNet 1k](#5211-imagenet-1k)
+        - [5.2.1.2 ImageNet 21k](#5212-imagenet-21k)
       - [5.2.2 Multimodal Datasets](#522-multimodal-datasets)
-        * [5.2.2.1 Overview](#5221-overview)
-        * [5.2.2.2 Running the Pipeline](#5222-running-the-pipeline)
-        * [5.2.2.3 Configuration for Precaching](#5223-configuration-for-precaching)
-          + [5.2.2.3.1 General Format](#52231-general-format)
-          + [5.2.2.3.2 Precaching Config](#52232-precaching-config)
-          + [5.2.2.3.3 Resume Precaching (Advanced)](#52233-resume-precaching--advanced-)
-      - [5.2.3 Instruct-Pix2Pix](#523-instruct-pix2pix)
-        * [5.2.3.1 Overview](#5231-overview)
-        * [5.2.3.2 Running the Pipeline](#5232-running-the-pipeline)
+        - [5.2.2.1 Overview](#5221-overview)
+        - [5.2.2.2 Running the Pipeline](#5222-running-the-pipeline)
+        - [5.2.2.3 Configuration for Precaching](#5223-configuration-for-precaching)
+          - [5.2.2.3.1 General Format](#52231-general-format)
+          - [5.2.2.3.2 Precaching Config](#52232-precaching-config)
+          - [5.2.2.3.3 Resume Precaching (Advanced)](#52233-resume-precaching-advanced)
+          - [5.2.2.3.4 Known Issue](#52234-known-issue)
+      - [5.2.3 Instruct Pix2Pix](#523-instruct-pix2pix)
       - [5.2.4 MSCOCO for FID Evaluation](#524-mscoco-for-fid-evaluation)
-        * [5.2.4.1 Overview](#5241-overview)
-        * [5.2.4.2 Running the Pipeline](#5242-running-the-pipeline)
-    + [5.3. Model Training](#53-model-training)
+        - [5.2.4.1 Download and Setup](#5241-download-and-setup)
+        - [5.2.4.2 Preprocess Images and Captions](#5242-preprocess-images-and-captions)
+    - [5.3. Model Training](#53-model-training)
       - [5.3.1. Vision Transformer Training](#531-vision-transformer-training)
       - [5.3.2. CLIP Training](#532-clip-training)
       - [5.3.3. Stable Diffusion Training](#533-stable-diffusion-training)
       - [5.3.4. Instruct Pix2Pix Training](#534-instruct-pix2pix-training)
       - [5.3.5. DreamBooth Training](#535-dreambooth-training)
-    + [5.4. Checkpoint Conversion](#54-checkpoint-conversion)
-    + [5.5. Model Fine-tuning](#55-model-fine-tuning)
+    - [5.4. Checkpoint Conversion](#54-checkpoint-conversion)
+    - [5.5. Model Fine-tuning](#55-model-fine-tuning)
       - [5.5.1. Vision Transformer Fine-tuning](#551-vision-transformer-fine-tuning)
-    + [5.6. Model Evaluation](#56-model-evaluation)
+    - [5.6. Model Evaluation](#56-model-evaluation)
       - [5.6.1. Vision Transformer Evaluation](#561-vision-transformer-evaluation)
       - [5.6.2. CLIP Evaluation](#562-clip-evaluation)
       - [5.6.3. Stable Diffusion Evaluation](#563-stable-diffusion-evaluation)
-    + [5.7. Model Inference (in NeMo Framework)](#57-model-inference--in-nemo-framework-)
-      - [5.7.1. Vision Transformer Inference (in NeMo Framework)](#571-vision-transformer-inference--in-nemo-framework-)
-      - [5.7.2. CLIP Inference (in NeMo Framework)](#572-clip-inference--in-nemo-framework-)
-      - [5.7.3. Stable Diffusion Inference (in NeMo Framework)](#573-stable-diffusion-inference--in-nemo-framework-)
-      - [5.7.4. Instruct Pix2Pix Inference (in NeMo Framework)](#574-instruct-pix2pix-inference--in-nemo-framework-)
-      - [5.7.5. DreamBooth Inference (in NeMo Framework)](#575-dreambooth-inference--in-nemo-framework-)
-    + [5.8. Model Export](#58-model-export)
+    - [5.7. Model Inference (in NeMo Framework)](#57-model-inference-in-nemo-framework)
+      - [5.7.1. Vision Transformer Inference (in NeMo Framework)](#571-vision-transformer-inference-in-nemo-framework)
+      - [5.7.2. CLIP Inference (in NeMo Framework)](#572-clip-inference-in-nemo-framework)
+      - [5.7.3. Stable Diffusion Inference (in NeMo Framework)](#573-stable-diffusion-inference-in-nemo-framework)
+      - [5.7.4. Instruct Pix2Pix Inference (in NeMo Framework)](#574-instruct-pix2pix-inference-in-nemo-framework)
+      - [5.7.5. DreamBooth Inference (in NeMo Framework)](#575-dreambooth-inference-in-nemo-framework)
+    - [5.8. Model Export](#58-model-export)
       - [5.8.1. Vision Transformer Export](#581-vision-transformer-export)
       - [5.8.2. CLIP Export](#582-clip-export)
       - [5.8.3. Stable Diffusion Export](#583-stable-diffusion-export)
       - [5.8.4. Instruct Pix2pix Export](#584-instruct-pix2pix-export)
       - [5.8.5. DreamBooth Export](#585-dreambooth-export)
-  * [6. Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
-    + [6.1 Setup](#61-setup)
-    + [6.2 Start NVIDIA Triton Inference Server](#62-start-nvidia-triton-inference-server)
-      - [6.2.1 Stable Diffusion, Dreambooth](#621-stable-diffusion--dreambooth)
+  - [6. Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
+    - [6.1 Setup](#61-setup)
+    - [6.2 Start NVIDIA Triton Inference Server](#62-start-nvidia-triton-inference-server)
+      - [6.2.1 Stable Diffusion, Dreambooth](#621-stable-diffusion-dreambooth)
       - [6.2.2 Instruct Pix2Pix](#622-instruct-pix2pix)
       - [6.2.3 Vision Transformer](#623-vision-transformer)
       - [6.2.4 CLIP](#624-clip)
-    + [6.3 Query NVIDIA Triton Inference Server](#63-query-nvidia-triton-inference-server)
+    - [6.3 Query NVIDIA Triton Inference Server](#63-query-nvidia-triton-inference-server)
       - [6.3.1 Stable Diffusion and Dreambooth](#631-stable-diffusion-and-dreambooth)
       - [6.3.2 Instruct Pix2Pix](#632-instruct-pix2pix)
-  * [7. Performance](#7-performance)
-    + [7.1. Vision Transformer Results](#71-vision-transformer-results)
+  - [7. Performance](#7-performance)
+    - [7.1. Vision Transformer Results](#71-vision-transformer-results)
       - [7.1.1. Training Accuracy Results](#711-training-accuracy-results)
       - [7.1.2. Training Performance Results](#712-training-performance-results)
       - [7.1.3. Inference Performance Results](#713-inference-performance-results)
-    + [7.2. CLIP Results](#72-clip-results)
+    - [7.2. CLIP Results](#72-clip-results)
       - [7.2.1. Training Accuracy Results](#721-training-accuracy-results)
       - [7.2.2. Training Performance Results](#722-training-performance-results)
       - [7.2.3. Inference Performance Results](#723-inference-performance-results)
-    + [7.3. Stable Diffusion Results](#73-stable-diffusion-results)
+    - [7.3. Stable Diffusion Results](#73-stable-diffusion-results)
       - [7.3.1. Training Accuracy Results](#731-training-accuracy-results)
       - [7.3.2. Training Performance Results](#732-training-performance-results)
       - [7.3.3. Inference Performance Results](#733-inference-performance-results)
-  * [8. Changelog](#8-changelog)
-  * [9. Known Issues](#9-known-issues)
+    - [7.4. Instruct Pix2Pix Results](#74-instruct-pix2pix-results)
+      - [7.4.1. Training Quality Results](#741-training-quality-results)
+      - [7.4.2. Inference Performance Results](#742-inference-performance-results)
+    - [7.5. DreamBooth Results](#75-dreambooth-results)
+      - [7.5.1. Training Quality Results](#751-training-quality-results)
+      - [7.5.2. Inference Performance Results](#752-inference-performance-results)
+  - [8. Changelog](#8-changelog)
+  - [9. Known Issues](#9-known-issues)
 
 <!-- /TOC -->
 
@@ -170,7 +175,7 @@ learning and has demonstrated exceptional effectiveness across a diverse range o
 
 ### 1.3. Stable Diffusion
 
-The Stable Diffusion (SD) [[Paper]](https://arxiv.org/pdf/2112.10752v2.pdf) is a powerful generative model that can
+Stable Diffusion (SD) [[Paper]](https://arxiv.org/pdf/2112.10752v2.pdf) is a powerful generative model that can
 produce high-quality images based on textual descriptions. By decomposing the image formation process into a sequential
 application of denoising autoencoders, diffusion models (DMs) have achieved state-of-the-art synthesis results on image
 data and beyond. However, due to their direct operation in pixel space, optimization of powerful DMs is computationally
@@ -1174,19 +1179,16 @@ for your
 specific training runs. By customizing these settings, you can tailor the model's performance and training efficiency to
 better suit your needs and requirements.
 
-The training process for stable diffusion typically involves multiple stages, wherein different resolutions and datasets
-are alternated in a deliberate manner to achieve superior image quality. We provide two training configurations here,
-one is for pretraining at resolution 256x256, another one is to resume from the pretraining weights and continue
-improving the model performance. Note that, to keep improving the image quality, each stage needs loading the unet weights 
-from last stage, and ideally switch to another dataset for improving the diversity. We have verified the convergence up to
-SD v1.5 by switching between multiple open-sourced datasets with resolution filtering. 
+The training process for Stable Diffusion typically involves multiple stages in which different resolutions and datasets are deliberately alternated to achieve superior image quality. We provide two training configurations here: one for pretraining at a resolution of 256x256 and another for resuming from the pretraining weights and continuing to improve the model's performance. It is important to note that to maintain image quality improvement, each stage requires loading the unet weights from the previous stage and ideally switching to another dataset to improve diversity. We have verified convergence up to SD v1.5 by switching between multiple subsets of our multimodal blend*. Reproducing SD v1.5 using the datasets recommended in the Huggingface model cards is straightforward with our implementation.
+
+\**Our multimodal dataset is originated from Common Crawl with custom filtering.*
 
 | Stage       | Resolution | Unet model size (M) | Text conditioning model       | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Dataset                        | Dataset Filtering       | Total Training Samples |
 |-------------|------------|---------------------|-------------------------------|--------------------|-------------------------------|-----------|-----------|--------------------------------|-------------------------|------------------------|
-| Pretraining | 256        | 859                 | openai/clip-vit-large-patch14 | 128                | 8192                          | FP16      | O1        | Multimodal Image-caption Pairs | None                    | 680M                   |
-| SD v1.1     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | Multimodal Image-caption Pairs | Resolution >= 1024x1024 | 409M                   |
-| SD v1.2     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | Multimodal Image-caption Pairs | Resolution >= 512x512   | 1.23B                  |
-| SD v1.5     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | Multimodal Image-caption Pairs | Resolution >= 512x512   | 1.32B                  |
+| Pretraining | 256        | 859                 | openai/clip-vit-large-patch14 | 128                | 8192                          | FP16      | O1        | Our Multimodal Blend | None                    | 680M                   |
+| SD v1.1     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | Our Multimodal Blend | Resolution >= 1024x1024 | 409M                   |
+| SD v1.2     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | Our Multimodal Blend | Resolution >= 512x512   | 1.23B                  |
+| SD v1.5     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | Our Multimodal Blend | Resolution >= 512x512   | 1.32B                  |
 
 To enable the training stage with Stable Diffusion, make sure:
 
@@ -1459,9 +1461,9 @@ To enable the evaluation stage with a CLIP model, configure the configuration fi
 
 #### 5.6.3. Stable Diffusion Evaluation
 
-For the Stable Diffusion, our evaluation script processes the MS COCO dataset to perform image generation, FID score computation, CLIP score computation, and plotting of the FID-CLIP graph. This is a multi-stage evaluation, and our scripts will automatically generate SLURM jobs with dependencies.
+Our evaluation script performs image generation for the captions provided in the validation subset of the MS COCO dataset, computes the FID score between real and generated images, computes the CLIP score betweel generated images and teh corresponding captions, and plots the FID-CLIP graph. This is a multi-stage evaluation, and our scripts will automatically generate SLURM jobs with dependencies.
 
-To enable the evaluation stage with a Stable Diffusion model, follow these steps to configure the configuration files:
+To configure the configuration files and enable the evaluation stage for Stable Diffusion, follow the steps outlined below:
 
 1. In the `defaults` section of `conf/config.yaml`, update the `evaluation` field to point to the desired Stable Diffusion
    configuration file. For example,
@@ -1975,14 +1977,12 @@ our training pipeline. Our results are displayed in the table below:
 
 | Framework | Dataset                | Model Name | Batch Size | Samples Seen | ImageNet Top-1 |
 |-----------|------------------------|------------|------------|--------------|----------------|
-| OpenCLIP  | Laion 400m             | B/32       | 32k        | 12B          | 62.90%         |
+| OpenCLIP  | LAION 400M             | B/32       | 32k        | 12B          | 62.90%         |
 | NeMo      | Our Multimodal Blend*  | B/32       | 32k        | 12B          | 60.13%         |
 
 \**Our multimodal dataset is originated from Common Crawl with custom filtering.*
 
-We believe the final accuracy difference is due to the dataset, as Laion datasets are filtered with CLIP scores. We also
-compared locally running Open CLIP vs. NeMo on the same dataset, and the loss curve and validation accuracy were almost
-identical.
+We believe the final accuracy difference is due to the dataset, as LAION 400M is filtered with CLIP scores. To ensure our implementation is consistent with OpenCLIP, we trained OpenCLIP with our dataset and found out that the loss curve and validation accuracy were nearly identical to NeMo's CLIP.
 
 #### 7.2.2. Training Performance Results
 
