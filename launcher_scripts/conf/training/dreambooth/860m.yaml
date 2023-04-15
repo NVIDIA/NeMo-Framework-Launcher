@@ -129,7 +129,7 @@ model:
 
   first_stage_config:
     _target_: nemo.collections.multimodal.models.stable_diffusion.ldm.autoencoder.AutoencoderKL
-    from_pretrained:
+    from_pretrained: /path/to/vae.bin
     embed_dim: 4
     monitor: val/rec_loss
     ddconfig:
