@@ -1177,12 +1177,16 @@ better suit your needs and requirements.
 The training process for stable diffusion typically involves multiple stages, wherein different resolutions and datasets
 are alternated in a deliberate manner to achieve superior image quality. We provide two training configurations here,
 one is for pretraining at resolution 256x256, another one is to resume from the pretraining weights and continue
-improving the model performance.
+improving the model performance. Note that, to keep improving the image quality, each stage needs loading the unet weights 
+from last stage, and ideally switch to another dataset for improving the diversity. We have verified the convergence up to
+SD v1.5 by switching between multiple open-sourced datasets with resolution filtering. 
 
 | Stage       | Resolution | Unet model size (M) | Text conditioning model       | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Dataset                        | Dataset Filtering       | Total Training Samples |
 |-------------|------------|---------------------|-------------------------------|--------------------|-------------------------------|-----------|-----------|--------------------------------|-------------------------|------------------------|
 | Pretraining | 256        | 859                 | openai/clip-vit-large-patch14 | 128                | 8192                          | FP16      | O1        | Multimodal Image-caption Pairs | None                    | 680M                   |
 | SD v1.1     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | Multimodal Image-caption Pairs | Resolution >= 1024x1024 | 409M                   |
+| SD v1.2     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | Multimodal Image-caption Pairs | Resolution >= 512x512   | 1.23B                  |
+| SD v1.5     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | Multimodal Image-caption Pairs | Resolution >= 512x512   | 1.32B                  |
 
 To enable the training stage with Stable Diffusion, make sure:
 
