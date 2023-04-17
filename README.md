@@ -1684,7 +1684,9 @@ longer build times.
 
 Please set `model.restore_from_path` before running export to the correct `.nemo` file.  
 
-All relevant inference config fields will be saved for deployment to be automatically read in as defaults.
+All relevant inference config fields will be saved for deployment to be automatically read in as defaults.  In the output directory expect
+`onnx` and `plan`directories.  The `onnx` will contain the ONNX converted models, while the `plan` directory will contain the NVIDIA TensorRT
+Engines created from the ONNX models in addition to the config options.
 
 #### 5.8.1. Vision Transformer Export
 
@@ -1706,12 +1708,13 @@ To enable the export stage with a ViT model, configure the configuration files:
    ```
 3. Configure `infer.max_batch_size` of the `conf/export/vit/export_vit.yaml` file to set the max_batch_size to use for the ONNX and
 NVIDIA TensorRT model. 
+4. Set the resolution of the model with `max_dim` in the `infer` field.  This will be used to generate the ONNX and NVIDIA TensorRT formats.
+
 **Remarks**:
 
 1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/export/vit/export_vit.yaml`. By default, this field
    links to the `.nemo` format checkpoint located in the ImageNet 1K fine-tuning checkpoints folder.
-2. Set the resolution of the model with `max_dim` in the `infer` field.  This will be used to generate the ONNX and NVIDIA TensorRT formats.
 
 #### 5.8.2. CLIP Export
 
@@ -1735,12 +1738,13 @@ To enable the export stage with a CLIP model, configure the configuration files:
    ```
 3. Configure `infer.max_batch_size` of the `conf/export/clip/export_clip.yaml` file to set the max_batch_size to use for the ONNX and
 NVIDIA TensorRT model. 
+4. Set the resolution of the model with `max_dim` in the `infer` field.  One can also set the `infer.max_text` to be the maximum text size for the text_encoder.
+This will be used to generate the ONNX and NVIDIA TensorRT formats.
+
 **Remarks**:
 
 1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/export/clip/export_clip.yaml`.
-2. Set the resolution of the model with `max_dim` in the `infer` field.  One can also set the `infer.max_text` to be the maximum text size for the text_encoder.
-   This will be used to generate the ONNX and NVIDIA TensorRT formats.
 
 #### 5.8.3. Stable Diffusion Export
 
@@ -1762,6 +1766,7 @@ The first model is the VAE Decoder, the second model is the UNet, and the third 
    ```
 3. Configure `infer.num_images_per_prompt` of the `conf/export/stable_diffusion/export_stable_diffusion.yaml` file to set the batch_size to use for the ONNX and
 NVIDIA TensorRT models. 
+
 **Remarks**:
 
 1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
@@ -1820,7 +1825,6 @@ NVIDIA TensorRT models.
 
 1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/export/dreambooth/export_dreambooth.yaml`.
-...
 
 ## 6. Deploying the NeMo Megatron Model
 
@@ -1956,14 +1960,14 @@ with the FP16 acceleration.  We use the optimized TRT engine setup present in th
 in the same environment as the framework.
 
 GPU: NVIDIA DGX A100 (1x A100 80 GB)
-Batch Size: Batch Size of the Image
+Batch Size: Number of Images in a Batch
 
-| Model   | Batch Size | TRT FP16 Latency (s) | FW FP 16 (AMP) Latency (s) |
-|---------|------------|----------------------|----------------------------|
-|         | 1          | 0.006                | 0.014                      |
-|         | 2          | 0.008                | 0.015                      |
-| ViT b/16| 4          | 0.011                | 0.015                      |
-|         | 8          | 0.018                | 0.017                      |
+| Model   | Batch Size | TRT FP16 Latency (s) | FW FP 16 (AMP) Latency (s) | TRT vs FW Speedup (x) |
+|---------|------------|----------------------|----------------------------|-----------------------|
+|         | 1          | 0.006                | 0.014                      | 2.3                   |
+|         | 2          | 0.008                | 0.015                      | 1.9                   |
+| ViT b/16| 4          | 0.011                | 0.015                      | 1.4                   |
+|         | 8          | 0.018                | 0.017                      | 1.0                   |
 
 
 ### 7.2. CLIP Results
@@ -2034,14 +2038,14 @@ with the FP16 acceleration.  We use the optimized TRT engine setup present in th
 in the same environment as the framework.
 
 GPU: NVIDIA DGX A100 (1x A100 80 GB)
-Batch Size: Batch Size of the Image
+Batch Size: Number of Images in a Batch
 
-| Model    | Batch Size | TRT FP16 Latency (s) | FW FP 16 (AMP) Latency (s) |
-|----------|------------|----------------------|----------------------------|
-|          | 1          | 0.014                | 0.032                      |
-|          | 2          | 0.014                | 0.033                      |
-| CLIP B/32| 4          | 0.014                | 0.028                      |
-|          | 8          | 0.015                | 0.028                      |
+| Model    | Batch Size | TRT FP16 Latency (s) | FW FP 16 (AMP) Latency (s) | TRT vs FW Speedup (x) |
+|----------|------------|----------------------|----------------------------|-----------------------|
+|          | 1          | 0.014                | 0.032                      | 2.3                   |
+|          | 2          | 0.014                | 0.033                      | 2.4                   |
+| CLIP B/32| 4          | 0.014                | 0.028                      | 2.0                   |
+|          | 8          | 0.015                | 0.028                      | 1.9                   |
 
 ### 7.3. Stable Diffusion Results
 
@@ -2109,11 +2113,11 @@ in the same environment as the framework.
 GPU: NVIDIA DGX A100 (1x A100 80 GB)
 Batch Size: Synonymous with `num_images_per_prompt`
 
-| Model                            | Batch Size |  Sampler  | Inference Steps | TRT FP 16 Latency (s) | FW FP 16 (AMP) Latency (s) |
-|----------------------------------|------------|-----------|-----------------|-----------------------|----------------------------|
-| Stable Diffusion (Res=512)       | 1          |  PLMS     |    50           | 0.9                   | 3.3                        |
-| Stable Diffusion (Res=512)       | 2          |  PLMS     |    50           | 1.7                   | 5.2                        |
-| Stable Diffusion (Res=512)       | 4          |  PLMS     |    50           | 2.9                   | 9.2                        |               
+| Model                            | Batch Size |  Sampler  | Inference Steps | TRT FP 16 Latency (s) | FW FP 16 (AMP) Latency (s) | TRT vs FW Speedup (x) |
+|----------------------------------|------------|-----------|-----------------|-----------------------|----------------------------|-----------------------|
+| Stable Diffusion (Res=512)       | 1          |  PLMS     |    50           | 0.9                   | 3.3                        | 3.7                   |
+| Stable Diffusion (Res=512)       | 2          |  PLMS     |    50           | 1.7                   | 5.2                        | 3.1                   |
+| Stable Diffusion (Res=512)       | 4          |  PLMS     |    50           | 2.9                   | 9.2                        | 3.2                   |  
 
 ### 7.4. Instruct Pix2Pix Results
 #### 7.4.1. Training Quality Results
@@ -2137,11 +2141,11 @@ in the same environment as the framework.
 GPU: NVIDIA DGX A100 (1x A100 80 GB)
 Batch Size: Synonymous with `num_images_per_prompt`
 
-| Model                            | Batch Size |  Sampler  | Inference Steps | TRT FP 16 Latency (s) | FW FP 16 (AMP) Latency (s) |
-|----------------------------------|------------|-----------|-----------------|-----------------------|----------------------------|
-| Instruct Pix2Pix (Res=256)       | 1          |  N/A      |    100          | 1.0                   | 3.6                        |
-| Instruct Pix2Pix (Res=256)       | 2          |  N/A      |    100          | 1.3                   | 3.7                        |
-| Instruct Pix2Pix (Res=256)       | 4          |  N/A      |    100          | 2.2                   | 4.9                        |     
+| Model                            | Batch Size |  Sampler  | Inference Steps | TRT FP 16 Latency (s) | FW FP 16 (AMP) Latency (s) | TRT vs FW Speedup (x) |
+|----------------------------------|------------|-----------|-----------------|-----------------------|----------------------------|-----------------------|
+| Instruct Pix2Pix (Res=256)       | 1          |  N/A      |    100          | 1.0                   | 3.6                        | 3.6                   |
+| Instruct Pix2Pix (Res=256)       | 2          |  N/A      |    100          | 1.3                   | 3.7                        | 2.8                   |
+| Instruct Pix2Pix (Res=256)       | 4          |  N/A      |    100          | 2.2                   | 4.9                        | 2.2                   |
 
 ### 7.5. DreamBooth Results
 #### 7.5.1. Training Quality Results
@@ -2172,11 +2176,11 @@ in the same environment as the framework.
 GPU: NVIDIA DGX A100 (1x A100 80 GB)
 Batch Size: Synonymous with `num_images_per_prompt`
 
-| Model                            | Batch Size |  Sampler  | Inference Steps | TRT FP 16 Latency (s) | FW FP 16 (AMP) Latency (s) |
-|----------------------------------|------------|-----------|-----------------|-----------------------|----------------------------|
-| Dreambooth (Res=256)             | 1          |  DDIM     |    100          | 2.0                   | 5.6                        |
-| Dreambooth (Res=256)             | 2          |  DDIM     |    100          | 3.1                   | 9.0                        |
-| Dreambooth (Res=256)             | 4          |  DDIM     |    100          | 5.7                   | 16.0                       |   
+| Model                            | Batch Size |  Sampler  | Inference Steps | TRT FP 16 Latency (s) | FW FP 16 (AMP) Latency (s) | TRT vs FW Speedup (x) |
+|----------------------------------|------------|-----------|-----------------|-----------------------|----------------------------|-----------------------|
+| Dreambooth (Res=256)             | 1          |  DDIM     |    100          | 2.0                   | 5.6                        | 2.8                   |
+| Dreambooth (Res=256)             | 2          |  DDIM     |    100          | 3.1                   | 9.0                        | 2.9                   |
+| Dreambooth (Res=256)             | 4          |  DDIM     |    100          | 5.7                   | 16.0                       | 2.8                   |
 
 
 
