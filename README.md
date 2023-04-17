@@ -2132,13 +2132,14 @@ Batch Size: Synonymous with `num_images_per_prompt`
 Instruct Pix2Pix is an image editing tool that transforms original images based on user instructions. For example, when provided with the iconic painting "Girl with a Pearl Earring," the AI can seamlessly edit the image according to your creative vision.
 
 Here are some examples generated using our NeMo Stable Diffusion 1.2 model, fine-tuned with NeMo Instruct Pix2Pix. For each instruction, we showcase 8 distinct images generated from different seeds:
-
-- Instruction: Make the person younger
-  <img src="img/make_the_person_younger_combine.jpg"/>
+- Original photo
+  <img src="img/toy_duck.jpg" width="30%" />
+- Instruction: Make it in desert
+  <img src="img/make_it_in_desert_7.5_1.2_1234_combine.jpg"/>
 - Instruction: Make it Van Gogh style
-  <img src="img/make_it_Van_Gogh_style_combine.jpg"/>
-- Instruction: Make it in a forest
-  <img src="img/make_it_in_a_forest_combine.jpg"/>
+  <img src="img/make_it_Van_Gogh_style_7.5_1.2_1234_combine.jpg"/>
+- Instruction: Make it in a pool
+  <img src="img/make_it_in_a_pool_7.5_1.2_1234_combine.jpg"/>
 
 #### 7.4.2. Inference Performance Results
 Latency times are started directly before the text encoding (CLIP) and stopped directly after the output image decoding (VAE).
