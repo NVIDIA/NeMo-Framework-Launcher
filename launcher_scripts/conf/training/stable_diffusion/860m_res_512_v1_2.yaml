@@ -1,7 +1,7 @@
 run:
-  name: stable_diffusion_860m_res_512
+  name: stable_diffusion_860m_res_512_v1_2
   results_dir: ${base_results_dir}/${.name}
-  time_limit: "1-04:00:00"
+  time_limit: "3-05:00:00"
   dependency: "singleton"
 
 name: nemo_stable_diffusion
@@ -14,8 +14,8 @@ trainer:
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
   replace_sampler_ddp: True
-  max_epochs: 2 # PTL default. In practice, max_steps will be reached first.
-  max_steps: -1 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
+  max_epochs: -1 # PTL default. In practice, max_steps will be reached first.
+  max_steps: 150000 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
   log_every_n_steps: 10
   accumulate_grad_batches: 1 # do not modify, grad acc is automatic for training megatron models
   gradient_clip_val: 1.0
@@ -41,7 +41,7 @@ exp_manager:
   checkpoint_callback_params:
     every_n_train_steps: 1000
     every_n_epochs: 0
-    monitor: reduced_train_loss
+    monitor: train/loss
     filename: '${name}--{train/loss:.4f}-{epoch}-{step}'
     save_nemo_on_train_end: False
   resume_if_exists: True
@@ -89,15 +89,15 @@ model:
   learning_rate: 1.0e-04
   concat_mode: True
   cond_stage_forward:
-  text_embedding_dropout_rate: 0
+  text_embedding_dropout_rate: 0.1
   fused_opt: True
   inductor: True
   inductor_cudagraphs: False
 
   unet_config:
     _target_: nemo.collections.multimodal.modules.stable_diffusion.diffusionmodules.openaimodel.UNetModel
-    from_pretrained:
-    from_NeMo: #Must be specified when from pretrained is not None, False means loading unet from HF ckpt
+    from_pretrained: /path/to/v1-1.ckpt
+    from_NeMo: True #Must be specified when from pretrained is not None, False means loading unet from HF ckpt
     image_size: 32 # unused
     in_channels: 4
     out_channels: 4
@@ -122,7 +122,7 @@ model:
 
   first_stage_config:
     _target_: nemo.collections.multimodal.models.stable_diffusion.ldm.autoencoder.AutoencoderKL
-    from_pretrained: /ckpts/vae.bin
+    from_pretrained: /path/to/vae.bin
     embed_dim: 4
     monitor: val/rec_loss
     ddconfig:
@@ -145,7 +145,7 @@ model:
 
   cond_stage_config:
     _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.FrozenCLIPEmbedder
-    version: openai/clip-vit-large-patch14
+    version: # verison of clip text encoder
     device: cuda
     max_length: 77
 

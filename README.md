@@ -1216,7 +1216,7 @@ To enable the training stage with Stable Diffusion, make sure:
       - _self_
       - cluster: bcm
       - data_preparation: multimodal/download_multimodal
-      - training: stable_diffusion/860m_res_256.yaml
+      - training: stable_diffusion/860m_res_256_pretrain.yaml
       ...
    ```
 2. In the stages field, make sure the training stage is included. For example,

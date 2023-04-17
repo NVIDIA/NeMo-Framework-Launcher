@@ -1,21 +1,21 @@
 run:
-  name: stable_diffusion_860m_res_256
+  name: stable_diffusion_860m_res_512_v1_1
   results_dir: ${base_results_dir}/${.name}
-  time_limit: "2-00:00:00"
+  time_limit: "1-04:00:00"
   dependency: "singleton"
 
 name: nemo_stable_diffusion
 
 trainer:
   devices: 8
-  num_nodes: 8
+  num_nodes: 32
   accelerator: gpu
   precision: 16
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
   replace_sampler_ddp: True
-  max_epochs: 2 # PTL default. In practice, max_steps will be reached first.
-  max_steps: -1 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
+  max_epochs: -1 # PTL default. In practice, max_steps will be reached first.
+  max_steps: 50000 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
   log_every_n_steps: 10
   accumulate_grad_batches: 1 # do not modify, grad acc is automatic for training megatron models
   gradient_clip_val: 1.0
@@ -41,7 +41,7 @@ exp_manager:
   checkpoint_callback_params:
     every_n_train_steps: 1000
     every_n_epochs: 0
-    monitor: reduced_train_loss
+    monitor: train/loss
     filename: '${name}--{train/loss:.4f}-{epoch}-{step}'
     save_nemo_on_train_end: False
   resume_if_exists: True
@@ -61,8 +61,8 @@ model:
   num_timesteps_cond: 1
   log_every_t: 200
   timesteps: 1000
-  first_stage_key: images  # if using precached encodings, put `images_encoded`
-  cond_stage_key: captions # if using precached encodings, put `captions_encoded`
+  first_stage_key: images
+  cond_stage_key: captions # txt for cifar, caption for pbss
   image_size: 64
   channels: 4
   cond_stage_trainable: false
@@ -96,8 +96,8 @@ model:
 
   unet_config:
     _target_: nemo.collections.multimodal.modules.stable_diffusion.diffusionmodules.openaimodel.UNetModel
-    from_pretrained:
-    from_NeMo: #Must be specified when from pretrained is not None, False means loading unet from HF ckpt
+    from_pretrained: /path/to/pretraining.ckpt
+    from_NeMo: True #Must be specified when from pretrained is not None, False means loading unet from HF ckpt
     image_size: 32 # unused
     in_channels: 4
     out_channels: 4
@@ -118,11 +118,11 @@ model:
     context_dim: 768
     use_checkpoint: False
     legacy: False
-    use_flash_attention: False
+    use_flash_attention: True
 
   first_stage_config:
     _target_: nemo.collections.multimodal.models.stable_diffusion.ldm.autoencoder.AutoencoderKL
-    from_pretrained: /ckpts/vae.bin
+    from_pretrained: /path/to/vae.bin
     embed_dim: 4
     monitor: val/rec_loss
     ddconfig:
@@ -145,7 +145,7 @@ model:
 
   cond_stage_config:
     _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.FrozenCLIPEmbedder
-    version: openai/clip-vit-large-patch14
+    version: # verison of clip text encoder
     device: cuda
     max_length: 77
 
@@ -162,12 +162,12 @@ model:
   data:
       num_workers: 16
       train:
-          batch_size: 128
+          batch_size: 32
           dataset_path:
             - ${data_dir}/your_dataset/wdinfo.pkl
           augmentations:
-            resize_smallest_side: 256
-            center_crop_h_w: 256, 256
+            resize_smallest_side: 512
+            center_crop_h_w: 512, 512
             horizontal_flip: False
           filterings:
 
