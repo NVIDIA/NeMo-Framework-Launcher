@@ -32,25 +32,7 @@ def hparams_override(cfg):
     if hparams_file is not None:
         output_path = cfg.get("output_path")
         hparams_override_file = os.path.join(output_path, "hparams_override.yaml")
-
-        vocab_file = cfg.get("vocab_file")
-        merge_file = cfg.get("merge_file")
-        tokenizer_model = cfg.get("tokenizer_model")
         conf = OmegaConf.load(hparams_file)
-        if vocab_file is not None:
-            conf.cfg.tokenizer.vocab_file = vocab_file
-        if merge_file is not None:
-            conf.cfg.tokenizer.merge_file = merge_file
-        if tokenizer_model is not None:
-            conf.cfg.tokenizer.model = tokenizer_model
-        if "activations_checkpoint_granularity" in conf.cfg:
-            conf.cfg.activations_checkpoint_granularity = None
-        if "activations_checkpoint_method" in conf.cfg:
-            conf.cfg.activations_checkpoint_method = None
-        # if "sequence_parallel" in conf.cfg:
-        #     conf.cfg.sequence_parallel = False
-        if "optim" in conf.cfg and conf.cfg.optim.name == "distributed_fused_adam":
-            conf.cfg.optim.name = "fused_adam"
 
         # (yaoyu) temporary WAR for stable diffusion legacy
         if "base_learning_rate" in conf.cfg:
@@ -80,6 +62,26 @@ def hparams_override(cfg):
             additional_conf_dict = yaml.safe_load(additional_conf_str)
             conf_dict["cfg"].update(additional_conf_dict)
             conf = OmegaConf.create(conf_dict)
+
+        else:
+            vocab_file = cfg.get("vocab_file")
+            merge_file = cfg.get("merge_file")
+            tokenizer_model = cfg.get("tokenizer_model")
+
+            if vocab_file is not None:
+                conf.cfg.tokenizer.vocab_file = vocab_file
+            if merge_file is not None:
+                conf.cfg.tokenizer.merge_file = merge_file
+            if tokenizer_model is not None:
+                conf.cfg.tokenizer.model = tokenizer_model
+            if "activations_checkpoint_granularity" in conf.cfg:
+                conf.cfg.activations_checkpoint_granularity = None
+            if "activations_checkpoint_method" in conf.cfg:
+                conf.cfg.activations_checkpoint_method = None
+            # if "sequence_parallel" in conf.cfg:
+            #     conf.cfg.sequence_parallel = False
+            if "optim" in conf.cfg and conf.cfg.optim.name == "distributed_fused_adam":
+                conf.cfg.optim.name = "fused_adam"
 
         if is_global_rank_zero():
             with open(hparams_override_file, "w") as f:
