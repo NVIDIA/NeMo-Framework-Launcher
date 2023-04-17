@@ -1197,14 +1197,14 @@ the unet weights from the previous stage and ideally switching to another datase
 convergence up to SD v1.5 by switching between multiple subsets of our multimodal blend*. Reproducing SD v1.5 using the
 datasets recommended in the Huggingface model cards is straightforward with our implementation.
 
-\**Our multimodal dataset is originated from Common Crawl with custom filtering.*
+\**Our multimodal dataset is originated from Common Crawl with custom filtering. Our dataset is composed of around 676M text-image pairs.*
 
-| Stage       | Resolution | Unet model size (M) | Text conditioning model       | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Dataset              | Dataset Filtering       | Total Training Samples |
-|-------------|------------|---------------------|-------------------------------|--------------------|-------------------------------|-----------|-----------|----------------------|-------------------------|------------------------|
-| Pretraining | 256        | 859                 | openai/clip-vit-large-patch14 | 128                | 8192                          | FP16      | O1        | Our Multimodal Blend | None                    | 680M                   |
-| SD v1.1     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | Our Multimodal Blend | Resolution >= 1024x1024 | 409M                   |
-| SD v1.2     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | Our Multimodal Blend | Resolution >= 512x512   | 1.23B                  |
-| SD v1.5     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | Our Multimodal Blend | Resolution >= 512x512   | 1.32B                  |
+| Stage       | Resolution | Unet model size (M) | Text conditioning model       | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Effective Dataset size| Dataset Filtering       | Total Consumed Samples |
+|-------------|------------|---------------------|-------------------------------|--------------------|-------------------------------|-----------|-----------|-----------------------|-------------------------|------------------------|
+| Pretraining | 256        | 859                 | openai/clip-vit-large-patch14 | 128                | 8192                          | FP16      | O1        | 676M                  | None                    | 680M                   |
+| SD v1.1     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | 39.5M                 | Resolution >= 1024x1024 | 409M                   |
+| SD v1.2     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | 218M                  | Resolution >= 512x512   | 1.23B                  |
+| SD v1.5     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | 218M                  | Resolution >= 512x512   | 1.32B                  |
 
 To enable the training stage with Stable Diffusion, make sure:
 
