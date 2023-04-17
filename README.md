@@ -1211,13 +1211,17 @@ To enable the training stage with Stable Diffusion, make sure:
       ...
    ```
 
-**Remark**: To continue training the Stable Diffusion model from the pretraining results, we reset the trainig process
+**Remark**: 
+
+1.To continue training the Stable Diffusion model from the pretraining results, we reset the trainig process
 by only loading the UNet weights. You can do this by using the last checkpoint from the previous training and passing it
 to `training.model.unet_config.from_pretrained`. Due to different naming in model parameters, indicating you are loading
 from checkpoint trained by NeMo , set `training.model.unet_config.from_NeMo=True`. If you are resuming training from a
 Huggingface checkpoint, you can also load the Unet weights from that source. In this case, you need to
 set `training.model.unet_config.from_NeMo=False`.
 
+2.For the training process up to SD-v1.5, we have enabled 10% dropping of text conditioning after SD v1.1 training phase completed, to improve the performance on classifier-free
+guidance.
 
 #### 5.3.4. Instruct Pix2Pix Training
 
@@ -2058,7 +2062,11 @@ The VIT-L/14 version of the CLIP model was utilized to assess the relevance betw
 
 The evaluation was conducted using different classifier-free guidance scales, specifically 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, and 8.0. The evaluation process involved generating 30,000 images from randomly selected prompts from the COCO2014 validation dataset, with 50 PLMS steps, and evaluating the results at a resolution of 256x256. 
 
-These results are presented below.
+We have referred to but made certain modifications to the training recipe outlined in [Stable Diffusion Model Cards posted on Huggingface](https://huggingface.co/CompVis/stable-diffusion-v1-4). 
+
+\**Our multimodal dataset is originated from Common Crawl with custom filtering.*
+
+Below, we present the outcomes obtained from our own checkpoint following Section 5.3.3, which can be compared to those of the open-source Stable Diffusion 1.5.
 
 <img src='img/Stable Diffusion FID-CLIP.png'/>
 
