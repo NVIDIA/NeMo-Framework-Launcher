@@ -6,7 +6,7 @@ run:
   task_name: "fid_clip"  # Rename this name to be more clear
   results_dir: ${base_results_dir}/${.model_train_name}/${.name}
   node_array_size: 8 # Need to be set to `len(classifier_free_guidance) * nnodes_per_cfg`
-  ntasks_per_node: 8 # Number of workers per node in preprocessing step.
+  ntasks_per_node: 8 # Number of gpus per node in preprocessing step.
 
 generate_images: True
 compute_fid_scores: True
@@ -47,7 +47,7 @@ infer:
   prompts:
 
 trainer:
-  devices: 1
+  devices: ${evaluation.run.ntasks_per_node}
   num_nodes: 1
   accelerator: gpu
   precision: bf16

@@ -1043,7 +1043,7 @@ class DiffusionModelEvaluation(NemoMegatronStage):
                 output_path=os.path.join(stage_cfg.run.get("results_dir", "."), "fid_clip_plot.pdf")
             )
 
-        sub_stage_command = [f"CUDA_VISIBLE_DEVICES=\${{SLURM_PROCID}} python3 -u {code_path}", *args]
+        sub_stage_command = [f"python3 -u {code_path}", *args]
         sub_stage_command = " \\\n  ".join(sub_stage_command)
         return [sub_stage_command]
 
