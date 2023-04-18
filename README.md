@@ -1104,7 +1104,7 @@ directory. You can access and modify the parameters to adjust the hyperparameter
 customizing these settings, you can tailor the model's performance and training efficiency to better suit your needs and
 requirements.
 
-| Model | Model size (M) | Hidden size | FFN_dim | Attention heads | Number of layers | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Total Training Samples |
+| Model | Model size (M) | Hidden size | FFN_dim | Attention heads | Number of layers | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Total Training Samples Seen |
 |-------|----------------|-------------|---------|-----------------|------------------|--------------------|-------------------------------|-----------|-----------|------------------------|
 | B/16  | 86             | 768         | 3072    | 12              | 12               | 512                | 4096                          | BF16      | O2        | 400M                   |
 | L/16  | 303            | 1024        | 4096    | 16              | 24               | 256                | 4096                          | BF16      | O2        | 400M                   |
@@ -1144,7 +1144,7 @@ the `conf/training/clip` directory. You can access and modify the parameters to 
 specific training runs. By customizing these settings, you can tailor the model's performance and training efficiency to
 better suit your needs and requirements.
 
-| Model    | Image size | Text Model size (M) | Image Model size (M) | Output dim | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Total Training Samples |
+| Model    | Image size | Text Model size (M) | Image Model size (M) | Output dim | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Total Training Samples Seen |
 |----------|------------|---------------------|----------------------|------------|--------------------|-------------------------------|-----------|-----------|------------------------|
 | ViT B/32 | 224        | 63                  | 87                   | 512        | 500                | 32000                         | BF16      | O2        | 12B                    |
 | ViT L/14 | 224        | 123                 | 303                  | 768        | 112                | 32256                         | BF16      | O2        | 12B                    |
@@ -1197,9 +1197,9 @@ the unet weights from the previous stage and ideally switching to another datase
 convergence up to SD v1.5 by switching between multiple subsets of our multimodal blend*. Reproducing SD v1.5 using the
 datasets recommended in the Huggingface model cards is straightforward with our implementation.
 
-\**Our multimodal dataset is originated from Common Crawl with custom filtering. Our dataset is composed of around 676M text-image pairs.*
+\**Our multimodal dataset is originated from Common Crawl with custom filtering and contains 670M image-caption pairs.*
 
-| Stage       | Resolution | Unet model size (M) | Text conditioning model       | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Effective Dataset size| Dataset Filtering       | Total Consumed Samples |
+| Stage       | Resolution | Unet model size (M) | Text conditioning model       | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Effective Dataset size| Dataset Filtering       | Total Training Samples Seen  |
 |-------------|------------|---------------------|-------------------------------|--------------------|-------------------------------|-----------|-----------|-----------------------|-------------------------|------------------------|
 | Pretraining | 256        | 859                 | openai/clip-vit-large-patch14 | 128                | 8192                          | FP16      | O1        | 676M                  | None                    | 680M                   |
 | SD v1.1     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | 39.5M                 | Resolution >= 1024x1024 | 409M                   |
@@ -1383,13 +1383,13 @@ We provide a predefined fine-tuning configuration for the `ViT B/16` model on Im
 the `conf/fine_tuning/imagenet1k.yaml` file. The following table highlights the key differences between ViT pretraining
 and fine-tuning:
 
-| Aspect               | ViT Pretraining           | ViT Fine-tuning              |
-|----------------------|---------------------------|------------------------------|
-| Configuration Folder | `conf/training/vit`       | `conf/fine_tuning/vit`       |
-| Training Samples     | 400M                      | 10M                          |
-| Optimizer            | Fused AdamW               | SGD                          |
-| Resolution           | 224x224                   | 384x384                      |
-| Classification Head  | MLP with one hidden layer | MLP with single linear layer |
+| Aspect                | ViT Pretraining           | ViT Fine-tuning              |
+|-----------------------|---------------------------|------------------------------|
+| Configuration Folder  | `conf/training/vit`       | `conf/fine_tuning/vit`       |
+| Training Samples Seen | 400M                      | 10M                          |
+| Optimizer             | Fused AdamW               | SGD                          |
+| Resolution            | 224x224                   | 384x384                      |
+| Classification Head   | MLP with one hidden layer | MLP with single linear layer |
 
 To enable the fine-tuning stage with a ViT model, configure the configuration files:
 
@@ -2052,7 +2052,7 @@ our training pipeline. Our results are displayed in the table below:
 | OpenCLIP  | LAION 400M            | B/32       | 32k        | 12B          | 62.90%         |
 | NeMo      | Our Multimodal Blend* | B/32       | 32k        | 12B          | 60.13%         |
 
-\**Our multimodal dataset is originated from Common Crawl with custom filtering.*
+\**Our multimodal dataset is originated from Common Crawl with custom filtering and contains 670M image-caption pairs.*
 
 We believe the final accuracy difference is due to the dataset, as LAION 400M is filtered with CLIP scores. To ensure
 our implementation is consistent with OpenCLIP, we trained OpenCLIP with our dataset and found out that the loss curve
