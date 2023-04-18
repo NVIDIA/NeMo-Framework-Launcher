@@ -577,6 +577,9 @@ def generate_base_config(
             base_cfg["model"]["seq_length"] = int(seq_length)
             base_cfg["model"]["max_position_embeddings"] = int(seq_length)
             base_cfg["model"]["data"]["seq_length"] = int(seq_length)
+
+            mask_prob = base_cfg["model"]["data"]["masked_lm_prob"]
+            base_cfg["model"]["data"]["seq_length_dec"] = utils.get_seq_length_dec(seq_length, mask_prob)
             if ffn is not None:
                 base_cfg["model"]["encoder"]["ffn_hidden_size"] = int(ffn)
                 base_cfg["model"]["decoder"]["ffn_hidden_size"] = int(ffn)

@@ -547,6 +547,23 @@ def add_container_mounts(container_mounts: Optional[List[str]]) -> str:
                 mounts_str += f",{mount}" if ":" in mount else f",{mount}:{mount}"
     return mounts_str
 
+def get_seq_length_dec(seq_length: int, mask_prob: float) -> int:
+    """
+    Gives optimal seq_length_dec value for T5/MT5 models.
+    :param int seq_length: sequence length value.
+    :param float mask_prob: masked_lm_prob value.
+    :return: the int that can be used in the base config building.
+    :rtype: int
+    """
+    seq_length_dec_list = [2 ** n for n in range(7, 14)]
+    closest = min(seq_length_dec_list, key=lambda x:abs(x-seq_length*0.15))
+
+    if closest < seq_length * 0.15:
+        index = seq_length_dec_list.index(closest)
+        return seq_length_dec_list[index + 1]
+    else:
+        return closest
+
     
 
  
