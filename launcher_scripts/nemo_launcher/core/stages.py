@@ -693,7 +693,7 @@ class Conversion(NemoMegatronStage):
         choice_model_type, choice_name = self.get_stage_config_choice()
         model_cfg = self.stage_cfg.get("model")
 
-        if choice_model_type not in __LANGUAGE_MODELS_LIST__ + "stable_diffusion":
+        if choice_model_type not in __LANGUAGE_MODELS_LIST__ + ["stable_diffusion"]:
             hparams_file = model_cfg.get("hparams_file")
             output_path = self.get_job_path().results_folder
             hparams_override = output_path / "hparams_override.yaml"
