@@ -1,4 +1,4 @@
-# NeMo Megatron
+# NeMo Multimodal
 
 ## Open Beta
 
@@ -9,134 +9,145 @@ The most recent version of the README can be found
 at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training).
 
 ## Table of contents
-
-- [NeMo Megatron](#nemo-megatron)
-    - [Open Beta](#open-beta)
-    - [Table of contents](#table-of-contents)
-    - [1. Model Overview](#1-model-overview)
-        - [1.1. Vision Transformer (ViT)](#11-vision-transformer-vit)
-        - [1.2. CLIP](#12-clip)
-        - [1.3. Stable Diffusion](#13-stable-diffusion)
-        - [1.4. Instruct Pix2Pix](#14-instruct-pix2pix)
-        - [1.5. DreamBooth](#15-dreambooth)
-    - [2. Feature Matrix](#2-feature-matrix)
-        - [2.1. ViT Models](#21-vit-models)
-        - [2.2 CLIP Models](#22-clip-models)
-        - [2.3. Stable Diffusion](#23-stable-diffusion)
-        - [2.4. Instruct Pix2Pix / DreamBooth Models](#24-instruct-pix2pix--dreambooth-models)
-    - [3. Setup](#3-setup)
-        - [3.1. Support Matrix](#31-support-matrix)
-    - [4. Cloud Service Providers](#4-cloud-service-providers)
-        - [4.1. Cluster Bring-Up](#41-cluster-bring-up)
-            - [4.1.1. Common](#411-common)
-            - [4.1.2. OCI](#412-oci)
-            - [4.1.3. AWS](#413-aws)
-        - [4.2. Cluster Validation](#42-cluster-validation)
-            - [4.2.1. Validation Script Usage](#421-validation-script-usage)
-            - [4.2.2 Running tests manually](#422-running-tests-manually)
-        - [4.3. Config Modifications](#43-config-modifications)
-            - [4.3.1 Set NCCL Topology](#431-set-nccl-topology)
-            - [4.3.2 Environment Variables](#432-environment-variables)
-                - [4.3.2.1 Azure Variables](#4321-azure-variables)
-                - [4.3.2.2 AWS Variables](#4322-aws-variables)
-    - [5. Quick Start Guide](#5-quick-start-guide)
-        - [5.1. Getting Started with Multimodal NeMo Megatron](#51-getting-started-with-multimodal-nemo-megatron)
-            - [5.1.1. Prepare Environment](#511-prepare-environment)
-                - [5.1.1.1. Slurm](#5111-slurm)
-                - [5.1.1.2. Base Command Platform](#5112-base-command-platform)
-            - [5.1.2. Configure and Customize Pipeline](#512-configure-and-customize-pipeline)
-                - [5.1.2.1. Cluster Configurations](#5121-cluster-configurations)
-                - [5.1.2.2. Pipeline Configurations](#5122-pipeline-configurations)
-                - [5.1.2.3. Environment Variables Configurations](#5123-environment-variables-configurations)
-                - [5.1.2.4. NUMA Mapping Configurations](#5124-numa-mapping-configurations)
-            - [5.1.3. Launch Pipeline](#513-launch-pipeline)
-            - [5.1.4. Example: Pre-train Stable Diffusion 860M Model for 10 Epochs with Resolution 256](#514-example-pre-train-stable-diffusion-860m-model-for-10-epochs-with-resolution-256)
-        - [5.2. Data Preparation](#52-data-preparation)
-            - [5.2.1 ImageNet](#521-imagenet)
-                - [5.2.1.1 ImageNet 1k](#5211-imagenet-1k)
-                - [5.2.1.2 ImageNet 21k](#5212-imagenet-21k)
-            - [5.2.2 Multimodal Datasets](#522-multimodal-datasets)
-                - [5.2.2.1 Overview](#5221-overview)
-                - [5.2.2.2 Running the Pipeline](#5222-running-the-pipeline)
-                - [5.2.2.3 Configuration for Precaching](#5223-configuration-for-precaching)
-                    - [5.2.2.3.1 General Format](#52231-general-format)
-                    - [5.2.2.3.2 Precaching Config](#52232-precaching-config)
-                    - [5.2.2.3.3 Resume Precaching (Advanced)](#52233-resume-precaching-advanced)
-                    - [5.2.2.3.4 Known Issue](#52234-known-issue)
-            - [5.2.3 Instruct Pix2Pix](#523-instruct-pix2pix)
-            - [5.2.4 MSCOCO for FID Evaluation](#524-mscoco-for-fid-evaluation)
-                - [5.2.4.1 Download and Setup](#5241-download-and-setup)
-                - [5.2.4.2 Preprocess Images and Captions](#5242-preprocess-images-and-captions)
-        - [5.3. Model Training](#53-model-training)
-            - [5.3.1. Vision Transformer Training](#531-vision-transformer-training)
-            - [5.3.2. CLIP Training](#532-clip-training)
-            - [5.3.3. Stable Diffusion Training](#533-stable-diffusion-training)
-            - [5.3.4. Instruct Pix2Pix Training](#534-instruct-pix2pix-training)
-            - [5.3.5. DreamBooth Training](#535-dreambooth-training)
-        - [5.4. Checkpoint Conversion](#54-checkpoint-conversion)
-        - [5.5. Model Fine-tuning](#55-model-fine-tuning)
-            - [5.5.1. Vision Transformer Fine-tuning](#551-vision-transformer-fine-tuning)
-        - [5.6. Model Evaluation](#56-model-evaluation)
-            - [5.6.1. Vision Transformer Evaluation](#561-vision-transformer-evaluation)
-            - [5.6.2. CLIP Evaluation](#562-clip-evaluation)
-            - [5.6.3. Stable Diffusion Evaluation](#563-stable-diffusion-evaluation)
-        - [5.7. Model Inference (in NeMo Framework)](#57-model-inference-in-nemo-framework)
-            - [5.7.1. Vision Transformer Inference (in NeMo Framework)](#571-vision-transformer-inference-in-nemo-framework)
-            - [5.7.2. CLIP Inference (in NeMo Framework)](#572-clip-inference-in-nemo-framework)
-            - [5.7.3. Stable Diffusion Inference (in NeMo Framework)](#573-stable-diffusion-inference-in-nemo-framework)
-            - [5.7.4. Instruct Pix2Pix Inference (in NeMo Framework)](#574-instruct-pix2pix-inference-in-nemo-framework)
-            - [5.7.5. DreamBooth Inference (in NeMo Framework)](#575-dreambooth-inference-in-nemo-framework)
-        - [5.8. Model Export](#58-model-export)
-            - [5.8.1. Vision Transformer Export](#581-vision-transformer-export)
-            - [5.8.2. CLIP Export](#582-clip-export)
-            - [5.8.3. Stable Diffusion Export](#583-stable-diffusion-export)
-            - [5.8.4. Instruct Pix2pix Export](#584-instruct-pix2pix-export)
-            - [5.8.5. DreamBooth Export](#585-dreambooth-export)
-    - [6. Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
-        - [6.1 Setup](#61-setup)
-        - [6.2 Start NVIDIA Triton Inference Server](#62-start-nvidia-triton-inference-server)
-            - [6.2.1 Stable Diffusion, Dreambooth](#621-stable-diffusion-dreambooth)
-            - [6.2.2 Instruct Pix2Pix](#622-instruct-pix2pix)
-            - [6.2.3 Vision Transformer](#623-vision-transformer)
-            - [6.2.4 CLIP](#624-clip)
-        - [6.3 Query NVIDIA Triton Inference Server](#63-query-nvidia-triton-inference-server)
-            - [6.3.1 Stable Diffusion and Dreambooth](#631-stable-diffusion-and-dreambooth)
-            - [6.3.2 Instruct Pix2Pix](#632-instruct-pix2pix)
-    - [7. Performance](#7-performance)
-        - [7.1. Vision Transformer Results](#71-vision-transformer-results)
-            - [7.1.1. Training Accuracy Results](#711-training-accuracy-results)
-            - [7.1.2. Training Performance Results](#712-training-performance-results)
-            - [7.1.3. Inference Performance Results](#713-inference-performance-results)
-        - [7.2. CLIP Results](#72-clip-results)
-            - [7.2.1. Training Accuracy Results](#721-training-accuracy-results)
-            - [7.2.2. Training Performance Results](#722-training-performance-results)
-            - [7.2.3. Inference Performance Results](#723-inference-performance-results)
-        - [7.3. Stable Diffusion Results](#73-stable-diffusion-results)
-            - [7.3.1. Training Accuracy Results](#731-training-accuracy-results)
-            - [7.3.2. Training Performance Results](#732-training-performance-results)
-            - [7.3.3. Inference Performance Results](#733-inference-performance-results)
-        - [7.4. Instruct Pix2Pix Results](#74-instruct-pix2pix-results)
-            - [7.4.1. Training Quality Results](#741-training-quality-results)
-            - [7.4.2. Inference Performance Results](#742-inference-performance-results)
-        - [7.5. DreamBooth Results](#75-dreambooth-results)
-            - [7.5.1. Training Quality Results](#751-training-quality-results)
-            - [7.5.2. Inference Performance Results](#752-inference-performance-results)
-    - [8. Changelog](#8-changelog)
-    - [9. Known Issues](#9-known-issues)
+- [NeMo Multimodal](#nemo-multimodal)
+  * [Open Beta](#open-beta)
+  * [Table of contents](#table-of-contents)
+  * [1. Changelog](#1-changelog)
+  * [2. Model Overview](#2-model-overview)
+    + [2.1. Vision Transformer (ViT)](#21-vision-transformer--vit-)
+    + [2.2. CLIP](#22-clip)
+    + [2.3. Stable Diffusion](#23-stable-diffusion)
+    + [2.4. Instruct Pix2Pix](#24-instruct-pix2pix)
+    + [2.5. DreamBooth](#25-dreambooth)
+  * [3. Feature Matrix](#3-feature-matrix)
+    + [3.1. ViT Models](#31-vit-models)
+    + [3.2. CLIP Models](#32-clip-models)
+    + [3.3. Stable Diffusion](#33-stable-diffusion)
+    + [3.4. Instruct Pix2Pix / DreamBooth Models](#34-instruct-pix2pix---dreambooth-models)
+  * [4. Setup](#4-setup)
+    + [4.1. Support Matrix](#41-support-matrix)
+  * [5. Cloud Service Providers](#5-cloud-service-providers)
+    + [5.1. Cluster Bring-Up](#51-cluster-bring-up)
+      - [5.1.1. Common](#511-common)
+      - [5.1.2. OCI](#512-oci)
+      - [5.1.3. AWS](#513-aws)
+    + [5.2. Cluster Validation](#52-cluster-validation)
+      - [5.2.1. Validation Script Usage](#521-validation-script-usage)
+      - [5.2.2. Running tests manually](#522-running-tests-manually)
+    + [5.3. Config Modifications](#53-config-modifications)
+      - [5.3.1. Set NCCL Topology](#531-set-nccl-topology)
+      - [5.3.2. Environment Variables](#532-environment-variables)
+        * [5.3.2.1. Azure Variables](#5321-azure-variables)
+        * [5.3.2.2. AWS Variables](#5322-aws-variables)
+  * [6. Quick Start Guide](#6-quick-start-guide)
+    + [6.1. Getting Started with NeMo Multimodal](#61-getting-started-with-nemo-multimodal)
+      - [6.1.1. Prepare Environment](#611-prepare-environment)
+        * [6.1.1.1. Slurm](#6111-slurm)
+        * [6.1.1.2. Base Command Platform](#6112-base-command-platform)
+      - [6.1.2. Configure and Customize Pipeline](#612-configure-and-customize-pipeline)
+        * [6.1.2.1. Cluster Configurations](#6121-cluster-configurations)
+        * [6.1.2.2. Pipeline Configurations](#6122-pipeline-configurations)
+        * [6.1.2.3. Environment Variables Configurations](#6123-environment-variables-configurations)
+        * [6.1.2.4. NUMA Mapping Configurations](#6124-numa-mapping-configurations)
+      - [6.1.3. Launch Pipeline](#613-launch-pipeline)
+      - [6.1.4. Example: Pre-train Stable Diffusion 860M Model for 10 Epochs with Resolution 256](#614-example--pre-train-stable-diffusion-860m-model-for-10-epochs-with-resolution-256)
+    + [6.2. Data Preparation](#62-data-preparation)
+      - [6.2.1. ImageNet](#621-imagenet)
+        * [6.2.1.1. ImageNet 1k](#6211-imagenet-1k)
+        * [6.2.1.2. ImageNet 21k](#6212-imagenet-21k)
+      - [6.2.2. Multimodal Datasets](#622-multimodal-datasets)
+        * [6.2.2.1. Overview](#6221-overview)
+        * [6.2.2.2. Running the Pipeline](#6222-running-the-pipeline)
+        * [6.2.2.3. Configuration for Precaching](#6223-configuration-for-precaching)
+          + [6.2.2.3.1. General Format](#62231-general-format)
+          + [6.2.2.3.2. Precaching Config](#62232-precaching-config)
+          + [6.2.2.3.3. Resume Precaching (Advanced)](#62233-resume-precaching--advanced-)
+          + [6.2.2.3.4. Known Issue](#62234-known-issue)
+      - [6.2.3. Instruct Pix2Pix](#623-instruct-pix2pix)
+      - [6.2.4. MSCOCO for FID Evaluation](#624-mscoco-for-fid-evaluation)
+        * [6.2.4.1. Download and Setup](#6241-download-and-setup)
+        * [6.2.4.2. Preprocess Images and Captions](#6242-preprocess-images-and-captions)
+    + [6.3. Model Training](#63-model-training)
+      - [6.3.1. Vision Transformer Training](#631-vision-transformer-training)
+      - [6.3.2. CLIP Training](#632-clip-training)
+      - [6.3.3. Stable Diffusion Training](#633-stable-diffusion-training)
+      - [6.3.4. Instruct Pix2Pix Training](#634-instruct-pix2pix-training)
+      - [6.3.5. DreamBooth Training](#635-dreambooth-training)
+    + [6.4. Checkpoint Conversion](#64-checkpoint-conversion)
+    + [6.5. Model Fine-tuning](#65-model-fine-tuning)
+      - [6.5.1. Vision Transformer Fine-tuning](#651-vision-transformer-fine-tuning)
+    + [6.6. Model Evaluation](#66-model-evaluation)
+      - [6.6.1. Vision Transformer Evaluation](#661-vision-transformer-evaluation)
+      - [6.6.2. CLIP Evaluation](#662-clip-evaluation)
+      - [6.6.3. Stable Diffusion Evaluation](#663-stable-diffusion-evaluation)
+    + [6.7. Model Inference (in NeMo Framework)](#67-model-inference--in-nemo-framework-)
+      - [6.7.1. Vision Transformer Inference (in NeMo Framework)](#671-vision-transformer-inference--in-nemo-framework-)
+      - [6.7.2. CLIP Inference (in NeMo Framework)](#672-clip-inference--in-nemo-framework-)
+      - [6.7.3. Stable Diffusion Inference (in NeMo Framework)](#673-stable-diffusion-inference--in-nemo-framework-)
+      - [6.7.4. Instruct Pix2Pix Inference (in NeMo Framework)](#674-instruct-pix2pix-inference--in-nemo-framework-)
+      - [6.7.5. DreamBooth Inference (in NeMo Framework)](#675-dreambooth-inference--in-nemo-framework-)
+    + [6.8. Model Export](#68-model-export)
+      - [6.8.1. Vision Transformer Export](#681-vision-transformer-export)
+      - [6.8.2. CLIP Export](#682-clip-export)
+      - [6.8.3. Stable Diffusion Export](#683-stable-diffusion-export)
+      - [6.8.4. Instruct Pix2pix Export](#684-instruct-pix2pix-export)
+      - [6.8.5. DreamBooth Export](#685-dreambooth-export)
+  * [7. Deploying the NeMo Multimodal Model](#7-deploying-the-nemo-multimodal-model)
+    + [7.1. Setup](#71-setup)
+    + [7.2. Start NVIDIA Triton Inference Server](#72-start-nvidia-triton-inference-server)
+      - [7.2.1. Stable Diffusion, Dreambooth](#721-stable-diffusion--dreambooth)
+      - [7.2.2. Instruct Pix2Pix](#722-instruct-pix2pix)
+      - [7.2.3. Vision Transformer](#723-vision-transformer)
+      - [7.2.4. CLIP](#724-clip)
+    + [7.3. Query NVIDIA Triton Inference Server](#73-query-nvidia-triton-inference-server)
+      - [7.3.1. Stable Diffusion and Dreambooth](#731-stable-diffusion-and-dreambooth)
+      - [7.3.2. Instruct Pix2Pix](#732-instruct-pix2pix)
+  * [8. Performance](#8-performance)
+    + [8.1. Vision Transformer Results](#81-vision-transformer-results)
+      - [8.1.1. Training Accuracy Results](#811-training-accuracy-results)
+      - [8.1.2. Training Performance Results](#812-training-performance-results)
+      - [8.1.3. Inference Performance Results](#813-inference-performance-results)
+    + [8.2. CLIP Results](#82-clip-results)
+      - [8.2.1. Training Accuracy Results](#821-training-accuracy-results)
+      - [8.2.2. Training Performance Results](#822-training-performance-results)
+      - [8.2.3. Inference Performance Results](#823-inference-performance-results)
+    + [8.3. Stable Diffusion Results](#83-stable-diffusion-results)
+      - [8.3.1. Training Accuracy Results](#831-training-accuracy-results)
+      - [8.3.2. Training Performance Results](#832-training-performance-results)
+      - [8.3.3. Inference Performance Results](#833-inference-performance-results)
+    + [8.4. Instruct Pix2Pix Results](#84-instruct-pix2pix-results)
+      - [8.4.1. Training Quality Results](#841-training-quality-results)
+      - [8.4.2. Inference Performance Results](#842-inference-performance-results)
+    + [8.5. DreamBooth Results](#85-dreambooth-results)
+      - [8.5.1. Training Quality Results](#851-training-quality-results)
+      - [8.5.2. Inference Performance Results](#852-inference-performance-results)
+  * [9. Known Issues](#9-known-issues)
 
 <!-- /TOC -->
 
-## 1. Model Overview
+## 1. Changelog
 
-The Multimodal NeMo Megatron is a powerful extension of the NeMo framework, specifically designed for developers who aim
-to efficiently train and scale multimodal models. With Multimodal NeMo Megatron, you can effortlessly train various
+**NeMo Multimodal 23.03 (Initial Release)**
+
+* Added support for **Vision Transformer (ViT)**: training, fine-tuning, evaluation, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
+* Added support for **CLIP**: training, evaluation, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
+* Added support for **Stable Diffusion**: training, evaluation, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
+* Added support for **Instruct Pix2Pix**: training, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
+* Added support for **DreamBooth**: training, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
+* Added performance results including training accuracy, performance, and inference for all supported models.
+
+
+## 2. Model Overview
+
+The NeMo Multimodal is a powerful extension of the NeMo framework, specifically designed for developers who aim
+to efficiently train and scale multimodal models. With NeMo Multimodal, you can effortlessly train various
 variants of multimodal models, such as CLIP, Stable Diffusion and more. This powerful tool is capable of
 scaling your models to multiple nodes on NVIDIA DGX SuperPOD deployments.
 
 The deep learning (DL) software stack is meticulously optimized for DGX SuperPOD configurations, utilizing NVIDIA's
 InfiniBand technology to deliver efficient on-premises computing for training and inference of complex workloads.
 
-The Multimodal NeMo Megatron utilizes model parallelism techniques to efficiently train large models that cannot fit
+The NeMo Multimodal utilizes model parallelism techniques to efficiently train large models that cannot fit
 within the memory of a single GPU. During the training process, both tensor (intra-layer) and pipeline (inter-layer)
 model parallelism are employed. Tensor model parallelism distributes individual transformer layers across multiple
 devices, while pipeline model parallelism allocates different layers of a model to separate devices. For a more in-depth
@@ -144,18 +155,18 @@ understanding, please refer to [this paper](https://arxiv.org/pdf/2104.04473.pdf
 incorporating this feature into all our models. As of now, Tensor Parallelism is
 available in both **Vision Transformer** and **CLIP** models.
 
-### 1.1. Vision Transformer (ViT)
+### 2.1. Vision Transformer (ViT)
 
 The Vision Transformer, commonly referred to as ViT [[Paper]](https://arxiv.org/pdf/2010.11929v2.pdf), is a foundation
 model for image classification tasks in Multimodal
-NeMo Megatron. It
+NeMo Multimodal. It
 leverages a Transformer-like architecture to process image patches, rather than relying on traditional convolutional
 neural networks. In the ViT, an image is divided into fixed-size patches (usually 14x14 or 16x16), which are then
 linearly embedded and augmented
 with position embeddings. The resulting sequence of vectors is fed into a standard Transformer encoder. To enable
 classification, a learnable "classification token" is added to the sequence.
 
-### 1.2. CLIP
+### 2.2. CLIP
 
 Contrastive Language-Image Pre-training (CLIP) [[Paper]](https://arxiv.org/pdf/2103.00020.pdf) offers an efficient
 method for learning image representations using natural language supervision. In essence, CLIP trains both an image
@@ -172,7 +183,7 @@ employed for zero-shot learning. For instance, the learned text encoder generate
 embedding captions in **Stable Diffusion**. This robust approach facilitates seamless image and text representation
 learning and has demonstrated exceptional effectiveness across a diverse range of applications.
 
-### 1.3. Stable Diffusion
+### 2.3. Stable Diffusion
 
 Stable Diffusion (SD) [[Paper]](https://arxiv.org/pdf/2112.10752v2.pdf) is a powerful generative model that can
 produce high-quality images based on textual descriptions. By decomposing the image formation process into a sequential
@@ -189,17 +200,17 @@ including unconditional image generation, semantic scene synthesis, and super-re
 significantly reduces computational requirements compared to pixel-based DMs, making it an attractive solution for a
 wide range of applications.
 
-### 1.4. Instruct Pix2Pix
+### 2.4. Instruct Pix2Pix
 
 [Instruct Pix2Pix](https://www.timothybrooks.com/instruct-pix2pix/) introduces a method for editing images based on
 human-written instructions. Given an input image and a textual directive, the model follows these instructions to modify
 the image accordingly.
 
-Multimodal NeMo Megatron offers a training pipeline for conditional diffusion models using the edit dataset.
+NeMo Multimodal offers a training pipeline for conditional diffusion models using the edit dataset.
 Additionally, we provide a tool that generates modified images based on user-written instructions during the inference
 process.
 
-### 1.5. DreamBooth
+### 2.5. DreamBooth
 
 Dreambooth is a solution to personalize large diffusion models like Stable Diffusion, which are powerful but lack the
 ability to mimic subjects of a given reference set. With Dreambooth, you only need a few images of a specific subject to
@@ -212,32 +223,9 @@ views, and lighting conditions that do not appear in the reference images. With 
 several previously-unassailable tasks, including subject recontextualization, text-guided view synthesis, appearance
 modification, and artistic rendering, while still preserving the subject's key features.
 
-## 2. Feature Matrix
+## 3. Feature Matrix
 
-### 2.1. ViT Models
-
-| Feature                  | Training                                                 | Inference                                                                                                                                     |
-|--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| Data parallelism         | Yes                                                      | N/A                                                                                                                                           |
-| Tensor parallelism       | Yes                                                      | Yes                                                                                                                                           |
-| Pipeline parallelism     | No                                                       | No                                                                                                                                            |
-| Sequence parallelism     | No                                                       | No                                                                                                                                            |
-| Activation checkpointing | Yes (Uniform or Block)                                   | No                                                                                                                                            |
-| FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                 |
-| AMP/FP16                 | No                                                       | Yes                                                                                                                                           |
-| AMP/BF16                 | Yes                                                      | No                                                                                                                                            |
-| BF16 O2                  | Yes                                                      | No                                                                                                                                            |
-| TransformerEngine/FP8    | No                                                       | No                                                                                                                                            |
-| Multi-GPU                | Yes                                                      | Yes                                                                                                                                           |
-| Multi-Node               | Yes                                                      | Yes                                                                                                                                           |
-| Inference deployment     | N/A                                                      | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton) |
-| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                      |
-| NVfuser                  | No                                                       | N/A                                                                                                                                           |
-| Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
-| TorchInductor            | No                                                       | N/A                                                                                                                                           |
-| Flash Attention          | No                                                       | N/A                                                                                                                                           |
-
-### 2.2 CLIP Models
+### 3.1. ViT Models
 
 | Feature                  | Training                                                 | Inference                                                                                                                                     |
 |--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
@@ -260,7 +248,30 @@ modification, and artistic rendering, while still preserving the subject's key f
 | TorchInductor            | No                                                       | N/A                                                                                                                                           |
 | Flash Attention          | No                                                       | N/A                                                                                                                                           |
 
-### 2.3. Stable Diffusion
+### 3.2. CLIP Models
+
+| Feature                  | Training                                                 | Inference                                                                                                                                     |
+|--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| Data parallelism         | Yes                                                      | N/A                                                                                                                                           |
+| Tensor parallelism       | Yes                                                      | Yes                                                                                                                                           |
+| Pipeline parallelism     | No                                                       | No                                                                                                                                            |
+| Sequence parallelism     | No                                                       | No                                                                                                                                            |
+| Activation checkpointing | Yes (Uniform or Block)                                   | No                                                                                                                                            |
+| FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                 |
+| AMP/FP16                 | No                                                       | Yes                                                                                                                                           |
+| AMP/BF16                 | Yes                                                      | No                                                                                                                                            |
+| BF16 O2                  | Yes                                                      | No                                                                                                                                            |
+| TransformerEngine/FP8    | No                                                       | No                                                                                                                                            |
+| Multi-GPU                | Yes                                                      | Yes                                                                                                                                           |
+| Multi-Node               | Yes                                                      | Yes                                                                                                                                           |
+| Inference deployment     | N/A                                                      | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton) |
+| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                      |
+| NVfuser                  | No                                                       | N/A                                                                                                                                           |
+| Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
+| TorchInductor            | No                                                       | N/A                                                                                                                                           |
+| Flash Attention          | No                                                       | N/A                                                                                                                                           |
+
+### 3.3. Stable Diffusion
 
 | Feature                  | Training                                                 | Inference                                                                                                                                     |
 |--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
@@ -283,7 +294,7 @@ modification, and artistic rendering, while still preserving the subject's key f
 | TorchInductor            | Yes                                                      | N/A                                                                                                                                           |
 | Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
 
-### 2.4. Instruct Pix2Pix / DreamBooth Models
+### 3.4. Instruct Pix2Pix / DreamBooth Models
 
 | Feature                  | Training                                                 | Inference                                                                                                                                     |
 |--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
@@ -306,9 +317,9 @@ modification, and artistic rendering, while still preserving the subject's key f
 | TorchInductor            | Yes                                                      | N/A                                                                                                                                           |
 | Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
 
-## 3. Setup
+## 4. Setup
 
-### 3.1. Support Matrix
+### 4.1. Support Matrix
 
 | Software             | EA                 |
 |----------------------|--------------------|
@@ -329,13 +340,13 @@ modification, and artistic rendering, while still preserving the subject's key f
 | Base Command Manager | 1.0.0              |
 | DeepOps              | 21.06              |
 
-## 4. Cloud Service Providers
+## 5. Cloud Service Providers
 
-### 4.1. Cluster Bring-Up
+### 5.1. Cluster Bring-Up
 
-#### 4.1.1. Common
+#### 5.1.1. Common
 
-To set up a Slurm cluster for NeMo Megatron, we recommend using [Nephele](https://github.com/nvidia/nephele). This
+To set up a Slurm cluster for NeMo Multimodal, we recommend using [Nephele](https://github.com/nvidia/nephele). This
 cluster deployment tool has been tested on Azure, AWS, and Oracle Cloud.
 We recommend hosting Nephele on a new VM instance in the CSP of your choice. To get started:
 
@@ -348,18 +359,18 @@ We recommend hosting Nephele on a new VM instance in the CSP of your choice. To 
 You can then run `./nephele init` and `./nephele create`.
 
 We also recommend mounting an external persistent NFS once the cluster is up and running (ensure it is mounted on all
-nodes) and using this to configure and run NeMo Megatron.
+nodes) and using this to configure and run NeMo Multimodal.
 
 The above steps apply to all CSPs, including Azure, AWS, and OCI.
 Some modifications are necessary for OCI and AWS and are detailed below.
 Note that for OCI, a custom image must be imported, which should be done before running `./nephele create`.
 
-#### 4.1.2. OCI
+#### 5.1.2. OCI
 
-NeMo Megatron supports running training and inference containers on OCI. For detail orchestration scripts, reach out
+NeMo Multimodal supports running training and inference containers on OCI. For detail orchestration scripts, reach out
 to [oci_nm@nvidia.com](mailto:oci_nm@nvidia.com)
 
-#### 4.1.3. AWS
+#### 5.1.3. AWS
 
 To launch jobs on AWS, the EFA driver and NCCL plugin first need to be installed on top of the training container.
 We recommend building a new container image with Docker, then creating an Enroot image.
@@ -381,7 +392,7 @@ On the scheduler node:
 container: /path/to/nemo_megatron_launcher/nemo_megatron_training.sqsh
 ```
 
-### 4.2. Cluster Validation
+### 5.2. Cluster Validation
 
 Before running the cluster validation script, ensure your NGC credentials have been added
 to `~/.config/enroot/.credentials` on all nodes.
@@ -392,7 +403,7 @@ The logs from these tests will be stored at `results/cluster_validation`. The sc
 tests.
 These nodes should be replaced or restarted through the CSP UI.
 
-#### 4.2.1. Validation Script Usage
+#### 5.2.1. Validation Script Usage
 
 The script has 3 required parameters:
 
@@ -422,7 +433,7 @@ by specifying:
 
 See `bash cluster_validation.sh -h` for more information.
 
-#### 4.2.2 Running tests manually
+#### 5.2.2. Running tests manually
 
 The `cluster_validation.sh` script is essentially a wrapper of the 2 Slurm job scripts in the CSP directories. If you
 prefer, you can run these jobs manually.
@@ -452,11 +463,11 @@ sbatch -w <node 1>,<node 2> -o <job log file> nccl.sh
 
 To run the job with more nodes, simply add the node names to the `-w` flag in the same comma-separated list format.
 
-### 4.3. Config Modifications
+### 5.3. Config Modifications
 
 Before launching jobs some changes to the config must be made.
 
-#### 4.3.1 Set NCCL Topology
+#### 5.3.1. Set NCCL Topology
 
 The NCCL topology file is unique for each CSP, and can be found in their corresponding
 folders (`csp_tools/<csp>/topo.xml`)
@@ -475,9 +486,9 @@ env_vars:
     NCCL_TOPO_FILE: /nccl/topo.xml
 ```
 
-#### 4.3.2 Environment Variables
+#### 5.3.2. Environment Variables
 
-##### 4.3.2.1 Azure Variables
+##### 5.3.2.1. Azure Variables
 
 Set these environment variables in `config.yaml` (these are only needed for Azure):
 
@@ -489,7 +500,7 @@ env_vars:
   NCCL_DEBUG: INFO
 ```
 
-##### 4.3.2.2 AWS Variables
+##### 5.3.2.2. AWS Variables
 
 AWS recommends setting the following flag to avoid data corruption:
 
@@ -500,22 +511,22 @@ env_vars:
 
 Setting this flag reduces training throughput by roughly 2%.
 
-## 5. Quick Start Guide
+## 6. Quick Start Guide
 
-### 5.1. Getting Started with Multimodal NeMo Megatron
+### 6.1. Getting Started with NeMo Multimodal
 
-#### 5.1.1. Prepare Environment
+#### 6.1.1. Prepare Environment
 
 <!--
 The whole solution uses a set of Docker containers executed at the Slurm
 cluster using the pyxis plug-in Base Command Platform cluster. The training
 container also includes conversion scripts and NVIDIA Triton Model Navigator.
 The inference container is just the NVIDIA Triton Inference Server with the
-FasterTransformer backend installed.    For Base Command Platform, the NeMo Megatron
+FasterTransformer backend installed.    For Base Command Platform, the NeMo Multimodal
 scripts repository (bcp branch) will be part of the container image. It is
 recommended to create a nemo_megatron_ws_scripts_<username> workspace in your ace and
 copy the nemo_megatron_launcher directory there    either from the container image or
-from git clone of the above repository if you have access.    Install the NeMo Megatron
+from git clone of the above repository if you have access.    Install the NeMo Multimodal
 scripts dependencies on the head node of your cluster. Base Command Platform
 clusters do not have a head login node. We're currently running these scripts
 on a DGX node in the Base Command Platform cluster. Once the cluster has
@@ -540,12 +551,12 @@ conversion scripts. The inference container
 comprises the NVIDIA Triton Inference Server with the FasterTransformer
 backend installed.
 
-##### 5.1.1.1. Slurm
+##### 6.1.1.1. Slurm
 
-The NeMo Megatron codebase is included as part of the training container. To
+The NeMo Multimodal codebase is included as part of the training container. To
 copy it to a local directory in the cluster, it needs to be extracted from the
 container. To copy the code to a directory named /path/to/local/dir the
-following command can be executed. The NeMo Megatron repository for
+following command can be executed. The NeMo Multimodal repository for
 Slurm has been verified on both Slurm-based DeepOps clusters as well as Base
 Command Manager.
 
@@ -553,7 +564,7 @@ Command Manager.
 srun -p [partition] -N 1 --container-mounts=/path/to/local/dir:/workspace/mount_dir --container-image=[container_tag] bash -c "cp -r /opt/NeMo-Megatron-Launcher/launcher_scripts /workspace/mount_dir/"
 ```
 
-Install the NeMo Megatron scripts dependencies on the head node of the cluster:
+Install the NeMo Multimodal scripts dependencies on the head node of the cluster:
 
 ```
 pip install -r requirements.txt
@@ -563,9 +574,9 @@ You can use virtualenv to prevent polluting your head node environment for
 other Python projects. If your configuration lacks pip, then you can
 install pip using use [get_pip.py](https://github.com/pypa/get-pip) with just `python3`.
 
-##### 5.1.1.2. Base Command Platform
+##### 6.1.1.2. Base Command Platform
 
-The NeMo Megatron Launcher codebase is included as part of the training
+The NeMo Multimodal Launcher codebase is included as part of the training
 container. Before starting, set up the ngc cli and configuration as described
 in the Base Command Platform User Guide. In this guide, we will mainly
 use two Base Command Platform workspaces, one for storing the training dataset,
@@ -574,13 +585,13 @@ creating these workspaces (e.g. `nemo_megatron_data_ws` and `nemo_megatron_resul
 the Base Command Platform User Guide for how to create and work with Base
 Command Platform workspaces.
 
-#### 5.1.2. Configure and Customize Pipeline
+#### 6.1.2. Configure and Customize Pipeline
 
 This section provides instructions for configuring and customizing the pipeline in NeMo-Megatron-Launcher. It covers
 four areas: cluster configurations, pipeline configurations, environment variables configurations, and NUMA mapping
 configurations.
 
-##### 5.1.2.1. Cluster Configurations
+##### 6.1.2.1. Cluster Configurations
 
 The first parameter that must be set is the `launcher_scripts_path` parameter inside the
 `conf/config.yaml` file. This parameter must point to the absolute path where
@@ -624,7 +635,7 @@ that `data_dir` points to one of the workspaces, and `base_results_dir`
 points to the other. They should both be mounted in read and write (RW)
 mode. The parameter `cluster_type` must be set to `bcp` for all the tasks.
 
-##### 5.1.2.2. Pipeline Configurations
+##### 6.1.2.2. Pipeline Configurations
 
 The `conf/config.yaml` file contains default configuration settings for various stages of your pipeline, including data
 preparation, training, fine-tuning, evaluation, and more. The `stages` field specifies the stages that will be executed
@@ -668,7 +679,7 @@ training configuration, you can check this specific file.
 4. **Update specific stage configurations**: Modify the YAML files in `conf/(stage_name)/(model_type)/(model_name).yaml`
    to update specific stage configurations, such as the number of nodes, precision, and model configurations.
 
-##### 5.1.2.3. Environment Variables Configurations
+##### 6.1.2.3. Environment Variables Configurations
 
 To configure or add additional environment variables when running pipelines, you can modify or include new fields under
 the env_vars section in the conf/config.yaml file. If a variable is set to null, it will be ignored.
@@ -684,7 +695,7 @@ env_vars:
 By adjusting these settings, you can customize the environment variables to better suit your specific needs and
 requirements during pipeline execution.
 
-##### 5.1.2.4. NUMA Mapping Configurations
+##### 6.1.2.4. NUMA Mapping Configurations
 
 NUMA mapping is a technique used with multiple processors, where memory access times can vary depending on which
 processor is accessing the memory. The goal of NUMA mapping is to assign memory to processors in a way that minimizes
@@ -710,7 +721,7 @@ numa_mapping:
   max_cores: 8  # Maximum number of physical cores per process. Can be null to use all available cores.
 ```
 
-#### 5.1.3. Launch Pipeline
+#### 6.1.3. Launch Pipeline
 
 `main.py` is the primary file to execute for running various stages in your pipeline, including data preparation,
 training, conversion, fine-tuning, and evaluation.
@@ -761,7 +772,7 @@ file is not recommended. This is because different nodes on the Base Command Pla
 so changes made on one node will not be reflected on other nodes. To ensure consistency across nodes, always use command
 line overrides for configuration changes on Base Command Platform.
 
-#### 5.1.4. Example: Pre-train Stable Diffusion 860M Model for 10 Epochs with Resolution 256
+#### 6.1.4. Example: Pre-train Stable Diffusion 860M Model for 10 Epochs with Resolution 256
 
 In this example, we will demonstrate how to customize the pipeline according to the following instructions:
 
@@ -808,9 +819,9 @@ python3 main.py stages=[training] training=stable_diffusion/860m_res_256 trainin
 overriding a stage configuration found in conf/(stage_name)/(model_type)/(model_name).yaml. This ensures that the
 correct stage and configuration file are targeted for the override.
 
-### 5.2. Data Preparation
+### 6.2. Data Preparation
 
-#### 5.2.1 ImageNet
+#### 6.2.1. ImageNet
 
 _Note: It is the responsibility of each user to check the content
 of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
@@ -819,7 +830,7 @@ Users should review any applicable links associated with the dataset before plac
 Please note that according to the ImageNet terms and conditions, automated scripts for downloading the dataset are not
 provided. Instead, kindly follow the steps outlined below to download and extract the data.
 
-##### 5.2.1.1 ImageNet 1k
+##### 6.2.1.1. ImageNet 1k
 
 1. Create an account on [ImageNet](http://image-net.org/download-images) and navigate to ILSVRC 2012.
    Download "Training images (Task 1 & 2)" and "Validation images (all tasks)" to `data/imagenet_1k`.
@@ -839,7 +850,7 @@ provided. Instead, kindly follow the steps outlined below to download and extrac
   wget -qO- https://raw.githubusercontent.com/soumith/imagenetloader.torch/master/valprep.sh | bash
   ```
 
-##### 5.2.1.2 ImageNet 21k
+##### 6.2.1.2. ImageNet 21k
 
 1. Create an account on [ImageNet](http://image-net.org/download-images) and download "ImageNet21k" to
    `data/imagenet_21k`.
@@ -850,13 +861,13 @@ provided. Instead, kindly follow the steps outlined below to download and extrac
   find . -name "*.tar" | while read NAME ; do mkdir -p "${NAME%.tar}"; tar -xvf "${NAME}" -C "${NAME%.tar}"; rm -f "${NAME}"; done
   ```
 
-#### 5.2.2 Multimodal Datasets
+#### 6.2.2. Multimodal Datasets
 
 _Note: It is the responsibility of each user to check the content
 of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
 Users should review any applicable links associated with the dataset before placing the data on their machine._
 
-##### 5.2.2.1 Overview
+##### 6.2.2.1. Overview
 
 For all multimodal models (except Instruct-Pix2Pix; see Section 5.2.3), we provide a generic pipeline as detailed below
 to download and prepare the dataset. The pipeline is suitable for any multimodal datasets hosted on the
@@ -890,7 +901,7 @@ For models that encode image and text on-the-fly, only sub-stages 1-3 need to be
 Instruction for configuring each sub-stage is provided as a comment next to each field in
 `conf/data_preparation/multimodal/download_multimodal.yaml`
 
-##### 5.2.2.2 Running the Pipeline
+##### 6.2.2.2. Running the Pipeline
 
 Follow Section 5.1.1 to set up the environment.
 To run the data preparation pipeline for multimodal, set the `conf/config.yaml` file to:
@@ -912,9 +923,9 @@ Then run:
 python3 main.py
 ```
 
-##### 5.2.2.3 Configuration for Precaching
+##### 6.2.2.3. Configuration for Precaching
 
-###### 5.2.2.3.1 General Format
+###### 6.2.2.3.1. General Format
 
 Precaching refers to the offline computation of image and text encodings prior to training a model. This technique
 is suitable for any model that uses pretrained, frozen encoders during training.
@@ -939,7 +950,7 @@ t0_r0_0.tar
 Each pickle file stores one python dictionary, with key value pairs storing the embedding name and the embedding as a
 numpy array.
 
-###### 5.2.2.3.2 Precaching Config
+###### 6.2.2.3.2. Precaching Config
 
 Configuration for precaching can be extensive and intricate for some models. To maintain clarity and ensure an
 organized workflow, we utilize a separate YAML file for these configurations.
@@ -985,7 +996,7 @@ Note that it is not required to have only one encoding per modality, if there ar
 The `encodings` field is designed as a list to account for this. For example, it's possible to have one image embedding
 from CLIP, one text embedding from CLIP, and a second text embedding from T5.
 
-###### 5.2.2.3.3 Resume Precaching (Advanced)
+###### 6.2.2.3.3. Resume Precaching (Advanced)
 
 The precaching module is able to launch multiple tasks (as specified by `precache_encodings.node_array_size`)
 in parallel in order to reduce the time required for each task. In the event of failed or interrupted run, we provide
@@ -1025,14 +1036,14 @@ override_task_id: 67
 override_task_count: 100
 ```
 
-###### 5.2.2.3.4 Known Issue
+###### 6.2.2.3.4. Known Issue
 
 Due to a [Lightning DDP limitation](https://github.com/Lightning-AI/lightning/issues/3325), the precaching module may
 drop about 0.01% to 0.1% of input data. The specific ratio will depend on the cluster configuration, tarfile chunk_size,
 precaching batch_size and dataset size, but will be consistent across runs.
 We anticipate that dropping a small percentage of data will not have a significant impact on model training.
 
-#### 5.2.3 Instruct Pix2Pix
+#### 6.2.3. Instruct Pix2Pix
 
 _Note: It is the responsibility of each user to check the content
 of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
@@ -1044,7 +1055,7 @@ repository.
 
 Move the downloaded data to `${data_dir}/instruct_pix2pix/clip-filtered-dataset`
 
-#### 5.2.4 MSCOCO for FID Evaluation
+#### 6.2.4. MSCOCO for FID Evaluation
 
 _Note: It is the responsibility of each user to check the content
 of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
@@ -1052,7 +1063,7 @@ Users should review any applicable links associated with the dataset before plac
 
 For more details on the evaluation workflow, please see Section 5.6.3.
 
-##### 5.2.4.1 Download and Setup
+##### 6.2.4.1. Download and Setup
 
 1. Review the terms of use from the official [COCO](https://cocodataset.org/#download) website.
 2. Download the 2014 validation images, and extract the images to `${data_dir}/fid_evaluation/coco2014/val2014`
@@ -1062,7 +1073,7 @@ For more details on the evaluation workflow, please see Section 5.6.3.
    the instructions.
 5. Install the dependencies for the preprocessing script: `pip install matplotlib cython Pillow`
 
-##### 5.2.4.2 Preprocess Images and Captions
+##### 6.2.4.2. Preprocess Images and Captions
 
 Follow Section 5.1.1 to set up the environment.
 To run the data preparation pipeline for FID evaluation, set the `conf/config.yaml` file to:
@@ -1084,7 +1095,7 @@ Then run:
 python3 main.py
 ```
 
-### 5.3. Model Training
+### 6.3. Model Training
 
 We provide predefined training configurations for all released model types, which can be found in the `conf/training/`
 directory. These configurations include carefully selected hyper parameters that serve as a guideline for creating
@@ -1096,7 +1107,7 @@ documentation.
 For the Base Command Platform (BCP), it is important to note that all jobs must be launched in multi-node mode. This
 requirement ensures proper setup of BCP pytorch environment.
 
-#### 5.3.1. Vision Transformer Training
+#### 6.3.1. Vision Transformer Training
 
 We have curated 5 configurations with suggested hyperparameters specifically for the NVIDIA DGX SuperPOD, which is
 equipped with 8 NVIDIA A100 80GB GPUs. The configurations for the curated models can be found in the `conf/training/vit`
@@ -1136,7 +1147,7 @@ To enable the training stage with a Vision Transformer (ViT) model, configure th
 300 epochs on the ImageNet 1K dataset. This demonstrates that our implementation is consistent with the expected
 performance and results of Vision Transformers in general.
 
-#### 5.3.2. CLIP Training
+#### 6.3.2. CLIP Training
 
 We have curated 3 configurations with suggested hyperparameters specifically for the NVIDIA DGX SuperPOD, which is
 equipped with 8 NVIDIA A100 80GB GPUs. The configurations for the curated models can be found in
@@ -1180,7 +1191,7 @@ To enable the training stage with a CLIP model, configure the configuration file
    setting `training.model.megatron_amp_O2=False`. Enabling EMA can help your model converge faster, but be aware that
    it may result in a slight performance penalty.
 
-#### 5.3.3. Stable Diffusion Training
+#### 6.3.3. Stable Diffusion Training
 
 We have curated configurations with suggested hyperparameters specifically for the NVIDIA DGX SuperPOD, which is
 equipped with 8 NVIDIA A100 80GB GPUs. The configurations for the curated models can be found in
@@ -1240,7 +1251,7 @@ set `training.model.unet_config.from_NeMo=False`.
 completed, to improve the performance on classifier-free
 guidance.
 
-#### 5.3.4. Instruct Pix2Pix Training
+#### 6.3.4. Instruct Pix2Pix Training
 
 Instruct Pix2Pix essentially performs tuning on top of an existing Stable Diffusion checkpoint. The recommended
 configuration can be found in the `conf/training/instruct_pix2pix` directory. You can access and modify the parameters
@@ -1271,7 +1282,7 @@ To enable the training stage with an Instruct Pix2Pix model, configure the confi
 specifying `training.model.ckpt_path` (or set `ckpt_path` field in the `model` section of `860m_sd_edit.yaml`). The
 checkpoint can be sourced from either NeMo or Hugging Face in the form of a `.ckpt` file.
 
-#### 5.3.5. DreamBooth Training
+#### 6.3.5. DreamBooth Training
 
 Dreambooth is also fine-tuning on top of an existing Stable Diffusion checkpoint. The recommended configuration can be
 found in the `conf/training/dreambooth` directory. You can access and modify the parameters to customize the
@@ -1314,7 +1325,7 @@ training.model.restore_from_path. Note that the .nemo checkpoint is required her
 fine-tune on should be set in training.model.unet_config.from_pretrained. You can follow the same procedure as described
 above in section [5.3.3. Stable Diffusion Training].
 
-### 5.4. Checkpoint Conversion
+### 6.4. Checkpoint Conversion
 
 We provide a convenient tool for converting checkpoints from the `.ckpt` format to the `.nemo` format. The `.nemo`
 format checkpoints can be used later in evaluation and inference stages. Users don't need to run the checkpoint
@@ -1368,7 +1379,7 @@ To enable the `conversion` stage and configure conversion settings, configure th
    you can override them in the hparams.yaml file. However, be cautious when making changes, as altering the model
    architecture may prevent the model weights from loading correctly.
 
-### 5.5. Model Fine-tuning
+### 6.5. Model Fine-tuning
 
 We provide predefined fine-tuning configurations for Vision Transformer models, which can be found in
 the `conf/fine_tuning/`
@@ -1377,7 +1388,7 @@ custom model configurations. For additional guidance on customizing configuratio
 to [Section 5.1](#51-getting-started-with-multimodal-nemo-megatron) in the
 documentation.
 
-#### 5.5.1. Vision Transformer Fine-tuning
+#### 6.5.1. Vision Transformer Fine-tuning
 
 We provide a predefined fine-tuning configuration for the `ViT B/16` model on ImageNet-1K, which can be found in
 the `conf/fine_tuning/imagenet1k.yaml` file. The following table highlights the key differences between ViT pretraining
@@ -1412,16 +1423,16 @@ To enable the fine-tuning stage with a ViT model, configure the configuration fi
 to the path of the pretrained checkpoint in `.nemo` format. By default, this field links to the `.nemo` format
 checkpoint located in the training checkpoints folder.
 
-### 5.6. Model Evaluation
+### 6.6. Model Evaluation
 
-In Multimodal NeMo Megatron, we also provide simple scripts for users to benchmark their trained models, including ViT,
+In NeMo Multimodal, we also provide simple scripts for users to benchmark their trained models, including ViT,
 CLIP and Stable Diffusion. The configuration files for these evaluations can be found in the `conf/evaluation`
 directory. These scripts allow you to assess the performance of your trained models on various metrics. For additional
 guidance on customizing configurations, please refer to [Section 5.1](#51-getting-started-with-multimodal-nemo-megatron)
 in the
 documentation.
 
-#### 5.6.1. Vision Transformer Evaluation
+#### 6.6.1. Vision Transformer Evaluation
 
 For the Vision Transformer, our evaluation script processes the ImageNet 1K validation folder and computes the final
 validation accuracy.
@@ -1452,7 +1463,7 @@ To enable the evaluation stage with a ViT model, configure the configuration fil
 2. We highly recommend users to use the same precision (i.e. `trainer.precision`) for evaluation as was used during
    training.
 
-#### 5.6.2. CLIP Evaluation
+#### 6.6.2. CLIP Evaluation
 
 For CLIP models, our evaluation script calculates zero-shot ImageNet 1K validation accuracy.
 
@@ -1485,7 +1496,7 @@ To enable the evaluation stage with a CLIP model, configure the configuration fi
    not produce expected results. We highly recommend users to use the same precision (i.e. `trainer.precision`) for
    inference as was used during training.
 
-#### 5.6.3. Stable Diffusion Evaluation
+#### 6.6.3. Stable Diffusion Evaluation
 
 Our evaluation script performs image generation for the captions provided in the validation subset of the MS COCO
 dataset, computes the FID score between real and generated images, computes the CLIP score betweel generated images and
@@ -1529,9 +1540,9 @@ below:
    training.
 3. The `generate_images` sub-stage involves a multi-node run, whereas the other stages utilize only a single GPU.
 
-### 5.7. Model Inference (in NeMo Framework)
+### 6.7. Model Inference (in NeMo Framework)
 
-In Multimodal NeMo Megatron, we provide scripts to perform inference directly via NeMo framework, rather than using
+In NeMo Multimodal, we provide scripts to perform inference directly via NeMo framework, rather than using
 NVIDIA Triton Inference Server. This allows you to infer with your pretrained models directly without the need for a
 separate deployment or inference server. It is particularly useful when you want to experiment with different model
 configurations, perform quick evaluations, or prototype a solution before deploying it at scale with Triton Inference
@@ -1541,7 +1552,7 @@ Our framework inference configurations are provided in the folder `conf/fw_infer
 customizing configurations, please refer to [Section 5.1](#51-getting-started-with-multimodal-nemo-megatron) in the
 documentation.
 
-#### 5.7.1. Vision Transformer Inference (in NeMo Framework)
+#### 6.7.1. Vision Transformer Inference (in NeMo Framework)
 
 For Vision Transformer, our inference script processes a folder of images. For each image in the folder, the script
 classifies it into one of the ImageNet 1K classes.
@@ -1572,7 +1583,7 @@ To enable the inference stage with a ViT model, configure the configuration file
 2. We highly recommend users to use the same precision (i.e. `trainer.precision`) for inference as was used during
    training.
 
-#### 5.7.2. CLIP Inference (in NeMo Framework)
+#### 6.7.2. CLIP Inference (in NeMo Framework)
 
 For CLIP models, our inference script calculates CLIP similarity scores between a given image and a list of provided
 texts.
@@ -1607,7 +1618,7 @@ To enable the inference stage with a CLIP model, configure the configuration fil
    not produce expected results. We highly recommend users to use the same precision (i.e. `trainer.precision`) for
    inference as was used during training.
 
-#### 5.7.3. Stable Diffusion Inference (in NeMo Framework)
+#### 6.7.3. Stable Diffusion Inference (in NeMo Framework)
 
 For text-to-image models, the inference script generates images from text prompts defined in the config file.
 
@@ -1631,7 +1642,7 @@ To enable the inference stage with Stable Diffusion, configure the configuration
 3. Configure `prompts` and `num_images_per_prompt` fields of `conf/fw_inference/stable_diffusion/text2img.yaml`.
    Set `model.restore_from_path` to the `.nemo` ckpt you want generate images with.
 
-#### 5.7.4. Instruct Pix2Pix Inference (in NeMo Framework)
+#### 6.7.4. Instruct Pix2Pix Inference (in NeMo Framework)
 
 For Instruct Pix2Pix models, our inference script processes an original image based on a provided edit prompt, modifies
 the image accordingly, and saves the edited image as a new file.
@@ -1679,7 +1690,7 @@ To enable the inference stage with a Instruct Pix2Pix model, configure the confi
    training.
 3. Tips for getting better quality results: https://github.com/timothybrooks/instruct-pix2pix#tips
 
-#### 5.7.5. DreamBooth Inference (in NeMo Framework)
+#### 6.7.5. DreamBooth Inference (in NeMo Framework)
 
 For Dreambooth, the inference script generates images from text prompts defined in the config file, similar to section
 5.7.3. Note that, dreambooth is a fine-tuning model based on diffusion models to link a special token with certain
@@ -1706,9 +1717,9 @@ To enable the inference stage with dreambooth, configure the configuration files
 3. Configure `prompts` and `num_images_per_prompt` fields of `conf/fw_inference/dreambooth/text2img.yaml`.
    Set `model.restore_from_path` to the ckpt generated from dreambooth training.
 
-### 5.8. Model Export
+### 6.8. Model Export
 
-In Multimodal NeMo Megatron, we provide scripts to perform export directly via NeMo framework to ONNX and NVIDIA
+In NeMo Multimodal, we provide scripts to perform export directly via NeMo framework to ONNX and NVIDIA
 TensorRT. This allows us to run accelerated inference on the NVIDIA Triton Inference Server detailed in the next
 section, section 6.
 For the CLIP and ViT models, setting `infer.max_batch_size`, will create ONNX and NVIDIA TensorRT models that accept
@@ -1729,7 +1740,7 @@ directory expect
 the NVIDIA TensorRT
 Engines created from the ONNX models in addition to the config options.
 
-#### 5.8.1. Vision Transformer Export
+#### 6.8.1. Vision Transformer Export
 
 To enable the export stage with a ViT model, configure the configuration files:
 
@@ -1759,7 +1770,7 @@ To enable the export stage with a ViT model, configure the configuration files:
    of the pretrained checkpoint in `.nemo` format in `conf/export/vit/export_vit.yaml`. By default, this field
    links to the `.nemo` format checkpoint located in the ImageNet 1K fine-tuning checkpoints folder.
 
-#### 5.8.2. CLIP Export
+#### 6.8.2. CLIP Export
 
 To enable the export stage with a CLIP model, configure the configuration files:
 
@@ -1790,7 +1801,7 @@ To enable the export stage with a CLIP model, configure the configuration files:
 1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/export/clip/export_clip.yaml`.
 
-#### 5.8.3. Stable Diffusion Export
+#### 6.8.3. Stable Diffusion Export
 
 For text-to-image models, the export script generates three different optimized inference models.
 The first model is the VAE Decoder, the second model is the UNet, and the third model is the CLIP Encoder.
@@ -1819,7 +1830,7 @@ The first model is the VAE Decoder, the second model is the UNet, and the third 
 1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/export/stable_diffusion/export_stable_diffusion.yaml`.
 
-#### 5.8.4. Instruct Pix2pix Export
+#### 6.8.4. Instruct Pix2pix Export
 
 For Instruct Pix2Pix models, the export script generates four different optimized inference models.
 The first model is the VAE Decoder, the second model is the UNet, the third model is the CLIP Encoder, and the fourth
@@ -1852,7 +1863,7 @@ is the VAE Encoder.
    of the pretrained checkpoint in `.nemo` format in the `conf/export/instruct_pix2pix/export_instruct_pix2pix.yaml`
    file.
 
-#### 5.8.5. DreamBooth Export
+#### 6.8.5. DreamBooth Export
 
 For Dreambooth, the export script generates three different optimized inference models.
 The first model is the VAE Decoder, the second model is the UNet, and the third model is the CLIP Encoder.
@@ -1881,16 +1892,16 @@ The first model is the VAE Decoder, the second model is the UNet, and the third 
 1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/export/dreambooth/export_dreambooth.yaml`.
 
-## 6. Deploying the NeMo Megatron Model
+## 7. Deploying the NeMo Multimodal Model
 
-### 6.1 Setup
+### 7.1. Setup
 
 Prior to deploying a model or pipeline, the model or pipeline must be exported following the steps in section 5.8.
 No other additional setup is required as the NeMo container comes with the relevant NVIDIA Triton Inference Server
 libraries
 preinstalled and ready to go.
 
-### 6.2 Start NVIDIA Triton Inference Server
+### 7.2. Start NVIDIA Triton Inference Server
 
 Starting the NVIDIA Triton Inference Server is a simple command. First, however, please read the model specific section
 below
@@ -1903,49 +1914,49 @@ To start the NVIDIA Triton Inference Server
 
 `<model>` can be substitued for the `stable_diffusion`, `instruct_pix2pix`, `clip_trt`, `clip_vision_trt`, `vit_trt`.
 
-#### 6.2.1 Stable Diffusion, Dreambooth
+#### 7.2.1. Stable Diffusion, Dreambooth
 
 For Stable Diffusion and Dreambooth, copy the generated `plan` directory to the `deployment/server/stable_diffusion/1/`
 directory.
 
-#### 6.2.2 Instruct Pix2Pix
+#### 7.2.2. Instruct Pix2Pix
 
 For Instruct Pix2Pix, copy the generated `plan` directory to the `deployment/server/instruct_pix2pix/1/` directory.
 
-#### 6.2.3 Vision Transformer
+#### 7.2.3. Vision Transformer
 
 Move the generated `.plan` file to `deployment/server/vit_trt/1/model.plan`.
 
-#### 6.2.4 CLIP
+#### 7.2.4. CLIP
 
 Move the generated `.plan` file to `deployment/server/clip_vision_trt/1/model.plan`. For this model, two separate Triton
 models need to be loaded
 `--load-model clip_vision_trt --load-model clip_trt`. Querying `clip_trt` will provide tokenization and automatically
 call `clip_vision_trt` using BLS.
 
-### 6.3 Query NVIDIA Triton Inference Server
+### 7.3. Query NVIDIA Triton Inference Server
 
 In a separate instance of the NeMo container, we can setup a client to query the server. In `deployment/client`, there
 are a few examples of the clients.
 
-#### 6.3.1 Stable Diffusion and Dreambooth
+#### 7.3.1. Stable Diffusion and Dreambooth
 
 At query time, the values, `seed`, `unconditional_guidance_scale`, `inference_steps`, `eta` can be used as optional
 inputs. If these are not set, the defaults are the values set during export.
 The return is a single numpy array containing `num_images_per_prompt` images.
 
-#### 6.3.2 Instruct Pix2Pix
+#### 7.3.2. Instruct Pix2Pix
 
 At query time, the values, `seed`, `text_cfg_scale`, `steps`, `image_cfg_scale` can be used as optional inputs. If these
 are not set, the defaults are the values set during export.
 The return is a single numpy array containing `num_images_per_prompt` images. In the client example, make sure to set
 the path to the input image.
 
-## 7. Performance
+## 8. Performance
 
-### 7.1. Vision Transformer Results
+### 8.1. Vision Transformer Results
 
-#### 7.1.1. Training Accuracy Results
+#### 8.1.1. Training Accuracy Results
 
 Training Accuracy: NVIDIA DGX SuperPOD (4 x 8 x A100 80GB for ViT B/16 Model)
 
@@ -1974,7 +1985,7 @@ highlights of the training and fine-tuning recipe we used:
     - Learning Rate Decay: Cosine
     - Weight Decay: 0
 
-#### 7.1.2. Training Performance Results
+#### 8.1.2. Training Performance Results
 
 We measured the throughput of training Vision Transformer models on
 different numbers of DGX A100 nodes and DGX H100 nodes, and we achieved near-linear
@@ -1995,7 +2006,7 @@ The tables and charts below show the performance results.
 | ViT g/14 | Perfect Linear Scaling (Samples) | 708.06 | 1416.13 | 2832.25 | 5664.50 | 11329.00 |
 |          | Speedup                          | 1x     | 1.93x   | 3.85x   | 7.62x   | 15.31x   |
 
-<img src="img/ViT g_14 NeMo Megatron Throughput (A100).svg"/>
+<img src="img/ViT g_14 NeMo Multimodal Throughput (A100).svg"/>
 
 - NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for ViT g/14 model)
 
@@ -2006,7 +2017,7 @@ The tables and charts below show the performance results.
 | ViT g/14 | Perfect Linear Scaling (Samples) | 1527 | 3054  | 6109  | 12219 | 24439  |
 |          | Speedup                          | 1x   | 1.97x | 3.86x | 7.69x | 15.71x |
 
-<img src="img/ViT g_14 NeMo Megatron Throughput (H100).svg"/>
+<img src="img/ViT g_14 NeMo Multimodal Throughput (H100).svg"/>
 
 - DGX A100 vs. DGX H100: A Comparative Analysis of Vision Transformer Training
 
@@ -2020,7 +2031,7 @@ The tables and charts below show the performance results.
 
 <img src="img/Vision Transformer Training Throughput Comparison.svg"/>
 
-#### 7.1.3. Inference Performance Results
+#### 8.1.3. Inference Performance Results
 
 Latency times are taken as starting with an image on CPU and stopped on output.
 For framework we use the Torch Automated Mixed Precision (AMP) for FP16 computation. For TRT, we export the various
@@ -2038,9 +2049,9 @@ Batch Size: Number of Images in a Batch
 | ViT B/16 | 4          | 0.011                | 0.015                      | 1.4                   |
 |          | 8          | 0.018                | 0.017                      | 1.0                   |
 
-### 7.2. CLIP Results
+### 8.2. CLIP Results
 
-#### 7.2.1. Training Accuracy Results
+#### 8.2.1. Training Accuracy Results
 
 Training Accuracy: NVIDIA DGX SuperPOD (8 x 8 x A100 80GB for CLIP B/32 Model)
 
@@ -2058,7 +2069,7 @@ We believe the final accuracy difference is due to the dataset, as LAION 400M is
 our implementation is consistent with OpenCLIP, we trained OpenCLIP with our dataset and found out that the loss curve
 and validation accuracy were nearly identical to NeMo's CLIP.
 
-#### 7.2.2. Training Performance Results
+#### 8.2.2. Training Performance Results
 
 We measured the throughput of training CLIP models on
 different numbers of DGX A100 nodes and DGX H100 nodes, and we achieved near-linear
@@ -2079,7 +2090,7 @@ The tables and charts below show the performance results.
 | CLIP g/14 | Perfect Linear Scaling (Samples) | 621.90 | 1243.81 | 2487.61 | 4975.22 | 9950.44 |
 |           | Speedup                          | 1x     | 1.98x   | 3.93x   | 7.82x   | 15.52x  |
 
-<img src="img/CLIP g_14 NeMo Megatron Throughput (A100).svg"/>
+<img src="img/CLIP g_14 NeMo Multimodal Throughput (A100).svg"/>
 
 - NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for CLIP g/14 model)
 
@@ -2090,7 +2101,7 @@ The tables and charts below show the performance results.
 | CLIP g/14 | Perfect Linear Scaling (Samples) | 1039.81 | 2079.61 | 4159.22 | 8318.44 | 16636.88 |
 |           | Speedup                          | 1x      | 1.93x   | 3.86x   | 7.34x   | 14.34x   |
 
-<img src="img/CLIP g_14 NeMo Megatron Throughput (H100).svg"/>
+<img src="img/CLIP g_14 NeMo Multimodal Throughput (H100).svg"/>
 
 - DGX A100 vs. DGX H100: A Comparative Analysis of CLIP Training
 
@@ -2102,7 +2113,7 @@ The tables and charts below show the performance results.
 
 <img src="img/CLIP Training Throughput Comparison.svg"/>
 
-#### 7.2.3. Inference Performance Results
+#### 8.2.3. Inference Performance Results
 
 Latency times are taken as starting with an image on CPU and text input (of length 64) and stopped on output.
 For framework we use the Torch Automated Mixed Precision (AMP) for FP16 computation. For TRT, we export the various
@@ -2120,9 +2131,9 @@ Batch Size: Number of Images in a Batch
 | CLIP B/32 | 4          | 0.014                | 0.028                      | 2.0                   |
 |           | 8          | 0.015                | 0.028                      | 1.9                   |
 
-### 7.3. Stable Diffusion Results
+### 8.3. Stable Diffusion Results
 
-#### 7.3.1. Training Accuracy Results
+#### 8.3.1. Training Accuracy Results
 
 We evaluate Stable Diffusion model with FID-CLIP curve, and comparing it to other open-source ckpt at same scale of
 consumed sample.
@@ -2147,7 +2158,7 @@ of the open-source Stable Diffusion 1.5.
 
 <img src='img/Stable Diffusion FID-CLIP.png'/>
 
-#### 7.3.2. Training Performance Results
+#### 8.3.2. Training Performance Results
 
 We measured the throughput of training Stable Diffusion models on
 different numbers of DGX A100 nodes and DGX H100 nodes, and we achieved near-linear
@@ -2168,7 +2179,7 @@ The tables and charts below show the performance results.
 | Stable Diffusion Res=512 | Perfect Linear Scaling (Samples) | 199.98 | 399.97 | 799.94 | 1599.87 | 3199.75 |
 |                          | Speedup                          | 1x     | 1.95x  | 3.93x  | 7.53x   | 14.76x  |
 
-<img src="img/Stable Diffusion (Res=512) NeMo Megatron Throughput (A100).svg"/>
+<img src="img/Stable Diffusion (Res=512) NeMo Multimodal Throughput (A100).svg"/>
 
 - NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for Stable Diffusion Res=512 model)
 
@@ -2179,7 +2190,7 @@ The tables and charts below show the performance results.
 | Stable Diffusion Res=512 | Perfect Linear Scaling (Samples) | 419.47 | 838.93 | 1677.86 | 3355.73 | 6711.45 |
 |                          | Speedup                          | 1x     | 2x     | 3.79x   | 7.37x   | 14.44x  |
 
-<img src="img/Stable Diffusion (Res=512) NeMo Megatron Throughput (H100).svg"/>
+<img src="img/Stable Diffusion (Res=512) NeMo Multimodal Throughput (H100).svg"/>
 
 - DGX A100 vs. DGX H100: A Comparative Analysis of Stable Diffusion Training
 
@@ -2190,7 +2201,7 @@ The tables and charts below show the performance results.
 
 <img src="img/Stable Diffusion Training Throughput Comparison.svg"/>
 
-#### 7.3.3. Inference Performance Results
+#### 8.3.3. Inference Performance Results
 
 Latency times are started directly before the text encoding (CLIP) and stopped directly after the output image
 decoding (VAE).
@@ -2208,9 +2219,9 @@ Batch Size: Synonymous with `num_images_per_prompt`
 | Stable Diffusion (Res=512) | 2          | PLMS    | 50              | 1.7                   | 5.2                        | 3.1                   |
 | Stable Diffusion (Res=512) | 4          | PLMS    | 50              | 2.9                   | 9.2                        | 3.2                   |  
 
-### 7.4. Instruct Pix2Pix Results
+### 8.4. Instruct Pix2Pix Results
 
-#### 7.4.1. Training Quality Results
+#### 8.4.1. Training Quality Results
 
 Instruct Pix2Pix is an image editing tool that transforms original images based on user instructions. For example, when
 provided with a photo of cute toy duck, the AI can seamlessly edit the image according to your creative vision.
@@ -2227,7 +2238,7 @@ each instruction, we showcase 8 distinct images generated from different seeds:
 - Instruction: Make it in a pool
   <img src="img/make_it_in_a_pool_7.5_1.2_1234_combine.jpg"/>
 
-#### 7.4.2. Inference Performance Results
+#### 8.4.2. Inference Performance Results
 
 Latency times are started directly before the text encoding (CLIP) and stopped directly after the output image
 decoding (VAE).
@@ -2245,9 +2256,9 @@ Batch Size: Synonymous with `num_images_per_prompt`
 | Instruct Pix2Pix (Res=256) | 2          | N/A     | 100             | 1.3                   | 3.7                        | 2.8                   |
 | Instruct Pix2Pix (Res=256) | 4          | N/A     | 100             | 2.2                   | 4.9                        | 2.2                   |
 
-### 7.5. DreamBooth Results
+### 8.5. DreamBooth Results
 
-#### 7.5.1. Training Quality Results
+#### 8.5.1. Training Quality Results
 
 Here we show some insteresting results as an example of dreambooth script.
 
@@ -2267,7 +2278,7 @@ Prompt: A 'sks' dog mecha robot.
 
 <img src="img/Dreambooth mecha robot.png" width="30%">
 
-#### 7.5.2. Inference Performance Results
+#### 8.5.2. Inference Performance Results
 
 Latency times are started directly before the text encoding (CLIP) and stopped directly after the output image
 decoding (VAE).
@@ -2285,126 +2296,12 @@ Batch Size: Synonymous with `num_images_per_prompt`
 | Dreambooth (Res=256) | 2          | DDIM    | 100             | 3.1                   | 9.0                        | 2.9                   |
 | Dreambooth (Res=256) | 4          | DDIM    | 100             | 5.7                   | 16.0                       | 2.8                   |
 
-## 8. Changelog
-
-**NeMo Megatron 23.01**
-
-* BERT with tensor parallelism support (training only)
-* BERT with pipeline parallelism support (training only)
-* Sequence Parallelism and Selective Activation Checkpointing for BERT (training only)
-* Interleaved Pipeline Scheduling for BERT
-* Distributed Adam Optimizer for BERT
-* AugoConfigurator for BERT
-* 110M, 4B, 20B, and 100B BERT training configurations
-* Support for the Mixture of Experts for T5 (no expert parallelism, training only)
-* Performance improvement for GPT-3 P-Tuning (20% - 25% speed-up)
-* ALiBi Position Embeddings for T5 and mT5 (training only)
-* Log total model size (across modal parallel ranks) for GPT-3, T5, mT5, and BERT
-
-**NeMo Megatron 22.11**
-
-* Interleaved Pipeline Scheduling for GPT-3 (training only)
-* FP8 support using Transformer Engine (training only)
-* Distributed Adam Optimizer for T5 and mT5
-* P-Tuning and Prompt Tuning for GPT-3 with Sequence Parallelism
-* Training configurations improved throughput by 7.9% (5B GPT-3), 9.6% (3B T5), 4.3% (11B T5), 52.4% (23B T5), and
-  26.6% (41B T5)
-
-**NeMo Megatron 22.09**
-
-* NeMo Megatron supports training and inference containers on OCI. For detail orchestration scripts, reach out
-  to [oci_nm@nvidia.com](mailto:oci_nm@nvidia.com)
-* P-Tuning and Prompt Tuning for T5 and mT5 with pipeline parallelism (training only)
-* Adapter learning for GPT-3 and T5 with tensor parallelism and pipeline parallelism (training only)
-* IA3 learning for GPT-3 and T5 with tensor parallelism and pipeline parallelism (training only)
-* AugoConfigurator to find the highest throughput configs for training on Base Command Platform
-* AugoConfigurator: parallel inference hyperparameter search for GPT-3 on Base Command Manager
-
-**NeMo Megatron 22.08.01**
-
-* Cloud service providers: support for Amazon Web Services (performance validated up to 20 `p4d.24xlarge` instances)
-* Cloud service providers: switched orchestration from Azure CycleCloud to NVIDIA Nephele for Microsoft Azure
-
-**NeMo Megatron 22.08**
-
-* Distributed Adam Optimizer for GPT-3
-* Asymmetric encoder-decoder configuration for T5 and mT5
-* Support for untying embeddings from the classifier layer for T5 and mT5
-* Relative Position Embeddings for T5 and mT5 (pipeline parallelism>=3)
-* P-Tuning and Prompt Tuning for T5 and mT5 with tensor parallelism (training only)
-* Code refactor - improved consistency and readability of configurations and logs
-* SQuAD fine-tuning and evaluation support for T5 with pipeline parallelism =<2
-* XQuAD fine-tuning and evaluation support for mT5 with pipeline parallelism =<2
-
-**NeMo Megatron 22.06-hotfix.01**
-
-* Fix: AugoConfigurator for T5 and mT5
-* Fix: Evaluation harness in GPT-3
-* Fix: Prompt learning in GPT-3
-* Fix: Out of memory when pretraining GPT-3 with Sequence Parallelism
-
-**NeMo Megatron 22.06**
-
-* Sequence Parallelism and Selective Activation Checkpointing for GPT-3
-* Relative Position Embeddings for T5
-    * We used mC4 dataset (24 Languages) for pretraining the mT5 and verified our results on KNLI, KorQuAD, KLUE-STS,
-      and XNLI tasks
-* AugoConfigurator update with Sequence Parallelism and Selective Activation Checkpointing for GPT-3
-* AugoConfigurator: support for DGX A100 40GB configurations for GPT-3, T5, and mT5
-* P-Tuning and Prompt Tuning for GPT-3 with pipeline parallelism (training only)
-* Operation fusions for higher training throughput (2%-7% speed-up)
-* Default GPT-3 configurations changed to include Sequence Parallelism and Selective Activation Checkpointing: 20B (
-  speed-up: 14%), 40B (speed-up: 9%), 175B (speed-up: 15%)
-
-**NeMo Megatron 22.05.01**
-
-* Cloud service providers: support for Microsoft Azure (performance validated up to 36 `Standard_ND96amsr_A100_v4`
-  instances)
-* Cluster validation tools (DGMI, NCCL)
-* 20B GPT-3 training configuration improved by 2.7% for higher throughput
-
-**NeMo Megatron 22.05**
-
-* Asynchronous gradient all-reduce for GPT-3, T5, mT5 models with pipeline parallel size equal to 1
-* P-Tuning and Prompt Tuning for GPT-3 with tensor parallelism (training only)
-* AugoConfigurator to find the highest throughput configs for training and inference on Base Command Manager
-* Custom tokenizer support (training only)
-* GPT-3 with pipeline parallelism support on Base Command Manager (inference)
-* Hyperparameters for text generation: top-p, top-k, and temperature
-
-**NeMo Megatron 22.04**
-
-* T5 with pipeline parallelism support (training only)
-* Switched from GeLU to GeGLU as activation function for T5
-* mT5 with tensor parallelism and pipeline parallelism support (training only)
-* 11B, 23B, and 41B T5 training configurations
-* 170M, 390M, and 3B mT5 training configurations
-* Automatic and configurable Non-Uniform Memory Access (NUMA) mapping
-
-**NeMo Megatron 22.03**
-
-* T5 with tensor parallelism support (optimized for <20B parameters, training only)
-* 220M and 3B T5 training configurations
-* GLUE fine-tuning and evaluation support for T5
-
-**NeMo Megatron 22.02**
-
-* GPT-3 with pipeline parallelism support (training only)
-* 40B and 175B GPT-3 training configurations
-
-**NeMo Megatron 22.01**
-
-* GPT-3 with tensor parallelism support on Base Command Platform
-* O2-style AMP (accelerated training of larger models)
-* Chatbot sample application using your trained GPT-3 model
-* Training metric monitoring and visualization with Weights & Biases
-
 ## 9. Known Issues
 
 Fixes for the following issues will be released shortly:
 
 * The inference hyperparameter search is not available in this release for T5 and mT5
-* Accuracy and performance measurement for GPT-3 is currently not supported. Please use the NeMo Megatron 22.05
+* Accuracy and performance measurement for GPT-3 is currently not supported. Please use the NeMo Multimodal 22.05
   inference container to use this feature
-* For running inference on BCP please use the NeMo Megatron 22.03 inference container
+* For running inference on BCP please use the NeMo Multimodal 22.03 inference container
 * The fine-tuning SQuAD results for T5 are lower than expected
