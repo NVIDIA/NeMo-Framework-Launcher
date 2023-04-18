@@ -3,7 +3,7 @@
 ## Open Beta
 
 Scripts and code to provide end-to-end data preparation and training for
-NeMo-Megatron.
+NeMo Multimodal.
 
 The most recent version of the README can be found
 at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training).
@@ -1101,7 +1101,7 @@ We provide predefined training configurations for all released model types, whic
 directory. These configurations include carefully selected hyper parameters that serve as a guideline for creating
 custom model configurations. To choose the desired configuration, simply update the training parameter in
 the `conf/config.yaml` file. For additional guidance on customizing configurations, please refer
-to [Section 5.1](#51-getting-started-with-multimodal-nemo-megatron) in the
+to [Section 6.1](#61-getting-started-with-nemo-multimodal) in the
 documentation.
 
 For the Base Command Platform (BCP), it is important to note that all jobs must be launched in multi-node mode. This
@@ -1335,7 +1335,7 @@ need to use the conversion script to convert the checkpoint from the `.ckpt` for
 
 The usage of the conversion script is consistent across different model types. All conversion configuration files can be
 found in the `conf/conversion` folder. For additional guidance on customizing configurations, please refer
-to [Section 5.1](#51-getting-started-with-multimodal-nemo-megatron) in the
+to [Section 6.1](#61-getting-started-with-nemo-multimodal) in the
 documentation.
 
 To enable the `conversion` stage and configure conversion settings, configure the configuration files:
@@ -1385,7 +1385,7 @@ We provide predefined fine-tuning configurations for Vision Transformer models, 
 the `conf/fine_tuning/`
 directory. These configurations include carefully selected hyper parameters that serve as a guideline for creating
 custom model configurations. For additional guidance on customizing configurations, please refer
-to [Section 5.1](#51-getting-started-with-multimodal-nemo-megatron) in the
+to [Section 6.1](#61-getting-started-with-nemo-multimodal) in the
 documentation.
 
 #### 6.5.1. Vision Transformer Fine-tuning
@@ -1428,7 +1428,7 @@ checkpoint located in the training checkpoints folder.
 In NeMo Multimodal, we also provide simple scripts for users to benchmark their trained models, including ViT,
 CLIP and Stable Diffusion. The configuration files for these evaluations can be found in the `conf/evaluation`
 directory. These scripts allow you to assess the performance of your trained models on various metrics. For additional
-guidance on customizing configurations, please refer to [Section 5.1](#51-getting-started-with-multimodal-nemo-megatron)
+guidance on customizing configurations, please refer to [Section 6.1](#61-getting-started-with-nemo-multimodal)
 in the
 documentation.
 
@@ -1549,7 +1549,7 @@ configurations, perform quick evaluations, or prototype a solution before deploy
 Server or another deployment option.
 
 Our framework inference configurations are provided in the folder `conf/fw_inference`. For additional guidance on
-customizing configurations, please refer to [Section 5.1](#51-getting-started-with-multimodal-nemo-megatron) in the
+customizing configurations, please refer to [Section 6.1](#61-getting-started-with-nemo-multimodal) in the
 documentation.
 
 #### 6.7.1. Vision Transformer Inference (in NeMo Framework)
