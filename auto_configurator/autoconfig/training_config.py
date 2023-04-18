@@ -289,24 +289,24 @@ def _tp_pp_mbs_grid_gpt3_80gb(model_size_in_b: float, valid_pp: List[int], seq_l
             pp = [x for x in valid_pp if 1 <= x <= 2]
             mbs = [1, 2, 4]
         elif model_size_in_b <= 13.0:
-            tp = [1, 2, 4]
+            tp = [2, 4]
             pp = [x for x in valid_pp if 1 <= x <= 2]
             mbs = [1, 2, 4]
         elif model_size_in_b <= 23.0:
             tp = [4, 8]
-            pp = [x for x in valid_pp if 1 <= x <= 4]
+            pp = [x for x in valid_pp if 1 <= x <= 2]
             mbs = [1, 2]
             min_model_parallel = 4
-            max_model_parallel = 32
+            max_model_parallel = 16
         elif model_size_in_b <= 45.0:
             tp = [4, 8]
-            pp = [x for x in valid_pp if 4 <= x <= 8]
+            pp = [x for x in valid_pp if 2 <= x <= 4]
             mbs = [1, 2]
-            min_model_parallel = 16
-            max_model_parallel = 64
+            min_model_parallel = 8
+            max_model_parallel = 32
     elif seq_length == 8192:
         if model_size_in_b <= 1.0:
-            tp = [1, 2, 4]
+            tp = [1, 2]
             pp = [x for x in valid_pp if 1 <= x <= 2]
             mbs = [1, 2, 4]
         elif model_size_in_b <= 4.0:
@@ -314,22 +314,18 @@ def _tp_pp_mbs_grid_gpt3_80gb(model_size_in_b: float, valid_pp: List[int], seq_l
             pp = [x for x in valid_pp if 1 <= x <= 2]
             mbs = [1, 2, 4]
         elif model_size_in_b <= 8.0:
-            tp = [1, 2, 4, 8]
+            tp = [2, 4]
             pp = [x for x in valid_pp if 1 <= x <= 2]
             mbs = [1, 2]
-            min_model_parallel = 1
-            max_model_parallel = 16
         elif model_size_in_b <= 13.0:
-            tp = [1, 2, 4, 8]
+            tp = [2, 4]
             pp = [x for x in valid_pp if 1 <= x <= 2]
             mbs = [1, 2]
-            min_model_parallel = 1
-            max_model_parallel = 16
         elif model_size_in_b <= 23.0:
             tp = [4, 8]
             pp = [x for x in valid_pp if 1 <= x <= 4]
             mbs = [1]
-            min_model_parallel = 4
+            min_model_parallel = 8
             max_model_parallel = 32
         elif model_size_in_b <= 45.0:
             tp = [8]
@@ -337,6 +333,55 @@ def _tp_pp_mbs_grid_gpt3_80gb(model_size_in_b: float, valid_pp: List[int], seq_l
             mbs = [1]
             min_model_parallel = 32
             max_model_parallel = 64
+    elif seq_length == 16384:
+        if model_size_in_b <= 1.0:
+            tp = [2, 4]
+            mbs = [1, 2]
+        elif model_size_in_b <= 4.0:
+            tp = [2, 4]
+            pp = [x for x in valid_pp if 1 <= x <= 2]
+            mbs = [1]
+        elif model_size_in_b <= 8.0:
+            tp = [2, 4]
+            pp = [x for x in valid_pp if 1 <= x <= 2]
+            mbs = [1]
+        elif model_size_in_b <= 13.0:
+            tp = [2, 4]
+            pp = [x for x in valid_pp if 1 <= x <= 2]
+            mbs = [1]
+        elif model_size_in_b <= 23.0:
+            tp = [4, 8]
+            pp = [x for x in valid_pp if 2 <= x <= 4]
+            mbs = [1]
+            min_model_parallel = 8
+            max_model_parallel = 32
+    elif seq_length == 32768:
+        if model_size_in_b <= 1.0:
+            tp = [2, 4]
+            pp = [x for x in valid_pp if 1 <= x <= 2]
+            mbs = [1]
+        elif model_size_in_b <= 4.0:
+            tp = [2, 4]
+            pp = [x for x in valid_pp if 1 <= x <= 2]
+            mbs = [1]
+        elif model_size_in_b <= 8.0:
+            tp = [4, 8]
+            pp = [x for x in valid_pp if 1 <= x <= 2]
+            min_model_parallel = 4
+            max_model_parallel = 16
+            mbs = [1]
+        elif model_size_in_b <= 13.0:
+            tp = [4, 8]
+            pp = [x for x in valid_pp if 1 <= x <= 2]
+            min_model_parallel = 4
+            max_model_parallel = 16
+            mbs = [1]
+        elif model_size_in_b <= 23.0:
+            tp = [8]
+            pp = [x for x in valid_pp if 2 <= x <= 4]
+            mbs = [1]
+            min_model_parallel = 16
+            max_model_parallel = 32
         
     return tp, pp, mbs, min_model_parallel, max_model_parallel
 
