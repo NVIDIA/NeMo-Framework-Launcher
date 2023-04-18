@@ -1040,7 +1040,8 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             args = create_args_list(
                 captions_path=stage_cfg.fid.coco_captions_path,
                 fid_images_path=stage_cfg.fid.save_path,
-                output_path=os.path.join(stage_cfg.run.get("results_dir", "."), "clip_scores.csv")
+                output_path=os.path.join(stage_cfg.run.get("results_dir", "."), "clip_scores.csv"),
+                inception_ckpt=stage_cfg.fid.inception_ckpt
             )
         elif sub_stage == "plot":
             args = create_args_list(

@@ -152,7 +152,7 @@ model:
 
   cond_stage_config:
     _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.FrozenCLIPEmbedder
-    version: openai/clip-vit-large-patch14
+    local_clip_files: /path/to/clip/files
     device: cuda
     max_length: 77
 
