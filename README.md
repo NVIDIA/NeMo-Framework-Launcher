@@ -2006,7 +2006,7 @@ The tables and charts below show the performance results.
 | ViT g/14 | Perfect Linear Scaling (Samples) | 708.06 | 1416.13 | 2832.25 | 5664.50 | 11329.00 |
 |          | Speedup                          | 1x     | 1.93x   | 3.85x   | 7.62x   | 15.31x   |
 
-<img src="img/ViT g_14 NeMo Multimodal Throughput (A100).svg"/>
+<img src="img/ViT g_14 NeMo Megatron Throughput (A100).svg"/>
 
 - NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for ViT g/14 model)
 
@@ -2017,7 +2017,7 @@ The tables and charts below show the performance results.
 | ViT g/14 | Perfect Linear Scaling (Samples) | 1527 | 3054  | 6109  | 12219 | 24439  |
 |          | Speedup                          | 1x   | 1.97x | 3.86x | 7.69x | 15.71x |
 
-<img src="img/ViT g_14 NeMo Multimodal Throughput (H100).svg"/>
+<img src="img/ViT g_14 NeMo Megatron Throughput (H100).svg"/>
 
 - DGX A100 vs. DGX H100: A Comparative Analysis of Vision Transformer Training
 
@@ -2090,7 +2090,7 @@ The tables and charts below show the performance results.
 | CLIP g/14 | Perfect Linear Scaling (Samples) | 621.90 | 1243.81 | 2487.61 | 4975.22 | 9950.44 |
 |           | Speedup                          | 1x     | 1.98x   | 3.93x   | 7.82x   | 15.52x  |
 
-<img src="img/CLIP g_14 NeMo Multimodal Throughput (A100).svg"/>
+<img src="img/CLIP g_14 NeMo Megatron Throughput (A100).svg"/>
 
 - NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for CLIP g/14 model)
 
@@ -2101,7 +2101,7 @@ The tables and charts below show the performance results.
 | CLIP g/14 | Perfect Linear Scaling (Samples) | 1039.81 | 2079.61 | 4159.22 | 8318.44 | 16636.88 |
 |           | Speedup                          | 1x      | 1.93x   | 3.86x   | 7.34x   | 14.34x   |
 
-<img src="img/CLIP g_14 NeMo Multimodal Throughput (H100).svg"/>
+<img src="img/CLIP g_14 NeMo Megatron Throughput (H100).svg"/>
 
 - DGX A100 vs. DGX H100: A Comparative Analysis of CLIP Training
 
@@ -2179,7 +2179,7 @@ The tables and charts below show the performance results.
 | Stable Diffusion Res=512 | Perfect Linear Scaling (Samples) | 199.98 | 399.97 | 799.94 | 1599.87 | 3199.75 |
 |                          | Speedup                          | 1x     | 1.95x  | 3.93x  | 7.53x   | 14.76x  |
 
-<img src="img/Stable Diffusion (Res=512) NeMo Multimodal Throughput (A100).svg"/>
+<img src="img/Stable Diffusion (Res=512) NeMo Megatron Throughput (A100).svg"/>
 
 - NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for Stable Diffusion Res=512 model)
 
@@ -2190,7 +2190,7 @@ The tables and charts below show the performance results.
 | Stable Diffusion Res=512 | Perfect Linear Scaling (Samples) | 419.47 | 838.93 | 1677.86 | 3355.73 | 6711.45 |
 |                          | Speedup                          | 1x     | 2x     | 3.79x   | 7.37x   | 14.44x  |
 
-<img src="img/Stable Diffusion (Res=512) NeMo Multimodal Throughput (H100).svg"/>
+<img src="img/Stable Diffusion (Res=512) NeMo Megatron Throughput (H100).svg"/>
 
 - DGX A100 vs. DGX H100: A Comparative Analysis of Stable Diffusion Training
 
