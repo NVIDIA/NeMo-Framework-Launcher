@@ -540,9 +540,9 @@ def generate_base_config(
             base_cfg["model"]["global_batch_size"] = int(gbs)
             base_cfg["model"]["hidden_size"] = int(hs)
             base_cfg["model"]["num_attention_heads"] = int(att_h)
-            base_cfg["model"]["encoder_seq_length"] = seq_length
-            base_cfg["model"]["max_position_embeddings"] = seq_length
-            base_cfg["model"]["data"]["seq_length"] = seq_length
+            base_cfg["model"]["encoder_seq_length"] = int(seq_length)
+            base_cfg["model"]["max_position_embeddings"] = int(seq_length)
+            base_cfg["model"]["data"]["seq_length"] = int(seq_length)
             if ffn is not None:
                 base_cfg["model"]["ffn_hidden_size"] = int(ffn)
             if kv is not None:
@@ -574,6 +574,9 @@ def generate_base_config(
             base_cfg["model"]["decoder"]["hidden_size"] = int(hs)
             base_cfg["model"]["encoder"]["num_attention_heads"] = int(att_h)
             base_cfg["model"]["decoder"]["num_attention_heads"] = int(att_h)
+            base_cfg["model"]["seq_length"] = int(seq_length)
+            base_cfg["model"]["max_position_embeddings"] = int(seq_length)
+            base_cfg["model"]["data"]["seq_length"] = int(seq_length)
             if ffn is not None:
                 base_cfg["model"]["encoder"]["ffn_hidden_size"] = int(ffn)
                 base_cfg["model"]["decoder"]["ffn_hidden_size"] = int(ffn)
