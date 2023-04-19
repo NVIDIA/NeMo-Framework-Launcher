@@ -30,7 +30,6 @@ fid:
   coco_captions_path: ${data_dir}/fid_evaluation/coco2014/coco2014_val_sampled_30k/captions
   coco_images_path: ${data_dir}/fid_evaluation/coco2014/coco2014_val/images_256
   save_path: ${evaluation.run.results_dir}/generated_images
-  inception_ckpt: /path/to/tf_inception_ckpt
 
 infer:
   unconditional_guidance_scale: null
