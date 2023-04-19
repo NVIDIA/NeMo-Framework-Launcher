@@ -145,7 +145,7 @@ model:
 
   cond_stage_config:
     _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.FrozenCLIPEmbedder
-    version: # verison of clip text encoder
+    version: openai/clip-vit-large-patch14 # verison of clip text encoder
     device: cuda
     max_length: 77
 
