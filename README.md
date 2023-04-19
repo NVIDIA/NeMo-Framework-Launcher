@@ -17,13 +17,13 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
     - [2.1. Vision Transformer (ViT)](#21-vision-transformer-vit)
     - [2.2. CLIP](#22-clip)
     - [2.3. Stable Diffusion](#23-stable-diffusion)
-    - [2.4. Instruct Pix2Pix](#24-instruct-pix2pix)
+    - [2.4. InstructPix2Pix](#24-instructpix2pix)
     - [2.5. DreamBooth](#25-dreambooth)
   - [3. Feature Matrix](#3-feature-matrix)
     - [3.1. ViT Models](#31-vit-models)
     - [3.2. CLIP Models](#32-clip-models)
     - [3.3. Stable Diffusion](#33-stable-diffusion)
-    - [3.4. Instruct Pix2Pix / DreamBooth Models](#34-instruct-pix2pix--dreambooth-models)
+    - [3.4. InstructPix2Pix / DreamBooth Models](#34-instructpix2pix--dreambooth-models)
   - [4. Setup](#4-setup)
     - [4.1. Support Matrix](#41-support-matrix)
   - [5. Cloud Service Providers](#5-cloud-service-providers)
@@ -62,7 +62,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
           - [6.2.2.3.1. General Format](#62231-general-format)
           - [6.2.2.3.2. Precaching Config](#62232-precaching-config)
           - [6.2.2.3.3. Resume Precaching (Advanced)](#62233-resume-precaching-advanced)
-      - [6.2.3. Instruct Pix2Pix](#623-instruct-pix2pix)
+      - [6.2.3. InstructPix2Pix](#623-instructpix2pix)
       - [6.2.4. MSCOCO for FID Evaluation](#624-mscoco-for-fid-evaluation)
         - [6.2.4.1. Download and Setup](#6241-download-and-setup)
         - [6.2.4.2. Preprocess Images and Captions](#6242-preprocess-images-and-captions)
@@ -70,7 +70,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [6.3.1. Vision Transformer Training](#631-vision-transformer-training)
       - [6.3.2. CLIP Training](#632-clip-training)
       - [6.3.3. Stable Diffusion Training](#633-stable-diffusion-training)
-      - [6.3.4. Instruct Pix2Pix Training](#634-instruct-pix2pix-training)
+      - [6.3.4. InstructPix2Pix Training](#634-instructpix2pix-training)
       - [6.3.5. DreamBooth Training](#635-dreambooth-training)
     - [6.4. Checkpoint Conversion](#64-checkpoint-conversion)
     - [6.5. Model Fine-tuning](#65-model-fine-tuning)
@@ -83,24 +83,24 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [6.7.1. Vision Transformer Inference (in NeMo Framework)](#671-vision-transformer-inference-in-nemo-framework)
       - [6.7.2. CLIP Inference (in NeMo Framework)](#672-clip-inference-in-nemo-framework)
       - [6.7.3. Stable Diffusion Inference (in NeMo Framework)](#673-stable-diffusion-inference-in-nemo-framework)
-      - [6.7.4. Instruct Pix2Pix Inference (in NeMo Framework)](#674-instruct-pix2pix-inference-in-nemo-framework)
+      - [6.7.4. InstructPix2Pix Inference (in NeMo Framework)](#674-instructpix2pix-inference-in-nemo-framework)
       - [6.7.5. DreamBooth Inference (in NeMo Framework)](#675-dreambooth-inference-in-nemo-framework)
     - [6.8. Model Export](#68-model-export)
       - [6.8.1. Vision Transformer Export](#681-vision-transformer-export)
       - [6.8.2. CLIP Export](#682-clip-export)
       - [6.8.3. Stable Diffusion Export](#683-stable-diffusion-export)
-      - [6.8.4. Instruct Pix2pix Export](#684-instruct-pix2pix-export)
+      - [6.8.4. InstructPix2Pix Export](#684-instructpix2pix-export)
       - [6.8.5. DreamBooth Export](#685-dreambooth-export)
   - [7. Deploying the NeMo Multimodal Model](#7-deploying-the-nemo-multimodal-model)
     - [7.1. Setup](#71-setup)
     - [7.2. Start NVIDIA Triton Inference Server](#72-start-nvidia-triton-inference-server)
       - [7.2.1. Stable Diffusion, DreamBooth](#721-stable-diffusion-dreambooth)
-      - [7.2.2. Instruct Pix2Pix](#722-instruct-pix2pix)
+      - [7.2.2. InstructPix2Pix](#722-instructpix2pix)
       - [7.2.3. Vision Transformer](#723-vision-transformer)
       - [7.2.4. CLIP](#724-clip)
     - [7.3. Query NVIDIA Triton Inference Server](#73-query-nvidia-triton-inference-server)
       - [7.3.1. Stable Diffusion and DreamBooth](#731-stable-diffusion-and-dreambooth)
-      - [7.3.2. Instruct Pix2Pix](#732-instruct-pix2pix)
+      - [7.3.2. InstructPix2Pix](#732-instructpix2pix)
   - [8. Performance](#8-performance)
     - [8.1. Vision Transformer Results](#81-vision-transformer-results)
       - [8.1.1. Training Accuracy Results](#811-training-accuracy-results)
@@ -114,7 +114,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [8.3.1. Training Accuracy Results](#831-training-accuracy-results)
       - [8.3.2. Training Performance Results](#832-training-performance-results)
       - [8.3.3. Inference Performance Results](#833-inference-performance-results)
-    - [8.4. Instruct Pix2Pix Results](#84-instruct-pix2pix-results)
+    - [8.4. InstructPix2Pix Results](#84-instructpix2pix-results)
       - [8.4.1. Training Quality Results](#841-training-quality-results)
       - [8.4.2. Inference Performance Results](#842-inference-performance-results)
     - [8.5. DreamBooth Results](#85-dreambooth-results)
@@ -131,7 +131,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
 * Added support for **Vision Transformer (ViT)**: training, fine-tuning, evaluation, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
 * Added support for **CLIP**: training, evaluation, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
 * Added support for **Stable Diffusion**: training, evaluation, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
-* Added support for **Instruct Pix2Pix**: training, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
+* Added support for **InstructPix2Pix**: training, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
 * Added support for **DreamBooth**: training, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
 * Added performance results including training accuracy, performance, and inference for all supported models.
 
@@ -199,9 +199,9 @@ including unconditional image generation, semantic scene synthesis, and super-re
 significantly reduces computational requirements compared to pixel-based DMs, making it an attractive solution for a
 wide range of applications.
 
-### 2.4. Instruct Pix2Pix
+### 2.4. InstructPix2Pix
 
-[Instruct Pix2Pix](https://www.timothybrooks.com/instruct-pix2pix/) introduces a method for editing images based on
+[InstructPix2Pix](https://www.timothybrooks.com/instruct-pix2pix/) introduces a method for editing images based on
 human-written instructions. Given an input image and a textual directive, the model follows these instructions to modify
 the image accordingly.
 
@@ -293,7 +293,7 @@ modification, and artistic rendering, while still preserving the subject's key f
 | TorchInductor            | Yes                                                      | N/A                                                                                                                                           |
 | Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
 
-### 3.4. Instruct Pix2Pix / DreamBooth Models
+### 3.4. InstructPix2Pix / DreamBooth Models
 
 | Feature                  | Training                                                 | Inference                                                                                                                                     |
 |--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1037,7 +1037,7 @@ override_task_count: 100
 
 
 
-#### 6.2.3. Instruct Pix2Pix
+#### 6.2.3. InstructPix2Pix
 
 _Note: It is the responsibility of each user to check the content
 of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
@@ -1252,17 +1252,17 @@ are based on public data which may contain copyrighted material. Consult your le
 | CLIP          |  [link](https://huggingface.co/openai/clip-vit-large-patch14)                  |     Yes            |
 
 
-3.In order to ensure stable diffusion training, particularly in the later stages (such as v1.5), it cannot be guaranteed that training for a longer duration will lead to an improvement in FID/CLIP scores. Therefore, it is recommended to manually evaluate checkpoints at different intervals during the later stage of convergence to identify the most optimal performance.
+3.There is no guarantee that training Stable Diffusion for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the later stages of convergence.
 
-#### 6.3.4. Instruct Pix2Pix Training
+#### 6.3.4. InstructPix2Pix Training
 
-Instruct Pix2Pix essentially performs tuning on top of an existing Stable Diffusion checkpoint. The recommended
+InstructPix2Pix essentially performs tuning on top of an existing Stable Diffusion checkpoint. The recommended
 configuration can be found in the `conf/training/instruct_pix2pix` directory. You can access and modify the parameters
 to customize the hyperparameters according to your specific training requirements.
 
-To enable the training stage with an Instruct Pix2Pix model, configure the configuration files:
+To enable the training stage with an InstructPix2Pix model, configure the configuration files:
 
-1. In the `defaults` section of `conf/config.yaml`, update the `training` field to point to the desired Instruct Pix2Pix
+1. In the `defaults` section of `conf/config.yaml`, update the `training` field to point to the desired InstructPix2Pix
    configuration file. For example,
    if you want to use the `860m_sd_edit`, change the `training` field to `instruct_pix2pix/860m_sd_edit`.
    ```yaml
@@ -1282,11 +1282,11 @@ To enable the training stage with an Instruct Pix2Pix model, configure the confi
    ```
 
 **Remarks**: 
-1.You can feed the trained Stable Diffusion checkpoint into Instruct Pix2Pix training by
+1.You can feed the trained Stable Diffusion checkpoint into InstructPix2Pix training by
 specifying `training.model.ckpt_path` (or set `ckpt_path` field in the `model` section of `860m_sd_edit.yaml`). The
 checkpoint can be sourced from either NeMo or Hugging Face in the form of a `.ckpt` file.
 
-2.In order to train Instruct Pix2Pix, a pretrained Stable Diffusion model is required. However, it is important to note that only the UNet component needs to be fine-tuned, while AutoencoderKL and CLIP remain unaltered. We recommend training the base Stable Diffusion model with AutoencoderKL and CLIP, using the pretrained checkpoints for initialization. For further details on this process, please refer to Section 6.3.3. Please be advised the download scripts that NVIDIA provides are optional to use and will download models that are based on public data which may contain copyrighted material. Consult your legal department before using these scripts.
+2.In order to train InstructPix2Pix, a pretrained Stable Diffusion model is required. However, it is important to note that only the UNet component needs to be fine-tuned, while AutoencoderKL and CLIP remain unaltered. We recommend training the base Stable Diffusion model with AutoencoderKL and CLIP, using the pretrained checkpoints for initialization. For further details on this process, please refer to Section 6.3.3. Please be advised the download scripts that NVIDIA provides are optional to use and will download models that are based on public data which may contain copyrighted material. Consult your legal department before using these scripts.
 
 #### 6.3.5. DreamBooth Training
 
@@ -1660,12 +1660,12 @@ To enable the inference stage with Stable Diffusion, configure the configuration
 3. Configure `prompts` and `num_images_per_prompt` fields of `conf/fw_inference/stable_diffusion/text2img.yaml`.
    Set `model.restore_from_path` to the `.nemo` ckpt you want generate images with.
 
-#### 6.7.4. Instruct Pix2Pix Inference (in NeMo Framework)
+#### 6.7.4. InstructPix2Pix Inference (in NeMo Framework)
 
-For Instruct Pix2Pix models, our inference script processes an original image based on a provided edit prompt, modifies
+For InstructPix2Pix models, our inference script processes an original image based on a provided edit prompt, modifies
 the image accordingly, and saves the edited image as a new file.
 
-To enable the inference stage with a Instruct Pix2Pix model, configure the configuration files:
+To enable the inference stage with a InstructPix2Pix model, configure the configuration files:
 
 1. In the `defaults` section of `conf/config.yaml`, update the `fw_inference` field to point to the desired Instruct
    Pix2Pix configuration file. For example,
@@ -1742,8 +1742,8 @@ TensorRT. This allows us to run accelerated inference on the NVIDIA Triton Infer
 section, section 6.
 For the CLIP and ViT models, setting `infer.max_batch_size`, will create ONNX and NVIDIA TensorRT models that accept
 batch_sizes
-from `1` to `infer.max_batch_size`. For the Stable Diffusion, Instruct Pix2Pix, and DreamBooth pipelines,
-the `infer.num_images_per_prompt` (`edit.num_images_per_prompt` in Instruct Pix2Pix) will
+from `1` to `infer.max_batch_size`. For the Stable Diffusion, InstructPix2Pix, and DreamBooth pipelines,
+the `infer.num_images_per_prompt` (`edit.num_images_per_prompt` in InstructPix2Pix) will
 act as the `batch_size`, but the NVIDIA TensorRT engines will only work for that size.
 
 The `trainer.precision` config can be set to 16 or 32. Setting to 16 will build the NVIDIA TensorRT engines with fp16
@@ -1848,9 +1848,9 @@ The first model is the VAE Decoder, the second model is the UNet, and the third 
 1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/export/stable_diffusion/export_stable_diffusion.yaml`.
 
-#### 6.8.4. Instruct Pix2pix Export
+#### 6.8.4. InstructPix2Pix Export
 
-For Instruct Pix2Pix models, the export script generates four different optimized inference models.
+For InstructPix2Pix models, the export script generates four different optimized inference models.
 The first model is the VAE Decoder, the second model is the UNet, the third model is the CLIP Encoder, and the fourth
 model
 is the VAE Encoder.
@@ -1937,9 +1937,9 @@ To start the NVIDIA Triton Inference Server
 For Stable Diffusion and DreamBooth, copy the generated `plan` directory to the `deployment/server/stable_diffusion/1/`
 directory.
 
-#### 7.2.2. Instruct Pix2Pix
+#### 7.2.2. InstructPix2Pix
 
-For Instruct Pix2Pix, copy the generated `plan` directory to the `deployment/server/instruct_pix2pix/1/` directory.
+For InstructPix2Pix, copy the generated `plan` directory to the `deployment/server/instruct_pix2pix/1/` directory.
 
 #### 7.2.3. Vision Transformer
 
@@ -1963,7 +1963,7 @@ At query time, the values, `seed`, `unconditional_guidance_scale`, `inference_st
 inputs. If these are not set, the defaults are the values set during export.
 The return is a single numpy array containing `num_images_per_prompt` images.
 
-#### 7.3.2. Instruct Pix2Pix
+#### 7.3.2. InstructPix2Pix
 
 At query time, the values, `seed`, `text_cfg_scale`, `steps`, `image_cfg_scale` can be used as optional inputs. If these
 are not set, the defaults are the values set during export.
@@ -2237,14 +2237,14 @@ Batch Size: Synonymous with `num_images_per_prompt`
 | Stable Diffusion (Res=512) | 2          | PLMS    | 50              | 1.7                   | 5.2                        | 3.1                   |
 | Stable Diffusion (Res=512) | 4          | PLMS    | 50              | 2.9                   | 9.2                        | 3.2                   |  
 
-### 8.4. Instruct Pix2Pix Results
+### 8.4. InstructPix2Pix Results
 
 #### 8.4.1. Training Quality Results
 
-Instruct Pix2Pix is an image editing tool that transforms original images based on user instructions. For example, when
+InstructPix2Pix is an image editing tool that transforms original images based on user instructions. For example, when
 provided with a photo of cute toy duck, the AI can seamlessly edit the image according to your creative vision.
 
-Here are some examples generated using our NeMo Stable Diffusion 1.2 model, fine-tuned with NeMo Instruct Pix2Pix. For
+Here are some examples generated using our NeMo Stable Diffusion 1.2 model, fine-tuned with NeMo InstructPix2Pix. For
 each instruction, we showcase 8 distinct images generated from different seeds:
 
 - Original photo
@@ -2270,9 +2270,9 @@ Batch Size: Synonymous with `num_images_per_prompt`
 
 | Model                      | Batch Size | Sampler | Inference Steps | TRT FP 16 Latency (s) | FW FP 16 (AMP) Latency (s) | TRT vs FW Speedup (x) |
 |----------------------------|------------|---------|-----------------|-----------------------|----------------------------|-----------------------|
-| Instruct Pix2Pix (Res=256) | 1          | N/A     | 100             | 1.0                   | 3.6                        | 3.6                   |
-| Instruct Pix2Pix (Res=256) | 2          | N/A     | 100             | 1.3                   | 3.7                        | 2.8                   |
-| Instruct Pix2Pix (Res=256) | 4          | N/A     | 100             | 2.2                   | 4.9                        | 2.2                   |
+| InstructPix2Pix (Res=256) | 1          | N/A     | 100             | 1.0                   | 3.6                        | 3.6                   |
+| InstructPix2Pix (Res=256) | 2          | N/A     | 100             | 1.3                   | 3.7                        | 2.8                   |
+| InstructPix2Pix (Res=256) | 4          | N/A     | 100             | 2.2                   | 4.9                        | 2.2                   |
 
 ### 8.5. DreamBooth Results
 
