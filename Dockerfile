@@ -19,7 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 ARG BIGNLP_BACKEND=pytorch
-ARG BIGNLP_BACKEND_BRANCH_TAG=22.12
+ARG BIGNLP_BACKEND_BRANCH_TAG=23.02
 
 FROM nvcr.io/nvidia/${BIGNLP_BACKEND}:${BIGNLP_BACKEND_BRANCH_TAG}-py3 as pytorch
 
@@ -120,6 +120,15 @@ RUN git clone https://github.com/NVIDIA/NeMo.git && \
 # HF cache
 RUN python -c "from transformers import AutoTokenizer; tok_gpt=AutoTokenizer.from_pretrained('gpt2'); tok_bert=AutoTokenizer.from_pretrained('bert-base-cased'); tok_large_bert=AutoTokenizer.from_pretrained('bert-large-cased'); tok_large_uncased_bert=AutoTokenizer.from_pretrained('bert-large-uncased');"
 
+# Install TE
+ARG TE_COMMIT
+RUN git clone https://github.com/NVIDIA/TransformerEngine.git && \
+    cd TransformerEngine && \
+    if [ ! -z $TE_COMMIT ]; then \
+        git fetch origin $TE_COMMIT && \
+        git checkout FETCH_HEAD; \
+    fi && \
+    NVTE_FRAMEWORK=pytorch pip install .
 
 # Install launch scripts
 COPY . NeMo-Megatron-Launcher
@@ -157,13 +166,6 @@ RUN pip install --no-cache-dir wandb==0.12.20 \
 
 # Copy FasterTransformer
 COPY --from=ft_builder /workspace/FasterTransformer FasterTransformer
-
-## Temporary fix for pickle issue
-#RUN sed -i "s/DEFAULT_PROTOCOL = 2/DEFAULT_PROTOCOL = 4/g" /opt/conda/lib/python3.8/site-packages/torch/serialization.py
-
-# Temporary fix CUDA issue
-RUN sed -i "s/, all_gpu_ids//g" /usr/local/lib/python3.8/dist-packages/pytorch_lightning/accelerators/cuda.py && \
-    sed -i "s/all_gpu_ids =/\# all_gpu_ids =/g" /usr/local/lib/python3.8/dist-packages/pytorch_lightning/accelerators/cuda.py
 
 # Examples
 WORKDIR /workspace
