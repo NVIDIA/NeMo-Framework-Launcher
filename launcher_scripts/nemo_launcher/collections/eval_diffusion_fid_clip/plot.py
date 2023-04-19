@@ -12,11 +12,12 @@ import argparse
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def plot_fid_vs_clip(fid_scores_csv, clip_scores_csv):
+def plot_fid_vs_clip(fid_scores_csv, clip_scores_csv, save_path):
     fid_scores = pd.read_csv(fid_scores_csv)
     clip_scores = pd.read_csv(clip_scores_csv)
     merged_data = pd.merge(fid_scores, clip_scores, on='cfg')
-
+    merged_data.sort_values('cfg', inplace=True)
+    merged_data.reset_index(inplace=True)
     fig, ax = plt.subplots()
     ax.plot(merged_data['clip_score'], merged_data['fid'], marker='o', linestyle='-')  # Connect points with a line
 
@@ -37,7 +38,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--fid_scores_csv', required=True, type=str, help='Path to the FID scores CSV file')
     parser.add_argument('--clip_scores_csv', required=True, type=str, help='Path to the CLIP scores CSV file')
-    parser.add_argument('--save_path', required=True, type=str, help='Path to save the plot as a PDF file')
+    parser.add_argument('--output_path', required=True, type=str, help='Path to save the plot as a PDF file')
     args = parser.parse_args()
 
-    plot_fid_vs_clip(args.fid_scores_csv, args.clip_scores_csv)
+    plot_fid_vs_clip(args.fid_scores_csv, args.clip_scores_csv, args.output_path)

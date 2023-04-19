@@ -1032,12 +1032,14 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             ]
         elif sub_stage == "fid":
             args = create_args_list(
+                replace_underscore=False,
                 coco_images_path=stage_cfg.fid.coco_images_path,
                 fid_images_path=stage_cfg.fid.save_path,
                 output_path=os.path.join(stage_cfg.run.get("results_dir", "."), "fid_scores.csv")
             )
         elif sub_stage == "clip":
             args = create_args_list(
+                replace_underscore=False,
                 captions_path=stage_cfg.fid.coco_captions_path,
                 fid_images_path=stage_cfg.fid.save_path,
                 output_path=os.path.join(stage_cfg.run.get("results_dir", "."), "clip_scores.csv"),
@@ -1045,6 +1047,7 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             )
         elif sub_stage == "plot":
             args = create_args_list(
+                replace_underscore=False,
                 fid_scores_csv=os.path.join(stage_cfg.run.get("results_dir", "."), "fid_scores.csv"),
                 clip_scores_csv=os.path.join(stage_cfg.run.get("results_dir", "."), "clip_scores.csv"),
                 output_path=os.path.join(stage_cfg.run.get("results_dir", "."), "fid_clip_plot.pdf")

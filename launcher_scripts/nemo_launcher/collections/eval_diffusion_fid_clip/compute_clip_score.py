@@ -19,6 +19,7 @@ python clip_script.py --captions_path /path/to/coco2014_val/captions \
    `clip_score` column lists the corresponding average CLIP scores between the synthetic
    images in each subfolder and the captions from `--captions_path`.
 """
+import multiprocessing
 
 import open_clip
 import torch
@@ -70,6 +71,33 @@ class CLIPEncoder(nn.Module):
 
         return similarity
 
+def clip_score_one_subfolder(idx):
+    print('Init CLIP Encoder..')
+    cuda_idx = idx % torch.cuda.device_count()
+    encoder = CLIPEncoder(clip_version='ViT-L-14', device=f'cuda:{cuda_idx}')
+
+    images = sorted(glob(f'{subfolders[idx]}/*.png'), key=lambda x: (int(x.split('/')[-1].strip('.png').strip("image"))))
+    texts = sorted(glob(f'{captions_path}/*.txt'))
+    print(images[:5], texts[:5])
+    assert len(images) == len(texts)
+    print(f'Number of images text pairs: {len(images)}')
+
+    ave_sim = 0.
+    count = 0
+    for text, img in zip(tqdm(texts), images):
+        with open(text, 'r') as f:
+            text = f.read().strip()
+        sim = encoder.get_clip_score(text, img)
+        ave_sim += sim
+        count += 1
+        if count % 2000 == 0:
+            print(ave_sim / count)
+
+    ave_sim /= count
+    print(f'The CLIP similarity for CFG {subfolder}: {ave_sim}')
+    return ave_sim
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--captions_path', default='/coco2014/coco2014_val_sampled_30k/captions/', type=str)
@@ -78,38 +106,25 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     captions_path = args.captions_path
-    print('Init CLIP Encoder..')
-    encoder = CLIPEncoder(clip_version='ViT-L-14')
+
+    # Iterate through subfolders in fid_images_path
+    subfolders = []
+    for subfolder in os.listdir(args.fid_images_path):
+        subfolder_path = os.path.join(args.fid_images_path, subfolder)
+        if os.path.isdir(subfolder_path):
+            subfolders.append(subfolder_path)
+
+    num_processes = min(len(subfolders), multiprocessing.cpu_count(), torch.cuda.device_count())
+    torch.set_num_threads(multiprocessing.cpu_count()//num_processes)
+    print(f"multiprocessing with {num_processes} processes")
+    with multiprocessing.Pool(num_processes) as p:
+        ave_sims = p.map(clip_score_one_subfolder, range(len(subfolders)))
 
     # Create output CSV file
     with open(args.output_path, 'w', newline='') as csvfile:
         fieldnames = ['cfg', 'clip_score']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
-
-        # Iterate through subfolders in fid_images_path
-        for subfolder in os.listdir(args.fid_images_path):
-            subfolder_path = os.path.join(args.fid_images_path, subfolder)
-            if os.path.isdir(subfolder_path):
-                images = sorted(glob(f'{subfolder_path}/*.png'), key=lambda x: (int(x.split('/')[-1].strip('.png').split('_')[1])))
-                texts = sorted(glob(f'{captions_path}/*.txt'))
-                print(images[:5], texts[:5])
-                assert len(images) == len(texts)
-                print(f'Number of images text pairs: {len(images)}')
-
-                ave_sim = 0.
-                count = 0
-                for text, img in zip(tqdm(texts), images):
-                    with open(text, 'r') as f:
-                        text = f.read().strip()
-                    sim = encoder.get_clip_score(text, img)
-                    ave_sim += sim
-                    count += 1
-                    if count % 2000 == 0:
-                        print(ave_sim / count)
-
-                ave_sim /= count
-                print(f'The CLIP similarity for CFG {subfolder}: {ave_sim}')
-
-                # Write CLIP score to output CSV file
-                writer.writerow({'cfg': subfolder, 'clip_score': ave_sim})
+        # Write CLIP score to output CSV file
+        for subfolder, ave_sim in zip(subfolders, ave_sims):
+            writer.writerow({'cfg': float(subfolder.split("/")[-1]), 'clip_score': ave_sim.item()})
