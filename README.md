@@ -1254,6 +1254,8 @@ are based on public data which may contain copyrighted material. Consult your le
 | CLIP          |  [link](https://huggingface.co/openai/clip-vit-large-patch14)                  |     Yes            |
 
 
+3.In order to ensure stable diffusion training, particularly in the later stages (such as v1.5), it cannot be guaranteed that training for a longer duration will lead to an improvement in FID/CLIP scores. Therefore, it is recommended to manually evaluate checkpoints at different intervals during the later stage of convergence to identify the most optimal performance.
+
 #### 6.3.4. Instruct Pix2Pix Training
 
 Instruct Pix2Pix essentially performs tuning on top of an existing Stable Diffusion checkpoint. The recommended
@@ -1555,7 +1557,7 @@ below:
 | model | link | download by script |
 |---------------|--------------------------------------------------------------------------------|-----------------|
 | TFinceptionV3 |  [link](https://github.com/mseitzer/pytorch-fid/releases/download/fid_weights/pt_inception-2015-12-05-6726825d.pth)    |      Yes           |
-| CLIP          |  [link](https://openaipublic.azureedge.net/clip/models/b8cca3fd41ae0c99ba7e8951adf17d267cdb84cd88be6f7c2e0eca1737a03836/ViT-L-14.pt)                  |     Yes            |
+| CLIP          |  [link](https://github.com/mlfoundations/open_clip/blob/main/src/open_clip/pretrained.py#L121)                  |     Yes            |
 
 
 
