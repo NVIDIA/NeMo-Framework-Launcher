@@ -117,65 +117,65 @@ model:
     #   - /raid/data/pile/my-gpt3_01_text_document
     data_prefix: # Should be weight path weight path... for a blended dataset
       - .0333
-      - ${data_dir}/my-t5_00_text_document
+      - ${data_dir}/my-bert_00_text_sentence
       - .0333
-      - ${data_dir}/my-t5_01_text_document
+      - ${data_dir}/my-bert_01_text_sentence
       - .0333
-      - ${data_dir}/my-t5_02_text_document
+      - ${data_dir}/my-bert_02_text_sentence
       - .0333
-      - ${data_dir}/my-t5_03_text_document
+      - ${data_dir}/my-bert_03_text_sentence
       - .0333
-      - ${data_dir}/my-t5_04_text_document
+      - ${data_dir}/my-bert_04_text_sentence
       - .0333
-      - ${data_dir}/my-t5_05_text_document
+      - ${data_dir}/my-bert_05_text_sentence
       - .0333
-      - ${data_dir}/my-t5_06_text_document
+      - ${data_dir}/my-bert_06_text_sentence
       - .0333
-      - ${data_dir}/my-t5_07_text_document
+      - ${data_dir}/my-bert_07_text_sentence
       - .0333
-      - ${data_dir}/my-t5_08_text_document
+      - ${data_dir}/my-bert_08_text_sentence
       - .0333
-      - ${data_dir}/my-t5_09_text_document
+      - ${data_dir}/my-bert_09_text_sentence
       - .0333
-      - ${data_dir}/my-t5_10_text_document
+      - ${data_dir}/my-bert_10_text_sentence
       - .0333
-      - ${data_dir}/my-t5_11_text_document
+      - ${data_dir}/my-bert_11_text_sentence
       - .0333
-      - ${data_dir}/my-t5_12_text_document
+      - ${data_dir}/my-bert_12_text_sentence
       - .0333
-      - ${data_dir}/my-t5_13_text_document
+      - ${data_dir}/my-bert_13_text_sentence
       - .0333
-      - ${data_dir}/my-t5_14_text_document
+      - ${data_dir}/my-bert_14_text_sentence
       - .0333
-      - ${data_dir}/my-t5_15_text_document
+      - ${data_dir}/my-bert_15_text_sentence
       - .0333
-      - ${data_dir}/my-t5_16_text_document
+      - ${data_dir}/my-bert_16_text_sentence
       - .0333
-      - ${data_dir}/my-t5_17_text_document
+      - ${data_dir}/my-bert_17_text_sentence
       - .0333
-      - ${data_dir}/my-t5_18_text_document
+      - ${data_dir}/my-bert_18_text_sentence
       - .0333
-      - ${data_dir}/my-t5_19_text_document
+      - ${data_dir}/my-bert_19_text_sentence
       - .0333
-      - ${data_dir}/my-t5_20_text_document
+      - ${data_dir}/my-bert_20_text_sentence
       - .0333
-      - ${data_dir}/my-t5_21_text_document
+      - ${data_dir}/my-bert_21_text_sentence
       - .0333
-      - ${data_dir}/my-t5_22_text_document
+      - ${data_dir}/my-bert_22_text_sentence
       - .0333
-      - ${data_dir}/my-t5_23_text_document
+      - ${data_dir}/my-bert_23_text_sentence
       - .0333
-      - ${data_dir}/my-t5_24_text_document
+      - ${data_dir}/my-bert_24_text_sentence
       - .0333
-      - ${data_dir}/my-t5_25_text_document
+      - ${data_dir}/my-bert_25_text_sentence
       - .0333
-      - ${data_dir}/my-t5_26_text_document
+      - ${data_dir}/my-bert_26_text_sentence
       - .0333
-      - ${data_dir}/my-t5_27_text_document
+      - ${data_dir}/my-bert_27_text_sentence
       - .0333
-      - ${data_dir}/my-t5_28_text_document
+      - ${data_dir}/my-bert_28_text_sentence
       - .0334
-      - ${data_dir}/my-t5_29_text_document
+      - ${data_dir}/my-bert_29_text_sentence
     index_mapping_dir: null # path to save index mapping .npy files, by default will save in the same location as data_prefix
     data_impl: mmap
     splits_string: 900,50,50
