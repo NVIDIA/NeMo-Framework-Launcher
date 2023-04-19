@@ -145,7 +145,7 @@ model:
 
   cond_stage_config:
     _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.FrozenCLIPEmbedder
-    local_clip_files: /path/to/clip/files
+    version: # verison of clip text encoder
     device: cuda
     max_length: 77
 

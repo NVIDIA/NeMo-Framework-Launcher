@@ -145,7 +145,7 @@ model:
 
   cond_stage_config:
     _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.FrozenCLIPEmbedder
-    local_clip_files: /path/to/clip/files
+    version: # verison of clip text encoder
     device: cuda
     max_length: 77
 
@@ -170,10 +170,7 @@ model:
             center_crop_h_w: 512, 512
             horizontal_flip: False
           filterings:
-            resolution:
-              method: larger
-              value: 512
 
       webdataset:
-          infinite_sampler: True
+          infinite_sampler: False
           local_root_path: ${data_dir}/your_dataset/tarfiles_reorganized/  # each tarfile in wdinfo is relative to this
