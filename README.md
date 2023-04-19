@@ -94,12 +94,12 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
   - [7. Deploying the NeMo Multimodal Model](#7-deploying-the-nemo-multimodal-model)
     - [7.1. Setup](#71-setup)
     - [7.2. Start NVIDIA Triton Inference Server](#72-start-nvidia-triton-inference-server)
-      - [7.2.1. Stable Diffusion, Dreambooth](#721-stable-diffusion-dreambooth)
+      - [7.2.1. Stable Diffusion, DreamBooth](#721-stable-diffusion-dreambooth)
       - [7.2.2. Instruct Pix2Pix](#722-instruct-pix2pix)
       - [7.2.3. Vision Transformer](#723-vision-transformer)
       - [7.2.4. CLIP](#724-clip)
     - [7.3. Query NVIDIA Triton Inference Server](#73-query-nvidia-triton-inference-server)
-      - [7.3.1. Stable Diffusion and Dreambooth](#731-stable-diffusion-and-dreambooth)
+      - [7.3.1. Stable Diffusion and DreamBooth](#731-stable-diffusion-and-dreambooth)
       - [7.3.2. Instruct Pix2Pix](#732-instruct-pix2pix)
   - [8. Performance](#8-performance)
     - [8.1. Vision Transformer Results](#81-vision-transformer-results)
@@ -211,14 +211,14 @@ process.
 
 ### 2.5. DreamBooth
 
-Dreambooth is a solution to personalize large diffusion models like Stable Diffusion, which are powerful but lack the
-ability to mimic subjects of a given reference set. With Dreambooth, you only need a few images of a specific subject to
+DreamBooth is a solution to personalize large diffusion models like Stable Diffusion, which are powerful but lack the
+ability to mimic subjects of a given reference set. With DreamBooth, you only need a few images of a specific subject to
 fine-tune a pretrained text-to-image model, so that it learns to bind a unique identifier with a special subject. This
 unique identifier can then be used to synthesize fully-novel photorealistic images of the subject contextualized in
 different scenes.
 
-Dreambooth provides a new prior preservation loss, which enables synthesizing the subject in diverse scenes, poses,
-views, and lighting conditions that do not appear in the reference images. With this new approach, Dreambooth achieves
+DreamBooth provides a new prior preservation loss, which enables synthesizing the subject in diverse scenes, poses,
+views, and lighting conditions that do not appear in the reference images. With this new approach, DreamBooth achieves
 several previously-unassailable tasks, including subject recontextualization, text-guided view synthesis, appearance
 modification, and artistic rendering, while still preserving the subject's key features.
 
@@ -1241,9 +1241,7 @@ from checkpoint trained by NeMo , set `training.model.unet_config.from_NeMo=True
 Huggingface checkpoint, you can also load the Unet weights from that source. In this case, you need to
 set `training.model.unet_config.from_NeMo=False`.
 
-2.To achieve better quality in generated images, it is recommended to utilize pretrained checkpoints for AutoencoderKL and CLIP. 
-We have listed below the recommended sources of checkpoints to be used. It is noteworthy that the AutoencoderKL checkpoint cannot be downloaded via the provided script. 
-Therefore, kindly utilize locally downloaded files and ensure that the correct path is provided in the configuration file to proceed.
+2.To improve the quality of generated images, it is recommended to utilize pretrained checkpoints for AutoencoderKL and CLIP. We have compiled a list of recommended sources for these checkpoints, but please note that the AutoencoderKL checkpoint cannot be downloaded via the provided script. Instead, you must download it locally and ensure that the correct path is specified in the configuration file before proceeding.
 
 Please be advised the scripts that NVIDIA provides are optional to use and will download models that 
 are based on public data which may contain copyrighted material. Consult your legal department before using these scripts.
@@ -1286,12 +1284,11 @@ To enable the training stage with an Instruct Pix2Pix model, configure the confi
 specifying `training.model.ckpt_path` (or set `ckpt_path` field in the `model` section of `860m_sd_edit.yaml`). The
 checkpoint can be sourced from either NeMo or Hugging Face in the form of a `.ckpt` file.
 
-2.Instruct Pix2Pix training is also recommended to use pretrained checkpoints for AutoencoderKL and CLIP. See Section 6.3.3 for details.
-Please be advised the scripts that NVIDIA provides are optional to use and will download models that are based on public data which may contain copyrighted material. Consult your legal department before using these scripts.
+2.In order to train Instruct Pix2Pix, a pretrained Stable Diffusion model is required. However, it is important to note that only the UNet component needs to be fine-tuned, while AutoencoderKL and CLIP remain unaltered. We recommend training the base Stable Diffusion model with AutoencoderKL and CLIP, using the pretrained checkpoints for initialization. For further details on this process, please refer to Section 6.3.3. Please be advised the download scripts that NVIDIA provides are optional to use and will download models that are based on public data which may contain copyrighted material. Consult your legal department before using these scripts.
 
 #### 6.3.5. DreamBooth Training
 
-Dreambooth is also fine-tuning on top of an existing Stable Diffusion checkpoint. The recommended configuration can be
+DreamBooth is also fine-tuning on top of an existing Stable Diffusion checkpoint. The recommended configuration can be
 found in the `conf/training/dreambooth` directory. You can access and modify the parameters to customize the
 hyperparameters according to your specific training requirements. The instance dataset should contain several pictures
 of
@@ -1332,7 +1329,7 @@ training.model.restore_from_path. Note that the .nemo checkpoint is required her
 fine-tune on should be set in training.model.unet_config.from_pretrained. You can follow the same procedure as described
 above in section [5.3.3. Stable Diffusion Training].
 
-3.Dreambooth training is also recommended to use pretrained checkpoints for AutoencoderKL and CLIP. See Section 6.3.3 for details.
+3.In order to train DreamBooth, a pretrained Stable Diffusion model is required. However, it is important to note that only the UNet component needs to be fine-tuned, while AutoencoderKL and CLIP remain unaltered. We recommend training the base Stable Diffusion model with AutoencoderKL and CLIP, using the pretrained checkpoints for initialization.  See Section 6.3.3 for details.
 Please be advised the scripts that NVIDIA provides are optional to use and will download models that are based on public data which may contain copyrighted material. Consult your legal department before using these scripts.
 
 ### 6.4. Checkpoint Conversion
@@ -1549,7 +1546,7 @@ below:
 2. We highly recommend users to use the same precision (i.e. `trainer.precision`) for evaluation as was used during
    training.
 3. The `generate_images` sub-stage involves a multi-node run, whereas the other stages utilize only a single GPU.
-4. The evaluation process needs a pretrained inception network and clip model to evaluate the image quality. We list below
+4. To evaluate the quality of generated images, a pretrained Inception network and CLIP model are necessary.  We list below
    the recommended ckpt sources. Please note that the scripts that NVIDIA provides are optional to use and will download models that are based on public data which may contain copyrighted material. Consult your legal department before using these scripts.
 
 | model | link | download by script |
@@ -1711,7 +1708,7 @@ To enable the inference stage with a Instruct Pix2Pix model, configure the confi
 
 #### 6.7.5. DreamBooth Inference (in NeMo Framework)
 
-For Dreambooth, the inference script generates images from text prompts defined in the config file, similar to section
+For DreamBooth, the inference script generates images from text prompts defined in the config file, similar to section
 5.7.3. Note that, dreambooth is a fine-tuning model based on diffusion models to link a special token with certain
 subject, so make sure the special token you trained on is included in the text prompt. For
 example, `a photo of sks dog sleeping`.
@@ -1743,7 +1740,7 @@ TensorRT. This allows us to run accelerated inference on the NVIDIA Triton Infer
 section, section 6.
 For the CLIP and ViT models, setting `infer.max_batch_size`, will create ONNX and NVIDIA TensorRT models that accept
 batch_sizes
-from `1` to `infer.max_batch_size`. For the Stable Diffusion, Instruct Pix2Pix, and Dreambooth pipelines,
+from `1` to `infer.max_batch_size`. For the Stable Diffusion, Instruct Pix2Pix, and DreamBooth pipelines,
 the `infer.num_images_per_prompt` (`edit.num_images_per_prompt` in Instruct Pix2Pix) will
 act as the `batch_size`, but the NVIDIA TensorRT engines will only work for that size.
 
@@ -1884,7 +1881,7 @@ is the VAE Encoder.
 
 #### 6.8.5. DreamBooth Export
 
-For Dreambooth, the export script generates three different optimized inference models.
+For DreamBooth, the export script generates three different optimized inference models.
 The first model is the VAE Decoder, the second model is the UNet, and the third model is the CLIP Encoder.
 
 1. In the `defaults` section of `conf/config.yaml`, update the `export` field to point to the desired Stable Diffusion
@@ -1933,9 +1930,9 @@ To start the NVIDIA Triton Inference Server
 
 `<model>` can be substitued for the `stable_diffusion`, `instruct_pix2pix`, `clip_trt`, `clip_vision_trt`, `vit_trt`.
 
-#### 7.2.1. Stable Diffusion, Dreambooth
+#### 7.2.1. Stable Diffusion, DreamBooth
 
-For Stable Diffusion and Dreambooth, copy the generated `plan` directory to the `deployment/server/stable_diffusion/1/`
+For Stable Diffusion and DreamBooth, copy the generated `plan` directory to the `deployment/server/stable_diffusion/1/`
 directory.
 
 #### 7.2.2. Instruct Pix2Pix
@@ -1958,7 +1955,7 @@ call `clip_vision_trt` using BLS.
 In a separate instance of the NeMo container, we can setup a client to query the server. In `deployment/client`, there
 are a few examples of the clients.
 
-#### 7.3.1. Stable Diffusion and Dreambooth
+#### 7.3.1. Stable Diffusion and DreamBooth
 
 At query time, the values, `seed`, `unconditional_guidance_scale`, `inference_steps`, `eta` can be used as optional
 inputs. If these are not set, the defaults are the values set during export.
@@ -2311,9 +2308,9 @@ Batch Size: Synonymous with `num_images_per_prompt`
 
 | Model                | Batch Size | Sampler | Inference Steps | TRT FP 16 Latency (s) | FW FP 16 (AMP) Latency (s) | TRT vs FW Speedup (x) |
 |----------------------|------------|---------|-----------------|-----------------------|----------------------------|-----------------------|
-| Dreambooth (Res=256) | 1          | DDIM    | 100             | 2.0                   | 5.6                        | 2.8                   |
-| Dreambooth (Res=256) | 2          | DDIM    | 100             | 3.1                   | 9.0                        | 2.9                   |
-| Dreambooth (Res=256) | 4          | DDIM    | 100             | 5.7                   | 16.0                       | 2.8                   |
+| DreamBooth (Res=256) | 1          | DDIM    | 100             | 2.0                   | 5.6                        | 2.8                   |
+| DreamBooth (Res=256) | 2          | DDIM    | 100             | 3.1                   | 9.0                        | 2.9                   |
+| DreamBooth (Res=256) | 4          | DDIM    | 100             | 5.7                   | 16.0                       | 2.8                   |
 
 ## 9. Known Issues
 
