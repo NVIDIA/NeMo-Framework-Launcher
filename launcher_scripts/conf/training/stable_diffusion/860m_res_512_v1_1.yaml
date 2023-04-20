@@ -28,6 +28,7 @@ trainer:
     allreduce_precision: 32
 
 exp_manager:
+  explicit_log_dir: ${training.run.results_dir}/results
   exp_dir: null
   name: nemo_stable_diffusion
   create_wandb_logger: False
