@@ -2242,19 +2242,19 @@ Batch Size: Synonymous with `num_images_per_prompt`
 #### 8.4.1. Training Quality Results
 
 InstructPix2Pix is an image editing tool that transforms original images based on user instructions. For example, when
-provided with a photo of cute toy duck, the AI can seamlessly edit the image according to your creative vision.
+provided with a photo of [Toy Jensen](https://blogs.nvidia.com/blog/2022/12/22/toy-jensen-jingle-bells/), the AI can seamlessly edit the image according to your creative vision.
 
 Here are some examples generated using our NeMo Stable Diffusion 1.2 model, fine-tuned with NeMo InstructPix2Pix. For
 each instruction, we showcase 8 distinct images generated from different seeds:
 
-- Original photo
-  <img src="img/toy_duck.jpg" width="30%" />
-- Instruction: Make it in desert
-  <img src="img/make_it_in_desert_7.5_1.2_1234_combine.jpg"/>
+- Original image
+  <img src="img/tjjingle-1280x712.png" width="30%" />
+- Instruction: Add fireworks to the background
+  <img src="img/add_fireworks_to_the_background_7.5_1.2_1234_combine.jpg"/>
+- Instruction: Make it on a beach
+  <img src="img/make_it_in_on_a_beach_7.5_1.2_1234_combine.jpg"/>
 - Instruction: Make it Van Gogh style
   <img src="img/make_it_Van_Gogh_style_7.5_1.2_1234_combine.jpg"/>
-- Instruction: Make it in a pool
-  <img src="img/make_it_in_a_pool_7.5_1.2_1234_combine.jpg"/>
 
 #### 8.4.2. Inference Performance Results
 
