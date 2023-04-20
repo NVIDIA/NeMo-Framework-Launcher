@@ -50,7 +50,7 @@ trainer:
   devices: ${evaluation.run.ntasks_per_node}
   num_nodes: 1
   accelerator: gpu
-  precision: bf16
+  precision: 16
   logger: False # logger provided by exp_manager
 
 model:
