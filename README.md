@@ -12,7 +12,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
 - [NeMo Multimodal](#nemo-multimodal)
   - [Early Access](#early-access)
   - [Table of contents](#table-of-contents)
-  - [1. Changelog](#1-changelog)
+  - [1. Release Notes](#1-release-notes)
   - [2. Model Overview](#2-model-overview)
     - [2.1. Vision Transformer (ViT)](#21-vision-transformer-vit)
     - [2.2. CLIP](#22-clip)
@@ -124,7 +124,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
 
 <!-- /TOC -->
 
-## 1. Changelog
+## 1. Release Notes
 
 **NeMo Multimodal 23.03 (Initial Release)**
 
