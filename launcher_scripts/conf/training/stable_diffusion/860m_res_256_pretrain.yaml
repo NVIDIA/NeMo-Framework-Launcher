@@ -29,12 +29,12 @@ trainer:
 
 exp_manager:
   exp_dir: null
-  name: ${name}
+  name: nemo_stable_diffusion
   create_wandb_logger: False
   wandb_logger_kwargs:
     project: stable-diffusion
     group: nemo-sd
-    name: ${name}
+    name: nemo_stable_diffusion
     resume: True
   create_checkpoint_callback: True
   create_tensorboard_logger: True
