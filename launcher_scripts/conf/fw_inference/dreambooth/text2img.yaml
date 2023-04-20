@@ -33,5 +33,5 @@ trainer:
   logger: False # logger provided by exp_manager
 
 model:
-  restore_from_path: ${base_results_dir}/${fw_inference.run.model_train_name}/results/checkpoints/nemo_stable_diffusion.nemo  # Path to a trained CLIP .nemo file
+  restore_from_path: ${base_results_dir}/${fw_inference.run.model_train_name}/convert_nemo/results/nemo_stable_diffusion.nemo  # Path to a trained CLIP .nemo file
   precision: ${fw_inference.trainer.precision}
