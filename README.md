@@ -130,10 +130,10 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
 
 * Added support for **Vision Transformer (ViT)**: training, fine-tuning, evaluation, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
 * Added support for **CLIP**: training, evaluation, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
-* Added support for **Stable Diffusion**: training, evaluation, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
-* Added support for **InstructPix2Pix**: training, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
-* Added support for **DreamBooth**: training, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
-* Added performance results including training accuracy, performance, and inference for all supported models.
+* Added support for **Stable Diffusion (SD)**: training, evaluation, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
+* Added support for **InstructPix2Pix (for SD tuning)**: training, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
+* Added support for **DreamBooth (for SD tuning)**: training, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
+* Added results including accuracy metrics/plots and training/inference performance for all supported models.
 
 
 ## 2. Model Overview
@@ -211,7 +211,7 @@ process.
 
 ### 2.5. DreamBooth
 
-DreamBooth is a solution to personalize large diffusion models like Stable Diffusion, which are powerful but lack the
+DreamBooth is a fine-tuning technique and a solution to personalize large diffusion models like Stable Diffusion, which are powerful but lack the
 ability to mimic subjects of a given reference set. With DreamBooth, you only need a few images of a specific subject to
 fine-tune a pretrained text-to-image model, so that it learns to bind a unique identifier with a special subject. This
 unique identifier can then be used to synthesize fully-novel photorealistic images of the subject contextualized in
