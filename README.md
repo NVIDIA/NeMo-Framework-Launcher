@@ -128,13 +128,17 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
 
 **NeMo Multimodal 23.03 (Initial Release)**
 
-* Added support for **Vision Transformer (ViT)**: training, fine-tuning, evaluation, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
-* Added support for **CLIP**: training, evaluation, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
-* Added support for **Stable Diffusion (SD)**: training, evaluation, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
-* Added support for **InstructPix2Pix (for SD tuning)**: training, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
-* Added support for **DreamBooth (for SD tuning)**: training, in-framework inference, export (to TensorRT and ONNX), and Triton deployment
-* Added results including accuracy metrics/plots and training/inference performance for all supported models.
+Added support for the following:
 
+| Model/ Method | Training | Fine-Tuning | Evaulation | In-framework Inference| Export (to TensorRT and ONNX) | Triton deployment |
+| :---        | :----:   |    ---: |    :----:  |    ---:     |    :----:   |          ---: | 
+|**Vision Transformer (ViT)**| &check;|&check;|&check;|&check;|&check;|&check;| 
+| **CLIP**   | &check;|    _|  &check;|&check;|&check;|&check;| 
+|  **Stable Diffusion (SD)**  | &check;|    _|  &check;|&check;|&check;|&check;| 
+| **InstructPix2Pix (for SD tuning)**| &check;|    _|  _|&check;|&check;|&check;| 
+|**DreamBooth (for SD tuning)**| &check;|    _|  _|&check;|&check;|&check;| 
+
+Accuracy metrics/plots and training/inference performance for all supported models included.
 
 ## 2. Model Overview
 
@@ -150,19 +154,18 @@ The NeMo Multimodal utilizes model parallelism techniques to efficiently train l
 within the memory of a single GPU. During the training process, both tensor (intra-layer) and pipeline (inter-layer)
 model parallelism are employed. Tensor model parallelism distributes individual transformer layers across multiple
 devices, while pipeline model parallelism allocates different layers of a model to separate devices. For a more in-depth
-understanding, please refer to [this paper](https://arxiv.org/pdf/2104.04473.pdf). We are currently in the process of
+understanding, please refer to [this paper](https://arxiv.org/pdf/2104.04473.pdf). We are in the process of
 incorporating this feature into all our models. As of now, Tensor Parallelism is
 available in both **Vision Transformer** and **CLIP** models.
 
 ### 2.1. Vision Transformer (ViT)
 
 The Vision Transformer, commonly referred to as ViT [[Paper]](https://arxiv.org/pdf/2010.11929v2.pdf), is a foundation
-model for image classification tasks in Multimodal
-NeMo Multimodal. It
-leverages a Transformer-like architecture to process image patches, rather than relying on traditional convolutional
+model for image classification tasks in NeMo Multimodal. It
+leverages a transformer-like architecture to process image patches, rather than relying on traditional convolutional
 neural networks. In the ViT, an image is divided into fixed-size patches (usually 14x14 or 16x16), which are then
 linearly embedded and augmented
-with position embeddings. The resulting sequence of vectors is fed into a standard Transformer encoder. To enable
+with position embeddings. The resulting sequence of vectors is fed into a standard transformer encoder. To enable
 classification, a learnable "classification token" is added to the sequence.
 
 ### 2.2. CLIP
@@ -177,9 +180,9 @@ maximizing the similarity between the correct (image, text) pairs while minimizi
 pairs. This contrastive learning approach ensures that CLIP learns meaningful and contextually rich representations of
 both visual and textual data.
 
-Upon completion of the pre-training phase, CLIP modules can be fine-tuned for specialized downstream tasks or directly
+Upon completion of the pre-training phase, CLIP models can be fine-tuned for specialized downstream tasks or directly
 employed for zero-shot learning. For instance, the learned text encoder generates high-level representations by
-embedding captions in **Stable Diffusion**. This robust approach facilitates seamless image and text representation
+embedding captions in **Stable Diffusion**. This approach facilitates seamless image and text representation
 learning and has demonstrated exceptional effectiveness across a diverse range of applications.
 
 ### 2.3. Stable Diffusion
@@ -316,9 +319,7 @@ modification, and artistic rendering, while still preserving the subject's key f
 | TorchInductor            | Yes                                                      | N/A                                                                                                                                           |
 | Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
 
-## 4. Setup
-
-### 4.1. Support Matrix
+## 4. Setup Details
 
 | Software             | EA                 |
 |----------------------|--------------------|
@@ -378,7 +379,7 @@ On the scheduler node:
 
 - Install Docker
 - Build the image with EFA drivers and NCCL plugin from `csp_tools/aws/Dockerfile`
-- Run this command on the Docker image to create an Enroot image:
+- Run the following command on the Docker image to create an Enroot image:
 
 ```
     enroot import --output nemo_megatron_training.sqsh dockerd://<image name>:<tag>
@@ -418,7 +419,7 @@ PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
 x8a100       up   infinite      8   idle x8a100-[0000-0007]
 ```
 
-To test all 8 idle nodes, the script would be run as:
+To test all 8 idle nodes, run the script as follows:
 
 ```
 bash cluster_validation.sh --nodes=8 --nodelist=x8a100-[0000-0007] --partition=x8a100
@@ -427,8 +428,8 @@ bash cluster_validation.sh --nodes=8 --nodelist=x8a100-[0000-0007] --partition=x
 By default, the script will run both the GPU diagnostics and the NCCL test. You can choose to run only one or the other
 by specifying:
 
-- `--dcgm`: run GPU diagnostics only
-- `--nccl`: run NCCL test only
+- `--dcgm`: to run GPU diagnostics only
+- `--nccl`: to run NCCL test only
 
 See `bash cluster_validation.sh -h` for more information.
 
@@ -436,7 +437,7 @@ See `bash cluster_validation.sh -h` for more information.
 
 The `cluster_validation.sh` script is essentially a wrapper of the 2 Slurm job scripts in the CSP directories. If you
 prefer, you can run these jobs manually.
-Make sure to use the Slurm job script in your corresponding CSP's path (`csp_tools/<csp>/dcgmi_diag.sh`
+Make sure to use the slurm job script in your corresponding CSP's path (`csp_tools/<csp>/dcgmi_diag.sh`
 and `csp_tools/<csp>/nccl.sh`)
 
 For the GPU diagnostics job, provide these arguments when submitting the job to Slurm:
@@ -448,19 +449,19 @@ sbatch -p <partition> -w <node list> -o <job log file> dcgmi_diag.sh
 For the NCCL test job, `cluster_validation.sh` performs a pair-wise sweep of the nodes, as this is a sufficient test,
 but you can test with a different number of nodes if desired.
 
-First build the test binaries:
+1. Build the test binaries:
 
 ```
 sbatch -N 1 build-nccl-tests.sh
 ```
 
-Then, to run a 2-node `all_reduce_perf` job:
+2. Run a 2-node `all_reduce_perf` job:
 
 ```
 sbatch -w <node 1>,<node 2> -o <job log file> nccl.sh
 ```
 
-To run the job with more nodes, simply add the node names to the `-w` flag in the same comma-separated list format.
+To run the job with more nodes, add the node names to the `-w` flag in the same comma-separated list format.
 
 ### 5.3. Config Modifications
 
