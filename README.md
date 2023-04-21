@@ -326,7 +326,7 @@ modification, and artistic rendering, while still preserving the subject's key f
 | NVIDIA Triton        | 2.31.0             |
 | FasterTransformer    | v5.3+4402759e      |
 | PyTorch              | 1.14.0a0+44dac51   |
-| NeMo                 | 1.17.0+<FINAL-SHA> |
+| NeMo                 | 1.17.0+fc6976f     |
 | PyTorch Lightning    | 1.9.4              |
 | Hydra                | 1.2.0              |
 | CUDA                 | NVIDIA CUDA 12.0   |
