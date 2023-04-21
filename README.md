@@ -475,7 +475,7 @@ In `launcher_scripts/conf/config.yaml`, mount the directory containing the topol
 
 ```
 container_mounts:
-  - /path/to/nemo_megatron_laujncher/csp_tools/<csp>/:/nccl
+  - /path/to/nemo_megatron_launcher/csp_tools/<csp>/:/nccl
 ```
 
 Then set the path of the file in the container:
