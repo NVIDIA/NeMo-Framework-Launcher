@@ -2183,7 +2183,7 @@ in [Stable Diffusion Model Cards posted on Huggingface](https://huggingface.co/C
 Below, we present the outcomes obtained from our own checkpoint following [Section 6.3.3](#633-stable-diffusion-training) , which can be compared to those
 of the open-source Stable Diffusion 1.5.
 
-<img src='img/Stable Diffusion FID-CLIP.png'/>
+<img src="img/Stable Diffusion FID-CLIP.png"/>
 
 #### 8.3.2. Training Performance Results
 
