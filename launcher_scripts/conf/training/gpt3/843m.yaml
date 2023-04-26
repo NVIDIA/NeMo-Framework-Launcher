@@ -13,7 +13,7 @@ trainer:
   enable_checkpointing: False
   replace_sampler_ddp: False
   max_epochs: null
-  max_steps: 300000 # consumed_samples = global_step * global_batch_size
+  max_steps: 1200000 # consumed_samples = global_step * global_batch_size
   max_time: "01:23:30:00" # days:hours:minutes:seconds
   log_every_n_steps: 10
   val_check_interval: 2000
@@ -52,8 +52,8 @@ model:
   tensor_model_parallel_size: 1
   pipeline_model_parallel_size: 1
   virtual_pipeline_model_parallel_size: null
-  encoder_seq_length: 4096
-  max_position_embeddings: 4096
+  encoder_seq_length: 2048
+  max_position_embeddings: 2048
   num_layers: 24
   hidden_size: 1024
   ffn_hidden_size: 2688
@@ -126,7 +126,7 @@ model:
   use_emha: false
   optim:
     name: fused_adam
-    lr: '9e-5'
+    lr: 2.5e-4
     weight_decay: 0.1
     betas:
       - 0.9
@@ -135,11 +135,11 @@ model:
       name: CosineAnnealing
       warmup_steps: 500
       constant_steps: 50000
-      min_lr: '9e-6'
+      min_lr: 2.5e-5
   data:
     data_impl: mmap
     splits_string: "99990,8,2"
-    seq_length: 4096
+    seq_length: 2048
     skip_warmup: true
     num_workers: 2
     dataloader_type: single
