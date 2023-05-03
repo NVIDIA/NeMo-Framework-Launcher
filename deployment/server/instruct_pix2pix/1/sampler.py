@@ -15,9 +15,10 @@ import math
 
 import torch
 from torch import nn
-from tqdm.auto import trange, tqdm
+from tqdm.auto import tqdm, trange
 
 from .utils import device_view
+
 
 def append_zero(x):
     return torch.cat([x, x.new_zeros([1])])
@@ -30,16 +31,17 @@ def append_dims(x, target_dims):
         raise ValueError(f'input has {x.ndim} dims but target_dims is {target_dims}, which is less')
     return x[(...,) + (None,) * dims_to_append]
 
+
 def to_d(x, sigma, denoised):
     """Converts a denoiser output to a Karras ODE derivative."""
     return (x - denoised) / append_dims(sigma, x.ndim)
 
 
-def get_ancestral_step(sigma_from, sigma_to, eta=1.):
+def get_ancestral_step(sigma_from, sigma_to, eta=1.0):
     """Calculates the noise level (sigma_down) to step down to and the amount
     of noise to add (sigma_up) when doing an ancestral sampling step."""
     if not eta:
-        return sigma_to, 0.
+        return sigma_to, 0.0
     sigma_up = min(sigma_to, eta * (sigma_to ** 2 * (sigma_from ** 2 - sigma_to ** 2) / sigma_from ** 2) ** 0.5)
     sigma_down = (sigma_to ** 2 - sigma_up ** 2) ** 0.5
     return sigma_down, sigma_up
@@ -50,7 +52,9 @@ def default_noise_sampler(x):
 
 
 @torch.no_grad()
-def sample_euler_ancestral(model, x, sigmas, extra_args=None, callback=None, disable=None, eta=1., s_noise=1., noise_sampler=None):
+def sample_euler_ancestral(
+    model, x, sigmas, extra_args=None, callback=None, disable=None, eta=1.0, s_noise=1.0, noise_sampler=None
+):
     """Ancestral sampling with Euler method steps."""
     extra_args = {} if extra_args is None else extra_args
     noise_sampler = default_noise_sampler(x) if noise_sampler is None else noise_sampler
@@ -67,7 +71,6 @@ def sample_euler_ancestral(model, x, sigmas, extra_args=None, callback=None, dis
         if sigmas[i + 1] > 0:
             x = x + noise_sampler(sigmas[i], sigmas[i + 1]) * s_noise * sigma_up
     return x
-
 
 
 class DiscreteSchedule(nn.Module):
@@ -123,7 +126,7 @@ class DiscreteEpsDDPMDenoiser(DiscreteSchedule):
     def __init__(self, model, alphas_cumprod, quantize=False):
         super().__init__(((1 - alphas_cumprod) / alphas_cumprod) ** 0.5, quantize)
         self.inner_model = model
-        self.sigma_data = 1.
+        self.sigma_data = 1.0
 
     def get_scalings(self, sigma):
         c_out = -sigma
@@ -149,7 +152,13 @@ class DiscreteEpsDDPMDenoiser(DiscreteSchedule):
         c_crossattn = cond['c_crossattn']
         xc = torch.cat([x] + c_concat, dim=1)
         cc = torch.cat(c_crossattn, 1)
-        x_recon = self.inner_model.infer({"x": device_view(xc.type(torch.float32)), "t": device_view(t.type(torch.float32)), "context": device_view(cc)})['logits'].clone()
+        x_recon = self.inner_model.infer(
+            {
+                "x": device_view(xc.type(torch.float32)),
+                "t": device_view(t.type(torch.float32)),
+                "context": device_view(cc),
+            }
+        )['logits'].clone()
         if isinstance(x_recon, tuple) and not return_ids:
             return x_recon[0]
         else:
@@ -184,25 +193,25 @@ class DiagonalGaussianDistribution(object):
 
     def kl(self, other=None):
         if self.deterministic:
-            return torch.Tensor([0.])
+            return torch.Tensor([0.0])
         else:
             if other is None:
-                return 0.5 * torch.sum(torch.pow(self.mean, 2)
-                                       + self.var - 1.0 - self.logvar,
-                                       dim=[1, 2, 3])
+                return 0.5 * torch.sum(torch.pow(self.mean, 2) + self.var - 1.0 - self.logvar, dim=[1, 2, 3])
             else:
                 return 0.5 * torch.sum(
                     torch.pow(self.mean - other.mean, 2) / other.var
-                    + self.var / other.var - 1.0 - self.logvar + other.logvar,
-                    dim=[1, 2, 3])
+                    + self.var / other.var
+                    - 1.0
+                    - self.logvar
+                    + other.logvar,
+                    dim=[1, 2, 3],
+                )
 
-    def nll(self, sample, dims=[1,2,3]):
+    def nll(self, sample, dims=[1, 2, 3]):
         if self.deterministic:
-            return torch.Tensor([0.])
+            return torch.Tensor([0.0])
         logtwopi = np.log(2.0 * np.pi)
-        return 0.5 * torch.sum(
-            logtwopi + self.logvar + torch.pow(sample - self.mean, 2) / self.var,
-            dim=dims)
+        return 0.5 * torch.sum(logtwopi + self.logvar + torch.pow(sample - self.mean, 2) / self.var, dim=dims)
 
     def mode(self):
         return self.mean

@@ -28,33 +28,27 @@ import json
 from typing import Any, List, Union
 
 import torch
-from torch.utils.dlpack import to_dlpack, from_dlpack
-from nemo.collections.common.tokenizers.huggingface.auto_tokenizer import AutoTokenizer
-
 import triton_python_backend_utils as pb_utils
+from nemo.collections.common.tokenizers.huggingface.auto_tokenizer import AutoTokenizer
+from torch.utils.dlpack import from_dlpack, to_dlpack
+
 
 class TritonPythonModel:
-
     def initialize(self, args):
         # You must parse model_config. JSON string is not parsed here
         self.model_config = model_config = json.loads(args['model_config'])
 
         # Get OUTPUT0 configuration
-        output0_config = pb_utils.get_output_config_by_name(
-            model_config, "text_probs")
+        output0_config = pb_utils.get_output_config_by_name(model_config, "text_probs")
 
         # Convert Triton types to numpy types
-        self.output0_dtype = pb_utils.triton_string_to_numpy(
-            output0_config['data_type'])
+        self.output0_dtype = pb_utils.triton_string_to_numpy(output0_config['data_type'])
 
         self.clip_tokenizer = AutoTokenizer(pretrained_model_name="openai/clip-vit-large-patch14")
 
-
     def get_reponse_from_model(self, model_name, inputs, output_names):
         encoding_request = pb_utils.InferenceRequest(
-            model_name=model_name,
-            requested_output_names=output_names,
-            inputs=inputs,
+            model_name=model_name, requested_output_names=output_names, inputs=inputs,
         )
 
         response = encoding_request.exec()
@@ -83,7 +77,7 @@ class TritonPythonModel:
             if len(tokens) > context_length:
                 tokens = tokens[:context_length]  # Truncate
                 tokens[-1] = eos_id
-            result[i, :len(tokens)] = torch.tensor(tokens)
+            result[i, : len(tokens)] = torch.tensor(tokens)
 
         if texts_is_str:
             result = result[0]
@@ -103,14 +97,10 @@ class TritonPythonModel:
             images = pb_utils.Tensor("images", images)
 
             text_probs = self.get_reponse_from_model(
-                model_name="clip_vision_trt",
-                inputs=[images, texts],
-                output_names=["text_probs"]
+                model_name="clip_vision_trt", inputs=[images, texts], output_names=["text_probs"]
             )[0]
 
-            inference_response = pb_utils.InferenceResponse(
-                output_tensors=[text_probs])
+            inference_response = pb_utils.InferenceResponse(output_tensors=[text_probs])
             responses.append(inference_response)
-
 
         return responses

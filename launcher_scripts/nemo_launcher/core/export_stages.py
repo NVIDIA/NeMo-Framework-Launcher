@@ -306,13 +306,7 @@ class Export(NemoMegatronStage):
             f" trainer.precision={model_cfg.precision}"
             f" {infer_args}"
         )
-        return [
-            (
-                f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n"
-                + convert_cmd
-            )
-        ]
-
+        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
 
     def _get_dreambooth_conversion_cmds(self, cfg):
         """ Generate export commands for sd models"""
@@ -328,13 +322,8 @@ class Export(NemoMegatronStage):
             f" trainer.precision={model_cfg.precision}"
             f" {infer_args}"
         )
-        return [
-            (
-                f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n"
-                + convert_cmd
-            )
-        ]
-    
+        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
+
     def _get_instruct_pix2pix_conversion_cmds(self, cfg):
         """ Generate export commands for sd models"""
         run_cfg = cfg.export.run
@@ -349,13 +338,8 @@ class Export(NemoMegatronStage):
             f" trainer.precision={model_cfg.precision}"
             f" {edit_args}"
         )
-        return [
-            (
-                f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n"
-                + convert_cmd
-            )
-        ]
-    
+        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
+
     def _get_megatron_clip_conversion_cmds(self, cfg):
         """ Generate export commands for sd models"""
         run_cfg = cfg.export.run
@@ -370,12 +354,7 @@ class Export(NemoMegatronStage):
             f" trainer.precision={model_cfg.precision} \\\n"
             f" {infer_args}"
         )
-        return [
-            (
-                f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n"
-                + convert_cmd
-            )
-        ]
+        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
 
     def _get_megatron_vit_conversion_cmds(self, cfg):
         """ Generate export commands for sd models"""
@@ -391,9 +370,4 @@ class Export(NemoMegatronStage):
             f" trainer.precision={model_cfg.precision} \\\n"
             f" {infer_args}"
         )
-        return [
-            (
-                f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n"
-                + convert_cmd
-            )
-        ]
+        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]

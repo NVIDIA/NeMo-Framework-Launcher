@@ -17,26 +17,25 @@ import sys
 
 import hydra
 import omegaconf
-
 from nemo_launcher.core.data_stages import (
     CustomDataPreparation,
-    MC4DataPreparation,
-    PileDataPreparation,
-    MultimodalDataPreparation,
     FIDEvaluationDataPreparation,
+    MC4DataPreparation,
+    MultimodalDataPreparation,
+    PileDataPreparation,
 )
 from nemo_launcher.core.export_stages import Export
 from nemo_launcher.core.stages import (
     AdapterLearning,
     Conversion,
+    DiffusionModelEvaluation,
     EvalHarnessEvaluation,
     FineTuning,
+    FWInference,
     IA3Learning,
     NeMoEvaluation,
     PromptLearning,
     Training,
-    FWInference,
-    DiffusionModelEvaluation,
 )
 
 omegaconf.OmegaConf.register_new_resolver("multiply", lambda x, y: x * y, replace=True)
@@ -55,8 +54,16 @@ STR2STAGECLASS = {
     "evaluation": {
         EvalHarnessEvaluation: ["gpt3", "prompt_gpt3"],
         NeMoEvaluation: [
-            "t5", "mt5", "prompt_t5", "prompt_mt5", "adapter_t5", "adapter_gpt3",
-            "ia3_t5", "ia3_gpt3", "vit", "clip"
+            "t5",
+            "mt5",
+            "prompt_t5",
+            "prompt_mt5",
+            "adapter_t5",
+            "adapter_gpt3",
+            "ia3_t5",
+            "ia3_gpt3",
+            "vit",
+            "clip",
         ],
         DiffusionModelEvaluation: ["stable_diffusion", "imagen"],
     },

@@ -71,12 +71,12 @@ class DataStage(NemoMegatronStage):
             # Make command groups
             command_groups = self.make_stage_command_groups(stage_cfg_path, sub_stage)
             # Create launcher
-            launcher = AutoLauncher(folder=job_path.folder, cluster=self.cluster, **cluster_parameters, )
+            launcher = AutoLauncher(folder=job_path.folder, cluster=self.cluster, **cluster_parameters,)
             job_id = launcher.launch(command_groups=command_groups)
 
         return job_id
 
-    def make_stage_command_groups(self, stage_cfg_path: Path, sub_stage: Optional[str] = None, ) -> List[List[str]]:
+    def make_stage_command_groups(self, stage_cfg_path: Path, sub_stage: Optional[str] = None,) -> List[List[str]]:
         """
         Make the command groups for current stage
         Command groups is a list of command group. A command group is defined as:
@@ -99,7 +99,7 @@ class DataStage(NemoMegatronStage):
     def _make_private_cluster_parameters(self, cluster, sub_stage):
         raise NotImplementedError
 
-    def _make_cluster_parameters(self, cluster: str, sub_stage: Optional[str] = None, ) -> Dict:
+    def _make_cluster_parameters(self, cluster: str, sub_stage: Optional[str] = None,) -> Dict:
         """
         Make a cluster-specific parameters for jobs on different clusters.
         Current clusters include bcm(slurm), bcp and interactive.
@@ -130,7 +130,7 @@ class DataStage(NemoMegatronStage):
             "time": time_limit,
             "setup": setup,
         }
-        private_parameters = self._make_private_cluster_parameters(cluster, sub_stage, )
+        private_parameters = self._make_private_cluster_parameters(cluster, sub_stage,)
         if cluster == "bcm":
             cluster_cfg = cfg.get("cluster")
             slurm_cfg = {**copy.deepcopy(cluster_cfg)}
@@ -140,12 +140,12 @@ class DataStage(NemoMegatronStage):
                 "dependency": dependency,
             }
             cluster_parameters.update(
-                {**shared_parameters, **private_parameters, }
+                {**shared_parameters, **private_parameters,}
             )
             cluster_parameters["job_name"] = job_name_prefix + cluster_parameters["job_name"]
         elif cluster == "bcp":
             cluster_parameters.update(
-                {**shared_parameters, **private_parameters, }
+                {**shared_parameters, **private_parameters,}
             )
         elif cluster == "interactive":
             raise ValueError("Data preparation is not supported in interactive mode.")
@@ -557,11 +557,13 @@ class MultimodalDataPreparation(DataStage):
 
     def __init__(self, cfg):
         super().__init__(cfg)
-        self.sub_stage_names = ["download_parquet",
-                                "download_images",
-                                "reorganize_tar",
-                                "precache_encodings",
-                                "generate_wdinfo"]
+        self.sub_stage_names = [
+            "download_parquet",
+            "download_images",
+            "reorganize_tar",
+            "precache_encodings",
+            "generate_wdinfo",
+        ]
 
     def _make_sub_stages(self) -> List[str]:
         """
@@ -585,8 +587,11 @@ class MultimodalDataPreparation(DataStage):
 
         data_cfg = self.stage_cfg
         for sub_stage in self.sub_stage_names:
-            if data_cfg.get(sub_stage) and data_cfg.get(sub_stage).get("enable", False) \
-                    and sub_stage != "generate_wdinfo":
+            if (
+                data_cfg.get(sub_stage)
+                and data_cfg.get(sub_stage).get("enable", False)
+                and sub_stage != "generate_wdinfo"
+            ):
                 os.makedirs(data_cfg.get(sub_stage).output_dir, exist_ok=True)
 
     def _make_private_cluster_parameters(self, cluster: str, sub_stage: str) -> Dict:
@@ -611,12 +616,18 @@ class MultimodalDataPreparation(DataStage):
         if cluster == "bcm":
             ntasks_per_node = 1
             if sub_stage == "download_images":
-                node_array_size = len(glob.glob(os.path.join(stage_cfg.download_parquet.output_dir, "**",
-                                                             stage_cfg.download_parquet.parquet_pattern),
-                                                recursive=True))
+                node_array_size = len(
+                    glob.glob(
+                        os.path.join(
+                            stage_cfg.download_parquet.output_dir, "**", stage_cfg.download_parquet.parquet_pattern
+                        ),
+                        recursive=True,
+                    )
+                )
                 if node_array_size == 0:
-                    node_array_size = stage_cfg.download_images.get("num_parquets_downloaded") \
-                                      * stage_cfg.download_parquet.get("parquet_subpartitions")
+                    node_array_size = stage_cfg.download_images.get(
+                        "num_parquets_downloaded"
+                    ) * stage_cfg.download_parquet.get("parquet_subpartitions")
             elif sub_stage == "reorganize_tar":
                 node_array_size = stage_cfg.reorganize_tar.get("node_array_size", 1)
             elif sub_stage == "precache_encodings":
@@ -669,7 +680,7 @@ class MultimodalDataPreparation(DataStage):
                 parquet_pattern=cfg.download_images.get("parquet_pattern"),
                 download_num_processes=cfg.download_images.get("download_num_processes"),
                 download_num_threads=cfg.download_images.get("download_num_threads"),
-                img2dataset_additional_arguments=cfg.download_images.get("img2dataset_additional_arguments")
+                img2dataset_additional_arguments=cfg.download_images.get("img2dataset_additional_arguments"),
             )
         elif sub_stage == "reorganize_tar":
             args = create_args_list(
@@ -694,7 +705,6 @@ class MultimodalDataPreparation(DataStage):
                 output_wdinfo_path=cfg.generate_wdinfo.get("output_wdinfo_path"),
                 tar_chunk_size=cfg.generate_wdinfo.get("tar_chunk_size"),
                 file_ext_in_tar=cfg.generate_wdinfo.get("file_ext_in_tar"),
-
             )
         else:
             raise ValueError("Invalid sub_stage:", sub_stage)
@@ -766,7 +776,9 @@ class FIDEvaluationDataPreparation(DataStage):
     def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
         """Make a command of the specified sub-stage"""
 
-        dataprep_path = self._launcher_scripts_path / "nemo_launcher/collections/dataprep_scripts/fid_evaluation_dataprep"
+        dataprep_path = (
+            self._launcher_scripts_path / "nemo_launcher/collections/dataprep_scripts/fid_evaluation_dataprep"
+        )
         cfg = self.stage_cfg
 
         if sub_stage == "preprocess":
@@ -776,7 +788,7 @@ class FIDEvaluationDataPreparation(DataStage):
                 root_dir=cfg.dataset_output_root,
                 num_processes=cfg.num_processes,
                 preprocess_images=cfg.preprocess_images,
-                preprocess_captions=cfg.preprocess_captions
+                preprocess_captions=cfg.preprocess_captions,
             )
             sub_stage_command = [f"python3 -u {code_path}", *args]
             sub_stage_command = " \\\n  ".join(sub_stage_command)

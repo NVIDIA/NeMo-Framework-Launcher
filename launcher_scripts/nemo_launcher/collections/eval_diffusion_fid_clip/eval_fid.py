@@ -28,8 +28,8 @@ Example usage:
 import argparse
 import csv
 import os
-import torch
 
+import torch
 from compute_fid import compute_fid_data
 from fid_dataset import CustomDataset
 
@@ -69,14 +69,16 @@ if __name__ == '__main__':
 
                 # Compute FID score between synthetic images in subfolder and real images
                 fid = compute_fid_data(
-                    './', loader_real, loader_synthetic,
+                    './',
+                    loader_real,
+                    loader_synthetic,
                     key_a=0,
                     key_b=0,
                     sample_size=None,
                     is_video=False,
                     few_shot_video=False,
                     network='tf_inception',
-                    interpolation_mode='bilinear'
+                    interpolation_mode='bilinear',
                 )
 
                 print(f"The FID score between {subfolder_path} and {real_path} is {fid}")

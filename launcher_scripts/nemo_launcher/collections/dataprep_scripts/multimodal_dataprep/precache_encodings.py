@@ -16,23 +16,25 @@ import io
 import os
 import pickle
 import re
-import time
 import tarfile
+import time
 from typing import Optional
 
 import hydra
 import numpy as np
 import pytorch_lightning as pl
-import webdataset as wds
-from PIL import Image
-from nemo.collections.multimodal.data.stable_diffusion.augmentation.augmentations import \
-    construct_image_augmentations  # new path
-from nemo.collections.multimodal.modules.stable_diffusion.distributions.distributions import \
-    DiagonalGaussianDistribution  # new path
-from nemo.core import Serialization
 import torch
 import torch.utils.data as data
-from omegaconf import ListConfig, DictConfig, OmegaConf
+import webdataset as wds
+from nemo.collections.multimodal.data.stable_diffusion.augmentation.augmentations import (
+    construct_image_augmentations,  # new path
+)
+from nemo.collections.multimodal.modules.stable_diffusion.distributions.distributions import (
+    DiagonalGaussianDistribution,  # new path
+)
+from nemo.core import Serialization
+from omegaconf import DictConfig, ListConfig, OmegaConf
+from PIL import Image
 
 _IMG_EXTENSIONS = "jpg jpeg png ppm pgm pbm pnm".split()
 
@@ -220,8 +222,9 @@ def caching_collate_fn(batch):
     Modify collate function such that it accepts PIL images in the batch (without trying to convert it to a tensor)
     Following the example of default_collate_fn in collate.py
     '''
-    from torch.utils.data._utils.collate import collate, default_collate_fn_map
     from PIL.Image import Image
+    from torch.utils.data._utils.collate import collate, default_collate_fn_map
+
     def collate_Image_fn(batch, *, collate_fn_map=None):
         return batch
 
@@ -231,10 +234,8 @@ def caching_collate_fn(batch):
 
 
 def get_webdataset_loader(precache_cfg, urls):
-    img_transform = construct_image_augmentations({
-        "resize_smallest_side": "512",
-        "center_crop_h_w": "512,512",
-        "horizontal_flip": False}
+    img_transform = construct_image_augmentations(
+        {"resize_smallest_side": "512", "center_crop_h_w": "512,512", "horizontal_flip": False}
     )
 
     def tuple_to_dict(inp):
@@ -254,15 +255,17 @@ def get_webdataset_loader(precache_cfg, urls):
         wds.split_by_node,
         wds.split_by_worker,
         wds.decode(pil_loader, handler=wds.warn_and_continue),
-        wds.to_tuple(' '.join(modality_cfg.extension for modality_cfg in precache_cfg.encodings))
+        wds.to_tuple(' '.join(modality_cfg.extension for modality_cfg in precache_cfg.encodings)),
     ).compose(tuple_to_dict)
 
-    dataloader = torch.utils.data.DataLoader(dataset,
-                                             batch_size=precache_cfg.batch_size_per_GPU,
-                                             num_workers=precache_cfg.dataloader_num_workers,
-                                             pin_memory=True,
-                                             drop_last=False,
-                                             collate_fn=caching_collate_fn)
+    dataloader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=precache_cfg.batch_size_per_GPU,
+        num_workers=precache_cfg.dataloader_num_workers,
+        pin_memory=True,
+        drop_last=False,
+        collate_fn=caching_collate_fn,
+    )
 
     return dataloader
 

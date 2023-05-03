@@ -11,19 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
 import os
 import time
-from .sampler import PLMSSampler, DDIMSampler
-from .utils import Engine, device_view
-from PIL import Image
-import torch
-import os
-import json
+
 import numpy as np
-from transformers import CLIPTokenizer
+import torch
 import triton_python_backend_utils as pb_utils
 from omegaconf import OmegaConf
+from PIL import Image
 from polygraphy import cuda
+from transformers import CLIPTokenizer
+
+from .sampler import DDIMSampler, PLMSSampler
+from .utils import Engine, device_view
 
 
 class TritonPythonModel:
@@ -45,7 +46,6 @@ class TritonPythonModel:
         sampler_type = self.config.sampler.sampler_type
         self.sampler = initialize_sampler(self.denoise_model, sampler_type.upper())
 
-
     def execute(self, requests):
         # for each request, generate a response
         responses = []
@@ -57,12 +57,12 @@ class TritonPythonModel:
         batch_size = self.max_batch_size
         # for decode
         scale_factor = 0.18215
-        #Sampler params
+        # Sampler params
         beta_schedule = "linear"
         timesteps = 1000
-        linear_start=0.00085
-        linear_end=0.0120
-        cosine_s=0.008
+        linear_start = 0.00085
+        linear_end = 0.0120
+        cosine_s = 0.008
         for request in requests:
             # Perform inference on the request and append it to responses list...
             # retrieve input data from input buffers by name
@@ -71,16 +71,31 @@ class TritonPythonModel:
             seed = pb_utils.get_input_tensor_by_name(request, "seed")
             seed = 0 if seed is None else seed.as_numpy()[0]
             unconditional_guidance_scale = pb_utils.get_input_tensor_by_name(request, "unconditional_guidance_scale")
-            unconditional_guidance_scale = self.config.clip.unconditional_guidance_scale if unconditional_guidance_scale is None else unconditional_guidance_scale.as_numpy()[0]
+            unconditional_guidance_scale = (
+                self.config.clip.unconditional_guidance_scale
+                if unconditional_guidance_scale is None
+                else unconditional_guidance_scale.as_numpy()[0]
+            )
             inference_steps = pb_utils.get_input_tensor_by_name(request, "inference_steps")
-            inference_steps = self.config.sampler.inference_steps if inference_steps is None else inference_steps.as_numpy()[0]
+            inference_steps = (
+                self.config.sampler.inference_steps if inference_steps is None else inference_steps.as_numpy()[0]
+            )
             eta = pb_utils.get_input_tensor_by_name(request, "eta")
             eta = self.config.sampler.eta if eta is None else eta.as_numpy()[0]
             print("[I] Running StableDiffusion TRT pipeline")
-            cond, u_cond = encode_prompt(self.cond_stage_model, self.tokenizer, prompt, unconditional_guidance_scale, batch_size, max_length_tokens)
+            cond, u_cond = encode_prompt(
+                self.cond_stage_model,
+                self.tokenizer,
+                prompt,
+                unconditional_guidance_scale,
+                batch_size,
+                max_length_tokens,
+            )
             torch.manual_seed(seed)
             latent_shape = [batch_size, height // downsampling_factor, width // downsampling_factor]
-            latents = torch.randn([batch_size, in_channels, height // downsampling_factor, width // downsampling_factor]).to(torch.cuda.current_device())
+            latents = torch.randn(
+                [batch_size, in_channels, height // downsampling_factor, width // downsampling_factor]
+            ).to(torch.cuda.current_device())
             samples, intermediates = self.sampler.sample(
                 S=inference_steps,
                 conditioning=cond,
@@ -90,14 +105,12 @@ class TritonPythonModel:
                 unconditional_guidance_scale=unconditional_guidance_scale,
                 unconditional_conditioning=u_cond,
                 eta=eta,
-                x_T=latents
+                x_T=latents,
             )
             images = decode_images(self.decode_model, samples)
             images = torch_to_numpy(images)
             inference_response = pb_utils.InferenceResponse(
-                output_tensors=[
-                    pb_utils.Tensor("generated_image", images)
-                ]
+                output_tensors=[pb_utils.Tensor("generated_image", images)]
             )
             responses.append(inference_response)
         # You must return a list of pb_utils.InferenceResponse. Length
@@ -115,26 +128,33 @@ class TritonPythonModel:
 
 def clip_encode(cond_stage_model, tokenizer, text, max_length):
 
-    batch_encoding = tokenizer(text, truncation=True, max_length=max_length, return_length=True,
-                                    return_overflowing_tokens=False, padding="max_length", return_tensors="pt")
+    batch_encoding = tokenizer(
+        text,
+        truncation=True,
+        max_length=max_length,
+        return_length=True,
+        return_overflowing_tokens=False,
+        padding="max_length",
+        return_tensors="pt",
+    )
     tokens = batch_encoding["input_ids"].to("cuda", non_blocking=True)
     z = cond_stage_model.infer({"tokens": device_view(tokens.type(torch.int32))})['logits'].clone()
     # z = cond_stage_model(tokens).last_hidden_state
     seq_len = (z.shape[1] + 8 - 1) // 8 * 8
-    z = torch.nn.functional.pad(z, (0, 0, 0, seq_len-z.shape[1]), value=0.0)
+    z = torch.nn.functional.pad(z, (0, 0, 0, seq_len - z.shape[1]), value=0.0)
     return z
-
 
 
 def encode_prompt(cond_stage_model, tokenizer, prompt, unconditional_guidance_scale, batch_size, max_length):
     # Run Engines here
 
     c = clip_encode(cond_stage_model, tokenizer, batch_size * prompt, max_length)
-    if unconditional_guidance_scale != 1.:
+    if unconditional_guidance_scale != 1.0:
         uc = clip_encode(cond_stage_model, tokenizer, batch_size * [""], max_length)
     else:
         uc = None
     return c, uc
+
 
 def initialize_sampler(model, sampler_type):
     if sampler_type == 'DDIM':
@@ -145,15 +165,17 @@ def initialize_sampler(model, sampler_type):
         raise ValueError(f'Sampler {sampler_type} is not supported for {cls.__name__}')
     return sampler
 
+
 def decode_images(model, samples):
     # Run Engine here
     z = samples
-    z = 1. / 0.18215 * z
-    images =  model.infer({"z": device_view(z)})['logits'].clone()
+    z = 1.0 / 0.18215 * z
+    images = model.infer({"z": device_view(z)})['logits'].clone()
 
-    images = torch.clamp((images + 1.) / 2., min=0., max=1.)
+    images = torch.clamp((images + 1.0) / 2.0, min=0.0, max=1.0)
 
     return images
+
 
 def numpy_to_pil(images):
     """
@@ -166,14 +188,17 @@ def numpy_to_pil(images):
 
     return pil_images
 
+
 def torch_to_numpy(images):
     numpy_images = images.cpu().permute(0, 2, 3, 1).numpy()
     return numpy_images
+
 
 def loadEngines(engines):
     for engine in engines:
         engine.load()
         engine.activate()
+
 
 def runEngine(engines, model_name, feed_dict):
     engine = engines[model_name]
@@ -187,6 +212,16 @@ def loadResources(engines, config):
     stream = cuda.Stream()
     for e in engines:
         e.stream = stream
-    engines[0].allocate_buffers(shape_dict={'tokens': config.clip.tokens,'logits': config.clip.logits}, device="cuda")
-    engines[1].allocate_buffers(shape_dict={'z': config.vae.z,'logits': (max_batch_size, 3, height, width)}, device="cuda")
-    engines[2].allocate_buffers(shape_dict={'x': config.unet.x, 't': (max_batch_size*2,), 'context': config.unet.context,'logits': config.unet.logits}, device="cuda")
+    engines[0].allocate_buffers(shape_dict={'tokens': config.clip.tokens, 'logits': config.clip.logits}, device="cuda")
+    engines[1].allocate_buffers(
+        shape_dict={'z': config.vae.z, 'logits': (max_batch_size, 3, height, width)}, device="cuda"
+    )
+    engines[2].allocate_buffers(
+        shape_dict={
+            'x': config.unet.x,
+            't': (max_batch_size * 2,),
+            'context': config.unet.context,
+            'logits': config.unet.logits,
+        },
+        device="cuda",
+    )

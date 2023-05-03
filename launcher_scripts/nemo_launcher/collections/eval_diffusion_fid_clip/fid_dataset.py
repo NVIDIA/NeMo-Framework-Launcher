@@ -1,11 +1,13 @@
+import os
+
+import numpy as np
 import torch
 import torch.utils.data as data
 import torchvision.transforms as transforms
-from torchvision.io import read_image, ImageReadMode
 from PIL import Image
-import os
 from pycocotools.coco import COCO
-import numpy as np
+from torchvision.io import ImageReadMode, read_image
+
 
 def _pil_interp(method):
     if method == 'bicubic':
@@ -18,6 +20,7 @@ def _pil_interp(method):
         # default bilinear, do we want to allow nearest?
         return Image.BILINEAR
 
+
 def _size_tuple(size):
     if isinstance(size, int):
         return size, size
@@ -25,8 +28,8 @@ def _size_tuple(size):
         assert len(size) == 2
         return size
 
-class CenterCropResize:
 
+class CenterCropResize:
     def __init__(self, target_size: int, interpolation: str = 'bilinear', fill_color: tuple = (0, 0, 0)):
         self.target_size = _size_tuple(target_size)
         self.interpolation = interpolation
@@ -36,8 +39,7 @@ class CenterCropResize:
         w, h = img.size
         img = np.array(img).astype(np.uint8)
         crop = min(w, h)
-        img = img[(h - crop) // 2:(h + crop) // 2,
-              (w - crop) // 2:(w + crop) // 2]
+        img = img[(h - crop) // 2 : (h + crop) // 2, (w - crop) // 2 : (w + crop) // 2]
         image = Image.fromarray(img)
         if self.target_size is not None:
             interp_method = _pil_interp(self.interpolation)
@@ -46,24 +48,27 @@ class CenterCropResize:
 
 
 class CustomDataset(data.Dataset):
-    def __init__(self, root, target_size = None):
+    def __init__(self, root, target_size=None):
         self.root = root
-        self.files = [f for f in os.listdir(self.root) if os.path.isfile(os.path.join(self.root,f))]
+        self.files = [f for f in os.listdir(self.root) if os.path.isfile(os.path.join(self.root, f))]
         self.transform = transforms.ToTensor()
         self.target_size = target_size
+
     def __len__(self):
         return len(self.files)
+
     def __getitem__(self, index):
         file = self.files[index]
         image = Image.open(os.path.join(self.root, file)).convert('RGB')
         if self.target_size is not None:
-            image = image.resize((self.target_size,self.target_size), resample=Image.BICUBIC)
+            image = image.resize((self.target_size, self.target_size), resample=Image.BICUBIC)
         image = self.transform(image)
         image = 2 * image - 1
         return image, file
-    
+
+
 class CocoDataset(data.Dataset):
-    def __init__(self, root, ann_file, captions, transform = None, target_size = None):
+    def __init__(self, root, ann_file, captions, transform=None, target_size=None):
         self.root = root
         self.coco = None
         self.captions = captions
@@ -76,6 +81,7 @@ class CocoDataset(data.Dataset):
         self.img_ids_invalid = []
         self.img_infos = []
         self._load_annotations(ann_file)
+
     def _load_annotations(self, ann_file):
         assert self.coco is None
         self.coco = COCO(ann_file)
@@ -87,12 +93,15 @@ class CocoDataset(data.Dataset):
                 self.img_infos.append(info)
             else:
                 self.img_ids_invalid.append(img_id)
+
     def __len__(self):
         return len(self.img_infos)
+
     def _compose(self, image):
         for t in self.transforms[::-1]:
             image = t(image)
         return image
+
     def __getitem__(self, index):
         img_id = self.img_ids[index]
         img_info = self.img_infos[index]
@@ -100,6 +109,6 @@ class CocoDataset(data.Dataset):
         path = img_info['file_name']
         image = Image.open(os.path.join(self.root, path)).convert('RGB')
         if self.target_size is not None:
-            image = image.resize((512,512))
+            image = image.resize((512, 512))
         image = self._compose(image)
         return image, cap
