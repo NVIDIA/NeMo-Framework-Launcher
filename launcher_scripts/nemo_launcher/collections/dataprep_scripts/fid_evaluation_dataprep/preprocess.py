@@ -39,15 +39,17 @@
 # of the authors and should not be interpreted as representing official policies,
 # either expressed or implied, of the FreeBSD Project.
 
+import glob
+import os
 from multiprocessing import Pool
 
 import hydra
-import os, glob
+import numpy as np
 from PIL import Image
 from PIL.Image import Resampling
 from pycocotools.coco import COCO
-import numpy as np
 from tqdm import tqdm
+
 
 def preprocess_one_image(input_url, output_url=None):
     im = Image.open(input_url)
@@ -64,6 +66,7 @@ def preprocess_one_image(input_url, output_url=None):
         output_url = input_url.replace("val2014/COCO_val2014_", "coco2014_val/images_256/")
     im.save(output_url, quality=95)
 
+
 def preprocess_images(root_dir, num_processes):
     """
     Center-crop and resize all images in the coco 2014 validation set.
@@ -77,6 +80,7 @@ def preprocess_images(root_dir, num_processes):
 
     with Pool(num_processes) as p:
         p.map(preprocess_one_image, glob.glob(os.path.join(input_dir, "*.jpg")))
+
 
 def preprocess_captions(root_dir):
     """
@@ -97,6 +101,7 @@ def preprocess_captions(root_dir):
         with open(os.path.join(output_dir, f"{cap_id:012d}.txt"), 'w') as f:
             f.write(coco_caps.anns[cap_id]['caption'])
 
+
 @hydra.main(config_path="conf", config_name="config", version_base="1.2")
 def main(cfg):
     if cfg.preprocess_images:
@@ -107,5 +112,3 @@ def main(cfg):
 
 if __name__ == "__main__":
     main()
-
-

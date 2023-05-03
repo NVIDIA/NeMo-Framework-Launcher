@@ -15,8 +15,9 @@ import glob
 import os
 import tarfile
 import time
-from tqdm import tqdm
+
 import hydra
+from tqdm import tqdm
 
 
 def reorganize(files, save_dir, chunksize=1000, offset=0, extensions=('.jpg', '.txt'), fname_prefix=""):

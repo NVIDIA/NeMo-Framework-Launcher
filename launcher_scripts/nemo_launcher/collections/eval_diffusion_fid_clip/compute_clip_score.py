@@ -19,17 +19,17 @@ python clip_script.py --captions_path /path/to/coco2014_val/captions \
    `clip_score` column lists the corresponding average CLIP scores between the synthetic
    images in each subfolder and the captions from `--captions_path`.
 """
+import argparse
+import csv
 import multiprocessing
+import os
+from glob import glob
 
 import open_clip
 import torch
 import torch.nn as nn
 from PIL import Image
-from glob import glob
 from tqdm import tqdm
-import os
-import argparse
-import csv
 
 
 class CLIPEncoder(nn.Module):
@@ -46,7 +46,8 @@ class CLIPEncoder(nn.Module):
                 self.pretrained = 'openai'
 
         self.model, _, self.preprocess = open_clip.create_model_and_transforms(
-            self.clip_version, pretrained=self.pretrained, cache_dir=cache_dir)
+            self.clip_version, pretrained=self.pretrained, cache_dir=cache_dir
+        )
 
         self.model.eval()
         self.model.to(device)
@@ -71,18 +72,21 @@ class CLIPEncoder(nn.Module):
 
         return similarity
 
+
 def clip_score_one_subfolder(idx):
     print('Init CLIP Encoder..')
     cuda_idx = idx % torch.cuda.device_count()
     encoder = CLIPEncoder(clip_version='ViT-L-14', device=f'cuda:{cuda_idx}')
 
-    images = sorted(glob(f'{subfolders[idx]}/*.png'), key=lambda x: (int(x.split('/')[-1].strip('.png').strip("image"))))
+    images = sorted(
+        glob(f'{subfolders[idx]}/*.png'), key=lambda x: (int(x.split('/')[-1].strip('.png').strip("image")))
+    )
     texts = sorted(glob(f'{captions_path}/*.txt'))
     print(images[:5], texts[:5])
     assert len(images) == len(texts)
     print(f'Number of images text pairs: {len(images)}')
 
-    ave_sim = 0.
+    ave_sim = 0.0
     count = 0
     for text, img in zip(tqdm(texts), images):
         with open(text, 'r') as f:
@@ -115,7 +119,7 @@ if __name__ == '__main__':
             subfolders.append(subfolder_path)
 
     num_processes = min(len(subfolders), multiprocessing.cpu_count(), torch.cuda.device_count())
-    torch.set_num_threads(multiprocessing.cpu_count()//num_processes)
+    torch.set_num_threads(multiprocessing.cpu_count() // num_processes)
     print(f"multiprocessing with {num_processes} processes")
     with multiprocessing.Pool(num_processes) as p:
         ave_sims = p.map(clip_score_one_subfolder, range(len(subfolders)))

@@ -11,21 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import math
+import os
 from collections import OrderedDict
 from copy import copy
+
 import numpy as np
-import os
-import math
-from polygraphy.backend.common import bytes_from_path
-from polygraphy.backend.trt import (
-    engine_from_bytes,
-)
-from polygraphy.backend.trt import util as trt_util
-from polygraphy import cuda
 import tensorrt as trt
 import torch
-import numpy as np
 from einops import repeat
+from polygraphy import cuda
+from polygraphy.backend.common import bytes_from_path
+from polygraphy.backend.trt import engine_from_bytes
+from polygraphy.backend.trt import util as trt_util
 
 TRT_LOGGER = trt.Logger(trt.Logger.ERROR)
 
@@ -48,20 +46,16 @@ else:
     numpy_to_torch_dtype_dict[np.bool] = torch.bool
 
 # Map of torch dtype -> numpy dtype
-torch_to_numpy_dtype_dict = {
-    value: key for (key, value) in numpy_to_torch_dtype_dict.items()
-}
+torch_to_numpy_dtype_dict = {value: key for (key, value) in numpy_to_torch_dtype_dict.items()}
 
 
 def device_view(t):
-    return cuda.DeviceView(
-        ptr=t.data_ptr(), shape=t.shape, dtype=torch_to_numpy_dtype_dict[t.dtype]
-    )
+    return cuda.DeviceView(ptr=t.data_ptr(), shape=t.shape, dtype=torch_to_numpy_dtype_dict[t.dtype])
+
 
 class Engine:
     def __init__(
-        self,
-        engine_path,
+        self, engine_path,
     ):
         self.engine_path = engine_path
         self.engine = None
@@ -70,11 +64,7 @@ class Engine:
         self.tensors = OrderedDict()
 
     def __del__(self):
-        [
-            buf.free()
-            for buf in self.buffers.values()
-            if isinstance(buf, cuda.DeviceArray)
-        ]
+        [buf.free() for buf in self.buffers.values() if isinstance(buf, cuda.DeviceArray)]
         del self.engine
         del self.context
         del self.buffers
@@ -97,13 +87,9 @@ class Engine:
             dtype = trt.nptype(self.engine.get_binding_dtype(binding))
             if self.engine.binding_is_input(binding):
                 self.context.set_binding_shape(idx, shape)
-            tensor = torch.empty(
-                tuple(shape), dtype=numpy_to_torch_dtype_dict[dtype]
-            ).to(device=device)
+            tensor = torch.empty(tuple(shape), dtype=numpy_to_torch_dtype_dict[dtype]).to(device=device)
             self.tensors[binding] = tensor
-            self.buffers[binding] = cuda.DeviceView(
-                ptr=tensor.data_ptr(), shape=shape, dtype=dtype
-            )
+            self.buffers[binding] = cuda.DeviceView(ptr=tensor.data_ptr(), shape=shape, dtype=dtype)
 
     def infer(self, feed_dict):
         stream = self.stream
@@ -114,24 +100,19 @@ class Engine:
             assert isinstance(buf, cuda.DeviceView)
             device_buffers[name] = buf
         bindings = [0] * start_binding + [buf.ptr for buf in device_buffers.values()]
-        noerror = self.context.execute_async_v2(
-            bindings=bindings, stream_handle=stream.ptr
-        )
+        noerror = self.context.execute_async_v2(bindings=bindings, stream_handle=stream.ptr)
         if not noerror:
             raise ValueError(f"ERROR: inference failed.")
 
         return self.tensors
 
+
 def make_beta_schedule(schedule, n_timestep, linear_start=1e-4, linear_end=2e-2, cosine_s=8e-3):
     if schedule == "linear":
-        betas = (
-                torch.linspace(linear_start ** 0.5, linear_end ** 0.5, n_timestep, dtype=torch.float64) ** 2
-        )
+        betas = torch.linspace(linear_start ** 0.5, linear_end ** 0.5, n_timestep, dtype=torch.float64) ** 2
 
     elif schedule == "cosine":
-        timesteps = (
-                torch.arange(n_timestep + 1, dtype=torch.float64) / n_timestep + cosine_s
-        )
+        timesteps = torch.arange(n_timestep + 1, dtype=torch.float64) / n_timestep + cosine_s
         alphas = timesteps / (1 + cosine_s) * np.pi / 2
         alphas = torch.cos(alphas).pow(2)
         alphas = alphas / alphas[0]
@@ -152,7 +133,7 @@ def make_ddim_timesteps(ddim_discr_method, num_ddim_timesteps, num_ddpm_timestep
         c = num_ddpm_timesteps // num_ddim_timesteps
         ddim_timesteps = np.asarray(list(range(0, num_ddpm_timesteps, c)))
     elif ddim_discr_method == 'quad':
-        ddim_timesteps = ((np.linspace(0, np.sqrt(num_ddpm_timesteps * .8), num_ddim_timesteps)) ** 2).astype(int)
+        ddim_timesteps = ((np.linspace(0, np.sqrt(num_ddpm_timesteps * 0.8), num_ddim_timesteps)) ** 2).astype(int)
     else:
         raise NotImplementedError(f'There is no ddim discretization method called "{ddim_discr_method}"')
 
@@ -173,11 +154,11 @@ def make_ddim_sampling_parameters(alphacums, ddim_timesteps, eta, verbose=True):
     sigmas = eta * np.sqrt((1 - alphas_prev) / (1 - alphas) * (1 - alphas / alphas_prev))
     if verbose:
         print(f'Selected alphas for ddim sampler: a_t: {alphas}; a_(t-1): {alphas_prev}')
-        print(f'For the chosen value of eta, which is {eta}, '
-              f'this results in the following sigma_t schedule for ddim sampler {sigmas}')
+        print(
+            f'For the chosen value of eta, which is {eta}, '
+            f'this results in the following sigma_t schedule for ddim sampler {sigmas}'
+        )
     return sigmas, alphas, alphas_prev
-
-
 
 
 def noise_like(shape, device, repeat=False):

@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import glob, os, subprocess
+import glob
+import os
+import subprocess
+
 import hydra
 
 
@@ -37,8 +40,10 @@ def main(cfg):
 
     parquet_file_list = glob.glob(os.path.join(download_parquet_dir, "**", parquet_pattern), recursive=True)
     if len(parquet_file_list) != num_tasks:
-        print(f"WARNING: Number of slurm tasks ({num_tasks}) must equal to the number of parquet files "
-              f"after subpartitioning ({len(parquet_file_list)})")
+        print(
+            f"WARNING: Number of slurm tasks ({num_tasks}) must equal to the number of parquet files "
+            f"after subpartitioning ({len(parquet_file_list)})"
+        )
         print("WARNING: If you continue executing the script, image data may not be downloaded completely.")
 
     parquet_file_name = sorted(parquet_file_list)[task_id]

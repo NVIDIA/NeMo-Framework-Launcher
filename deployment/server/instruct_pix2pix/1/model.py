@@ -11,22 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
-import einops
+import json
 import math
-import numpy as np
 import os
+
+import einops
+import numpy as np
 import torch
 import torch.nn as nn
-from PIL import Image, ImageOps
-from einops import rearrange, repeat
-import json
-from .sampler import DiscreteEpsDDPMDenoiser, sample_euler_ancestral, DiagonalGaussianDistribution
-from .utils import make_beta_schedule, Engine, device_view
-from transformers import CLIPTokenizer
-from omegaconf import OmegaConf
 import triton_python_backend_utils as pb_utils
+from einops import rearrange, repeat
+from omegaconf import OmegaConf
+from PIL import Image, ImageOps
 from polygraphy import cuda
+from transformers import CLIPTokenizer
+
+from .sampler import DiagonalGaussianDistribution, DiscreteEpsDDPMDenoiser, sample_euler_ancestral
+from .utils import Engine, device_view, make_beta_schedule
+
 
 class CFGDenoiser(nn.Module):
     def __init__(self, model):
@@ -43,7 +45,6 @@ class CFGDenoiser(nn.Module):
         out_cond, out_img_cond, out_uncond = self.inner_model(cfg_z, cfg_sigma, cond=cfg_cond).chunk(3)
         out = out_uncond + text_cfg_scale * (out_cond - out_img_cond) + image_cfg_scale * (out_img_cond - out_uncond)
         return out
-
 
 
 class TritonPythonModel:
@@ -63,14 +64,15 @@ class TritonPythonModel:
         loadEngines(self.engines)
         loadResources(self.engines, self.config)
 
-
         beta_schedule = "linear"
         timesteps = 1000
-        linear_start=0.00085
-        linear_end=0.0120
-        cosine_s=0.008
-        betas = make_beta_schedule(beta_schedule, timesteps, linear_start=linear_start, linear_end=linear_end, cosine_s=cosine_s)
-        alphas = 1. - betas
+        linear_start = 0.00085
+        linear_end = 0.0120
+        cosine_s = 0.008
+        betas = make_beta_schedule(
+            beta_schedule, timesteps, linear_start=linear_start, linear_end=linear_end, cosine_s=cosine_s
+        )
+        alphas = 1.0 - betas
         alphas_cumprod = torch.tensor(np.cumprod(alphas, axis=0)).cuda()
         self.model_wrap = DiscreteEpsDDPMDenoiser(self.denoise_model, alphas_cumprod)
         self.model_wrap_cfg = CFGDenoiser(self.model_wrap)
@@ -85,12 +87,12 @@ class TritonPythonModel:
         num_images_per_prompt = self.max_batch_size
         # for decode
         scale_factor = 0.18215
-        #Sampler params
+        # Sampler params
         beta_schedule = "linear"
         timesteps = 1000
-        linear_start=0.00085
-        linear_end=0.0120
-        cosine_s=0.008
+        linear_start = 0.00085
+        linear_end = 0.0120
+        cosine_s = 0.008
 
         for request in requests:
 
@@ -116,21 +118,21 @@ class TritonPythonModel:
 
             cond = {}
             cond["c_crossattn"] = [
-                repeat(clip_encode(self.cond_stage_model, self.tokenizer, prompt, max_length),
-                        "1 ... -> n ...", n=num_images_per_prompt)
+                repeat(
+                    clip_encode(self.cond_stage_model, self.tokenizer, prompt, max_length),
+                    "1 ... -> n ...",
+                    n=num_images_per_prompt,
+                )
             ]
             input_image = 2 * torch.tensor(np.array(input_image)).float() / 255 - 1
             input_image = rearrange(input_image, "h w c -> 1 c h w").cuda(non_blocking=True)
             torch.cuda.synchronize()
             cond["c_concat"] = [
-                repeat(encode_images(self.encode_model, input_image).mode(),
-                        "1 ... -> n ...", n=num_images_per_prompt)
+                repeat(encode_images(self.encode_model, input_image).mode(), "1 ... -> n ...", n=num_images_per_prompt)
             ]
 
             uncond = {}
-            uncond["c_crossattn"] = [
-                repeat(null_token, "1 ... -> n ...", n=num_images_per_prompt)
-            ]
+            uncond["c_crossattn"] = [repeat(null_token, "1 ... -> n ...", n=num_images_per_prompt)]
             uncond["c_concat"] = [torch.zeros_like(cond["c_concat"][0])]
 
             sigmas = self.model_wrap.get_sigmas(steps).float()
@@ -149,9 +151,7 @@ class TritonPythonModel:
             x = rearrange(x, "n c h w -> n h w c")
 
             inference_response = pb_utils.InferenceResponse(
-                output_tensors=[
-                    pb_utils.Tensor("generated_image", np.asarray(x.cpu().numpy()))
-                ]
+                output_tensors=[pb_utils.Tensor("generated_image", np.asarray(x.cpu().numpy()))]
             )
             responses.append(inference_response)
         # You must return a list of pb_utils.InferenceResponse. Length
@@ -161,17 +161,24 @@ class TritonPythonModel:
 
 def clip_encode(cond_stage_model, tokenizer, text, max_length):
 
-    batch_encoding = tokenizer(text, truncation=True, max_length=max_length, return_length=True,
-                                    return_overflowing_tokens=False, padding="max_length", return_tensors="pt")
+    batch_encoding = tokenizer(
+        text,
+        truncation=True,
+        max_length=max_length,
+        return_length=True,
+        return_overflowing_tokens=False,
+        padding="max_length",
+        return_tensors="pt",
+    )
     tokens = batch_encoding["input_ids"].to("cuda", non_blocking=True)
     z = cond_stage_model.infer({"tokens": device_view(tokens.type(torch.int32))})['logits'].clone()
     seq_len = (z.shape[1] + 8 - 1) // 8 * 8
-    z = torch.nn.functional.pad(z, (0, 0, 0, seq_len-z.shape[1]), value=0.0)
+    z = torch.nn.functional.pad(z, (0, 0, 0, seq_len - z.shape[1]), value=0.0)
     return z
 
 
 def encode_images(model, images):
-    logits =  model.infer({"x": device_view(images.contiguous().type(torch.float32))})['logits'].clone()
+    logits = model.infer({"x": device_view(images.contiguous().type(torch.float32))})['logits'].clone()
     out = DiagonalGaussianDistribution(logits)
     return out
 
@@ -179,7 +186,7 @@ def encode_images(model, images):
 def decode_images(model, samples):
     # Run Engine here
     z = samples
-    z = 1. / 0.18215 * z
+    z = 1.0 / 0.18215 * z
     images = model.infer({"z": device_view(z.type(torch.float32))})['logits'].clone()
 
     return images
@@ -189,6 +196,7 @@ def loadEngines(engines):
     for engine in engines:
         engine.load()
         engine.activate()
+
 
 def runEngine(engines, model_name, feed_dict):
     engine = engines[model_name]
@@ -202,7 +210,15 @@ def loadResources(engines, config):
     stream = cuda.Stream()
     for e in engines:
         e.stream = stream
-    engines[0].allocate_buffers(shape_dict={'tokens': config.clip.tokens,'logits': config.clip.logits}, device="cuda")
-    engines[1].allocate_buffers(shape_dict={'x': config.vaee.x,'logits': config.vaee.logits}, device="cuda")
-    engines[2].allocate_buffers(shape_dict={'z': config.vaed.z,'logits': config.vaed.logits}, device="cuda")
-    engines[3].allocate_buffers(shape_dict={'x': config.unet.x, 't': config.unet.t, 'context': config.unet.context,'logits': config.unet.logits}, device="cuda")
+    engines[0].allocate_buffers(shape_dict={'tokens': config.clip.tokens, 'logits': config.clip.logits}, device="cuda")
+    engines[1].allocate_buffers(shape_dict={'x': config.vaee.x, 'logits': config.vaee.logits}, device="cuda")
+    engines[2].allocate_buffers(shape_dict={'z': config.vaed.z, 'logits': config.vaed.logits}, device="cuda")
+    engines[3].allocate_buffers(
+        shape_dict={
+            'x': config.unet.x,
+            't': config.unet.t,
+            'context': config.unet.context,
+            'logits': config.unet.logits,
+        },
+        device="cuda",
+    )
