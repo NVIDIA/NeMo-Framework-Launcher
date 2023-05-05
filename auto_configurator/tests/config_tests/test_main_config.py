@@ -26,7 +26,7 @@ class TestConfig:
         base_results_dir: ${auto_configurator_path}/results
         data_dir: ${launcher_scripts_path}/data
 
-        training_container: nvcr.io/ea-bignlp/bignlp-training:23.03-py3
+        training_container: nvcr.io/ea-bignlp/bignlp-training:23.04-py3
         container_mounts:
           - null
         
