@@ -51,7 +51,7 @@ def reorganize(files, save_dir, chunksize=1000, offset=0, extensions=('.jpg', '.
                 continue
             with tarfile.open(obj_name) as tar_obj:
                 names = tar_obj.getnames()
-                all_filenames = set([name.split('.')[0] for name in names])
+                all_filenames = set([os.path.splitext(name)[0] for name in names])
 
                 for name in all_filenames:
                     file_pair = []
@@ -91,8 +91,6 @@ def main(cfg) -> None:
     that fail to download or are no long available.
     Uniform tar files are important if a sequential sampler is used during training (i.e. not infinite sampler).
     Uniform tar files are also important for precaching because a sequential sampler is used there.
-
-    Modified from Mingyuan's script
     """
 
     task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
