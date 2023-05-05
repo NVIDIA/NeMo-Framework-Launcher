@@ -41,7 +41,7 @@ class TarFile2(tarfile.TarFile):
         self._loaded = True
 
 
-def reset_tarfile(tar_path, replace_current=True):
+def reset_tarfile(tar_path, replace_current=True, sorted_filenames=False):
     '''
     Rewrite the entire content of `tar_path` into a new tarfile, optionally replacing the current one
     The reason this function exists is that Python's tarfile module unpredictably produces tarfiles that are
@@ -54,6 +54,8 @@ def reset_tarfile(tar_path, replace_current=True):
     with tarfile.open(new_tar_path, 'w') as new_tar_obj:
         with tarfile.open(tar_path) as tar_obj:
             names = tar_obj.getnames()
+            if sorted_filenames:
+                names.sort()
             for name in names:
                 f = tar_obj.extractfile(name)
                 info = tarfile.TarInfo(name=name)
@@ -155,20 +157,19 @@ def main(cfg):
     print(f"Task {task_id}/{ntasks} is processing files {slc_start} to {slc_end - 1} (total 0-{len(urls) - 1})")
 
     num_processes = min(len(urls), multiprocessing.cpu_count(), 32)
-    print(f"multiprocessing with {num_processes} processes")
+    print(f"Retrieve source objects: multiprocessing with {num_processes} processes")
     with multiprocessing.Pool(num_processes) as p:
         success = p.map(
             partial(retrieve_source_objects_from_one_tar, source_dir=source_dir, source_extensions=source_extensions),
             urls[slc_start:slc_end],
         )
     print("success:", success.count(True), "failed:", success.count(False))
-    # for url, suc in zip(urls, success):
-    #     if not suc:
-    #         print(url, "failed")
+
+    print(f"Sorting filenames: multiprocessing with {num_processes} processes")
+    with multiprocessing.Pool(num_processes) as p:
+        success = p.map(partial(reset_tarfile, replace_current=True, sorted_filenames=True), urls[slc_start:slc_end],)
+    print("success:", success.count(True), "failed:", success.count(False))
 
 
 if __name__ == '__main__':
     main()
-    # retrieve_source_objects_from_one_tar(url="/home/chcui/datasets/webvid_precaching/webvid_novideo/t0_r0_0_backup.tar",
-    #                                      source_dir="/home/chcui/datasets/webvid_precaching/source",
-    #                                      source_extensions=['mp4', 'transcript', 'text', 'json'])
