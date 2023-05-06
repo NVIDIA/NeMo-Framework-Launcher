@@ -293,7 +293,7 @@ def main(cfg):
     tar_chunk_size = cfg.tar_chunk_size
     output_tar_folder = cfg.output_dir
 
-    urls = glob.glob(os.path.join(input_tar_dir, "**", "*.tar"), recursive=True)
+    urls = sorted(glob.glob(os.path.join(input_tar_dir, "**", "*.tar"), recursive=True))
     if len(urls) == 0:
         raise FileNotFoundError(f"Could not find any tar files in {input_tar_dir}")
     slc_start, slc_end = task_id * len(urls) // ntasks, (task_id + 1) * len(urls) // ntasks
