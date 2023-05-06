@@ -50,22 +50,32 @@ def reset_tarfile(tar_path, replace_current=True, sorted_filenames=False):
     https://stackoverflow.com/questions/45376065/python-3-5-tarfile-append-mode-readerror-on-empty-tar
     Therefore this function exists as a way to "fix" the tarfile while keeping all its content
     '''
-    new_tar_path = tar_path.replace(".tar", "_tmp.tar")
-    with tarfile.open(new_tar_path, 'w') as new_tar_obj:
-        with tarfile.open(tar_path) as tar_obj:
-            names = tar_obj.getnames()
-            if sorted_filenames:
-                names.sort()
-            for name in names:
-                f = tar_obj.extractfile(name)
-                info = tarfile.TarInfo(name=name)
-                info.size = f.seek(0, os.SEEK_END)
-                f.seek(0)
-                new_tar_obj.addfile(tarinfo=info, fileobj=f)
+    try:
+        new_tar_path = tar_path.replace(".tar", "_tmp.tar")
+        with tarfile.open(new_tar_path, 'w') as new_tar_obj:
+            with TarFile2.open(tar_path) as tar_obj:
+                names = tar_obj.getnames()
+                if sorted_filenames:
+                    names.sort()
+                for name in names:
+                    try:
+                        f = tar_obj.extractfile(name)
+                        info = tarfile.TarInfo(name=name)
+                        info.size = f.seek(0, os.SEEK_END)
+                        f.seek(0)
+                        new_tar_obj.addfile(tarinfo=info, fileobj=f)
+                    except tarfile.ReadError:
+                        print(f'reset_tarfile: Skipping {name} due to ReadError')
+                        continue
 
-    if replace_current:
-        os.remove(tar_path)
-        os.rename(new_tar_path, tar_path)
+        if replace_current:
+            os.remove(tar_path)
+            os.rename(new_tar_path, tar_path)
+    except Exception as e:
+        print(f"Failed to reset tarfile {tar_path} due to: {str(e)}.")
+        return False
+
+    return True
 
 
 def retrieve_source_objects_from_one_tar(url, source_dir, source_extensions, skip_incomplete=True):
@@ -103,8 +113,9 @@ def retrieve_source_objects_from_one_tar(url, source_dir, source_extensions, ski
     try:
         tarfile.open(url, 'a').close()
     except tarfile.ReadError:
+        print(f"Resetting tar file for {url}")
         reset_tarfile(url)
-
+    tar_name = "unavailable"
     try:
         with tarfile.open(url, 'a') as tar_obj:
             names = tar_obj.getnames()
@@ -136,7 +147,7 @@ def retrieve_source_objects_from_one_tar(url, source_dir, source_extensions, ski
 
                 prev_tar_name = tar_name
     except Exception as e:
-        print(f"Failed to process tarfile {url} due to {str(e)}. Tar name: {tar_name}")
+        print(f"Failed to process tarfile {url} due to: {str(e)}. Tar name: {tar_name}")
         return False
     return True
 
