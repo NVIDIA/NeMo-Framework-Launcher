@@ -7,8 +7,6 @@ NeMo-Megatron.
 The most recent version of the README can be found at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training).
 
 ## Table of contents
-- [NeMo Framework](#nemo-framework)
-  - [Open Beta](#open-beta)
   - [Table of contents](#table-of-contents)
   - [1. Model Overview](#1-model-overview)
   - [2. Feature Matrix](#2-feature-matrix)
@@ -216,7 +214,6 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [7.4.2. Training Performance Results](#742-training-performance-results)
   - [8. Changelog](#8-changelog)
   - [9. Known Issues](#9-known-issues)
-
 
 <!-- /TOC -->
 
