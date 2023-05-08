@@ -193,8 +193,8 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
         - [5.15.2.5 Launching every job at once with SLURM](#51525-launching-every-job-at-once-with-slurm)
         - [5.15.2.6 PPO Hyper-parameters](#51526-ppo-hyper-parameters)
       - [5.15.3. Future Work](#5153-future-work)
-    * [5.16. Curating pretraining datasets with the NeMo Data Curator](#516-curating-pretraining-datasets-with-the-nemo-data-curator)
-- [6. Deploying the NeMo Framework Model](#6-deploying-the-nemo-framework-model)
+    - [5.16 Curating pretraining datasets with the NeMo Data Curator](#516-curating-pretraining-datasets-with-the-nemo-data-curator)
+  - [6. Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
     - [6.1. Run NVIDIA Triton Server with Generated Model Repository](#61-run-nvidia-triton-server-with-generated-model-repository)
   - [6.2. GPT-3 Text Generation with Ensemble](#62-gpt-3-text-generation-with-ensemble)
   - [6.3. UL2 Checkpoint Deployment](#63-ul2-checkpoint-deployment)
@@ -5455,6 +5455,15 @@ The table and chart below show the performance results.
 
 ## 8. Changelog
 <a id="markdown-changelog" name="changelog"></a>
+
+**NeMo Framework 23.04**
+* NeMo Data Curator - a scalable Python library for curating large-scale datasets required for training large language foundation models
+* Enable Continued Training for P-Tuning
+* Switch to Megatron Core for Model Parallelism in NeMo Framework
+* Extend the Data Validation Tool to provide P-Tuning GPU Runtime Estimates
+* Tensor and Pipeline Parallelism Conversion Support for GPT and T5
+* Supervised Fine-Tuning Support for GPT-3
+* RLHF (Reinforcement Learning from Human Feedback) for GPT-3
 
 **NeMo Framework 23.03**
 * Per micro-batch data loader for GPT-3 and BERT
