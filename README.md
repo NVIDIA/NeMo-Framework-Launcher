@@ -4652,14 +4652,14 @@ NeMo-RLHF can be used to train your own reward model. The reward model is traine
 With your own or publicly available data, start by processing them into a jsonl format. This is where prefixes should be inserted. Then use the preprocess_data_for_megatron script to convert this jsonl format into the NeMo format. Format your pairwise comparison dataset with the following structure:
 
 ```
-{“text”: good_response_1}
-{“text”: bad_response_1}
-{“text”: good_response_2}
-{“text”: bad_response_2}
+{“text”: prompt1+good_response_1}
+{“text”: prompt1+bad_response_1}
+{“text”: prompt2+good_response_2}
+{“text”: prompt2+bad_response_2}
 ...
 ```
 
-where 1 and 2 are different prompts. Note that the good response must come before the bad response within each pair.
+where 1 and 2 are different prompts. Note that for the same prompt, prompt+good_response must come before prompt+bad_response in the dataset.
 
 For reference we used the following command for preprocessing
 
