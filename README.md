@@ -177,7 +177,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.13.3.1. Common](#51331-common)
       - [5.13.3.2. Slurm](#51332-slurm)
       - [5.13.3.3. Base Command Platform](#51333-base-command-platform)
-  * [5.16. Curating pretraining datasets with the NeMo-Data-Curator](#516-curating-pre-training-datasets-with-the-nemo-data-curator)
+  * [5.16. Curating pretraining datasets with the NeMo Data Curator](#516-curating-pretraining-datasets-with-the-nemo-data-curator)
 - [6. Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
   * [6.1. Run NVIDIA Triton Server with Generated Model Repository](#61-run-nvidia-triton-server-with-generated-model-repository)
 - [6.2. GPT-3 Text Generation with Ensemble](#62-gpt-3-text-generation-with-ensemble)
