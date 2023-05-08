@@ -4637,7 +4637,7 @@ Any other parameter can also be added to the command to modify its behavior.
 
 NeMo-RLHF is a library to fine-tune LLMs using Reinforcement Learning from Human Feedback (RLHF) in a fully distributed manner.
 
-NeMo-RLHF supports only GPT-3 models and implements the Proximal Policy Optimization (PPO) algorithm. Support for other models and RL algorithms will be added in future releases. Furthermore, NeMo-RLHF is not currently integrated into NeMo-Megatron-Launcher, so the RLHF jobs must be launched directly from the NeMo-RLHF repository in /opt/nemo-rlhf.
+NeMo-RLHF supports only GPT-3 models and implements the Proximal Policy Optimization (PPO) algorithm. Support for other models and RL algorithms will be added in future releases. Furthermore, NeMo-RLHF is not currently integrated into NeMo-Megatron-Launcher, so the RLHF jobs must be launched directly from the NeMo-RLHF repository in `/opt/nemo-rlhf`.
 
 We provide configurations to try RLHF on the newly released 2B GPT model with 4096 sequence length [available on HuggingFace](https://huggingface.co/nvidia/GPT-2B-001). We recommend users use the Anthropic HH-RLHF or the Stack Exchange Preferences datasets to get started.
 
