@@ -4747,7 +4747,7 @@ cd /opt/nemo-rlhf \
     port=5556
 ```
 
-This command will launch the Initial Policy inference server on the local computer, using port 5556. All the configuration parameters can be modified in the inference_initial_policy.yaml file, or by overriding them through the CLI command. Ensure server=True is set in the configuration of this job to correctly launch the inference server.
+This command will launch the Initial Policy inference server on the local computer, using port 5556. All the configuration parameters can be modified in the inference_initial_policy.yaml file, or by overriding them through the CLI command. Ensure `server=True` is set in the configuration of this job to correctly launch the inference server.
 
 Note: data parallelism is not available for the inference servers, so only a single copy of the model will be available
 
