@@ -190,6 +190,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.15.2.5 Launching every job at once with SLURM](#51525-launching-every-job-at-once-with-slurm)
       - [5.15.2.6 PPO Hyper-parameters](#51526-ppo-hyper-parameters)
     + [5.15.3. Future Work](#5153-future-work)
+  * [5.16. Curating pretraining datasets with the NeMo Data Curator](#516-curating-pretraining-datasets-with-the-nemo-data-curator)
 - [6  - Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
   * [6.1. Run NVIDIA Triton Server with Generated Model Repository](#61-run-nvidia-triton-server-with-generated-model-repository)
 - [6.2. GPT-3 Text Generation with Ensemble](#62-gpt-3-text-generation-with-ensemble)
@@ -562,7 +563,7 @@ Command Manager.
 
 
 ```
-srun -p [partition] -N 1 --container-mounts=/path/to/local/dir:/workspace/mount_dir --container-image=[container_tag] bash -c "cp -r /opt/NeMo-Megatron-Launcher/launcher_scripts /opt/NeMo-Megatron-Launcher/auto_configurator /opt/FasterTransformer /workspace/mount_dir/"
+srun -p [partition] -N 1 --container-mounts=/path/to/local/dir:/workspace/mount_dir --container-image=[container_tag] bash -c "cp -r /opt/NeMo-Megatron-Launcher/launcher_scripts /opt/NeMo-Megatron-Launcher/auto_configurator /opt/FasterTransformer /opt/NeMo-Data-Curator /workspace/mount_dir/"
 ```
 
 Install the NeMo Megatron scripts dependencies on the head node of the cluster:
@@ -4927,6 +4928,28 @@ During the rollout phase, the sampling parameters for the model can also be modi
 - Our reward model currently supports only datasets with two responses per prompt. We will add support for training with datasets that have more than 1 comparison in future releases.
 - The throughput of PPO will be greatly increased in future releases.
 - The stability of the PPO learning process is not good enough. We will continue working to improve the PPO learning for our models.
+
+### 5.16 Curating pretraining datasets with the NeMo Data Curator
+
+The NeMo Data Curator is a Python library that consists of a collection of scalable data-mining modules for curating NLP data for training LLMs. The modules within the NeMo Data Curator enable NLP researchers to mine high-quality text at scale from massive uncurated web corpora.
+
+Currently, within the NeMo Data Curator, we support the following data-curation modules:
+ - Text extraction from HTML via [jusText](https://github.com/miso-belica/jusText)
+ - Text reformatting and cleaning via [ftfy](https://ftfy.readthedocs.io/en/latest/)
+ - Quality filtering:
+   - Multilingual heuristic-based filtering
+   - Classifier-based filtering via [fastText](https://fasttext.cc/)
+ - Document-level deduplication
+   - Exact deduplication
+   - Fuzzy deduplication. Our implementation of fuzzy deduplication builds off of the following existing libraries:
+     - For computing MinHash signatures we use a modified version of the MinHasher class provided in [pyLSH](https://github.com/mattilyra/LSH)
+     - For the locality sensitive hashing, we extended the Redis-based implementation found in [datasketch](https://github.com/ekzhu/datasketch) beyond a single Redis server to a Redis Cluster. This enables this module to efficiently deduplicate large datasets that do not fit in memory of a single node (e.g., several TB of text)
+
+The modules are implemented in a scalable manner using [Message Passing Interface (MPI) for Python (mpi4py)](https://mpi4py.readthedocs.io/en/stable/) and we use [Dask](https://dask.org) for creating balanced input jsonl files. With the scalable modules within the NeMo Data Curator, we have been have been able to fully process a [Common Crawl Snapshot](https://commoncrawl.org/2020/12/nov-dec-2020-crawl-archive-now-available/) (consisting of 60 TB of compressed WARC files) in approximately two days using 30 CPU nodes (with hardware similar to the `c5.24xlarge` [Amazon AWS C5 instance](https://aws.amazon.com/ec2/instance-types/c5/)). Please note that the core functions used within the NeMo Data Curator (e.g., html extraction, text cleaning, heuristic filtering, etc.) have not been fully optimized. The main goal of the NeMo Data Curator is to provide users the capability to apply these functions to their large datasets using many compute nodes.
+
+If users to desire to use the NeMo Data Curator in order to curate their own pretraining datasets, they should copy it out of the container using the
+command provided in the [environment preparation section of the quick start guide](#5111-slurm). Within the `Nemo-Data-Curator` directory, they
+can use the example SLURM scripts and additional documentation provided in the docs sub-directory and README of that directory.
 
 ## 6. Deploying the NeMo Megatron Model
 
