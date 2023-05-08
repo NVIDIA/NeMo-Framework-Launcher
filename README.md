@@ -4640,9 +4640,8 @@ Currently, within the NeMo Data Curator, we support the following data-curation 
 The modules are implemented in a scalable manner using [Message Passing Interface (MPI) for Python (mpi4py)](https://mpi4py.readthedocs.io/en/stable/) and we use [Dask](https://dask.org) for creating balanced input jsonl files. With the scalable modules within the NeMo Data Curator, we have been have been able to fully process a [Common Crawl Snapshot](https://commoncrawl.org/2020/12/nov-dec-2020-crawl-archive-now-available/) (consisting of 60 TB of compressed WARC files) in approximately two days using 30 CPU nodes (with hardware similar to the `c5.24xlarge` [Amazon AWS C5 instance](https://aws.amazon.com/ec2/instance-types/c5/)). Please note that the core functions used within the NeMo Data Curator (e.g., html extraction, text cleaning, heuristic filtering, etc.) have not been fully optimized. The main goal of the NeMo Data Curator is to provide users the capability to apply these functions to their large datasets using many compute nodes.
 
 If users to desire to use the NeMo Data Curator in order to curate their own pretraining datasets, they should copy it out of the container using the
-command provided in the [environment preparation section of the quick start guide](#5111-slurm) and can use the example scripts and additional documentation
-provided in the docs directory and README included in `NeMo-Data-Curator` directory.
-
+command provided in the [environment preparation section of the quick start guide](#5111-slurm). Within the `Nemo-Data-Curator` directory, they 
+can use the example SLURM scripts and additional documentation provided in the docs directory and README of that directory.
 
 ## 6. Deploying the NeMo Megatron Model
 
