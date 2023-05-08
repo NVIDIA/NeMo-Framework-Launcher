@@ -4641,7 +4641,7 @@ The modules are implemented in a scalable manner using [Message Passing Interfac
 
 If users to desire to use the NeMo Data Curator in order to curate their own pretraining datasets, they should copy it out of the container using the
 command provided in the [environment preparation section of the quick start guide](#5111-slurm). Within the `Nemo-Data-Curator` directory, they 
-can use the example SLURM scripts and additional documentation provided in the docs directory and README of that directory.
+can use the example SLURM scripts and additional documentation provided in the docs sub-directory and README of that directory.
 
 ## 6. Deploying the NeMo Megatron Model
 
