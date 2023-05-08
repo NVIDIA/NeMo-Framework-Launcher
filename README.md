@@ -4899,7 +4899,7 @@ wait
 ```
 It is important to launch each job with & after the `srun` command, to ensure each job doesn’t block the next one. The wait statement at the end of script ensures that the entire job does not exit until each individual job is finished.
 
-Note: the three servers do not support data parallelism. Therefore, the SLURM –ntasks-per-node value should be set to the model parallelism value (tensor parallelism * pipeline parallelism) for that same job. And the trainer.devices value must also be set to that same value as well. However, the PPO actor supports data parallelism, so –ntasks-per-node can be set to the number of GPUs in each node.
+Note: the three servers do not support data parallelism. Therefore, the SLURM `–ntasks-per-node` value should be set to the model parallelism value (tensor parallelism * pipeline parallelism) for that same job. And the trainer.devices value must also be set to that same value as well. However, the PPO actor supports data parallelism, so `–ntasks-per-node` can be set to the number of GPUs in each node.
 
 ##### 5.15.2.6 PPO Hyper-parameters
 <a id="markdown-ppo-hyper-parameters" name="ppo-hyper-parameters"></a>
