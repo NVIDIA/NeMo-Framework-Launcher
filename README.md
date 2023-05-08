@@ -4620,23 +4620,10 @@ The command above assumes you mounted the data workspace in `/mount/data`, and t
 The stdout and stderr outputs will also be redirected to the `/results/export_mt5_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
-## 6. Deploying the NeMo Megatron Model
-
-This section describes the deployment of the NeMo Megatron model on the NVIDIA Triton
-Inference Server with FasterTransformer Backend on both single and multiple
-node environments.    NVIDIA Triton Inference Server supports many inference
-scenarios, of which two most important are:
-* Offline inference scenario - with a goal to maximize throughput regardless
-    of the latency, usually achieved with increasing batch size and using server
-    static batching feature.
-* Online inference scenario - with a goal to maximize throughput within a given
-    latency budget, usually achieved with small batch sizes and increasing
-    concurrency requests to the server, using dynamic batching feature.
-
 
 ### 5.16 Curating pretraining datasets with the NeMo Data Curator
 
-The NeMo Data Curator is a Python library that consists of a collection of scalable data-mining modules for curating natural language processing (NLP) data for training large language models (LLMs). The modules within the NeMo Data Curator enable NLP researchers to mine high-quality text at scale from massive uncurated web corpora.
+The NeMo Data Curator is a Python library that consists of a collection of scalable data-mining modules for curating NLP data for training LLMs. The modules within the NeMo Data Curator enable NLP researchers to mine high-quality text at scale from massive uncurated web corpora.
 
 Currently, within the NeMo Data Curator, we support the following data-curation modules:
  - Text extraction from HTML via [jusText](https://github.com/miso-belica/jusText) 
@@ -4652,10 +4639,23 @@ Currently, within the NeMo Data Curator, we support the following data-curation 
 
 The modules are implemented in a scalable manner using [Message Passing Interface (MPI) for Python (mpi4py)](https://mpi4py.readthedocs.io/en/stable/) and we use [Dask](https://dask.org) for creating balanced input jsonl files. With the scalable modules within the NeMo Data Curator, we have been have been able to fully process a [Common Crawl Snapshot](https://commoncrawl.org/2020/12/nov-dec-2020-crawl-archive-now-available/) (consisting of 60 TB of compressed WARC files) in approximately two days using 30 CPU nodes (with hardware similar to the `c5.24xlarge` [Amazon AWS C5 instance](https://aws.amazon.com/ec2/instance-types/c5/)). Please note that the core functions used within the NeMo Data Curator (e.g., html extraction, text cleaning, heuristic filtering, etc.) have not been fully optimized. The main goal of the NeMo Data Curator is to provide users the capability to apply these functions to their large datasets using many compute nodes.
 
-If users to desire to use the NeMo Data Curator in order to curate their own pretraining datasets, they should copy it out of the container using the following
+If users to desire to use the NeMo Data Curator in order to curate their own pretraining datasets, they should copy it out of the container using the
 command provided in the [environment preparation section of the quick start guide](#5111-slurm) and can use the example scripts and additional documentation
 provided in the docs directory and README included in `NeMo-Data-Curator` directory.
 
+
+## 6. Deploying the NeMo Megatron Model
+
+This section describes the deployment of the NeMo Megatron model on the NVIDIA Triton
+Inference Server with FasterTransformer Backend on both single and multiple
+node environments.    NVIDIA Triton Inference Server supports many inference
+scenarios, of which two most important are:
+* Offline inference scenario - with a goal to maximize throughput regardless
+    of the latency, usually achieved with increasing batch size and using server
+    static batching feature.
+* Online inference scenario - with a goal to maximize throughput within a given
+    latency budget, usually achieved with small batch sizes and increasing
+    concurrency requests to the server, using dynamic batching feature.
 
 ### 6.1. Run NVIDIA Triton Server with Generated Model Repository
 <a id="markdown-run-nvidia-triton-server-with-selected-model-repository"
