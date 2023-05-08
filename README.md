@@ -4685,7 +4685,7 @@ To launch reward model training we first need to start with a pretrained or fine
 ```bash
 cd /opt/nemo-rlhf \
 && export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
-python -u rlhf/reward_models/train_reward_model.py \
+&& python -u rlhf/reward_models/train_reward_model.py \
     --config-path=rlhf/reward_models/conf \
     --config-name=training_rm \
     model.pretrained_checkpoint.restore_from_path='model.nemo' \
