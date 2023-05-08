@@ -1,4 +1,4 @@
-# NeMo Megatron
+# NeMo Framework
 ## Open Beta
 
 Scripts and code to provide end-to-end data preparation and training for
@@ -21,14 +21,14 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
     + [4.1.3. AWS](#413-aws)
   * [4.2. Cluster Validation](#42-cluster-validation)
     + [4.2.1. Validation Script Usage](#421-validation-script-usage)
-    + [4.2.2. Running tests manually](#422-running-tests-manually)
+    + [4.2.2 Running tests manually](#422-running-tests-manually)
   * [4.3. Config Modifications](#43-config-modifications)
-    + [4.3.1. Set NCCL Topology](#431-set-nccl-topology)
-    + [4.3.2. Environment Variables](#432-environment-variables)
-      - [4.3.2.1. Azure Variables](#4321-azure-variables)
-      - [4.3.2.2. AWS Variables](#4322-aws-variables)
+    + [4.3.1 Set NCCL Topology](#431-set-nccl-topology)
+    + [4.3.2 Environment Variables](#432-environment-variables)
+      - [4.3.2.1 Azure Variables](#4321-azure-variables)
+      - [4.3.2.2 AWS Variables](#4322-aws-variables)
 - [5. Quick Start Guide](#5-quick-start-guide)
-  * [5.1. Training NeMo Megatron Models](#51-training-nemo-megatron-models)
+  * [5.1. Training NeMo Framework Models](#51-training-nemo-framework-models)
     + [5.1.1. Prepare Environment](#511-prepare-environment)
       - [5.1.1.1. Slurm](#5111-slurm)
       - [5.1.1.2. Base Command Platform](#5112-base-command-platform)
@@ -190,8 +190,8 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.15.2.5 Launching every job at once with SLURM](#51525-launching-every-job-at-once-with-slurm)
       - [5.15.2.6 PPO Hyper-parameters](#51526-ppo-hyper-parameters)
     + [5.15.3. Future Work](#5153-future-work)
-  * [5.16. Curating pretraining datasets with the NeMo Data Curator](#516-curating-pretraining-datasets-with-the-nemo-data-curator)
-- [6  - Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
+  * [5.16 Curating pretraining datasets with the NeMo Data Curator](#516-curating-pretraining-datasets-with-the-nemo-data-curator)
+- [6. Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
   * [6.1. Run NVIDIA Triton Server with Generated Model Repository](#61-run-nvidia-triton-server-with-generated-model-repository)
 - [6.2. GPT-3 Text Generation with Ensemble](#62-gpt-3-text-generation-with-ensemble)
 - [6.3. UL2 Checkpoint Deployment](#63-ul2-checkpoint-deployment)
@@ -214,19 +214,18 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
 - [8. Changelog](#8-changelog)
 - [9. Known Issues](#9-known-issues)
 
-
 <!-- /TOC -->
 
 ## 1. Model Overview
 <a id="markdown-model-overview" name="model-overview"></a>
 
-NeMo Megatron is a new version in the NeMo framework that allows developers to effectively train and scale language
-models to billions of parameters. With NeMo Megatron, you can train different variants of GPT-3, Bert and T5 style models,
+NeMo Framework allows developers to effectively train and scale language
+models to billions of parameters. With NeMo Framework, you can train different variants of GPT-3, Bert and T5 style models,
 and scale them to multiple nodes on NVIDIA DGX SuperPOD deployments. This deep learning (DL) software stack is optimized for DGX
 SuperPOD configurations using NVIDIA InfiniBand technology to provide efficient on-premises compute for training
 and inferring complex workloads.
 
-The model parallelism techniques of NeMo Megatron enable the efficient training of large models that do not fit in
+The model parallelism techniques of NeMo Framework enable the efficient training of large models that do not fit in
 the memory of a single GPU. In the training tasks, tensor (intra-layer) and pipeline (inter-layer) model parallelism
 are adopted. Tensor model parallelism partitions individual transformer layers over multiple devices. Pipeline
 model parallelism stripes layers of a model over multiple devices. For more details, refer to
@@ -364,7 +363,7 @@ Figure 1: The GPT-3 family architecture. The 5B variant includes 24 transformer 
 #### 4.1.1. Common
 <a id="markdown-common" name="common"></a>
 
-To set up a Slurm cluster for NeMo Megatron, we recommend using [Nephele](https://github.com/nvidia/nephele). This cluster deployment tool has been tested on Azure, AWS, and Oracle Cloud.
+To set up a Slurm cluster for NeMo Framework, we recommend using [Nephele](https://github.com/nvidia/nephele). This cluster deployment tool has been tested on Azure, AWS, and Oracle Cloud.
 We recommend hosting Nephele on a new VM instance in the CSP of your choice. To get started:
 - Clone the Nephele repo
 - Install the dependencies
@@ -374,7 +373,7 @@ We recommend hosting Nephele on a new VM instance in the CSP of your choice. To 
 
 You can then run `./nephele init` and `./nephele create`.
 
-We also recommend mounting an external persistent NFS once the cluster is up and running (ensure it is mounted on all nodes) and using this to configure and run NeMo Megatron.
+We also recommend mounting an external persistent NFS once the cluster is up and running (ensure it is mounted on all nodes) and using this to configure and run NeMo Framework.
 
 The above steps apply to all CSPs, including Azure, AWS, and OCI.
 Some modifications are necessary for OCI and AWS and are detailed below.
@@ -383,7 +382,7 @@ Note that for OCI, a custom image must be imported, which should be done before 
 #### 4.1.2. OCI
 <a id="markdown-oci" name="oci"></a>
 
-NeMo Megatron supports running training and inference containers on OCI. For detail orchestration scripts, reach out to [oci_nm@nvidia.com](mailto:oci_nm@nvidia.com)
+NeMo Framework supports running training and inference containers on OCI. For more details about orchestration scripts, reach out to [oci_nm@nvidia.com](mailto:oci_nm@nvidia.com)
 
 #### 4.1.3. AWS
 <a id="markdown-aws" name="aws"></a>
@@ -511,7 +510,7 @@ Setting this flag reduces training throughput by roughly 2%.
 ## 5. Quick Start Guide
 <a id="markdown-quick-start-guide" name="quick-start-guide"></a>
 
-### 5.1. Training NeMo Megatron Models
+### 5.1. Training NeMo Framework Models
 <a id="markdown-training-nemo-megatron-models" name="training-nemo-megatron-models"></a>
 
 #### 5.1.1. Prepare Environment
@@ -522,11 +521,11 @@ The whole solution uses a set of Docker containers executed at the Slurm
 cluster using the pyxis plug-in Base Command Platform cluster. The training
 container also includes conversion scripts and NVIDIA Triton Model Navigator.
 The inference container is just the NVIDIA Triton Inference Server with the
-FasterTransformer backend installed.    For Base Command Platform, the NeMo Megatron
+FasterTransformer backend installed.    For Base Command Platform, the NeMo Framework
 scripts repository (bcp branch) will be part of the container image. It is
 recommended to create a nemo_megatron_ws_scripts_<username> workspace in your ace and
 copy the nemo_megatron_launcher directory there    either from the container image or
-from git clone of the above repository if you have access.    Install the NeMo Megatron
+from git clone of the above repository if you have access.    Install the NeMo Framework
 scripts dependencies on the head node of your cluster. Base Command Platform
 clusters do not have a head login node. We're currently running these scripts
 on a DGX node in the Base Command Platform cluster. Once the cluster has
@@ -554,10 +553,10 @@ backend installed.
 ##### 5.1.1.1. Slurm
 <a id="markdown-slurm" name="slurm"></a>
 
-The NeMo Megatron codebase is included as part of the training container. To
+The NeMo Framework codebase is included as part of the training container. To
 copy it to a local directory in the cluster, it needs to be extracted from the
 container. To copy the code to a directory named /path/to/local/dir the
-following command can be executed. The NeMo Megatron repository for 
+following command can be executed. The NeMo Framework repository for 
 Slurm has been verified on both Slurm-based DeepOps clusters as well as Base 
 Command Manager. 
 
@@ -566,7 +565,7 @@ Command Manager.
 srun -p [partition] -N 1 --container-mounts=/path/to/local/dir:/workspace/mount_dir --container-image=[container_tag] bash -c "cp -r /opt/NeMo-Megatron-Launcher/launcher_scripts /opt/NeMo-Megatron-Launcher/auto_configurator /opt/FasterTransformer /opt/NeMo-Data-Curator /workspace/mount_dir/"
 ```
 
-Install the NeMo Megatron scripts dependencies on the head node of the cluster:
+Install the NeMo Framework scripts dependencies on the head node of the cluster:
 
 ```
 pip install -r requirements.txt
@@ -1335,7 +1334,7 @@ creating the job (number of replicas).
 **FP8 with Transformer Engine**
 Transformer Engine (TE) is a library for accelerating Transformer-based models on **NVIDIA Hopper GPUs**. It enables using 8-bit floating point (FP8) precision to provide better performance with lower memory utilization in both training and inference. NVIDIA open-sourced TE on [github](https://github.com/NVIDIA/TransformerEngine).
 
-In NeMo Megatron, you can now use `fp8` to pre-train GPT-3 models. For example, if you want to turn on `fp8` to pre-train a 
+In NeMo Framework, you can now use `fp8` to pre-train GPT-3 models. For example, if you want to turn on `fp8` to pre-train a 
 GPT3 5B model, you can modify `gpt3/5b` training config inside `conf/training/gpt3/5b.yaml` file as following.
 ```yaml
   ## Transformer Engine
@@ -2034,7 +2033,7 @@ will include. By default, when set to 10, it will output the top 10 configuratio
 recommend using at least 20 minutes per run for the smaller models, and increasing it to over 60 
 minutes for the larger models. The training run will be stopped when either `max_steps_per_run` or 
 `max_minutes_per_run` is reached. The `tflops_per_gpu` parameter provides an estimate of the TFLOPs 
-each GPU can achieve when training large language models with NeMo Megatron. This value is only used to provide an 
+each GPU can achieve when training large language models with NeMo Framework. This value is only used to provide an 
 estimate of how long the model will take to train to full convergence, so you can know the time to 
 train before you even begin training your model. The `num_tokens_in_b` parameter indicates how many 
 billions of tokens you will train your model for, when training to full convergence. It will be used 
@@ -3118,7 +3117,7 @@ You can follow the instructions in T5 and mT5 fine-tuning sections to submit a c
 <a id="markdown-model-prompt-learning" name="model-prompt-learning"></a>
 
 
-Within NeMo Megatron we refer to **p-tuning** and **prompt tuning** methods collectively as prompt
+Within NeMo Framework we refer to **p-tuning** and **prompt tuning** methods collectively as prompt
 learning. Both methods are parameter efficient alternatives to fine-tuning pretrained language
 models. Our NeMo implementation makes it possible to use one pretrained GPT-3, T5 or mT5 models on many downstream
 tasks without needing to tune the model's full set of parameters. It also allows for adding new tasks
@@ -3331,7 +3330,7 @@ Any other parameter can also be added to the command to modify its behavior.
 <a id="markdown-model-adapter-learning" name="model-adapter-learning"></a>
 
 
-NeMo Megatron supports Adapter Learning and Infused Adapter by Inhibiting and Amplifying Inner Activations (IA3) learning. Both methods are parameter-efficient alternatives to fine-tuning pretrained language
+NeMo Framework supports Adapter Learning and Infused Adapter by Inhibiting and Amplifying Inner Activations (IA3) learning. Both methods are parameter-efficient alternatives to fine-tuning pretrained language
 models. Our NeMo implementation makes it possible to use one pretrained GPT-3 or T5 models on many downstream
 tasks without tuning the model's full set of parameters. Because the original model parameters are frozen and never altered by either
 method, these also avoid cartographic forgetting issues often encountered when fine-tuning models. 
@@ -4302,7 +4301,7 @@ Any other parameter can also be added to the command to modify its behavior.
 ### 5.13. Model Export
 <a id="markdown-model-export" name="model-export"></a>
 
-We also provide a tool to enable deployment of the NeMo Megatron model on the NVIDIA Triton
+We also provide a tool to enable deployment of the NeMo Framework model on the NVIDIA Triton
 Inference Server with FasterTransformer Backend.
 
 The export supports only GPT-3. You can checkout T5 and mT5 support
@@ -5453,7 +5452,16 @@ The table and chart below show the performance results.
 ## 8. Changelog
 <a id="markdown-changelog" name="changelog"></a>
 
-**NeMo Megatron 23.03**
+**NeMo Framework 23.04**
+* NeMo Data Curator - a scalable Python library for curating large-scale datasets required for training large language foundation models
+* Enable Continued Training for P-Tuning
+* Switch to Megatron Core for Model Parallelism in NeMo Framework
+* Extend the Data Validation Tool to provide P-Tuning GPU Runtime Estimates
+* Tensor and Pipeline Parallelism Conversion Support for GPT and T5
+* Supervised Fine-Tuning Support for GPT-3
+* RLHF (Reinforcement Learning from Human Feedback) for GPT-3
+
+**NeMo Framework 23.03**
 * Per micro-batch data loader for GPT-3 and BERT
 * SquaredReLU and SwiGLU activation function support for GPT-3 and T5
 * Rotary Position Embedding (RoPE) for GPT-3 and RETRO
@@ -5465,7 +5473,7 @@ The table and chart below show the performance results.
 
 **Coming Soon!**  The data curation module, Prospector-LM, which is a scalable Python library for curating large-scale datasets and can be leveraged for training large language foundation models.
 
-**NeMo Megatron 23.01**
+**NeMo Framework 23.01**
 * BERT with tensor parallelism support (training only)
 * BERT with pipeline parallelism support (training only)
 * Sequence Parallelism and Selective Activation Checkpointing for BERT (training only)
@@ -5478,26 +5486,26 @@ The table and chart below show the performance results.
 * ALiBi Position Embeddings for T5 and mT5 (training only)
 * Log total model size (across modal parallel ranks) for GPT-3, T5, mT5, and BERT
 
-**NeMo Megatron 22.11**
+**NeMo Framework 22.11**
 * Interleaved Pipeline Scheduling for GPT-3 (training only)
 * FP8 support using Transformer Engine (training only)
 * Distributed Adam Optimizer for T5 and mT5
 * P-Tuning and Prompt Tuning for GPT-3 with Sequence Parallelism
 * Training configurations improved throughput by 7.9% (5B GPT-3), 9.6% (3B T5), 4.3% (11B T5), 52.4% (23B T5), and 26.6% (41B T5) 
 
-**NeMo Megatron 22.09**
-* NeMo Megatron supports training and inference containers on OCI. For detail orchestration scripts, reach out to [oci_nm@nvidia.com](mailto:oci_nm@nvidia.com)
+**NeMo Framework 22.09**
+* NeMo Framework supports training and inference containers on OCI. For more details about orchestration scripts, reach out to [oci_nm@nvidia.com](mailto:oci_nm@nvidia.com)
 * P-Tuning and Prompt Tuning for T5 and mT5 with pipeline parallelism (training only)
 * Adapter learning for GPT-3 and T5 with tensor parallelism and pipeline parallelism (training only)
 * IA3 learning for GPT-3 and T5 with tensor parallelism and pipeline parallelism (training only)
 * AutoConfigurator to find the highest throughput configs for training on Base Command Platform
 * AutoConfigurator: parallel inference hyperparameter search for GPT-3 on Base Command Manager
 
-**NeMo Megatron 22.08.01**
+**NeMo Framework 22.08.01**
 * Cloud service providers: support for Amazon Web Services (performance validated up to 20 `p4d.24xlarge` instances)
 * Cloud service providers: switched orchestration from Azure CycleCloud to NVIDIA Nephele for Microsoft Azure
 
-**NeMo Megatron 22.08**
+**NeMo Framework 22.08**
 * Distributed Adam Optimizer for GPT-3
 * Asymmetric encoder-decoder configuration for T5 and mT5
 * Support for untying embeddings from the classifier layer for T5 and mT5
@@ -5507,13 +5515,13 @@ The table and chart below show the performance results.
 * SQuAD fine-tuning and evaluation support for T5 with pipeline parallelism =<2
 * XQuAD fine-tuning and evaluation support for mT5 with pipeline parallelism =<2
 
-**NeMo Megatron 22.06-hotfix.01**
+**NeMo Framework 22.06-hotfix.01**
 * Fix: AutoConfigurator for T5 and mT5
 * Fix: Evaluation harness in GPT-3
 * Fix: Prompt learning in GPT-3
 * Fix: Out of memory when pretraining GPT-3 with Sequence Parallelism
 
-**NeMo Megatron 22.06**
+**NeMo Framework 22.06**
 * Sequence Parallelism and Selective Activation Checkpointing for GPT-3
 * Relative Position Embeddings for T5
   * We used mC4 dataset (24 Languages) for pretraining the mT5 and verified our results on KNLI, KorQuAD, KLUE-STS, and XNLI tasks
@@ -5523,12 +5531,12 @@ The table and chart below show the performance results.
 * Operation fusions for higher training throughput (2%-7% speed-up)
 * Default GPT-3 configurations changed to include Sequence Parallelism and Selective Activation Checkpointing: 20B (speed-up: 14%), 40B (speed-up: 9%), 175B (speed-up: 15%) 
 
-**NeMo Megatron 22.05.01**
+**NeMo Framework 22.05.01**
 * Cloud service providers: support for Microsoft Azure (performance validated up to 36 `Standard_ND96amsr_A100_v4` instances)
 * Cluster validation tools (DGMI, NCCL)
 * 20B GPT-3 training configuration improved by 2.7% for higher throughput
 
-**NeMo Megatron 22.05**
+**NeMo Framework 22.05**
 * Asynchronous gradient all-reduce for GPT-3, T5, mT5 models with pipeline parallel size equal to 1
 * P-Tuning and Prompt Tuning for GPT-3 with tensor parallelism (training only)
 * AutoConfigurator to find the highest throughput configs for training and inference on Base Command Manager
@@ -5536,7 +5544,7 @@ The table and chart below show the performance results.
 * GPT-3 with pipeline parallelism support on Base Command Manager (inference)
 * Hyperparameters for text generation: top-p, top-k, and temperature
 
-**NeMo Megatron 22.04**
+**NeMo Framework 22.04**
 * T5 with pipeline parallelism support (training only)
 * Switched from GeLU to GeGLU as activation function for T5
 * mT5 with tensor parallelism and pipeline parallelism support (training only)
@@ -5544,16 +5552,16 @@ The table and chart below show the performance results.
 * 170M, 390M, and 3B mT5 training configurations
 * Automatic and configurable Non-Uniform Memory Access (NUMA) mapping
 
-**NeMo Megatron 22.03**
+**NeMo Framework 22.03**
 * T5 with tensor parallelism support (optimized for <20B parameters, training only)
 * 220M and 3B T5 training configurations
 * GLUE fine-tuning and evaluation support for T5
 
-**NeMo Megatron 22.02**
+**NeMo Framework 22.02**
 * GPT-3 with pipeline parallelism support (training only)
 * 40B and 175B GPT-3 training configurations
 
-**NeMo Megatron 22.01**
+**NeMo Framework 22.01**
 * GPT-3 with tensor parallelism support on Base Command Platform
 * O2-style AMP (accelerated training of larger models)
 * Chatbot sample application using your trained GPT-3 model
@@ -5563,7 +5571,7 @@ The table and chart below show the performance results.
 <a id="markdown-known-issues" name="known-issues"></a>
 Fixes for the following issues will be released shortly:
 * The inference hyperparameter search is not available in this release for T5 and mT5
-* Accuracy and performance measurement for GPT-3 is currently not supported. Please use the NeMo Megatron 22.05 inference container to use this feature
-* For running inference on BCP please use the NeMo Megatron 22.03 inference container
+* Accuracy and performance measurement for GPT-3 is currently not supported. Please use the NeMo Framework 22.05 inference container to use this feature
+* For running inference on BCP please use the NeMo Framework 22.03 inference container
 * The fine-tuning SQuAD results for T5 are lower than expected
 * In 23.03, there is a known 20% slowdown for T5 TP8 3B configurations - the other T5 3B configurations are performing well
