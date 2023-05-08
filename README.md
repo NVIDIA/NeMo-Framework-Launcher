@@ -177,7 +177,20 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.13.3.1. Common](#51331-common)
       - [5.13.3.2. Slurm](#51332-slurm)
       - [5.13.3.3. Base Command Platform](#51333-base-command-platform)
-- [6. Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
+  * [5.15. Reinforcement Learning from Human Feedback](#515-reinforcement-learning-from-human-feedback)
+    + [5.15.1. Reward Model Training](#5151-reward-model-training)
+      - [5.15.1.1 Data preprocessing](#51511-data-preprocessing)
+      - [5.15.1.2 Reward Model Training](#51512-reward-model-training)
+      - [5.15.1.3 Reward Model Evaluation](#51513-reward-model-evaluation)
+    + [5.15.2. PPO Training](#5152-ppo-training)
+      - [5.15.2.1 Launching the Reward Model inference server](#51521-launching-the-reward-model-inference-server)
+      - [5.15.2.2 Launching the Initial Policy inference server](#51522-launching-the-initial-policy-inference-server)
+      - [5.15.2.3 Launching the PPO Critic Training and Inference Server](#51523-launching-the-ppo-critic-training-and-inference-server)
+      - [5.15.2.4 Launching the PPO Actor Training](#51524-launching-the-ppo-actor-training)
+      - [5.15.2.5 Launching every job at once with SLURM](#51525-launching-every-job-at-once-with-slurm)
+      - [5.15.2.6 PPO Hyper-parameters](#51526-ppo-hyper-parameters)
+    + [5.15.3. Future Work](#5153-future-work)
+- [6  - Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
   * [6.1. Run NVIDIA Triton Server with Generated Model Repository](#61-run-nvidia-triton-server-with-generated-model-repository)
 - [6.2. GPT-3 Text Generation with Ensemble](#62-gpt-3-text-generation-with-ensemble)
 - [6.3. UL2 Checkpoint Deployment](#63-ul2-checkpoint-deployment)
@@ -4618,6 +4631,302 @@ export.triton_deployment.pipeline_model_parallel_size=1 \
 The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
 The stdout and stderr outputs will also be redirected to the `/results/export_mt5_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
+
+### 5.15. Reinforcement Learning from Human Feedback
+<a id="markdown-reinforcement-learning-from-human-feedback" name="reinforcement-learning-from-human-feedback"></a>
+
+NeMo-RLHF is a library to fine-tune LLMs using Reinforcement Learning from Human Feedback (RLHF) in a fully distributed manner.
+
+NeMo-RLHF supports only GPT-3 models and implements the Proximal Policy Optimization (PPO) algorithm. Support for other models and RL algorithms will be added in future releases. Furthermore, NeMo-RLHF is not currently integrated into NeMo-Megatron-Launcher, so the RLHF jobs must be launched directly from the NeMo-RLHF repository in /opt/nemo-rlhf.
+
+We provide configurations to try RLHF on the newly released 2B GPT model with 4096 sequence length [available on HuggingFace](https://huggingface.co/nvidia/GPT-2B-001). We recommend users use the Anthropic HH-RLHF or the Stack Exchange Preferences datasets to get started.
+
+#### 5.15.1. Reward Model Training
+<a id="markdown-reward-model-training" name="reward-model-training"></a>
+
+NeMo-RLHF can be used to train your own reward model. The reward model is trained using a pairwise comparison loss and therefore needs a dataset with response pairs, where one response in the pair is ranked better than the other. A good reward model is crucial for the success of the PPO training in the next stage.
+
+##### 5.15.1.1 Data preprocessing
+<a id="markdown-data-preprocessing" name="data-preprocessing"></a>
+
+With your own or publicly available data, start by processing them into a jsonl format. This is where prefixes should be inserted. Then use the preprocess_data_for_megatron script to convert this jsonl format into the NeMo format. Format your pairwise comparison dataset with the following structure:
+
+```
+{“text”: prompt1+good_response_1}
+{“text”: prompt1+bad_response_1}
+{“text”: prompt2+good_response_2}
+{“text”: prompt2+bad_response_2}
+...
+```
+
+where 1 and 2 are different prompts. Note that for the same prompt, prompt+good_response must come before prompt+bad_response in the dataset.
+
+For reference we used the following command for preprocessing
+
+```bash
+python3 /opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py \
+    --input "test.jsonl" \
+    --output-prefix "./output" \
+    --tokenizer-model sp_tokenizer_256k.model \
+    --tokenizer-library=sentencepiece \
+    --json-keys text \
+    --dataset-impl mmap \
+    --workers 30 \
+    --chunk_size=100 \
+    --append-eod
+```
+Which will generate files with output_document.bin and output_document.idx to use for reward model training.
+
+##### 5.15.1.2 Reward Model Training
+<a id="markdown-reward-model-training" name="reward-model-training"></a>
+
+To launch reward model training we first need to start with a pretrained or finetuned nemo checkpoint. Our training_rm.yaml file has default configurations for the 2B model but feel free to use any model you like. An example command to begin training is:
+
+```bash
+cd /opt/nemo-rlhf \
+&& export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
+&& python -u rlhf/reward_models/train_reward_model.py \
+    --config-path=rlhf/reward_models/conf \
+    --config-name=training_rm \
+    model.pretrained_checkpoint.restore_from_path='model.nemo' \
+    "model.data.data_prefix={train: [${train_output_document}], validation: [${val_output_document}], test: [${test_output_document}]}"
+```
+
+##### 5.15.1.3 Reward Model Evaluation
+<a id="markdown-reward-model-evaluation" name="reward-model-evaluation"></a>
+
+To learn how to serve the reward model for evaluation, see the section "Launching the Reward Model inference server" below.
+
+#### 5.15.2. PPO Training
+<a id="markdown-ppo-training" name="ppo-training"></a>
+
+After fine-tuning a GPT model using Supervised Finetuning(SFT) and training a Reward Model as explained in the previous sections, NeMo-RLHF can be used to launch PPO jobs to fine-tune the SFT model using RLHF. During PPO training, four different models will be interacting with each other:
+
+1. The PPO Actor Network (also known as the Policy Network): This is the model we are training, and it should start from an SFT model trained as explained in the SFT section.
+2. The Reward Model (RM) Network (also known as a Preference Model (PM)): This model will take a prompt and a response as inputs, and it will provide a single scalar value as output. This scalar value will be the reward, which the PPO algorithm will try to maximize. The RM should be a model trained as described in the RM Training section.
+3. The PPO Critic Network (also known as the Value Network): Since PPO is an actor-critic algorithm, we need a critic to help our actor learn more effectively. The critic will provide Value estimates to each token in the responses provided by the actor. These values can be seen as an estimate of the amount of reward the actor will receive after generating all the remaining tokens. The critic is loaded from the same RM we trained as described in the RM training section. Note: The RM generates a single reward for the entire sequence, whereas the Critic generates a value for each token.
+4. The Initial Policy Network (also known as the Reference Model): We use this model to compute a KL Divergence penalty term that ensures that the PPO Actor does not diverge too much from the Initial Policy. This way, we prevent the PPO Actor from overfitting to the reward models given by the RM, and ensure it does not forget the knowledge it acquired during pretraining and SFT. This model should be the same model as the PPO Actor Network.
+
+To launch a full PPO training job, we need to launch the RM and the Initial Policy as inference servers. These two models are not trained, so they only need to perform inference and share their result with the PPO Actor. However, the PPO Actor and PPO Critic need to be trained.
+
+Our architecture is designed to launch all four models completely separately. Therefore, we will launch two inference servers (one for the RM and one for the initial policy), one server that can do inference and training (the PPO Critic), and one master job to do training (the PPO Actor). Next we will look at how to launch each of those four jobs.
+
+##### 5.15.2.1 Launching the Reward Model inference server
+<a id="markdown-launching-the-reward-model-inference-server" name="launching-the-reward-model-inference-server"></a>
+
+To launch the Reward Model inference server in a Linux system, this command can be run inside the container:
+
+```bash
+cd /opt/nemo-rlhf \
+&& export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
+&& export HYDRA_FULL_ERROR=1 \
+&& python rlhf/reward_models/serve_reward_model.py \
+    --config-path=/opt/nemo-rlhf/rlhf/reward_models/conf \
+    --config-name=inference_rm \
+    gpt_rm_model_file=/path/to/model.nemo \
+    port=5555
+```
+
+This command will launch the RM inference server on the local computer, using port 5555. All the configuration parameters can be modified in the inference_rm.yaml file, or by overriding them through the CLI command. Ensure server=True is set in the configuration of this job to correctly launch the inference server.
+
+Note: data parallelism is not available for the inference servers, so only a single copy of the model will be available.
+
+##### 5.15.2.2 Launching the Initial Policy inference server
+<a id="markdown-launching-the-initial-policy-inference-server" name="launching-the-initial-policy-inference-server"></a>
+
+To launch the Initial Policy inference server in a Linux system, this command can be run inside the container:
+
+```bash
+cd /opt/nemo-rlhf \
+&& export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
+&& export HYDRA_FULL_ERROR=1 \
+&& python rlhf/rlhf_nemo/serve_initial_policy.py \
+    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+    --config-name=inference_initial_policy \
+    gpt_model_file=/path/to/model.nemo \
+    port=5556
+```
+
+This command will launch the Initial Policy inference server on the local computer, using port 5556. All the configuration parameters can be modified in the inference_initial_policy.yaml file, or by overriding them through the CLI command. Ensure server=True is set in the configuration of this job to correctly launch the inference server.
+
+Note: data parallelism is not available for the inference servers, so only a single copy of the model will be available
+
+##### 5.15.2.3 Launching the PPO Critic Training and Inference Server
+<a id="markdown-launching-the-ppo-critic-training-and-inference-server" name="launching-the-ppo-critic-training-and-inference-server"></a>
+
+The PPO Critic has to perform both training and inference. We designed the Critic to have both capabilities. To launch the PPO Critic server in a Linux system, this command can be run inside the container:
+
+```bash
+cd /opt/nemo-rlhf \
+&& export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
+&& export HYDRA_FULL_ERROR=1 \
+&& python rlhf/rlhf_nemo/serve_ppo_critic.py \
+    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+    --config-name=gpt_ppo_critic \
+    model.pretrained_checkpoint.restore_from_path=/path/to/trained_rm.nemo \
+    port=5557
+```
+
+This command will launch the PPO Critic server on the local computer, using port 5557. All the configuration parameters can be modified in the gpt_ppo_critic.yaml file, or by overriding them through the CLI command. Ensure inference.server=True is set in the configuration of this job to correctly launch the server.
+
+Note: data parallelism is not available for the servers, so only a single copy of the model will be available.
+
+##### 5.15.2.4 Launching the PPO Actor Training
+<a id="markdown-launching-the-ppo-actor-training" name="launching-the-ppo-actor-training"></a>
+The PPO Actor training job contains the master HTTP controller that makes the HTTP calls to all three servers when needed. To launch the PPO Actor server in a Linux system, this command can be run inside the container:
+
+```bash
+cd /opt/nemo-rlhf \
+&& export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
+&& export HYDRA_FULL_ERROR=1 \
+&& python rlhf/rlhf_nemo/train_gpt_ppo_actor.py \
+    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+    --config-name=gpt_ppo_actor \
+    "model.data.data_prefix={train: [/path/to/train_data], validation: [/path/to/val_data], test: [/path/to/test_data]}" \
+    model.pretrained_checkpoint.restore_from_path=/path/to/model.nemo
+```
+This command will launch the PPO Actor job on the local computer. All the configuration parameters can be modified in the gpt_ppo_actor.yaml file, or by overriding them through the CLI command.
+
+##### 5.15.2.5 Launching every job at once with SLURM
+<a id="markdown-launching-every-job-at-once-with-slurm" name="launching-every-job-at-once-with-slurm"></a>
+Heterogeneous jobs can be used to launch all four jobs simultaneously in different nodes, using a script like the one shown next:
+
+```bash
+#!/bin/bash
+#SBATCH -N 1 --ntasks-per-node 1 -t 4:00:00 --exclusive
+#SBATCH hetjob
+#SBATCH -N 1 --ntasks-per-node -t 4:00:00 --exclusive
+#SBATCH hetjob
+#SBATCH -N 1 --ntasks-per-node 1 -t 4:00:00 --exclusive
+#SBATCH hetjob
+#SBATCH -N 8 --ntasks-per-node 8 -t 4:00:00 --exclusive
+
+RM_MODEL=/path/to/reward_model.nemo
+ACTOR_MODEL=/path/to/sft_model.nemo
+
+DIR=/opt/nemo-rlhf
+CONTAINER="nvcr.io/ea-bignlp/bignlp-training:23.04-py3"
+
+# START HETEROGENEUS JOB 0
+
+read -r -d '' cmd_rm_inference <<EOF
+cd ${DIR} \
+&& export PYTHONPATH="${DIR}:${PYTHONPATH}" \
+&& export HYDRA_FULL_ERROR=1 \
+&& python rlhf/reward_models/serve_reward_model.py \
+    --config-path=/opt/nemo-rlhf/rlhf/reward_models/conf \
+    --config-name=inference_rm \
+    gpt_rm_model_file=${RM_MODEL} \
+    port=${RM_PORT=5555}
+EOF
+
+srun --het-group=0 --container-image=${CONTAINER} bash -c "${cmd_rm_inference}" &
+
+# END HETEROGENEUS JOB 0
+
+####################################################
+
+# START HETEROGENEUS JOB 1
+
+read -r -d '' cmd_init_policy_inference <<EOF
+cd ${DIR} \
+&& export PYTHONPATH="${DIR}:${PYTHONPATH}" \
+&& export HYDRA_FULL_ERROR=1 \
+&& python rlhf/rlhf_nemo/serve_initial_policy.py \
+    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+    --config-name=inference_initial_policy \
+    gpt_model_file=${ACTOR_MODEL} \
+    port=${INIT_POLICY_PORT=5556}
+EOF
+
+srun --het-group=1 -o $INIT_POLICY_OUTFILE -e $INIT_POLICY_ERRFILE --container-image=${CONTAINER} $MOUNTS bash -c "${cmd_init_policy_inference}" &
+
+# END HETEROGENEUS JOB 1
+
+sleep 30
+######################################################
+
+# START HETEROGENEUS JOB 2
+
+read -r -d '' cmd_critic_inference <<EOF
+cd ${DIR} \
+&& export PYTHONPATH="${DIR}:${PYTHONPATH}" \
+&& export HYDRA_FULL_ERROR=1 \
+&& python -u rlhf/rlhf_nemo/serve_ppo_critic.py \
+    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+    --config-name=gpt_ppo_critic \
+    model.pretrained_checkpoint.restore_from_path=${RM_MODEL} \
+    inference.port=${CRITIC_PORT=5557}
+EOF
+
+srun --het-group=2 --container-image=${CONTAINER} bash -c "${cmd_critic_inference}" &
+
+# END HETEROGENEUS JOB 2
+
+sleep 30
+####################################################
+
+# START HETEROGENEUS JOB 3
+
+TRAIN_DATA_PATH=/path/to/train_data
+VALID_DATA_PATH=/path/to/val_data
+TEST_DATA_PATH=/path/to/test_data
+
+
+read -r -d '' cmd_ppo <<EOF
+cd ${DIR} \
+&& export PYTHONPATH="${DIR}:${PYTHONPATH}" \
+&& export HYDRA_FULL_ERROR=1 \
+&& python -u rlhf/rlhf_nemo/train_gpt_ppo_actor.py \
+    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+    --config-name=gpt_ppo_actor \
+    trainer.num_nodes=8 \
+    "model.data.data_prefix={train: [${TRAIN_DATA_PATH}], validation: [${VALID_DATA_PATH}], test: [${TEST_DATA_PATH}]}" \
+    model.pretrained_checkpoint.restore_from_path=${ACTOR_MODEL} \
+    model.rlhf.reward_model.ip=${SLURM_JOB_NODELIST_HET_GROUP_0} \
+    model.rlhf.reward_model.port=${RM_PORT} \
+    model.rlhf.initial_policy.ip=${SLURM_JOB_NODELIST_HET_GROUP_1} \
+    model.rlhf.initial_policy.port=${INIT_POLICY_PORT} \
+    model.rlhf.critic.ip=${SLURM_JOB_NODELIST_HET_GROUP_2} \
+    model.rlhf.critic.port=${CRITIC_PORT}
+EOF
+
+srun --het-group=3 --container-image=${CONTAINER} bash -c "${cmd_ppo}" &
+
+# END HETEROGENEUS JOB 3
+
+wait
+```
+It is important to launch each job with & after the srun command, to ensure each job doesn’t block the next one. The wait statement at the end of script ensures that the entire job does not exit until each individual job is finished.
+
+Note: the three servers do not support data parallelism. Therefore, the SLURM –ntasks-per-node value should be set to the model parallelism value (tensor parallelism * pipeline parallelism) for that same job. And the trainer.devices value must also be set to that same value as well. However, the PPO actor supports data parallelism, so –ntasks-per-node can be set to the number of GPUs in each node.
+
+##### 5.15.2.6 PPO Hyper-parameters
+<a id="markdown-ppo-hyper-parameters" name="ppo-hyper-parameters"></a>
+
+All the model related parameters can be controlled the same way as in other NeMo training jobs. However, we also provide full control of the behavior of PPO during training, with a section in the config yaml files inside model.rlhf. These are the descriptions of the available hyper-parameters:
+
+- rlhf.reward_model: Provide the ip address and the port where the Reward Model will be running, to enable communication with it.
+- rlhf.critic: Provide the ip address and the port where the PPO Critic will be running, to enable communication with it.
+- rlhf.initial_policy: Provide the ip address and the port where the Initial Policy will be running, to enable communication with it.
+- rlhf.ppo.entropy_penalty: Control the effect of the entropy term in PPO.
+- rlhf.ppo.inital_pollicy_kl_penalty: Control the effect of the initial policy KL Divergence term in PPO.
+- rlhf.ppo.epochs: Number of epochs the actor and critic will perform on the data stored in the rollout buffer each time.
+- rlhf.ppo.num_rollout_samples: Number of samples that will be generated during the rollout stage before moving to the training stage.
+- rlhf.ppo.rollout_micro_batch_size: Micro batch size for the rollout phase. Each GPU will load this many prompts and generate responses for them.
+- rlhf.ppo.ratio_eps: epsilon value for clipping the PPO ratio during training.
+- rlhf.ppo.discount: discount factor for calculating the returns and advantages.
+- rlhf.ppo.gae_lambda: lambda value for the Generalized Advantage Estimation (GAE) calculation.
+- rlhf.ppo.normalize_advantage: whether to normalize the advantages to have a mean of zero and standard deviation of one.
+
+During the rollout phase, the sampling parameters for the model can also be modified, by using the parameters in model.sampling_params.
+
+#### 5.15.3. Future Work
+<a id="markdown-future-work" name="future-work"></a>
+
+- Our reward model currently supports only datasets with two responses per prompt. We will add support for training with datasets that have more than 1 comparison in future releases.
+- The throughput of PPO will be greatly increased in future releases.
+- The stability of the PPO learning process is not good enough. We will continue working to improve the PPO learning for our models.
 
 ## 6. Deploying the NeMo Megatron Model
 
