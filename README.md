@@ -4924,7 +4924,7 @@ During the rollout phase, the sampling parameters for the model can also be modi
 #### 5.15.3. Future Work
 <a id="markdown-future-work" name="future-work"></a>
 
-- The reward model training only supports datases with two responses per prompt. We will add support for training with datasets that have more than 2 responses per prompt in future releases.
+- The reward model training only supports datasets with two responses per prompt. We will add support for training with datasets that have more than 2 responses per prompt in future releases.
 - The throughput of PPO will be greatly increased in future releases.
 - The stability of the PPO learning process is not good enough. We will continue working to improve the PPO learning for our models.
 
