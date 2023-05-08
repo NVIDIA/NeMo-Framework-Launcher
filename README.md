@@ -4759,7 +4759,7 @@ The PPO Critic has to perform both training and inference. We designed the Criti
 cd /opt/nemo-rlhf \
 && export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-python rlhf/rlhf_nemo/serve_ppo_critic.py \
+&& python rlhf/rlhf_nemo/serve_ppo_critic.py \
     --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
     --config-name=gpt_ppo_critic \
     model.pretrained_checkpoint.restore_from_path=/path/to/trained_rm.nemo \
