@@ -4687,7 +4687,8 @@ cd /opt/nemo-rlhf \
 && export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
 python -u rlhf/reward_models/train_reward_model.py \
     --config-path=rlhf/reward_models/conf \
-    --config-name=training_rm \ model.pretrained_checkpoint.restore_from_path='model.nemo' \
+    --config-name=training_rm \
+    model.pretrained_checkpoint.restore_from_path='model.nemo' \
     "model.data.data_prefix={train: [${train_output_document}], validation: [${val_output_document}], test: [${test_output_document}]}"
 ```
 
