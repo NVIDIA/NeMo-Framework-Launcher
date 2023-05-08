@@ -177,19 +177,19 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.13.3.1. Common](#51331-common)
       - [5.13.3.2. Slurm](#51332-slurm)
       - [5.13.3.3. Base Command Platform](#51333-base-command-platform)
-  * [5.14. Reinforcement Learning from Human Feedback](#514-reinforcement-learning-from-human-feedback)
-    + [5.14.1. Reward Model Training](#5141-reward-model-training)
-      - [5.14.1.1 Data preprocessing](#51411-data-preprocessing)
-      - [5.14.1.2 Reward Model Training](#51412-reward-model-training)
-      - [5.14.1.3 Reward Model Evaluation](#51413-reward-model-evaluation)
-    + [5.14.2. PPO Training](#5142-ppo-training)
-      - [5.14.2.1 Launching the Reward Model inference server](#51421-launching-the-reward-model-inference-server)
-      - [5.14.2.2 Launching the Initial Policy inference server](#51422-launching-the-initial-policy-inference-server)
-      - [5.14.2.3 Launching the PPO Critic Training and Inference Server](#51423-launching-the-ppo-critic-training-and-inference-server)
-      - [5.14.2.4 Launching the PPO Actor Training](#51424-launching-the-ppo-actor-training)
-      - [5.14.2.5 Launching every job at once with SLURM](#51425-launching-every-job-at-once-with-slurm)
-      - [5.14.2.6 PPO Hyper-parameters](#51426-ppo-hyper-parameters)
-    + [5.14.3. Future Work](#5143-future-work)
+  * [5.15. Reinforcement Learning from Human Feedback](#515-reinforcement-learning-from-human-feedback)
+    + [5.15.1. Reward Model Training](#5151-reward-model-training)
+      - [5.15.1.1 Data preprocessing](#51511-data-preprocessing)
+      - [5.15.1.2 Reward Model Training](#51512-reward-model-training)
+      - [5.15.1.3 Reward Model Evaluation](#51513-reward-model-evaluation)
+    + [5.15.2. PPO Training](#5152-ppo-training)
+      - [5.15.2.1 Launching the Reward Model inference server](#51521-launching-the-reward-model-inference-server)
+      - [5.15.2.2 Launching the Initial Policy inference server](#51522-launching-the-initial-policy-inference-server)
+      - [5.15.2.3 Launching the PPO Critic Training and Inference Server](#51523-launching-the-ppo-critic-training-and-inference-server)
+      - [5.15.2.4 Launching the PPO Actor Training](#51524-launching-the-ppo-actor-training)
+      - [5.15.2.5 Launching every job at once with SLURM](#51525-launching-every-job-at-once-with-slurm)
+      - [5.15.2.6 PPO Hyper-parameters](#51526-ppo-hyper-parameters)
+    + [5.15.3. Future Work](#5153-future-work)
 - [6  - Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
   * [6.1. Run NVIDIA Triton Server with Generated Model Repository](#61-run-nvidia-triton-server-with-generated-model-repository)
 - [6.2. GPT-3 Text Generation with Ensemble](#62-gpt-3-text-generation-with-ensemble)
@@ -4632,7 +4632,7 @@ The command above assumes you mounted the data workspace in `/mount/data`, and t
 The stdout and stderr outputs will also be redirected to the `/results/export_mt5_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
-### 5.14. Reinforcement Learning from Human Feedback
+### 5.15. Reinforcement Learning from Human Feedback
 <a id="markdown-reinforcement-learning-from-human-feedback" name="reinforcement-learning-from-human-feedback"></a>
 
 NeMo-RLHF is a library to fine-tune LLMs using Reinforcement Learning from Human Feedback (RLHF) in a fully distributed manner.
@@ -4641,12 +4641,12 @@ NeMo-RLHF supports only GPT-3 models and implements the Proximal Policy Optimiza
 
 We provide configurations to try RLHF on the newly released 2B GPT model with 4096 sequence length [available on HuggingFace](https://huggingface.co/nvidia/GPT-2B-001). We recommend users use the Anthropic HH-RLHF or the Stack Exchange Preferences datasets to get started.
 
-#### 5.14.1. Reward Model Training
+#### 5.15.1. Reward Model Training
 <a id="markdown-reward-model-training" name="reward-model-training"></a>
 
 NeMo-RLHF can be used to train your own reward model. The reward model is trained using a pairwise comparison loss and therefore needs a dataset with response pairs, where one response in the pair is ranked better than the other. A good reward model is crucial for the success of the PPO training in the next stage.
 
-##### 5.14.1.1 Data preprocessing
+##### 5.15.1.1 Data preprocessing
 <a id="markdown-data-preprocessing" name="data-preprocessing"></a>
 
 With your own or publicly available data, start by processing them into a jsonl format. This is where prefixes should be inserted. Then use the preprocess_data_for_megatron script to convert this jsonl format into the NeMo format. Format your pairwise comparison dataset with the following structure:
@@ -4677,7 +4677,7 @@ python3 /opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py 
 ```
 Which will generate files with output_document.bin and output_document.idx to use for reward model training.
 
-##### 5.14.1.2 Reward Model Training
+##### 5.15.1.2 Reward Model Training
 <a id="markdown-reward-model-training" name="reward-model-training"></a>
 
 To launch reward model training we first need to start with a pretrained or finetuned nemo checkpoint. Our training_rm.yaml file has default configurations for the 2B model but feel free to use any model you like. An example command to begin training is:
@@ -4692,12 +4692,12 @@ cd /opt/nemo-rlhf \
     "model.data.data_prefix={train: [${train_output_document}], validation: [${val_output_document}], test: [${test_output_document}]}"
 ```
 
-##### 5.14.1.3 Reward Model Evaluation
+##### 5.15.1.3 Reward Model Evaluation
 <a id="markdown-reward-model-evaluation" name="reward-model-evaluation"></a>
 
 To learn how to serve the reward model for evaluation, see the section "Launching the Reward Model inference server" below.
 
-#### 5.14.2. PPO Training
+#### 5.15.2. PPO Training
 <a id="markdown-ppo-training" name="ppo-training"></a>
 
 After fine-tuning a GPT model using Supervised Finetuning(SFT) and training a Reward Model as explained in the previous sections, NeMo-RLHF can be used to launch PPO jobs to fine-tune the SFT model using RLHF. During PPO training, four different models will be interacting with each other:
@@ -4711,7 +4711,7 @@ To launch a full PPO training job, we need to launch the RM and the Initial Poli
 
 Our architecture is designed to launch all four models completely separately. Therefore, we will launch two inference servers (one for the RM and one for the initial policy), one server that can do inference and training (the PPO Critic), and one master job to do training (the PPO Actor). Next we will look at how to launch each of those four jobs.
 
-##### 5.14.2.1 Launching the Reward Model inference server
+##### 5.15.2.1 Launching the Reward Model inference server
 <a id="markdown-launching-the-reward-model-inference-server" name="launching-the-reward-model-inference-server"></a>
 
 To launch the Reward Model inference server in a Linux system, this command can be run inside the container:
@@ -4731,7 +4731,7 @@ This command will launch the RM inference server on the local computer, using po
 
 Note: data parallelism is not available for the inference servers, so only a single copy of the model will be available.
 
-##### 5.14.2.2 Launching the Initial Policy inference server
+##### 5.15.2.2 Launching the Initial Policy inference server
 <a id="markdown-launching-the-initial-policy-inference-server" name="launching-the-initial-policy-inference-server"></a>
 
 To launch the Initial Policy inference server in a Linux system, this command can be run inside the container:
@@ -4751,7 +4751,7 @@ This command will launch the Initial Policy inference server on the local comput
 
 Note: data parallelism is not available for the inference servers, so only a single copy of the model will be available
 
-##### 5.14.2.3 Launching the PPO Critic Training and Inference Server
+##### 5.15.2.3 Launching the PPO Critic Training and Inference Server
 <a id="markdown-launching-the-ppo-critic-training-and-inference-server" name="launching-the-ppo-critic-training-and-inference-server"></a>
 
 The PPO Critic has to perform both training and inference. We designed the Critic to have both capabilities. To launch the PPO Critic server in a Linux system, this command can be run inside the container:
@@ -4771,7 +4771,7 @@ This command will launch the PPO Critic server on the local computer, using port
 
 Note: data parallelism is not available for the servers, so only a single copy of the model will be available.
 
-##### 5.14.2.4 Launching the PPO Actor Training
+##### 5.15.2.4 Launching the PPO Actor Training
 <a id="markdown-launching-the-ppo-actor-training" name="launching-the-ppo-actor-training"></a>
 The PPO Actor training job contains the master HTTP controller that makes the HTTP calls to all three servers when needed. To launch the PPO Actor server in a Linux system, this command can be run inside the container:
 
@@ -4787,7 +4787,7 @@ cd /opt/nemo-rlhf \
 ```
 This command will launch the PPO Actor job on the local computer. All the configuration parameters can be modified in the gpt_ppo_actor.yaml file, or by overriding them through the CLI command.
 
-##### 5.14.2.5 Launching every job at once with SLURM
+##### 5.15.2.5 Launching every job at once with SLURM
 <a id="markdown-launching-every-job-at-once-with-slurm" name="launching-every-job-at-once-with-slurm"></a>
 Heterogeneous jobs can be used to launch all four jobs simultaneously in different nodes, using a script like the one shown next:
 
@@ -4901,7 +4901,7 @@ It is important to launch each job with & after the srun command, to ensure each
 
 Note: the three servers do not support data parallelism. Therefore, the SLURM –ntasks-per-node value should be set to the model parallelism value (tensor parallelism * pipeline parallelism) for that same job. And the trainer.devices value must also be set to that same value as well. However, the PPO actor supports data parallelism, so –ntasks-per-node can be set to the number of GPUs in each node.
 
-##### 5.14.2.6 PPO Hyper-parameters
+##### 5.15.2.6 PPO Hyper-parameters
 <a id="markdown-ppo-hyper-parameters" name="ppo-hyper-parameters"></a>
 
 All the model related parameters can be controlled the same way as in other NeMo training jobs. However, we also provide full control of the behavior of PPO during training, with a section in the config yaml files inside model.rlhf. These are the descriptions of the available hyper-parameters:
@@ -4921,7 +4921,7 @@ All the model related parameters can be controlled the same way as in other NeMo
 
 During the rollout phase, the sampling parameters for the model can also be modified, by using the parameters in model.sampling_params.
 
-#### 5.14.3. Future Work
+#### 5.15.3. Future Work
 <a id="markdown-future-work" name="future-work"></a>
 
 - Our reward model currently supports only datasets with two responses per prompt. We will add support for training with datasets that have more than 1 comparison in future releases.
