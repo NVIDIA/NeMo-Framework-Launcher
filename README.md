@@ -4905,18 +4905,18 @@ Note: the three servers do not support data parallelism. Therefore, the SLURM â€
 
 All the model related parameters can be controlled the same way as in other NeMo training jobs. However, we also provide full control of the behavior of PPO during training, with a section in the config yaml files inside model.rlhf. These are the descriptions of the available hyper-parameters:
 
-- Rlhf.reward_model: Provide the ip address and the port where the Reward Model will be running, to enable communication with it.
-- Rlhf.critic: Provide the ip address and the port where the PPO Critic will be running, to enable communication with it.
-- Rlhf.initial_policy: Provide the ip address and the port where the Initial Policy will be running, to enable communication with it.
-- Rlhf.ppo.entropy_penalty: Control the effect of the entropy term in PPO.
-- Rlhf.ppo.inital_pollicy_kl_penalty: Control the effect of the initial policy KL Divergence term in PPO.
-- Rlhf.ppo.epochs: Number of epochs the actor and critic will perform on the data stored in the rollout buffer each time.
-- Rlhf.ppo.num_rollout_samples: Number of samples that will be generated during the rollout stage before moving to the training stage.
-- Rlhf.ppo.rollout_micro_batch_size: Micro batch size for the rollout phase. Each GPU will load this many prompts and generate responses for them.
-- Rlhf.ppo.ratio_eps: epsilon value for clipping the PPO ratio during training.
-- Rlhf.ppo.discount: discount factor for calculating the returns and advantages.
-- Rlhf.ppo.gae_lambda: lambda value for the Generalized Advantage Estimation (GAE) calculation.
-- Rlhf.ppo.normalize_advantage: whether to normalize the advantages to have a mean of zero and standard deviation of one.
+- rlhf.reward_model: Provide the ip address and the port where the Reward Model will be running, to enable communication with it.
+- rlhf.critic: Provide the ip address and the port where the PPO Critic will be running, to enable communication with it.
+- rlhf.initial_policy: Provide the ip address and the port where the Initial Policy will be running, to enable communication with it.
+- rlhf.ppo.entropy_penalty: Control the effect of the entropy term in PPO.
+- rlhf.ppo.inital_pollicy_kl_penalty: Control the effect of the initial policy KL Divergence term in PPO.
+- rlhf.ppo.epochs: Number of epochs the actor and critic will perform on the data stored in the rollout buffer each time.
+- rlhf.ppo.num_rollout_samples: Number of samples that will be generated during the rollout stage before moving to the training stage.
+- rlhf.ppo.rollout_micro_batch_size: Micro batch size for the rollout phase. Each GPU will load this many prompts and generate responses for them.
+- rlhf.ppo.ratio_eps: epsilon value for clipping the PPO ratio during training.
+- rlhf.ppo.discount: discount factor for calculating the returns and advantages.
+- rlhf.ppo.gae_lambda: lambda value for the Generalized Advantage Estimation (GAE) calculation.
+- rlhf.ppo.normalize_advantage: whether to normalize the advantages to have a mean of zero and standard deviation of one.
 
 During the rollout phase, the sampling parameters for the model can also be modified, by using the parameters in model.sampling_params.
 
