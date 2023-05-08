@@ -4632,6 +4632,87 @@ The command above assumes you mounted the data workspace in `/mount/data`, and t
 The stdout and stderr outputs will also be redirected to the `/results/export_mt5_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
+### 5.14 Instruction Following via Supervised Finetuning (SFT)
+<a id="markdown-sft" name="sft"></a>
+SFT is the process of finetuning all of the model's parameters on supervised data of inputs and outputs that teaches the model how to follow user specified instructions. It is typically done after model pre-training. This section describes the steps involved in finetuning a GPT model for instruction following. In the subsequent sections, we will describe how to format your data and run training.
+
+#### 5.14.1 SFT Data Formatting
+
+To demonstrate how to format your SFT data, we'll take the Dolly dataset (https://github.com/databrickslabs/dolly) as an example, which consists of 15k instruction-context-response triples.
+
+First, to download the data, run `launcher_scripts/nemo_launcher/collections/dataprep_scripts/dolly_datapreep/download.py --path_to_save /path/to/save/data.jsonl`
+
+The downloaded data `/path/to/save/data.jsonl` is formattated as a JSONL file with each line formatted as:
+
+```
+{
+    "instruction": "When did Virgin Australia start operating?",
+
+    "context": "Virgin Australia, the trading name of Virgin Australia Airlines Pty Ltd, is an Australian-based airline. It is the largest airline by fleet size to use the Virgin brand. It commenced services on 31 August 2000 as Virgin Blue, with two aircraft on a single route.[3] It suddenly found itself as a major airline in Australia's domestic market after the collapse of Ansett Australia in September 2001. The airline has since grown to directly serve 32 cities in Australia, from hubs in Brisbane, Melbourne and Sydney.[4]",
+
+    "response": "Virgin Australia commenced services on 31 August 2000 as Virgin Blue, with two aircraft on a single route.",
+
+    "category": "closed_qa"
+}
+```
+
+From the above example, there is no clear "input" and "output" field that SFT requires. An example of how to process the above data format into a JSONL file that contains "input" and "output" fields is at `launcher_scripts/nemo_launcher/collections/dataprep_scripts/dolly_datapreep/preprocess.py`. The script converts the "Instruction", "Context" and "Response" fields into "Input" and "Output". The script also concatenates the "Instruction" and "Context" fields with a \n\n separator and randomizes the order in which they appear in the input to generate a new JSONL file.
+
+`python launcher_scripts/nemo_launcher/collections/dataprep_scripts/dolly_datapreep/preprocess.py --input /path/to/save/data.jsonl` generates a file `/path/to/save/data-output.jsonl` that can provided to SFT training described below.
+
+#### 5.14.2 SFT Training
+
+Once you have one or more dataset you would like to finetune on, you can run the finetuning script from NeMo as follows:
+
+```bash
+TRAIN="[/path/to/dataset_1.jsonl,/path/to/dataset_2.jsonl]"
+
+VALID="[/path/to/validation_data.jsonl]"
+
+VALID_NAMES="[your-validation-dataset-name]"
+
+CONCAT_SAMPLING_PROBS="[0.3,0.7]"
+
+TP_SIZE=2
+
+PP_SIZE=1
+
+python /opt/NeMo/examples/nlp/language_modeling/megatron_gpt_sft.py \
+  trainer.precision=bf16 \
+  trainer.max_steps=1000 \
+  trainer.devices=8 \
+  trainer.val_check_interval=200 \
+  model.megatron_amp_O2=True \
+  model.restore_from_path=/path/to/your/gpt.nemo \
+  model.tensor_model_parallel_size=${TP_SIZE} \
+  model.pipeline_model_parallel_size=${PP_SIZE} \
+  model.optim.lr=5e-6 \
+  model.answer_only_loss=True \
+  model.data.train_ds.micro_batch_size=1 \
+  model.data.train_ds.global_batch_size=128 \
+  model.data.train_ds.file_names=${TRAIN} \
+  model.data.train_ds.concat_sampling_probabilities=${CONCAT_SAMPLING_PROBS} \
+  model.data.validation_ds.micro_batch_size=1 \
+  model.data.validation_ds.global_batch_size=128 \
+  model.data.validation_ds.file_names=${VALID} \
+  model.data.validation_ds.names=${VALID_NAMES} \
+  model.data.test_ds.micro_batch_size=1 \
+  model.data.test_ds.global_batch_size=128 \
+  model.data.train_ds.num_workers=0 \
+  model.data.validation_ds.num_workers=0 \
+  model.data.test_ds.num_workers=0 \
+  model.data.validation_ds.metric.name=loss \
+  model.data.test_ds.metric.name=loss \
+  exp_manager.create_wandb_logger=True \
+  exp_manager.explicit_log_dir=/results \
+  exp_manager.resume_if_exists=True \
+  exp_manager.resume_ignore_no_checkpoint=True \
+  exp_manager.create_checkpoint_callback=True \
+  exp_manager.checkpoint_callback_params.monitor=validation_loss
+```
+
+The `${TP_SIZE}` and `${PP_SIZE}` above should correspond to the Tensor and Pipeline model parallel sizes the `/path/to/your/gpt.nemo` model was saved with.
+
 ### 5.15. Reinforcement Learning from Human Feedback
 <a id="markdown-reinforcement-learning-from-human-feedback" name="reinforcement-learning-from-human-feedback"></a>
 
