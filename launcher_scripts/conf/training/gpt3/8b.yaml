@@ -114,7 +114,7 @@ model:
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
   sequence_parallel: false
-  transformer_engine: true
+  transformer_engine: false
   fp8: false
   fp8_e4m3: false
   fp8_hybrid: false
@@ -130,11 +130,11 @@ model:
     weight_decay: 0.1
     betas:
       - 0.9
-      - 0.98
+      - 0.95
     sched:
       name: CosineAnnealing
       warmup_steps: 500
-      constant_steps: 50000
+      constant_steps: 0
       min_lr: 1e-5
   data:
     data_impl: mmap
