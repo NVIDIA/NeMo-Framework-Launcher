@@ -220,7 +220,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
 <a id="markdown-model-overview" name="model-overview"></a>
 
 NeMo Framework allows developers to effectively train and scale language
-models to billions of parameters. With NeMo Framework, you can train different variants of GPT-3, Bert and T5 style models,
+models to billions of parameters. With NeMo Framework, you can train different variants of GPT, Bert and T5 style models,
 and scale them to multiple nodes on NVIDIA DGX SuperPOD deployments. This deep learning (DL) software stack is optimized for DGX
 SuperPOD configurations using NVIDIA InfiniBand technology to provide efficient on-premises compute for training
 and inferring complex workloads.
@@ -1334,7 +1334,7 @@ creating the job (number of replicas).
 **FP8 with Transformer Engine**
 Transformer Engine (TE) is a library for accelerating Transformer-based models on **NVIDIA Hopper GPUs**. It enables using 8-bit floating point (FP8) precision to provide better performance with lower memory utilization in both training and inference. NVIDIA open-sourced TE on [github](https://github.com/NVIDIA/TransformerEngine).
 
-In NeMo Framework, you can now use `fp8` to pre-train GPT-3 models. For example, if you want to turn on `fp8` to pre-train a 
+In NeMo Framework, you can now use `fp8` to pre-train GPT models. For example, if you want to turn on `fp8` to pre-train a 
 GPT3 5B model, you can modify `gpt3/5b` training config inside `conf/training/gpt3/5b.yaml` file as following.
 ```yaml
   ## Transformer Engine
@@ -3331,7 +3331,7 @@ Any other parameter can also be added to the command to modify its behavior.
 
 
 NeMo Framework supports Adapter Learning and Infused Adapter by Inhibiting and Amplifying Inner Activations (IA3) learning. Both methods are parameter-efficient alternatives to fine-tuning pretrained language
-models. Our NeMo implementation makes it possible to use one pretrained GPT-3 or T5 models on many downstream
+models. Our NeMo implementation makes it possible to use one pretrained GPT or T5 models on many downstream
 tasks without tuning the model's full set of parameters. Because the original model parameters are frozen and never altered by either
 method, these also avoid cartographic forgetting issues often encountered when fine-tuning models. 
 
@@ -4719,7 +4719,7 @@ The `${TP_SIZE}` and `${PP_SIZE}` above should correspond to the Tensor and Pipe
 
 NeMo-RLHF is a library to fine-tune LLMs using Reinforcement Learning from Human Feedback (RLHF) in a fully distributed manner.
 
-NeMo-RLHF supports only GPT-3 models and implements the Proximal Policy Optimization (PPO) algorithm. Support for other models and RL algorithms will be added in future releases. Furthermore, NeMo-RLHF is not currently integrated into NeMo-Megatron-Launcher, so the RLHF jobs must be launched directly from the NeMo-RLHF repository in `/opt/nemo-rlhf`.
+NeMo-RLHF supports only GPT models and implements the Proximal Policy Optimization (PPO) algorithm. Support for other models and RL algorithms will be added in future releases. Furthermore, NeMo-RLHF is not currently integrated into NeMo-Megatron-Launcher, so the RLHF jobs must be launched directly from the NeMo-RLHF repository in `/opt/nemo-rlhf`.
 
 We provide configurations to try RLHF on the newly released 2B GPT model with 4096 sequence length [available on HuggingFace](https://huggingface.co/nvidia/GPT-2B-001). We recommend users use the Anthropic HH-RLHF or the Stack Exchange Preferences datasets to get started.
 
@@ -5534,28 +5534,20 @@ The table and chart below show the performance results.
 ## 8. Changelog
 <a id="markdown-changelog" name="changelog"></a>
 
-<<<<<<< HEAD
-**NeMo Megatron 23.03**
-* Per micro-batch data loader for GPT and BERT
-* SquaredReLU and SwiGLU activation function support for GPT and T5
-* Rotary Position Embedding (RoPE) for GPT and RETRO
-* Early stopping support when P-Tuning/Prompt Tuning GPT, T5, and mT5
-=======
 **NeMo Framework 23.04**
 * NeMo Data Curator - a scalable Python library for curating large-scale datasets required for training large language foundation models
 * Enable Continued Training for P-Tuning
 * Switch to Megatron Core for Model Parallelism in NeMo Framework
 * Extend the Data Validation Tool to provide P-Tuning GPU Runtime Estimates
 * Tensor and Pipeline Parallelism Conversion Support for GPT and T5
-* Supervised Fine-Tuning Support for GPT-3
-* RLHF (Reinforcement Learning from Human Feedback) for GPT-3
+* Supervised Fine-Tuning Support for GPT
+* RLHF (Reinforcement Learning from Human Feedback) for GPT
 
 **NeMo Framework 23.03**
-* Per micro-batch data loader for GPT-3 and BERT
-* SquaredReLU and SwiGLU activation function support for GPT-3 and T5
-* Rotary Position Embedding (RoPE) for GPT-3 and RETRO
-* Early stopping support when P-Tuning/Prompt Tuning GPT-3, T5, and mT5
->>>>>>> 7994daf0a658a5fb062a8374b5d4d787b2aef7ee
+* Per micro-batch data loader for GPT and BERT
+* SquaredReLU and SwiGLU activation function support for GPT and T5
+* Rotary Position Embedding (RoPE) for GPT and RETRO
+* Early stopping support when P-Tuning/Prompt Tuning GPT, T5, and mT5
 * Refactored Adapter learning implementation to mimic the Parameter-Efficient Transfer Learning for NLP approach
 * Flash Attention for GPT models in Transformer Engine
 
@@ -5576,13 +5568,8 @@ The table and chart below show the performance results.
 * ALiBi Position Embeddings for T5 and mT5 (training only)
 * Log total model size (across modal parallel ranks) for GPT, T5, mT5, and BERT
 
-<<<<<<< HEAD
-**NeMo Megatron 22.11**
-* Interleaved Pipeline Scheduling for GPT (training only)
-=======
 **NeMo Framework 22.11**
-* Interleaved Pipeline Scheduling for GPT-3 (training only)
->>>>>>> 7994daf0a658a5fb062a8374b5d4d787b2aef7ee
+* Interleaved Pipeline Scheduling for GPT (training only)
 * FP8 support using Transformer Engine (training only)
 * Distributed Adam Optimizer for T5 and mT5
 * P-Tuning and Prompt Tuning for GPT with Sequence Parallelism
@@ -5600,7 +5587,7 @@ The table and chart below show the performance results.
 * Cloud service providers: support for Amazon Web Services (performance validated up to 20 `p4d.24xlarge` instances)
 * Cloud service providers: switched orchestration from Azure CycleCloud to NVIDIA Nephele for Microsoft Azure
 
-**NeMo Megatron 22.08**
+**NeMo Framework 22.08**
 * Distributed Adam Optimizer for GPT
 * Asymmetric encoder-decoder configuration for T5 and mT5
 * Support for untying embeddings from the classifier layer for T5 and mT5
@@ -5616,7 +5603,7 @@ The table and chart below show the performance results.
 * Fix: Prompt learning in GPT
 * Fix: Out of memory when pretraining GPT with Sequence Parallelism
 
-**NeMo Megatron 22.06**
+**NeMo Framework 22.06**
 * Sequence Parallelism and Selective Activation Checkpointing for GPT
 * Relative Position Embeddings for T5
   * We used mC4 dataset (24 Languages) for pretraining the mT5 and verified our results on KNLI, KorQuAD, KLUE-STS, and XNLI tasks
@@ -5631,7 +5618,7 @@ The table and chart below show the performance results.
 * Cluster validation tools (DGMI, NCCL)
 * 20B GPT training configuration improved by 2.7% for higher throughput
 
-**NeMo Megatron 22.05**
+**NeMo Framework 22.05**
 * Asynchronous gradient all-reduce for GPT, T5, mT5 models with pipeline parallel size equal to 1
 * P-Tuning and Prompt Tuning for GPT with tensor parallelism (training only)
 * AutoConfigurator to find the highest throughput configs for training and inference on Base Command Manager
@@ -5652,11 +5639,11 @@ The table and chart below show the performance results.
 * 220M and 3B T5 training configurations
 * GLUE fine-tuning and evaluation support for T5
 
-**NeMo Megatron 22.02**
+**NeMo Framework 22.02**
 * GPT with pipeline parallelism support (training only)
 * 40B and 175B GPT training configurations
 
-**NeMo Megatron 22.01**
+**NeMo Framework 22.01**
 * GPT with tensor parallelism support on Base Command Platform
 * O2-style AMP (accelerated training of larger models)
 * Chatbot sample application using your trained GPT model
@@ -5666,7 +5653,7 @@ The table and chart below show the performance results.
 <a id="markdown-known-issues" name="known-issues"></a>
 Fixes for the following issues will be released shortly:
 * The inference hyperparameter search is not available in this release for T5 and mT5
-* Accuracy and performance measurement for GPT is currently not supported. Please use the NeMo Megatron 22.05 inference container to use this feature
-* For running inference on BCP please use the NeMo Megatron 22.03 inference container
+* Accuracy and performance measurement for GPT is currently not supported. Please use the NeMo Framework 22.05 inference container to use this feature
+* For running inference on BCP please use the NeMo Framework 22.03 inference container
 * The fine-tuning SQuAD results for T5 are lower than expected
 * In 23.03, there is a known 20% slowdown for T5 TP8 3B configurations - the other T5 3B configurations are performing well
