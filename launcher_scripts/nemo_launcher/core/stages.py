@@ -124,20 +124,20 @@ class NemoMegatronStage:
             f'export PYTHONPATH={self._nemo_code_path}:\${{PYTHONPATH}}',
         ]
 
-    def _make_numa_mapping_command(self) -> List[str]:
-        """Make a command of numa mapping call"""
-        cfg = self.cfg
-        numa_cfg = cfg.get("numa_mapping")
-        if not numa_cfg.get("enable"):
-            return []
+    # def _make_numa_mapping_command(self) -> List[str]:
+    #     """Make a command of numa mapping call"""
+    #     cfg = self.cfg
+    #     numa_cfg = cfg.get("numa_mapping")
+    #     if not numa_cfg.get("enable"):
+    #         return []
 
-        numa_override = [f"{k}={v}" for k, v in numa_cfg.items()]
-        numa_command = [
-            f"python3 -u {self._launcher_scripts_path / 'nemo_launcher/collections/numa_mapping.py'}",
-            *numa_override,
-        ]
-        numa_command = " \\\n  ".join(numa_command)
-        return [numa_command]
+    #     numa_override = [f"{k}={v}" for k, v in numa_cfg.items()]
+    #     numa_command = [
+    #         f"python3 -u {self._launcher_scripts_path / 'nemo_launcher/collections/numa_mapping.py'}",
+    #         *numa_override,
+    #     ]
+    #     numa_command = " \\\n  ".join(numa_command)
+    #     return [numa_command]
 
     def _make_api_log_command_prefix(self, results_dir: str) -> str:
         """Make a command prefix of api logging"""
@@ -311,7 +311,7 @@ class NemoMegatronStage:
         if ntasks_per_node is None:
             ntasks_per_node = self.stage_cfg.trainer.get("devices", 1)
         return (
-            "CUDA_VISIBLE_DEVICES=0,4,2,6,1,5,3,7"
+            "CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7"
             if ntasks_per_node == 8
             else f"CUDA_VISIBLE_DEVICES={','.join(map(str, range(ntasks_per_node)))}"
         )
@@ -367,7 +367,7 @@ class NeMoStage(NemoMegatronStage):
         command_groups = [[]]
         command_groups[0] += self._make_wandb_login_command()
         command_groups[0] += self._make_nemo_path_command()
-        command_groups[0] += self._make_numa_mapping_command()
+        # command_groups[0] += self._make_numa_mapping_command()
 
         # _cuda_device_max_connections and _cuda_visible_devices cannot be used as command prefix on BCP
         if self.cluster == "bcp":
