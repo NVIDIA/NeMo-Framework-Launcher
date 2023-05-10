@@ -5542,6 +5542,20 @@ The table and chart below show the performance results.
 * Tensor and Pipeline Parallelism Conversion Support for GPT and T5
 * Supervised Fine-Tuning Support for GPT
 * RLHF (Reinforcement Learning from Human Feedback) for GPT
+* New GPT model sizes - 843M, 2B, 8B, 43B based on new and improved model configurations.
+* List of GPT model configuration changes
+
+| Configuration    | Previous | New |
+| -------- | ------- | ------- |
+| Activation  | GeLU    | Fast-SwiGLU |
+| Position Embedding | Learned Absolute     | RoPE |
+| Dropout    | 0.1    | 0 |
+| Embeddings and Output Layer | Tied | Untied |
+| Bias terms | Yes | No |
+| Normalization | LayerNorm | LayerNorm1p |
+
+* Added the option to use RMSNorm normalization with GPT models. Can be configured by setting `model.normalization` to `rmsnorm`. Default is `layernorm1p`.
+* Added `fast` versions of SwiGLU, GeGLU and ReGLU. Can be configured by setting `model.activation=fast-swiglu`, `model.activation=fast-reglu` or `model.activation=fast-geglu`. Checkpoints trained with `fast` and regular versions of SwiGLU, GeGLU and ReGLU are *not* compatible with each since the weight state dictionaries are different.
 
 **NeMo Framework 23.03**
 * Per micro-batch data loader for GPT and BERT
