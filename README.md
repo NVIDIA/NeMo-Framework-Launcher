@@ -5656,4 +5656,6 @@ Fixes for the following issues will be released shortly:
 * Accuracy and performance measurement for GPT is currently not supported. Please use the NeMo Framework 22.05 inference container to use this feature
 * For running inference on BCP please use the NeMo Framework 22.03 inference container
 * The fine-tuning SQuAD results for T5 are lower than expected
-* In 23.03, there is a known 20% slowdown for T5 TP8 3B configurations - the other T5 3B configurations are performing well
+* There is a known slowdown for T5 TP8 3B configurations - the other T5 3B configurations are performing well
+* In 23.04, there is a slight regression in autocast performance - it is recommended to use previous releases for autocast use cases
+* Evaluation for GPT has been tested for PP <=2 and may have issues for PP >2.  It is recommended to convert to TP only for Evaluation.
