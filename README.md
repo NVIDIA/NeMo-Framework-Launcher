@@ -9,7 +9,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
 ## Table of contents
 - [1. Model Overview](#1-model-overview)
 - [2. Feature Matrix](#2-feature-matrix)
-  * [2.1. GPT-3 Models](#21-gpt-3-models)
+  * [2.1. GPT Models](#21-gpt-models)
   * [2.2. T5 and mT5 Models](#22-t5-and-mt5-models)
   * [2.3. BERT Models](#23-bert-models)
 - [3. Setup](#3-setup)
@@ -34,7 +34,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.1.1.2. Base Command Platform](#5112-base-command-platform)
       - [5.1.1.3. General Configuration](#5113-general-configuration)
     + [5.1.2. Data Preparation](#512-data-preparation)
-      - [5.1.2.1. Data Preparation for GPT-3 Models](#5121-data-preparation-for-gpt-3-models)
+      - [5.1.2.1. Data Preparation for GPT Models](#5121-data-preparation-for-gpt-models)
         * [5.1.2.1.1. Slurm](#51211-slurm)
         * [5.1.2.1.2. Base Command Platform](#51212-base-command-platform)
         * [5.1.2.1.3. Common](#51213-common)
@@ -51,7 +51,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
         * [5.1.2.4.2. Base Command Platform](#51242-base-command-platform)
         * [5.1.2.4.3. Common](#51243-common)
   * [5.2. Training with Predefined Configurations](#52-training-with-predefined-configurations)
-    + [5.2.1. Predefined Configurations of GPT-3 Models](#521-predefined-configurations-of-gpt-3-models)
+    + [5.2.1. Predefined Configurations of GPT Models](#521-predefined-configurations-of-gpt-models)
     + [5.2.2. Predefined Configurations of T5 Models](#522-predefined-configurations-of-t5-models)
     + [5.2.3. Predefined Configurations of mT5 Models](#523-predefined-configurations-of-mt5-models)
     + [5.2.4. Training Logs with TensorBoard and Weights and Biases](#524-training-logs-with-tensorboard-and-weights-and-biases)
@@ -81,7 +81,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
     + [5.5.2. Base Command Platform](#552-base-command-platform)
     + [5.5.3. Common](#553-common)
   * [5.6. Model Training](#56-model-training)
-    + [5.6.1. GPT-3 Training](#561-gpt-3-training)
+    + [5.6.1. GPT Training](#561-gpt-training)
       - [5.6.1.1. Slurm](#5611-slurm)
       - [5.6.1.2. Base Command Platform](#5612-base-command-platform)
     + [5.6.2. T5 Training](#562-t5-training)
@@ -95,7 +95,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.6.4.2. Base Command Platform](#5642-base-command-platform)
   * [5.7. Resuming Training with Different Number of Nodes](#57-resuming-training-with-different-number-of-nodes)
   * [5.8. Checkpoint Conversion](#58-checkpoint-conversion)
-    + [5.8.1. GPT-3 Conversion](#581-gpt-3-conversion)
+    + [5.8.1. GPT Conversion](#581-gpt-conversion)
       - [5.8.1.1. Common](#5811-common)
       - [5.8.1.2. Slurm](#5812-slurm)
       - [5.8.1.3. Base Command Platform](#5813-base-command-platform)
@@ -118,7 +118,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.9.2.3. Base Command Platform](#5923-base-command-platform)
     + [5.9.3. Fine-tuning on Custom Tasks](#593-fine-tuning-on-custom-tasks)
   * [5.10. Model Prompt Learning](#510-model-prompt-learning)
-    + [5.10.1. GPT-3 Prompt Learning](#5101-gpt-3-prompt-learning)
+    + [5.10.1. GPT Prompt Learning](#5101-gpt-prompt-learning)
       - [5.10.1.1. Common](#51011-common)
       - [5.10.1.2. Slurm](#51012-slurm)
       - [5.10.1.3. Base Command Platform](#51013-base-command-platform)
@@ -127,7 +127,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.10.2.2. Slurm](#51022-slurm)
       - [5.10.2.3. Base Command Platform](#51023-base-command-platform)
   * [5.11. Model Adapter Learning and IA3 Learning](#511-model-adapter-learning-and-ia3-learning)
-    + [5.11.1. GPT-3 Adapter Learning and IA3 Learning](#5111-gpt-3-adapter-learning-and-ia3-learning)
+    + [5.11.1. GPT Adapter Learning and IA3 Learning](#5111-gpt-adapter-learning-and-ia3-learning)
       - [5.11.1.1. Common](#51111-common)
       - [5.11.1.2. Slurm](#51112-slurm)
       - [5.11.1.3. Base Command Platform](#51113-base-command-platform)
@@ -136,7 +136,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.11.2.2. Slurm](#51122-slurm)
       - [5.11.2.3. Base Command Platform](#51123-base-command-platform)
   * [5.12. Model Evaluation](#512-model-evaluation)
-    + [5.12.1. GPT-3 Evaluation](#5121-gpt-3-evaluation)
+    + [5.12.1. GPT Evaluation](#5121-gpt-evaluation)
       - [5.12.1.1. Common](#51211-common)
       - [5.12.1.2. Slurm](#51212-slurm)
       - [5.12.1.3. Base Command Platform](#51213-base-command-platform)
@@ -148,7 +148,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.12.3.1. Common](#51231-common)
       - [5.12.3.2. Slurm](#51232-slurm)
       - [5.12.3.3. Base Command Platform](#51233-base-command-platform)
-    + [5.12.4. Prompt Learned GPT-3 Evaluation](#5124-prompt-learned-gpt-3-evaluation)
+    + [5.12.4. Prompt Learned GPT Evaluation](#5124-prompt-learned-gpt-evaluation)
       - [5.12.4.1. Common](#51241-common)
       - [5.12.4.2. Slurm](#51242-slurm)
       - [5.12.4.3. Base Command Platform](#51243-base-command-platform)
@@ -156,7 +156,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.12.5.1. Common](#51251-common)
       - [5.12.5.2. Slurm](#51252-slurm)
       - [5.12.5.3. Base Command Platform](#51253-base-command-platform)
-    + [5.12.6. Adapter Learned and IA3 Learned GPT-3 Evaluation](#5126-adapter-learned-and-ia3-learned-gpt-3-evaluation)
+    + [5.12.6. Adapter Learned and IA3 Learned GPT Evaluation](#5126-adapter-learned-and-ia3-learned-gpt-evaluation)
       - [5.12.6.1. Common](#51261-common)
       - [5.12.6.2. Slurm](#51262-slurm)
       - [5.12.6.3. Base Command Platform](#51263-base-command-platform)
@@ -165,7 +165,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.12.7.2. Slurm](#51272-slurm)
       - [5.12.7.3. Base Command Platform](#51273-base-command-platform)
   * [5.13. Model Export](#513-model-export)
-    + [5.13.1. GPT-3 Export](#5131-gpt-3-export)
+    + [5.13.1. GPT Export](#5131-gpt-export)
       - [5.13.1.1. Common](#51311-common)
       - [5.13.1.2. Slurm](#51312-slurm)
       - [5.13.1.3. Base Command Platform](#51313-base-command-platform)
@@ -192,10 +192,10 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
     + [5.15.3. Future Work](#5153-future-work)
 - [6  - Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
   * [6.1. Run NVIDIA Triton Server with Generated Model Repository](#61-run-nvidia-triton-server-with-generated-model-repository)
-- [6.2. GPT-3 Text Generation with Ensemble](#62-gpt-3-text-generation-with-ensemble)
+- [6.2. GPT Text Generation with Ensemble](#62-gpt-text-generation-with-ensemble)
 - [6.3. UL2 Checkpoint Deployment](#63-ul2-checkpoint-deployment)
 - [7. Performance](#7-performance)
-  * [7.1. GPT-3 Results](#71-gpt-3-results)
+  * [7.1. GPT Results](#71-gpt-results)
     + [7.1.1. Training Accuracy Results](#711-training-accuracy-results)
     + [7.1.2. Training Performance Results](#712-training-performance-results)
     + [7.1.3. Inference Performance](#713-inference-performance)
@@ -220,7 +220,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
 <a id="markdown-model-overview" name="model-overview"></a>
 
 NeMo Megatron is a new version in the NeMo framework that allows developers to effectively train and scale language
-models to billions of parameters. With NeMo Megatron, you can train different variants of GPT-3, Bert and T5 style models,
+models to billions of parameters. With NeMo Megatron, you can train different variants of GPT, Bert and T5 style models,
 and scale them to multiple nodes on NVIDIA DGX SuperPOD deployments. This deep learning (DL) software stack is optimized for DGX
 SuperPOD configurations using NVIDIA InfiniBand technology to provide efficient on-premises compute for training
 and inferring complex workloads.
@@ -232,7 +232,7 @@ model parallelism stripes layers of a model over multiple devices. For more deta
 [this paper](https://arxiv.org/pdf/2104.04473.pdf).
 
 Our latest techniques, sequence parallelism and selective activation recomputation, bring up to `~30%` faster 
-training time for GPT-3 models ranging from 20B to 1T parameters.
+training time for GPT models ranging from 20B to 1T parameters.
 Sequence parallelism expands tensor-level model parallelism, by 
 noticing that the regions of a transformer layer that have not previously been parallelized are independent 
 along the sequence dimension. By splitting these layers along the sequence dimension we can distribute 
@@ -240,17 +240,17 @@ the compute and, most importantly, the activation memory for these regions acros
 Selective activation recomputation improves cases where memory constraints force us to recompute some, 
 but not all, of the activations. For more details, refer to [this paper](https://arxiv.org/abs/2205.05198).
 
-**GPT-3 architecture**
+**GPT architecture**
 
 <img src="img/model_overview.png"/>
 
-Figure 1: The GPT-3 family architecture. The 5B variant includes 24 transformer layers, a hidden size of 4096, and 32 attention heads. The sequence length is 2048, and the optimizer is Adam. This variant uses tensor parallelism of 2.
+Figure 1: The GPT family architecture. The 5B variant includes 24 transformer layers, a hidden size of 4096, and 32 attention heads. The sequence length is 2048, and the optimizer is Adam. This variant uses tensor parallelism of 2.
 
 ## 2. Feature Matrix
 <a id="markdown-feature-matrix" name="feature-matrix"></a>
 
-### 2.1. GPT-3 Models
-<a id="markdown-gpt-3-models" name="gpt-3-models"></a>
+### 2.1. GPT Models
+<a id="markdown-gpt-models" name="gpt-models"></a>
 
 | Feature                                                 | Training                             | Inference                                                                                                                                                                                                                                                                                                                 |
 | ------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -647,11 +647,11 @@ to run that pipeline or not. In slurm based clusters, all of them can be set
 to `True` at the same time, and they will be executed in order. However, in Base Command Platform, 
 only one of them should be set to `True` at a time.
 
-[//]: # (##### 5.1.1.3.1. Settings for GPT-3 Models )
+[//]: # (##### 5.1.1.3.1. Settings for GPT Models )
 
-[//]: # (<a id="markdown-settings-for-gpt-3-models" name="settings-for-gpt-3-models"></a>)
+[//]: # (<a id="markdown-settings-for-gpt-models" name="settings-for-gpt-models"></a>)
 
-**Settings for GPT-3 Models**: Default settings for GPT-3 models are in the `config/config.yaml` file:
+**Settings for GPT Models**: Default settings for GPT models are in the `config/config.yaml` file:
 
 ```yaml
 stages:
@@ -766,12 +766,12 @@ The configuration used for data preparation for the Pile dataset or mC4 dataset 
 `conf/config.yaml` file and `data_preparation` must be included in `stages` to run it.
 
 
-##### 5.1.2.1. Data Preparation for GPT-3 Models
-<a id="markdown-data-preparation-for-gpt-3-model" name="data-preparation-for-gpt-3-model"></a>
+##### 5.1.2.1. Data Preparation for GPT Models
+<a id="markdown-data-preparation-for-gpt-model" name="data-preparation-for-gpt-model"></a>
 The `data_preparation` parameter in `conf/config.yaml` specifies which file to use for data preparation
 configuration purposes. The default value is set to `download_gpt3_pile`, which can be
 found in `conf/data_preparation/download_gpt3_pile.yaml`. It is used to download, extract,
-and preprocess the Pile dataset for GPT-3 model. The parameters can be
+and preprocess the Pile dataset for GPT model. The parameters can be
 modified to perform the different tasks and to decide where to store the
 datasets, vocab, and merge files.
 
@@ -788,7 +788,7 @@ files 0, 3, 5, 6, and 7.
 First, ensure the cluster related configuration in the `conf/cluster/bcm.yaml` file is correct.
 The `cluster` and `cluster_type` parameters in `conf/config.yaml` must be set to `bcm`.
 Then, modify the `time_limit` or any other parameter related to the job in the `download_gpt3_pile.yaml`
-file for GPT-3 models.
+file for GPT models.
 The data preparation can be parallelized by using up to 30 nodes to download all 30 files in parallel.
 
 Example:
@@ -820,7 +820,7 @@ must be launched in a multi-node job. It can be parallelized to use between 2 an
 With Base Command Platform, the 700+ GB dataset can be downloaded once and then
 shared by multiple users in the same ACE by setting the permissions of the `nemo_megatron_data_ws` workspace.
 
-To run the data preparation pipeline for GPT-3 models, run:
+To run the data preparation pipeline for GPT models, run:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[data_preparation] \
 cluster_type=bcp launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data/the_pile_gpt3 \
@@ -835,7 +835,7 @@ Any other parameter can also be added to the command to modify its behavior.
 ###### 5.1.2.1.3. Common
 <a id="markdown-41213-common" name="41213-common"></a>
 
-Set the configuration for the data preparation job for GPT-3 models in the YAML file:
+Set the configuration for the data preparation job for GPT models in the YAML file:
 ```yaml
 run:
   name: download_gpt3_pile
@@ -865,7 +865,7 @@ rm_extracted: True # Preprocess script will remove extracted files after preproc
 The `data_preparation` parameter in `conf/config.yaml` specifies which file to use for data preparation
 configuration purposes. The `data_preparation` parameter needs to be specified as `t5/download_t5_pile` for
 preparing the Pile dataset for T5 models. The config file can be found in 
-`conf/data_preparation/t5/download_t5_pile.yaml`. GPT-3 models and T5 models use
+`conf/data_preparation/t5/download_t5_pile.yaml`. GPT models and T5 models use
 different tokenizer and vocab files. The default parameters can be found in the
 corresponding config files.
 
@@ -1149,10 +1149,10 @@ rm_extracted: True # Preprocess script will remove extracted files after preproc
 ### 5.2. Training with Predefined Configurations
 <a id="markdown-training-with-predefined-configurations" name="training-with-predefined-configurations"></a>
 
-#### 5.2.1. Predefined Configurations of GPT-3 Models
-<a id="markdown-predefined-configurations-of-gpt-3-models" name="predefined-configurations-of-gpt-3-models"></a>
+#### 5.2.1. Predefined Configurations of GPT Models
+<a id="markdown-predefined-configurations-of-gpt-models" name="predefined-configurations-of-gpt-models"></a>
 
-We provide five configurations for several different GPT-3 model sizes: 126M, 5B, 20B, 
+We provide five configurations for several different GPT model sizes: 126M, 5B, 20B, 
 40B, and 175B parameters. These configurations include carefully selected
 hyperparameters, which should be used as a guideline for any custom model
 configurations. All these configurations are provided in the `conf/training/gpt3/`
@@ -1178,7 +1178,7 @@ And run:
 python3 main.py
 ```
 
-To train a 126M GPT-3 model on Base Command Platform cluster on 8 nodes, use the command:
+To train a 126M GPT model on Base Command Platform cluster on 8 nodes, use the command:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=gpt3/126m \
 stages=[training] \
@@ -1204,7 +1204,7 @@ sequence length is 2048, and the optimizer is Distributed Adam. This model uses 
 parallelism of 1. For the details on all the parameters, see the 5b.yaml
 config file.
 
-To train a 5B GPT-3 model, modify the `conf/config.yaml` file to set:
+To train a 5B GPT model, modify the `conf/config.yaml` file to set:
 ```yaml
 - training: gpt3/5b
 stages:
@@ -1216,7 +1216,7 @@ And run:
 python3 main.py
 ```
 
-To train a 5B GPT-3 model on Base Command Platform cluster on 16 nodes, use the command:
+To train a 5B GPT model on Base Command Platform cluster on 16 nodes, use the command:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=gpt3/5b \
 stages=[training] \
@@ -1238,7 +1238,7 @@ sequence length is 2048, and the optimizer is Distributed Adam. This model uses 
 parallelism of 4 and pipeline parallelism of 1. For the details on all the parameters, see the 20b.yaml
 config file.
 
-To train a 20B GPT-3 model, modify the `conf/config.yaml` file to set:
+To train a 20B GPT model, modify the `conf/config.yaml` file to set:
 ```yaml
 - training: gpt3/20b
 stages:
@@ -1250,7 +1250,7 @@ And run:
 python3 main.py
 ```
 
-To train a 20B GPT-3 model on Base Command Platform cluster on 64 nodes, use the command:
+To train a 20B GPT model on Base Command Platform cluster on 64 nodes, use the command:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=gpt3/20b \
 stages=[training] \
@@ -1271,7 +1271,7 @@ sequence length is 2048, and the optimizer is Distributed Adam. This model uses 
 parallelism of 8 and pipeline parallelism of 1. 
 For the details on all the parameters, see the 40b.yaml config file.
 
-To train a 40B GPT-3 model, modify the `conf/config.yaml` file to set:
+To train a 40B GPT model, modify the `conf/config.yaml` file to set:
 ```yaml
 - training: gpt3/40b
 stages:
@@ -1283,7 +1283,7 @@ And run:
 python3 main.py
 ```
 
-To train a 40B GPT-3 model on Base Command Platform cluster on 128 nodes, use the command:
+To train a 40B GPT model on Base Command Platform cluster on 128 nodes, use the command:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=gpt3/40b \
 stages=[training] \
@@ -1305,7 +1305,7 @@ parallelism of 8 and pipeline parallelism of 16. This model uses interleaved pip
 with a virtual pipeline chunk size of 6.
 For the details on all the parameters, see the 175b.yaml config file.
 
-To train a 175B GPT-3 model, modify the `conf/config.yaml` file to set:
+To train a 175B GPT model, modify the `conf/config.yaml` file to set:
 ```yaml
 - training: gpt3/175b
 stages:
@@ -1317,7 +1317,7 @@ And run:
 python3 main.py
 ```
 
-To train a 175B GPT-3 model on Base Command Platform cluster on 128 nodes, use the command:
+To train a 175B GPT model on Base Command Platform cluster on 128 nodes, use the command:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py training=gpt3/175b \
 stages=[training] \
@@ -1334,7 +1334,7 @@ creating the job (number of replicas).
 **FP8 with Transformer Engine**
 Transformer Engine (TE) is a library for accelerating Transformer-based models on **NVIDIA Hopper GPUs**. It enables using 8-bit floating point (FP8) precision to provide better performance with lower memory utilization in both training and inference. NVIDIA open-sourced TE on [github](https://github.com/NVIDIA/TransformerEngine).
 
-In NeMo Megatron, you can now use `fp8` to pre-train GPT-3 models. For example, if you want to turn on `fp8` to pre-train a 
+In NeMo Megatron, you can now use `fp8` to pre-train GPT models. For example, if you want to turn on `fp8` to pre-train a 
 GPT3 5B model, you can modify `gpt3/5b` training config inside `conf/training/gpt3/5b.yaml` file as following.
 ```yaml
   ## Transformer Engine
@@ -1800,7 +1800,7 @@ directories respectively. `$NGC_ARRAY_SIZE` is automatically set to the number o
 AutoConfigurator searches for the Hyper-Parameters (HPs) that achieve the highest throughput for training and inference for
 Large Language Models (LLMs) using NeMo-Megatron.
 
-Note: The inference HP search is only available for GPT-3 models.
+Note: The inference HP search is only available for GPT models.
 
 #### 5.3.1. AutoConfigurator Capabilities
 <a id="markdown-autoconfigurator-capabilities" name="autoconfigurator-capabilities"></a>
@@ -1808,7 +1808,7 @@ Note: The inference HP search is only available for GPT-3 models.
 AutoConfigurator is intended to quickly iterate over different model configurations, 
 to find the best configuration with minimal time and money spending. To achieve that, AutoConfigurator provides several different capabilities, as shown in the table below:
 
-| Feature                              | GPT-3    | T5       | mT5      | Bert     |
+| Feature                              | GPT    | T5       | mT5      | Bert     |
 | ------------------------------------ | -------- | -------- | -------- | -------- |
 | Model Size Recommendation            | Yes      | Yes      | Yes      | Yes      |
 | Base Config Generation               | Yes      | Yes      | Yes      | Yes      |
@@ -1828,7 +1828,7 @@ the maximum time to train, and the number of tokens to train for are known, then
 recommend a model size that can be trained with the specified hardware and time constraints.
 
 For example, if the user has 20 NVIDIA DGX nodes available (80GB GPU memory), and wants to train a 
-GPT-3 model for a maximum of 5 days, AutoConfigurator will recommend using a 5B parameter GPT-3 model. 
+GPT model for a maximum of 5 days, AutoConfigurator will recommend using a 5B parameter GPT model. 
 
 
 ##### 5.3.1.2. Base Config Generation
@@ -1907,7 +1907,7 @@ The `launcher_scripts_path` and `fastertransformer_path` must point to the path 
 `FasterTransformer` directories are located in the local file system. The locations
 specified in the default config should be valid if `/opt` was extracted correctly. Next, the 
 `data_dir` value must point to the path where the training dataset is located. Note that the dataset 
-for GPT-3, T5 and mT5 values will be different, so modify this parameter accordingly. Follow the data 
+for GPT, T5 and mT5 values will be different, so modify this parameter accordingly. Follow the data 
 preparation steps to learn how to download and preprocess the datasets for each model. The dataset in 
 this path does not need to be the full size dataset; only a small representative sample of the dataset 
 is needed, since AutoConfigurator does not train the models to convergence. Finally, the `base_results_dir` 
@@ -1961,9 +1961,9 @@ all the jobs have finished, a final recommendation will be produced for both tra
 which will show the optimal hyper-parameters for the given model.
 
 The predefined configs can be found in the `conf/search_config` directory. Each YAML file shows one 
-model type (GPT-3, T5 or mT5) and one model size (up to 175B parameters for GPT-3 and up to 42B 
+model type (GPT, T5 or mT5) and one model size (up to 175B parameters for GPT and up to 42B 
 parameters for T5 and mT5). To run the desired config, we will need to modify the `search_config` 
-parameter in the `conf/config.yaml` file. For example, if we wish to run a 5B GPT-3 model, we can 
+parameter in the `conf/config.yaml` file. For example, if we wish to run a 5B GPT model, we can 
 set this value to `gpt3/5b` (the .yaml ending should not be included). 
 
 ###### 5.3.2.2.1. Model Config
@@ -2075,7 +2075,7 @@ optimization will take place in the next step (Training HP Search).
 To run the training HP search pipeline, the parameter `run_training_hp_search` must be set to `True` 
 in the `conf/config.yaml` file. The model used to search the best training HPs must be selected 
 using the `search_config` parameter in `conf/config.yaml`. For example, by default, this parameter 
-will be set to `gpt3/5b`, so AutoConfigurator will search the optimal training HPs for a 5B parameter GPT-3 
+will be set to `gpt3/5b`, so AutoConfigurator will search the optimal training HPs for a 5B parameter GPT 
 model. The configuration for this model can be found in the `conf/search_config/gpt3/5b.yaml` file. 
 To configure the behavior of the HP search, the following parameters can be modified in the 
 correspoinding YAML file. To run the training AutoConfigurator HP search after all the parameters are set, you should call 
@@ -2085,7 +2085,7 @@ correspoinding YAML file. To run the training AutoConfigurator HP search after a
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 
 To run the HP Tool in BCP, the `cluster_type` parameter must be set to `bcp`. All the parameters can be configured 
-through CLI overrides. For example, to launch a training HP search for the 126m GPT-3 model, run this command:
+through CLI overrides. For example, to launch a training HP search for the 126m GPT model, run this command:
 ```
 python3 /opt/NeMo-Megatron-Launcher/auto_configurator/main.py search_config=gpt3/0.126b run_inference_hp_search=False auto_configurator_path=/opt/NeMo-Megatron-Launcher/auto_configurator data_dir=/mount/data/the_pile_gpt3 base_results_dir=/mount/results/auto_configurator search_config.train_settings.num_nodes=$NGC_ARRAY_SIZE cluster_type=bcp
 ```
@@ -2124,7 +2124,7 @@ train_settings:
 To run the inference HP search pipeline, the parameter `run_inference_hp_search` must be set to `True`
 in the `conf/config.yaml` file. The model used to search the best inference HPs must be selected
 using the `search_config` parameter in `conf/config.yaml`. For example, by default, this parameter
-will be set to `gpt3/5b`, so AutoConfigurator will search the optimal inference HPs for a 5B parameter GPT-3
+will be set to `gpt3/5b`, so AutoConfigurator will search the optimal inference HPs for a 5B parameter GPT
 model. The configuration for this model can be found in the `conf/search_config/gpt3/5b.yaml` file.
 To configure the behavior of the HP search, the following parameters can be modified in the
 correspoinding YAML file.
@@ -2133,7 +2133,7 @@ correspoinding YAML file.
 <a id="markdown-running-custom-model-size-configs" name="running-custom-model-size-configs"></a>
 
 The HP Tool is capable of recommending a model size, based on your hardware and training time 
-constraints. For instance, if you want to train a GPT-3 model, but don't know what model size is 
+constraints. For instance, if you want to train a GPT model, but don't know what model size is 
 appropriate, you can input the number of nodes (and GPUs per node) available in your cluster, 
 the amount of time you want to spend training the model, and AutoConfigurator will recommend a model size
 that can be trained in that time with your hardware. To see an example of this, you can look at 
@@ -2244,7 +2244,7 @@ For more details of submitting training jobs on Slurm and BCP, please check [Sec
 
 ### 5.5. Bring Your Own Dataset
 <a id="markdown-bring-your-own-dataset" name="bring-your-own-dataset"></a>
-If you want to train the GPT-3, T5, or mT5 models on your own dataset (which is already
+If you want to train the GPT, T5, or mT5 models on your own dataset (which is already
 filtered and cleaned), you must first convert the dataset files to jsonl files.
 
 As discussed in previous sections, the `data_preparation` parameter in `conf/config.yaml` 
@@ -2357,13 +2357,13 @@ please consider breaking up json, jsonl or json.gz files into smaller chunks bef
 ### 5.6. Model Training
 <a id="markdown-model-training" name="model-training"></a>
 We provide an easy-to-use yet powerful pipeline to perform distributed training
-of both GPT-3, T5 and mT5 models across multiple nodes and GPUs. We also provide
+of both GPT, T5 and mT5 models across multiple nodes and GPUs. We also provide
 well-established recipes for different sizes models, where the
 throughput has been maximized, and the convergence properties of the
 models have been tested and confirmed.
 
-#### 5.6.1. GPT-3 Training
-<a id="markdown-gpt-3-training" name="gpt-3-training"></a>
+#### 5.6.1. GPT Training
+<a id="markdown-gpt-training" name="gpt-training"></a>
 The configuration used for the training pipeline must be specified in the
 `conf/config.yaml` file, specifying the training parameter, specifying which file
 to use for training purposes. The `training` must be included in `stages` to
@@ -2596,7 +2596,7 @@ almost identical, regardless of the number of nodes. The number of nodes selecte
 compatible with the rest of the parameters: GBS must be a multiple of 
 (MBS * num_gpus) / (tensor_parallelism * pipeline parallelism)
 
-where MBS is the micro batch size. For instance, the default GBS for the 5B GPT-3
+where MBS is the micro batch size. For instance, the default GBS for the 5B GPT
 model is 1440; the MBS is 2; the number of GPUs is 20\*8 = 160; 
 the `tensor_parallelism` value is set to 2; and the `pipeline_parallelism` value is set to 1.
 Therefore, the GBS is set to a valid value:
@@ -2611,19 +2611,19 @@ Therefore, the GBS is set to a valid value:
 We provide a simple tool to convert the checkpoints from `.ckpt` format to `.nemo` format, 
 which will later be used for evaluation (in T5 models) and inference purposes. 
 
-#### 5.8.1. GPT-3 Conversion
-<a id="markdown-gpt-3-conversion" name="gpt-3-conversion"></a>
+#### 5.8.1. GPT Conversion
+<a id="markdown-gpt-conversion" name="gpt-conversion"></a>
 
 The configuration used for the checkpoint conversion needs to be specified in the 
 `conf/config.yaml` file, specifying the conversion parameter, which specifies the file 
 to use for conversion purposes. The default value is set to `gpt3/convert_gpt3`, which can be found 
-in `conf/conversion/gpt3/convert_gpt3.yaml` for GPT-3 models. 
+in `conf/conversion/gpt3/convert_gpt3.yaml` for GPT models. 
 
 The `conversion` must be included in `stages` to run the conversion pipeline.
 
 ##### 5.8.1.1. Common
 <a id="markdown-common" name="common"></a>
-To specify the input checkpoint to be used for conversion for GPT-3 models, use the `model` parameters
+To specify the input checkpoint to be used for conversion for GPT models, use the `model` parameters
 in `conf/conversion/convert_gpt3.yaml`:
 ```yaml
 model:
@@ -2638,7 +2638,7 @@ model:
     merge_file: ${data_dir}/bpe/merges.txt
 ```
 
-To specify the output location and file name of the converted `.nemo` file for GPT-3 models, use the `run` parameters
+To specify the output location and file name of the converted `.nemo` file for GPT models, use the `run` parameters
 in `conf/conversion/gpt3/convert_gpt3.yaml`:
 ```yaml
 run:
@@ -2902,7 +2902,7 @@ Any other parameter can also be added to the command to modify its behavior.
 <a id="markdown-model-fine_tuning" name="model-fine_tuning"></a>
 
 We also provide an easy-to-use tool to help fine-tuning the trained checkpoints
-on SQuAD for T5 models and on XQuAD for mT5 models. Fine-tuning for GPT-3 models is not supported.
+on SQuAD for T5 models and on XQuAD for mT5 models. Fine-tuning for GPT models is not supported.
 
 #### 5.9.1. T5 Fine-tuning
 <a id="markdown-t5-fine_tuning" name="t5-fine_tuning"></a>
@@ -3119,7 +3119,7 @@ You can follow the instructions in T5 and mT5 fine-tuning sections to submit a c
 
 Within NeMo Megatron we refer to **p-tuning** and **prompt tuning** methods collectively as prompt
 learning. Both methods are parameter efficient alternatives to fine-tuning pretrained language
-models. Our NeMo implementation makes it possible to use one pretrained GPT-3, T5 or mT5 models on many downstream
+models. Our NeMo implementation makes it possible to use one pretrained GPT, T5 or mT5 models on many downstream
 tasks without needing to tune the model's full set of parameters. It also allows for adding new tasks
 to your model without overwriting or disrupting previous tasks for which the model has already been
 p-tuned/prompt-tuned. Because the original model parameters are frozen and never altered by either
@@ -3134,8 +3134,8 @@ Instead of selecting discrete text prompts in a manual or automated fashion, pro
 For more details of our implementation, please check [Prompt Learning](https://docs.nvidia.com/deeplearning/nemo/user-guide/docs/en/stable/nlp/nemo_megatron/prompt_learning.html) in NeMo.
 
 
-#### 5.10.1. GPT-3 Prompt Learning
-<a id="markdown-gpt-3-prompt-learning" name="gpt-3-prompt-learning"></a>
+#### 5.10.1. GPT Prompt Learning
+<a id="markdown-gpt-prompt-learning" name="gpt-prompt-learning"></a>
 
 SQuAD v1.1 benchmark is supported for prompt learning. With default prompt learning config file, 
 our scripts will download and preprocess original SQuAD v1.1 dataset to prompt learning dataset format.
@@ -3209,7 +3209,7 @@ In order to run the prompt learning script on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
 from the command line, using hydra. The evaluation script must be launched in a multi-node job.
 
-To run the prompt learning pipeline to prompt-learn a 5B GPT-3 model converted checkpoint stored in 
+To run the prompt learning pipeline to prompt-learn a 5B GPT model converted checkpoint stored in 
 `/mount/results/gpt3_5b/convert_nemo`, run:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py prompt_learning=gpt3/squad \
@@ -3331,7 +3331,7 @@ Any other parameter can also be added to the command to modify its behavior.
 
 
 NeMo Megatron supports Adapter Learning and Infused Adapter by Inhibiting and Amplifying Inner Activations (IA3) learning. Both methods are parameter-efficient alternatives to fine-tuning pretrained language
-models. Our NeMo implementation makes it possible to use one pretrained GPT-3 or T5 models on many downstream
+models. Our NeMo implementation makes it possible to use one pretrained GPT or T5 models on many downstream
 tasks without tuning the model's full set of parameters. Because the original model parameters are frozen and never altered by either
 method, these also avoid cartographic forgetting issues often encountered when fine-tuning models. 
 
@@ -3342,8 +3342,8 @@ Unlike prompt-learning and p-tuning, Adapter learning and IA3 do not insert virt
 and Cheaper than In-Context Learning](https://arxiv.org/pdf/2205.05638.pdf)". Note that the paper proposes a recipe called *t-few* which also introduces an unlikelihood loss function and a continued training procedure. Our IA3 implementation does not support these additions and only focuses on the core architectural change.
 
 
-#### 5.11.1. GPT-3 Adapter Learning and IA3 Learning
-<a id="markdown-gpt-3-adapter-learning" name="gpt-3-adapter-learning"></a>
+#### 5.11.1. GPT Adapter Learning and IA3 Learning
+<a id="markdown-gpt-adapter-learning" name="gpt-adapter-learning"></a>
 
 SQuAD v1.1 benchmark is supported for Adapter learning and IA3. With default adapter learning and IA3 config file, 
 our scripts will download and preprocess original SQuAD v1.1 dataset to adapter learning and IA3 dataset format 
@@ -3423,7 +3423,7 @@ In order to run the adapter learning script on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
 from the command line, using hydra. The evaluation script must be launched in a multi-node job.
 
-To run the adapter learning pipeline to adapter-learn a 5B GPT-3 model converted checkpoint stored in 
+To run the adapter learning pipeline to adapter-learn a 5B GPT model converted checkpoint stored in 
 `/mount/results/gpt3_5b/convert_nemo`, run:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py adapter_learning=gpt3/squad \
@@ -3438,7 +3438,7 @@ The command above assumes you mounted the data workspace in `/mount/data`, and t
 The stdout and stderr outputs will also be redirected to the `/results/adapter_learning_gpt3_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
-To run the IA3 learning pipeline ro IA3-learn a 5B GPT-3 model converted checkpoint stored in 
+To run the IA3 learning pipeline ro IA3-learn a 5B GPT model converted checkpoint stored in 
 `/mount/results/gpt3_5b/convert_nemo`, run:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py ia3_learning=gpt3/squad \
@@ -3563,11 +3563,11 @@ Any other parameter can also be added to the command to modify its behavior.
 ### 5.12. Model Evaluation
 <a id="markdown-model-evaluation" name="model-evaluation"></a>
 
-#### 5.12.1. GPT-3 Evaluation
-<a id="markdown-gpt-3-evaluation" name="gpt-3-evaluation"></a>
+#### 5.12.1. GPT Evaluation
+<a id="markdown-gpt-evaluation" name="gpt-evaluation"></a>
 
 We also provide a simple tool to help evaluate the trained checkpoints. You can
-evaluate the capabilities of the GPT-3 model on the following ZeroShot
+evaluate the capabilities of the GPT model on the following ZeroShot
 downstream evaluation tasks: `lambada`, `boolq`, `race`, `piqa`, `hellaswag`, `winogrande`,
 `wikitext2`, and `wikitext103`.
 
@@ -3653,7 +3653,7 @@ In order to run the evaluation script on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
 from the command line, using hydra. The evaluation script must be launched in a multi-node job.
 
-To run the evaluation pipeline to evaluate a 126M GPT-3 model checkpoint stored in 
+To run the evaluation pipeline to evaluate a 126M GPT model checkpoint stored in 
 `/mount/results/gpt3_126m/checkpoints`, run:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[evaluation] \
@@ -3671,7 +3671,7 @@ Any other parameter can also be added to the command to modify its behavior.
 
 
 #### 5.12.2. T5 Evaluation
-<a id="markdown-t5-evaluation" name="gpt-3-evaluation"></a>
+<a id="markdown-t5-evaluation" name="gpt-evaluation"></a>
 
 
 On top of fine-tuned checkpoint, you can run the evaluation scripts to
@@ -3860,11 +3860,11 @@ The stdout and stderr outputs will also be redirected to the `/results/eval_mt5_
 Any other parameter can also be added to the command to modify its behavior.
 
 
-#### 5.12.4. Prompt Learned GPT-3 Evaluation
-<a id="markdown-prompt-learned-gpt-3-evaluation" name="prompt-learned-gpt-3-evaluation"></a>
+#### 5.12.4. Prompt Learned GPT Evaluation
+<a id="markdown-prompt-learned-gpt-evaluation" name="prompt-learned-gpt-evaluation"></a>
 
-We also provide a simple tool to help evaluate the prompt learned GPT-3 checkpoints. You can
-evaluate the capabilities of the prompt learned GPT-3 model on a customized prompt learning test dataset.
+We also provide a simple tool to help evaluate the prompt learned GPT checkpoints. You can
+evaluate the capabilities of the prompt learned GPT model on a customized prompt learning test dataset.
 We provide an example to evaluate our checkpoint, which went through prompt learning on SQuAD v1.1,
 on the SQuAD v1.1 test dataset created in prompt learning step.
 
@@ -3946,7 +3946,7 @@ In order to run the evaluation script on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
 from the command line, using hydra. The evaluation script must be launched in a multi-node job.
 
-To run the evaluation pipeline to evaluate a prompt learned 5B GPT-3 model checkpoint stored in 
+To run the evaluation pipeline to evaluate a prompt learned 5B GPT model checkpoint stored in 
 `/mount/results/gpt3_5b/checkpoints`, run:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py stages=[evaluation] evaluation=prompt_gpt3/squad \
@@ -4075,11 +4075,11 @@ The command above assumes you mounted the data workspace in `/mount/data`, and t
 The stdout and stderr outputs will also be redirected to the `/results/eval_prompt_mt5_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
-#### 5.12.6. Adapter Learned and IA3 Learned GPT-3 Evaluation
-<a id="markdown-prompt-learned-and-ia3-learned-gpt-3-evaluation" name="prompt-learned-and-ia3-learned-gpt-3-evaluation"></a>
+#### 5.12.6. Adapter Learned and IA3 Learned GPT Evaluation
+<a id="markdown-prompt-learned-and-ia3-learned-gpt-evaluation" name="prompt-learned-and-ia3-learned-gpt-evaluation"></a>
 
-We also provide a simple tool to help evaluate the adapter and IA3 learned GPT-3 checkpoints. You can
-evaluate the capabilities of the adapter learned GPT-3 model on a customized adapter learning test dataset.
+We also provide a simple tool to help evaluate the adapter and IA3 learned GPT checkpoints. You can
+evaluate the capabilities of the adapter learned GPT model on a customized adapter learning test dataset.
 We provide an example to evaluate our checkpoint, which went through adapter learning or IA3 learning on SQuAD v1.1.
 
 The configuration used for the evaluation needs to be defined in the
@@ -4304,14 +4304,14 @@ Any other parameter can also be added to the command to modify its behavior.
 We also provide a tool to enable deployment of the NeMo Megatron model on the NVIDIA Triton
 Inference Server with FasterTransformer Backend.
 
-The export supports only GPT-3. You can checkout T5 and mT5 support
+The export supports only GPT. You can checkout T5 and mT5 support
 in FasterTransformer repository but it is limited to older versions of
 NeMo and Megatron-LM.
 
-#### 5.13.1. GPT-3 Export
-<a id="markdown-gpt-3-export" name="gpt-3-export"></a>
+#### 5.13.1. GPT Export
+<a id="markdown-gpt-export" name="gpt-export"></a>
 
-GPT-3 model is evaluated with `lambada` task which results can be compared with results from evaluation stage.
+GPT model is evaluated with `lambada` task which results can be compared with results from evaluation stage.
 
 The configuration used for the export needs to be specified in the
 `conf/config.yaml` file, specifying the `export` parameter, which specifies the
@@ -4400,7 +4400,7 @@ In order to run the export stage on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
 from the command line, using hydra. The export scripts must be launched in a multi-node job.
 
-To run the export pipeline to evaluate a 126M GPT-3 model checkpoint stored in 
+To run the export pipeline to evaluate a 126M GPT model checkpoint stored in 
 `/mount/results/gpt3_126m/checkpoints`, run:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py \
@@ -4633,11 +4633,11 @@ The stdout and stderr outputs will also be redirected to the `/results/export_mt
 Any other parameter can also be added to the command to modify its behavior.
 
 ### 5.14 Instruction Following via Supervised Finetuning (SFT)
-<a id="markdown-sft" name="sft"></a>
+<a id="markdown-instruction-following-via-supervised-finetuning-(sft)" name="instruction-following-via-supervised-finetuning-(sft)"></a>
 SFT is the process of finetuning all of the model's parameters on supervised data of inputs and outputs that teaches the model how to follow user specified instructions. It is typically done after model pre-training. This section describes the steps involved in finetuning a GPT model for instruction following. In the subsequent sections, we will describe how to format your data and run training.
 
 #### 5.14.1 SFT Data Formatting
-
+<a id="markdown-data-formatting" name="data-formatting"></a>
 To demonstrate how to format your SFT data, we'll take the Dolly dataset (https://github.com/databrickslabs/dolly) as an example, which consists of 15k instruction-context-response triples.
 
 First, to download the data, run `launcher_scripts/nemo_launcher/collections/dataprep_scripts/dolly_datapreep/download.py --path_to_save /path/to/save/data.jsonl`
@@ -4661,6 +4661,7 @@ From the above example, there is no clear "input" and "output" field that SFT re
 `python launcher_scripts/nemo_launcher/collections/dataprep_scripts/dolly_datapreep/preprocess.py --input /path/to/save/data.jsonl` generates a file `/path/to/save/data-output.jsonl` that can provided to SFT training described below.
 
 #### 5.14.2 SFT Training
+<a id="markdown-sft-training" name="sft-training"></a>
 
 Once you have one or more dataset you would like to finetune on, you can run the finetuning script from NeMo as follows:
 
@@ -4718,7 +4719,7 @@ The `${TP_SIZE}` and `${PP_SIZE}` above should correspond to the Tensor and Pipe
 
 NeMo-RLHF is a library to fine-tune LLMs using Reinforcement Learning from Human Feedback (RLHF) in a fully distributed manner.
 
-NeMo-RLHF supports only GPT-3 models and implements the Proximal Policy Optimization (PPO) algorithm. Support for other models and RL algorithms will be added in future releases. Furthermore, NeMo-RLHF is not currently integrated into NeMo-Megatron-Launcher, so the RLHF jobs must be launched directly from the NeMo-RLHF repository in /opt/nemo-rlhf.
+NeMo-RLHF supports only GPT models and implements the Proximal Policy Optimization (PPO) algorithm. Support for other models and RL algorithms will be added in future releases. Furthermore, NeMo-RLHF is not currently integrated into NeMo-Megatron-Launcher, so the RLHF jobs must be launched directly from the NeMo-RLHF repository in /opt/nemo-rlhf.
 
 We provide configurations to try RLHF on the newly released 2B GPT model with 4096 sequence length [available on HuggingFace](https://huggingface.co/nvidia/GPT-2B-001). We recommend users use the Anthropic HH-RLHF or the Stack Exchange Preferences datasets to get started.
 
@@ -5105,9 +5106,9 @@ If you notice warning about missing files, you should double check your model:
 [WARNING] file /triton-model-repository/model_name/1/1-gpu/model.final_layernorm.weight.bin cannot be opened, loading model fails!
 ```
 
-## 6.2. GPT-3 Text Generation with Ensemble
+## 6.2. GPT Text Generation with Ensemble
 
-FasterTransformer for GPT-3 implements a part of whole text generation application.
+FasterTransformer for GPT implements a part of whole text generation application.
 
 An
 [ensemble](https://github.com/triton-inference-server/server/blob/main/docs/architecture.md#ensemble-models)
@@ -5194,11 +5195,11 @@ configuration of your UL2 checkpoint and your cluster configuration.
 ## 7. Performance
 <a id="markdown-performance" name="performance"></a>
 
-### 7.1. GPT-3 Results
-<a id="markdown-gpt-3-results" name="gpt-3-results"></a>
+### 7.1. GPT Results
+<a id="markdown-gpt-results" name="gpt-results"></a>
 
 #### 7.1.1. Training Accuracy Results
-Training Accuracy: NVIDIA DGX SuperPOD (8 x 8 x A100 80GB for 126M GPT-3 Model; 16 x 8 x A100 80GB for 5B GPT-3 Model)
+Training Accuracy: NVIDIA DGX SuperPOD (8 x 8 x A100 80GB for 126M GPT Model; 16 x 8 x A100 80GB for 5B GPT Model)
 
 We evaluated the 126M parameter and 5B parameter models on 8 different language
 tasks. The results can be found in the table below. All the tasks are provided
@@ -5224,12 +5225,12 @@ checkpoint file on all these tasks.
 |                                    |Byte PPL                    | 1.9                            | 1.6                            |
 |                                    |Bits per Byte PPL | 0.64                         | 0.47                         |
 
-Training the 5B GPT-3 model to convergence takes 6.5 days, and the loss curve can be seen in the figure below:
+Training the 5B GPT model to convergence takes 6.5 days, and the loss curve can be seen in the figure below:
 
 <img src="img/5B_GPT_3_loss_final.svg"/>
 
 The table below shows the converged training loss, the throughput, and the
-total time to train for the 5B GPT-3 model, using a given number of GPUs and a
+total time to train for the 5B GPT model, using a given number of GPUs and a
 given Global Batch Size (GBS).
 
 | \#GPUs | GBS    | Seq Length | \#Tokens | Loss    | Throughput (Tokens/sec) | Time to Train (days) |
@@ -5240,10 +5241,10 @@ given Global Batch Size (GBS).
 #### 7.1.2. Training Performance Results
 <a id="markdown-training-performance-results" name="training-performance-results"></a>
 Training performance: 
- - NVIDIA DGX SuperPOD (16 x 8 x A100 80GB for 5B GPT-3 model)
- - NVIDIA DGX SuperPODs (128 x 8 x A100 80GB for 175B GPT-3 model)
+ - NVIDIA DGX SuperPOD (16 x 8 x A100 80GB for 5B GPT model)
+ - NVIDIA DGX SuperPODs (128 x 8 x A100 80GB for 175B GPT model)
 
-We measured the throughput of training 5B and 175B parameter GPT-3 models on 
+We measured the throughput of training 5B and 175B parameter GPT models on 
 different numbers of DGX nodes, and we achieved near-linear
 scaling. For example, when scaling from 1 node to 32 nodes with a 5B model, we achieve a 28.73x
 speed-up. When scaling from 8 nodes to 128 (16x more nodes) nodes with a 175B model, we achieve 14.62x speed-up.
@@ -5512,12 +5513,12 @@ The table and chart below show the performance results.
 <a id="markdown-changelog" name="changelog"></a>
 
 **NeMo Megatron 23.03**
-* Per micro-batch data loader for GPT-3 and BERT
-* SquaredReLU and SwiGLU activation function support for GPT-3 and T5
-* Rotary Position Embedding (RoPE) for GPT-3 and RETRO
-* Early stopping support when P-Tuning/Prompt Tuning GPT-3, T5, and mT5
+* Per micro-batch data loader for GPT and BERT
+* SquaredReLU and SwiGLU activation function support for GPT and T5
+* Rotary Position Embedding (RoPE) for GPT and RETRO
+* Early stopping support when P-Tuning/Prompt Tuning GPT, T5, and mT5
 * Refactored Adapter learning implementation to mimic the Parameter-Efficient Transfer Learning for NLP approach
-* Flash Attention for GPT-3 models in Transformer Engine
+* Flash Attention for GPT models in Transformer Engine
 
 **Announcement**
 
@@ -5532,31 +5533,31 @@ The table and chart below show the performance results.
 * AutoConfigurator for BERT
 * 110M, 4B, 20B, and 100B BERT training configurations
 * Support for the Mixture of Experts for T5 (no expert parallelism, training only)
-* Performance improvement for GPT-3 P-Tuning (20% - 25% speed-up)
+* Performance improvement for GPT P-Tuning (20% - 25% speed-up)
 * ALiBi Position Embeddings for T5 and mT5 (training only)
-* Log total model size (across modal parallel ranks) for GPT-3, T5, mT5, and BERT
+* Log total model size (across modal parallel ranks) for GPT, T5, mT5, and BERT
 
 **NeMo Megatron 22.11**
-* Interleaved Pipeline Scheduling for GPT-3 (training only)
+* Interleaved Pipeline Scheduling for GPT (training only)
 * FP8 support using Transformer Engine (training only)
 * Distributed Adam Optimizer for T5 and mT5
-* P-Tuning and Prompt Tuning for GPT-3 with Sequence Parallelism
-* Training configurations improved throughput by 7.9% (5B GPT-3), 9.6% (3B T5), 4.3% (11B T5), 52.4% (23B T5), and 26.6% (41B T5) 
+* P-Tuning and Prompt Tuning for GPT with Sequence Parallelism
+* Training configurations improved throughput by 7.9% (5B GPT), 9.6% (3B T5), 4.3% (11B T5), 52.4% (23B T5), and 26.6% (41B T5) 
 
 **NeMo Megatron 22.09**
 * NeMo Megatron supports training and inference containers on OCI. For detail orchestration scripts, reach out to [oci_nm@nvidia.com](mailto:oci_nm@nvidia.com)
 * P-Tuning and Prompt Tuning for T5 and mT5 with pipeline parallelism (training only)
-* Adapter learning for GPT-3 and T5 with tensor parallelism and pipeline parallelism (training only)
-* IA3 learning for GPT-3 and T5 with tensor parallelism and pipeline parallelism (training only)
+* Adapter learning for GPT and T5 with tensor parallelism and pipeline parallelism (training only)
+* IA3 learning for GPT and T5 with tensor parallelism and pipeline parallelism (training only)
 * AutoConfigurator to find the highest throughput configs for training on Base Command Platform
-* AutoConfigurator: parallel inference hyperparameter search for GPT-3 on Base Command Manager
+* AutoConfigurator: parallel inference hyperparameter search for GPT on Base Command Manager
 
 **NeMo Megatron 22.08.01**
 * Cloud service providers: support for Amazon Web Services (performance validated up to 20 `p4d.24xlarge` instances)
 * Cloud service providers: switched orchestration from Azure CycleCloud to NVIDIA Nephele for Microsoft Azure
 
 **NeMo Megatron 22.08**
-* Distributed Adam Optimizer for GPT-3
+* Distributed Adam Optimizer for GPT
 * Asymmetric encoder-decoder configuration for T5 and mT5
 * Support for untying embeddings from the classifier layer for T5 and mT5
 * Relative Position Embeddings for T5 and mT5 (pipeline parallelism>=3)
@@ -5567,31 +5568,31 @@ The table and chart below show the performance results.
 
 **NeMo Megatron 22.06-hotfix.01**
 * Fix: AutoConfigurator for T5 and mT5
-* Fix: Evaluation harness in GPT-3
-* Fix: Prompt learning in GPT-3
-* Fix: Out of memory when pretraining GPT-3 with Sequence Parallelism
+* Fix: Evaluation harness in GPT
+* Fix: Prompt learning in GPT
+* Fix: Out of memory when pretraining GPT with Sequence Parallelism
 
 **NeMo Megatron 22.06**
-* Sequence Parallelism and Selective Activation Checkpointing for GPT-3
+* Sequence Parallelism and Selective Activation Checkpointing for GPT
 * Relative Position Embeddings for T5
   * We used mC4 dataset (24 Languages) for pretraining the mT5 and verified our results on KNLI, KorQuAD, KLUE-STS, and XNLI tasks
-* AutoConfigurator update with Sequence Parallelism and Selective Activation Checkpointing for GPT-3
-* AutoConfigurator: support for DGX A100 40GB configurations for GPT-3, T5, and mT5
-* P-Tuning and Prompt Tuning for GPT-3 with pipeline parallelism (training only)
+* AutoConfigurator update with Sequence Parallelism and Selective Activation Checkpointing for GPT
+* AutoConfigurator: support for DGX A100 40GB configurations for GPT, T5, and mT5
+* P-Tuning and Prompt Tuning for GPT with pipeline parallelism (training only)
 * Operation fusions for higher training throughput (2%-7% speed-up)
-* Default GPT-3 configurations changed to include Sequence Parallelism and Selective Activation Checkpointing: 20B (speed-up: 14%), 40B (speed-up: 9%), 175B (speed-up: 15%) 
+* Default GPT configurations changed to include Sequence Parallelism and Selective Activation Checkpointing: 20B (speed-up: 14%), 40B (speed-up: 9%), 175B (speed-up: 15%) 
 
 **NeMo Megatron 22.05.01**
 * Cloud service providers: support for Microsoft Azure (performance validated up to 36 `Standard_ND96amsr_A100_v4` instances)
 * Cluster validation tools (DGMI, NCCL)
-* 20B GPT-3 training configuration improved by 2.7% for higher throughput
+* 20B GPT training configuration improved by 2.7% for higher throughput
 
 **NeMo Megatron 22.05**
-* Asynchronous gradient all-reduce for GPT-3, T5, mT5 models with pipeline parallel size equal to 1
-* P-Tuning and Prompt Tuning for GPT-3 with tensor parallelism (training only)
+* Asynchronous gradient all-reduce for GPT, T5, mT5 models with pipeline parallel size equal to 1
+* P-Tuning and Prompt Tuning for GPT with tensor parallelism (training only)
 * AutoConfigurator to find the highest throughput configs for training and inference on Base Command Manager
 * Custom tokenizer support (training only)
-* GPT-3 with pipeline parallelism support on Base Command Manager (inference)
+* GPT with pipeline parallelism support on Base Command Manager (inference)
 * Hyperparameters for text generation: top-p, top-k, and temperature
 
 **NeMo Megatron 22.04**
@@ -5608,20 +5609,20 @@ The table and chart below show the performance results.
 * GLUE fine-tuning and evaluation support for T5
 
 **NeMo Megatron 22.02**
-* GPT-3 with pipeline parallelism support (training only)
-* 40B and 175B GPT-3 training configurations
+* GPT with pipeline parallelism support (training only)
+* 40B and 175B GPT training configurations
 
 **NeMo Megatron 22.01**
-* GPT-3 with tensor parallelism support on Base Command Platform
+* GPT with tensor parallelism support on Base Command Platform
 * O2-style AMP (accelerated training of larger models)
-* Chatbot sample application using your trained GPT-3 model
+* Chatbot sample application using your trained GPT model
 * Training metric monitoring and visualization with Weights & Biases
 
 ## 9. Known Issues
 <a id="markdown-known-issues" name="known-issues"></a>
 Fixes for the following issues will be released shortly:
 * The inference hyperparameter search is not available in this release for T5 and mT5
-* Accuracy and performance measurement for GPT-3 is currently not supported. Please use the NeMo Megatron 22.05 inference container to use this feature
+* Accuracy and performance measurement for GPT is currently not supported. Please use the NeMo Megatron 22.05 inference container to use this feature
 * For running inference on BCP please use the NeMo Megatron 22.03 inference container
 * The fine-tuning SQuAD results for T5 are lower than expected
 * In 23.03, there is a known 20% slowdown for T5 TP8 3B configurations - the other T5 3B configurations are performing well
