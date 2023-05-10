@@ -337,16 +337,16 @@ Figure 1: The GPT family architecture. The 5B variant includes 24 transformer la
 | Software                | Version          |
 |-------------------------|------------------|
 | NVIDIA Triton           | 2.24.0           |
-| FasterTransformer       | v5.1+1c70b45c    |
-| TransformerEngine       | v0.6+f18e6773    |
-| PyTorch                 | 1.14.0a0+44dac51 |
-| NeMo                    | 1.17.0+af076f4   |
+| FasterTransformer       | v5.3+c6e8f60     |
+| TransformerEngine       | v0.6+f18e677     |
+| PyTorch                 | 2.0.0a0+1767026  |
+| NeMo                    | 1.18.0+ddbe0f3   |
 | PyTorch Lightning       | 1.9.4            |
 | Hydra                   | 1.2.0            |
-| CUDA                    | NVIDIA CUDA 12.0 |
+| CUDA                    | NVIDIA CUDA 12.1 |
 | cuBLAS                  | 11.11.3.6        |
-| cuDNN                   | 8.7.0.84         |
-| NCCL                    | 2.16.5           |
+| cuDNN                   | 8.8.1.3          |
+| NCCL                    | 2.17.1           |
 | Container OS            | Ubuntu 20.04     |
 | rdma-core               | 36.0             |
 | GDRcopy                 | 2.3              |
