@@ -5542,12 +5542,6 @@ The table and chart below show the performance results.
 * Tensor and Pipeline Parallelism Conversion Support for GPT and T5
 * Supervised Fine-Tuning Support for GPT
 * RLHF (Reinforcement Learning from Human Feedback) for GPT
-* GPT and T5 models
-  * Ability to disable dropout in whole network
-  * Support for the ability to use different weight matrices for word embeddings and output prediction layer which has improved accuracy
-* GPT models
-  * For the linear layer in a network, the weight vector (or bias) has been removed which results in a faster and stable model with little impact to accuracy
-* New GPT configurations for 843M, 8B, and 43B parameters
 
 **NeMo Framework 23.03**
 * Per micro-batch data loader for GPT and BERT
@@ -5663,5 +5657,5 @@ Fixes for the following issues will be released shortly:
 * For running inference on BCP please use the NeMo Framework 22.03 inference container
 * The fine-tuning SQuAD results for T5 are lower than expected
 * There is a known slowdown for T5 TP8 3B configurations - the other T5 3B configurations are performing well
-* In 23.04, autocast is not functioning correctly for O1
-* Evaluation has been tested for PP <=2 and may have issues for PP >2
+* In 23.04, there is a slight regression in autocast performance - it is recommended to use previous releases for autocast use cases
+* Evaluation for GPT has been tested for PP <=2 and may have issues for PP >2.  It is recommended to convert to TP only for Evaluation.
