@@ -5545,7 +5545,7 @@ The table and chart below show the performance results.
 * Tensor and Pipeline Parallelism Conversion Support for GPT and T5
 * Supervised Fine-Tuning Support for GPT
 * RLHF (Reinforcement Learning from Human Feedback) for GPT
-* New GPT model sizes - 843M, 2B, 8B, 43B based on new and improved model configurations.
+* New GPT model sizes - 400M, 1B, 7B, 40B based on new and improved model configurations.
 * List of GPT model configuration changes
 
 | Configuration    | Previous | New |
