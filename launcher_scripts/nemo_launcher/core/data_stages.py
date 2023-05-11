@@ -563,6 +563,7 @@ class MultimodalDataPreparation(DataStage):
             "reorganize_tar",
             "precache_encodings",
             "generate_wdinfo",
+            "merge_source_tar",
         ]
 
     def _make_sub_stages(self) -> List[str]:
@@ -590,7 +591,7 @@ class MultimodalDataPreparation(DataStage):
             if (
                 data_cfg.get(sub_stage)
                 and data_cfg.get(sub_stage).get("enable", False)
-                and sub_stage != "generate_wdinfo"
+                and data_cfg.get(sub_stage).get("output_dir", False)
             ):
                 os.makedirs(data_cfg.get(sub_stage).output_dir, exist_ok=True)
 
@@ -628,8 +629,8 @@ class MultimodalDataPreparation(DataStage):
                     node_array_size = stage_cfg.download_images.get(
                         "num_parquets_downloaded"
                     ) * stage_cfg.download_parquet.get("parquet_subpartitions")
-            elif sub_stage == "reorganize_tar":
-                node_array_size = stage_cfg.reorganize_tar.get("node_array_size", 1)
+            elif sub_stage in ["reorganize_tar", "merge_source_tar"]:
+                node_array_size = stage_cfg.get(sub_stage).get("node_array_size", 1)
             elif sub_stage == "precache_encodings":
                 node_array_size = stage_cfg.precache_encodings.get("node_array_size", 1)
                 ntasks_per_node = 8
@@ -705,6 +706,13 @@ class MultimodalDataPreparation(DataStage):
                 output_wdinfo_path=cfg.generate_wdinfo.get("output_wdinfo_path"),
                 tar_chunk_size=cfg.generate_wdinfo.get("tar_chunk_size"),
                 file_ext_in_tar=cfg.generate_wdinfo.get("file_ext_in_tar"),
+            )
+        elif sub_stage == "merge_source_tar":
+            args = create_args_list(
+                hydra=True,
+                append_tar_dir=cfg.merge_source_tar.get("append_tar_dir"),
+                source_dir=cfg.merge_source_tar.get("source_dir"),
+                source_extensions=cfg.merge_source_tar.get("source_extensions"),
             )
         else:
             raise ValueError("Invalid sub_stage:", sub_stage)

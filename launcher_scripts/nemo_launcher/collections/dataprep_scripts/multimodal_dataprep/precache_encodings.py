@@ -26,11 +26,9 @@ import pytorch_lightning as pl
 import torch
 import torch.utils.data as data
 import webdataset as wds
-from nemo.collections.multimodal.data.stable_diffusion.augmentation.augmentations import (
-    construct_image_augmentations,  # new path
-)
+from nemo.collections.multimodal.data.stable_diffusion.augmentation.augmentations import construct_image_augmentations
 from nemo.collections.multimodal.modules.stable_diffusion.distributions.distributions import (
-    DiagonalGaussianDistribution,  # new path
+    DiagonalGaussianDistribution,
 )
 from nemo.core import Serialization
 from omegaconf import DictConfig, ListConfig, OmegaConf
@@ -60,6 +58,7 @@ class EncodingCacher(pl.LightningModule, Serialization):
         self.encodings_config: ListConfig[DictConfig] = precache_cfg.encodings
         self.save_orig_image = 'image' in (precache_cfg.save_original_in_tar or [])
         self.save_orig_text = 'text' in (precache_cfg.save_original_in_tar or [])
+        self.save_orig_video = 'video' in (precache_cfg.save_original_in_tar or [])
 
         for m in self.encodings_config:
             if m.modality == 'image':
@@ -67,6 +66,8 @@ class EncodingCacher(pl.LightningModule, Serialization):
                 self.image_ext_PIL = 'JPEG' if self.image_ext.upper() == 'JPG' else self.image_ext
             elif m.modality == 'text':
                 self.text_ext = m.extension
+            elif m.modality == 'video':
+                self.video_ext = m.extension
 
         self.encoder_models = torch.nn.ModuleList()
         for encoding_config in self.encodings_config:
@@ -130,8 +131,8 @@ class EncodingCacher(pl.LightningModule, Serialization):
         return f"{self.output_tar_folder}/{self.tar_prefix}_r{self.global_rank}_{self.cur_tar_num}.tar"
 
     @torch.no_grad()
-    def save_tarfiles(self, batch, all_tensors):
-        batch_size = list(batch.values())[0].size(0)
+    def save_tarfiles(self, batch, all_tensors, source_names=None):
+        batch_size = len(list(batch.values())[0])
 
         def write_tar_content(idx):
             tar_name = self._get_tarname()
@@ -139,25 +140,29 @@ class EncodingCacher(pl.LightningModule, Serialization):
             with tarfile.open(tar_name, 'a') as tar:
                 print('writing to tar:', tar_name)
                 while idx < batch_size and self.cur_tar_size < self.output_tar_chunk_size:
+                    fileobj_name = source_names[idx] if source_names is not None else f'{self.cur_tar_size:04d}'
                     if self.pickle_encodings:
                         tensors = {k: v[idx].to('cpu').numpy() for k, v in all_tensors.items()}
                         # serialize data into a bytestream
                         with io.BytesIO() as abuf:
                             pickle.dump(tensors, abuf)
-                            write_fileobj_to_tar(tar, f'{self.cur_tar_size:04d}.pickle', abuf)
+                            write_fileobj_to_tar(tar, f'{fileobj_name}.pickle', abuf)
                     else:
                         for k, v in all_tensors.items():
                             with io.BytesIO() as abuf:
                                 np.save(abuf, v[idx].to('cpu').numpy())
-                                write_fileobj_to_tar(tar, f'{self.cur_tar_size:04d}.{k}', abuf)
+                                write_fileobj_to_tar(tar, f'{fileobj_name}.{k}', abuf)
 
                     if self.save_orig_image:
                         with io.BytesIO() as abuf:
                             batch['image_original'][idx].save(abuf, format=self.image_ext_PIL)
-                            write_fileobj_to_tar(tar, f'{self.cur_tar_size:04d}.{self.image_ext}', abuf)
+                            write_fileobj_to_tar(tar, f'{fileobj_name}.{self.image_ext}', abuf)
                     if self.save_orig_text:
                         with io.BytesIO(bytes(batch['text'][idx], 'utf-8')) as abuf:
-                            write_fileobj_to_tar(tar, f'{self.cur_tar_size:04d}.{self.text_ext}', abuf)
+                            write_fileobj_to_tar(tar, f'{fileobj_name}.{self.text_ext}', abuf)
+                    if self.save_orig_video:
+                        with io.BytesIO(bytes(batch['video'][idx])) as abuf:
+                            write_fileobj_to_tar(tar, f'{fileobj_name}.{self.video_ext}', abuf)
                     idx += 1
                     self.cur_tar_size += 1
             return idx
@@ -180,7 +185,11 @@ class EncodingCacher(pl.LightningModule, Serialization):
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         all_tensors = self.encode(batch, batch_idx)
-        self.save_tarfiles(batch, all_tensors)
+        if "__url__" in batch and "__key__" in batch:
+            source_names = [os.path.basename(url) + '/' + key for url, key in zip(batch['__url__'], batch['__key__'])]
+        else:
+            source_names = None
+        self.save_tarfiles(batch, all_tensors, source_names)
 
 
 def pil_loader(key, data):
@@ -233,7 +242,7 @@ def caching_collate_fn(batch):
     return collate(batch, collate_fn_map=caching_collate_fn_map)
 
 
-def get_webdataset_loader(precache_cfg, urls):
+def get_webdataset_loader(precache_cfg, urls, input_tar_dir=""):
     img_transform = construct_image_augmentations(
         {"resize_smallest_side": "512", "center_crop_h_w": "512,512", "horizontal_flip": False}
     )
@@ -247,15 +256,19 @@ def get_webdataset_loader(precache_cfg, urls):
                 else:
                     out_dict[modality_cfg.modality] = input[i]
             # e.g. {'images': input[0], 'text': input[1]}
+            out_dict['__key__'] = input[-1]
+            out_dict['__url__'] = input[-2].replace(os.path.join(input_tar_dir, ""), "")
+            # url only stores identifying information about the tarfile, no extraneously long path
             yield out_dict
 
+    modality_exts = ' '.join(modality_cfg.extension for modality_cfg in precache_cfg.encodings)
     dataset = wds.DataPipeline(
         wds.SimpleShardList(urls),
-        wds.tarfile_to_samples(),
+        wds.tarfile_to_samples(handler=wds.warn_and_continue),
         wds.split_by_node,
         wds.split_by_worker,
         wds.decode(pil_loader, handler=wds.warn_and_continue),
-        wds.to_tuple(' '.join(modality_cfg.extension for modality_cfg in precache_cfg.encodings)),
+        wds.to_tuple(modality_exts + ' __url__ __key__', handler=wds.warn_and_continue),
     ).compose(tuple_to_dict)
 
     dataloader = torch.utils.data.DataLoader(
@@ -280,20 +293,20 @@ def main(cfg):
     tar_chunk_size = cfg.tar_chunk_size
     output_tar_folder = cfg.output_dir
 
-    urls = glob.glob(os.path.join(input_tar_dir, "**", "*.tar"), recursive=True)
+    urls = sorted(glob.glob(os.path.join(input_tar_dir, "**", "*.tar"), recursive=True))
     if len(urls) == 0:
         raise FileNotFoundError(f"Could not find any tar files in {input_tar_dir}")
     slc_start, slc_end = task_id * len(urls) // ntasks, (task_id + 1) * len(urls) // ntasks
     print(f"Task {task_id}/{ntasks} is processing files {slc_start} to {slc_end - 1} (total 0-{len(urls) - 1})")
 
-    dataloader = get_webdataset_loader(precache_cfg, urls[slc_start:slc_end])
+    dataloader = get_webdataset_loader(precache_cfg, urls[slc_start:slc_end], input_tar_dir)
 
     pl.seed_everything(42)
     # we use pytorch lightning so make multi-node precaching easy
     trainer = pl.Trainer(**precache_cfg.lightning)
     trainer.fast_dev_run = True
 
-    model = EncodingCacher(output_tar_folder, tar_chunk_size, precache_cfg, tar_prefix=f"t{task_id}").cuda()
+    model = EncodingCacher(output_tar_folder, tar_chunk_size, precache_cfg, tar_prefix=f"t{task_id}")
     trainer.predict(model, dataloader)
     print(f"Task {task_id} finished.")
 

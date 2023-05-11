@@ -875,7 +875,7 @@ where the data is stored as one or more parquet files. The pipeline processes th
 [WebDataset](https://github.com/webdataset/webdataset) format, consisting of tar files of equal sizes for
 efficient training.
 
-The 5 sub-stages are as follows.
+The 6 sub-stages are as follows.
 
 1. `download_parquet`: Parquet files consisting of text (captions) and image URLs are downloaded from a Hugging Face
    repository.
@@ -890,11 +890,13 @@ The 5 sub-stages are as follows.
    you have the option to precache (precompute) image and/or text encodings (embeddings) in this sub-stage.
    Precaching these encodings can significantly enhance training throughput.
 5. `generate_wdinfo`: (Optional) The `wdinfo.pkl` file, which stores information on dataset shards, is generated.
+6. `merge_source_tar`: (Optional) After precaching, this sub-stage can copy and append any additional objects 
+(such as original image or metadata files) from the source tar files to the result tar files. 
 
 Depending on your specific circumstance, not all sub-stages need to be run all at once.
 For example, for parquet datasets not hosted on HuggingFace or whose format is not parquet,
-sub-stages 2-5 can be used to process locally downloaded datasets.
-For webdatasets already downloaded locally, sub-stages 4-5 can be used to precache the encoding to reduce training time.
+sub-stages 2-6 can be used to process locally downloaded datasets.
+For webdatasets already downloaded locally, sub-stages 4-6 can be used to precache the encoding to reduce training time.
 For models that encode image and text on-the-fly, only sub-stages 1-3 need to be run.
 
 Instruction for configuring each sub-stage is provided as a comment next to each field in

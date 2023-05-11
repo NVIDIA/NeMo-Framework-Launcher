@@ -17,3 +17,6 @@ tar_chunk_size:
 file_ext_in_tar:
 precache_config_path:
 output_wdinfo_path:
+append_tar_dir:
+source_dir:
+source_extensions:
