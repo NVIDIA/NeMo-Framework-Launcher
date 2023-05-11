@@ -10,7 +10,7 @@ encodings: # see README for instructions
     encoder_config:
       cls: encoders.t5encoder.T5Encoder
       max_seq_len: 64  # see webvid caption length distribution (mostly less than 40 words)
-      encoder_path: /chcui/encoders
+      encoder_path: /path/to/encoders # contains t5xxl-encoder.bin
 #  - modality: video
 #    extension: mp4
 
