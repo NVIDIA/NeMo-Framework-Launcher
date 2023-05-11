@@ -61,3 +61,12 @@ generate_wdinfo:
   file_ext_in_tar:
     - .pickle
   output_wdinfo_path: ${..dataset_output_root}/wdinfo.pkl
+
+merge_source_tar:
+  enable: False
+  append_tar_dir: ${..precache_encodings.output_dir}
+  source_dir: ${..precache_encodings.input_dir}
+  source_extensions:  # objects in the source tar files that are to be added to the precached tar files
+    - .json
+    - .txt
+  node_array_size: 1  # increase the number of jobs to reduce the time for each job
