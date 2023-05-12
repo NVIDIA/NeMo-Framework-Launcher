@@ -1155,8 +1155,8 @@ rm_extracted: True # Preprocess script will remove extracted files after preproc
 #### 5.2.1. Predefined Configurations of GPT Models
 <a id="markdown-predefined-configurations-of-gpt-models" name="predefined-configurations-of-gpt-models"></a>
 
-We provide five configurations for several different GPT model sizes: 126M, 5B, 20B, 
-40B, and 175B parameters. These configurations include carefully selected
+We provide nine configurations for several different GPT model sizes: 126M, 400M_improved, 1B_improved, 5B, 7B_improved, 20B, 
+40B, 40B_improved, and 175B parameters. These configurations include carefully selected
 hyperparameters, which should be used as a guideline for any custom model
 configurations. All these configurations are provided in the `conf/training/gpt3/`
 directory. The desired configuration can be chosen by selecting the `training` 
@@ -5545,7 +5545,7 @@ The table and chart below show the performance results.
 * Tensor and Pipeline Parallelism Conversion Support for GPT and T5
 * Supervised Fine-Tuning Support for GPT
 * RLHF (Reinforcement Learning from Human Feedback) for GPT
-* New GPT model sizes - 843M, 2B, 8B, 43B based on new and improved model configurations.
+* New GPT model sizes - 400M_improved, 1B_improved, 7B_improved, 40B_improved based on new and improved model configurations
 * List of GPT model configuration changes
 
 | Configuration    | Previous | New |
@@ -5556,9 +5556,6 @@ The table and chart below show the performance results.
 | Embeddings and Output Layer | Tied | Untied |
 | Bias terms | Yes | No |
 | Normalization | LayerNorm | LayerNorm1p |
-
-* Added the option to use RMSNorm normalization with GPT models. Can be configured by setting `model.normalization` to `rmsnorm`. Default is `layernorm1p`.
-* Added `fast` versions of SwiGLU, GeGLU and ReGLU. Can be configured by setting `model.activation=fast-swiglu`, `model.activation=fast-reglu` or `model.activation=fast-geglu`. Checkpoints trained with `fast` and regular versions of SwiGLU, GeGLU and ReGLU are *not* compatible with each since the weight state dictionaries are different.
 
 **NeMo Framework 23.03**
 * Per micro-batch data loader for GPT and BERT
