@@ -1155,7 +1155,7 @@ rm_extracted: True # Preprocess script will remove extracted files after preproc
 #### 5.2.1. Predefined Configurations of GPT Models
 <a id="markdown-predefined-configurations-of-gpt-models" name="predefined-configurations-of-gpt-models"></a>
 
-We provide nine configurations for several different GPT model sizes: 126M, 400M, 1B, 5B, 7B, 20B, 
+We provide nine configurations for several different GPT model sizes: 126M, 400M_improved, 1B_improved, 5B, 7B_improved, 20B, 
 40B, 40B_improved, and 175B parameters. These configurations include carefully selected
 hyperparameters, which should be used as a guideline for any custom model
 configurations. All these configurations are provided in the `conf/training/gpt3/`
@@ -5545,7 +5545,7 @@ The table and chart below show the performance results.
 * Tensor and Pipeline Parallelism Conversion Support for GPT and T5
 * Supervised Fine-Tuning Support for GPT
 * RLHF (Reinforcement Learning from Human Feedback) for GPT
-* New and improved GPT model sizes - 400M, 1B, 7B, 40B based on new and improved model configurations.
+* New GPT model sizes - 400M_improved, 1B_improved, 7B_improved, 40B_improved based on new and improved model configurations.
 * List of GPT model configuration changes
 
 | Configuration    | Previous | New |
