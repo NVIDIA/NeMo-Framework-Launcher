@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#SBATCH --gpus-per-node=1
-#SBATCH --ntasks-per-node=1
+#SBATCH --gpus-per-node=8
+#SBATCH --ntasks-per-node=8
 #SBATCH --time=00:20:00
 
 export NCCL_TOPO_FILE=/nccl/p4d-24xl-topo.xml
