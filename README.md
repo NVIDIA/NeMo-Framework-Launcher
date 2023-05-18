@@ -1,27 +1,19 @@
-# NeMo Framework Inference Container
-## Open Beta
+# NeMo Framework Open Beta - Inference Container 
 
-Scripts and code to provide inference support for
-NeMo Framework.
-
-## Table of contents
+# Table of contents
 - [1. Support Matrix](#1-support-matrix)
-  * [5.13. Model Export](#513-model-export)
-    + [5.13.1. GPT Export](#5131-gpt-export)
-      - [5.13.1.1. Common](#51311-common)
-      - [5.13.1.2. Slurm](#51312-slurm)
-      - [5.13.1.3. Base Command Platform](#51313-base-command-platform)
-- [6. Deploying the NeMo Framework Model](#6-deploying-the-nemo-framework-model)
-  * [6.1. Run NVIDIA Triton Server with Generated Model Repository](#61-run-nvidia-triton-server-with-generated-model-repository)
-- [6.2. GPT Text Generation with Ensemble](#62-gpt-text-generation-with-ensemble)
-- [6.3. UL2 Checkpoint Deployment](#63-ul2-checkpoint-deployment)
-- [7. Performance](#7-performance)
-  * [7.1. GPT Results](#71-gpt-results)
-(#712-training-performance-results)
-    + [7.1.3. Inference Performance](#713-inference-performance)
-- [8. Changelog](#8-changelog)
-- [9. Known Issues](#9-known-issues)
-
+- [2. Model Export](#2-model-export)
+  * [2.1. GPT Export](#21-gpt-export)
+    + [2.1.1. Common](#211-common)
+    + [2.1.2. Slurm](#212-slurm)
+    + [2.1.3. Base Command Platform](#213-base-command-platform)
+- [3. Deploying the NeMo Framework Model](#3-deploying-the-nemo-framework-model)
+  * [3.1. Run NVIDIA Triton Server with Generated Model Repository](#31-run-nvidia-triton-server-with-generated-model-repository)
+  * [3.2. GPT Text Generation with Ensemble](#32-gpt-text-generation-with-ensemble)
+  * [3.3. UL2 Checkpoint Deployment](#33-ul2-checkpoint-deployment)
+- [4. Performance](#4-performance)
+  * [4.1. GPT Results](#41-gpt-results)
+    + [4.1.1. Inference Performance](#411-inference-performance)
 
 # 1. Support Matrix
 <a id="markdown-support-matrix" name="support-matrix"></a>
@@ -37,7 +29,7 @@ NeMo Framework.
 | Hydra                   | 1.2.0            |
 | NCCL                    | 2.17.1           |
 
-### 5.13. Model Export
+### 2. Model Export
 <a id="markdown-model-export" name="model-export"></a>
 
 Model export is a prerequisite to enable deployment of the NeMo Framework model on the NVIDIA Triton
@@ -47,7 +39,7 @@ The export supports only GPT. You can checkout T5 and mT5 support
 in FasterTransformer repository but it is limited to older versions of
 NeMo and Megatron-LM.
 
-#### 5.13.1. GPT Export
+#### 2.1. GPT Export
 <a id="markdown-gpt-export" name="gpt-export"></a>
 
 GPT model is evaluated with `lambada` task which results can be compared with results from evaluation stage.
@@ -60,7 +52,7 @@ to run the training pipeline export stage. The default value is set to
 parameters can be modified to adapt different export and set of tests run on prepared Triton Model Repository.
 For Base Command Platform, all these parameters should be overridden from the command line.
 
-##### 5.13.1.1. Common
+##### 2.1.1. Common
 <a id="markdown-common" name="common"></a>
 Other `run` parameters might be used to define the job-specific config:
 ```yaml
@@ -103,7 +95,7 @@ triton_deployment:
 ```
 
 
-##### 5.13.1.2. Slurm
+##### 2.1.2. Slurm
 <a id="markdown-slurm" name="slurm"></a>
 
 Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
@@ -133,7 +125,7 @@ then run:
 python3 main.py
 ```
 
-##### 5.13.1.3. Base Command Platform
+##### 2.1.3. Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 In order to run the export stage on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
@@ -156,7 +148,7 @@ The command above assumes you mounted the data workspace in `/mount/data`, and t
 The stdout and stderr outputs will also be redirected to the `/results/export_gpt3_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
-## 6. Deploying the NeMo Framework Model
+# 3. Deploying the NeMo Framework Model
 
 This section describes the deployment of the NeMo Framework model on the NVIDIA Triton
 Inference Server with FasterTransformer Backend on both single and multiple
@@ -170,7 +162,7 @@ scenarios, of which two most important are:
     concurrency requests to the server, using dynamic batching feature.
 
 
-### 6.1. Run NVIDIA Triton Server with Generated Model Repository
+## 3.1. Run NVIDIA Triton Server with Generated Model Repository
 <a id="markdown-run-nvidia-triton-server-with-selected-model-repository"
 name="run-nvidia-triton-server-with-selected-model-repository"></a>
 
@@ -252,7 +244,7 @@ If you notice warning about missing files, you should double check your model:
 [WARNING] file /triton-model-repository/model_name/1/1-gpu/model.final_layernorm.weight.bin cannot be opened, loading model fails!
 ```
 
-## 6.2. GPT Text Generation with Ensemble
+## 3.2. GPT Text Generation with Ensemble
 
 FasterTransformer for GPT implements a part of whole text generation application.
 
@@ -311,7 +303,7 @@ The `end_to_end_test.py` script contains a string examples, which you can replac
 
 
 
-## 6.3. UL2 Checkpoint Deployment
+## 3.3. UL2 Checkpoint Deployment
 
 You can deploy UL2 T5 checkpoints using
 [readme](https://github.com/NVIDIA/FasterTransformer/blob/main/docs/t5_guide.md#running-ul2-on-fastertransformer-pytorch-op)
@@ -335,26 +327,22 @@ to modify config.pbtxt to match
 configuration of your UL2 checkpoint and your cluster configuration.
 
 
-
-
-## 7. Performance
+# 4. Performance
 <a id="markdown-performance" name="performance"></a>
 
-### 7.1. GPT Results
+## 4.1. GPT Results
 <a id="markdown-gpt-results" name="gpt-results"></a>
 
-#### 7.1.3. Inference Performance
+### 4.1.1. Inference Performance
 <a id="markdown-inference-performance" name="inference-performance"></a>
 
-Inference performance was measured for NVIDIA DGX SuperPOD (1 x 8 x A100 80GB).
+Inference performance was measured for NVIDIA DGX SuperPOD for `batch size = 1`.
 
-Inference parameters:
-* batch size: 1
-* input tokens length: 60
-* output tokens length: 20
 
 <img src="img/infer_model_size_gpt3.svg"/>
 
-| GPT Model size | Average latency [ms]           | TP | PP | GPUs |
-|----------------|--------------------------------|----|----|------|
-| 43B           |                            ??? |  32 |  1 |   32 |
+| GPT Model size | Use Case | Input Sequence Length (Tokens) | Output Sequence Length (tokens) | Average latency [ms]           | TP | PP | GPUs |
+|----------------|----------------------------|--------------------------------|----|----|----|----|------|
+| 43B            | Question Answering | 60 | 20  |                            ??? |  32 |  1 |   32 |
+| 43B           | Intent Classification | 225 | 20  |                            ??? |  32 |  1 |   32 |
+| 43B           |Translation | 200 | 200  |                            ??? |  32 |  1 |   32 |
