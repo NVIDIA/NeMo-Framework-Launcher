@@ -5668,7 +5668,6 @@ The table and chart below show the performance results.
 Fixes for the following issues will be released shortly:
 * The inference hyperparameter search is not available in this release for T5 and mT5
 * Accuracy and performance measurement for GPT is currently not supported. Please use the NeMo Framework 22.05 inference container to use this feature
-* For running inference on BCP please use the NeMo Framework 22.03 inference container
 * The fine-tuning SQuAD results for T5 are lower than expected
 * There is a known slowdown for T5 TP8 3B configurations - the other T5 3B configurations are performing well
 * In 23.04, there is a slight regression in autocast performance - it is recommended to use previous releases for autocast use cases
