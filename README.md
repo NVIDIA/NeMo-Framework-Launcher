@@ -2,7 +2,7 @@
 ## Open Beta
 
 Scripts and code to provide end-to-end data preparation and training for
-NeMo-Framework.
+NeMo Framework.
 
 The most recent version of the README can be found at [https://ngc.nvidia.com/containers/ea-bignlp:nemofw-training](https://ngc.nvidia.com/containers/ea-bignlp:nemofw-training).
 
