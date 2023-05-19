@@ -1,5 +1,5 @@
 run:
-  name: gpt3_400m_improved
+  name: gpt_400m_improved
   results_dir: ${base_results_dir}/${.name}
   time_limit: "1-00:00:00"
   dependency: "singleton"

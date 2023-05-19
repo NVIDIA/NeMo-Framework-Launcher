@@ -2,9 +2,9 @@
 ## Open Beta
 
 Scripts and code to provide end-to-end data preparation and training for
-NeMo-Megatron.
+NeMo-Framework.
 
-The most recent version of the README can be found at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training).
+The most recent version of the README can be found at [https://ngc.nvidia.com/containers/ea-bignlp:nemofw-training](https://ngc.nvidia.com/containers/ea-bignlp:nemofw-training).
 
 ## Table of contents
 - [1. Model Overview](#1-model-overview)
@@ -5536,6 +5536,12 @@ The table and chart below show the performance results.
 
 ## 8. Changelog
 <a id="markdown-changelog" name="changelog"></a>
+
+**NeMo Framework 23.04a**
+* Addressed issue in RLHF which prevented some jobs from running in Slurm clusters
+* Corrections related to the renaming of NeMo Megatron to NeMo Framework
+* Modified run.name in the *_improved configuration files to match the correct parameter count
+* Updated NeMo Launcher with run script guidelines to use with the new 23.04 features
 
 **NeMo Framework 23.04**
 * NeMo Data Curator - a scalable Python library for curating large-scale datasets required for training large language foundation models
