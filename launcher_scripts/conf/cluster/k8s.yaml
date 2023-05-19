@@ -1,0 +1,6 @@
+pull_secret: null  # Kubernetes secret for the container registry to pull private containers.
+shm_size: 512Gi  # Amount of system memory to allocate in Pods. Should end in "Gi" for gigabytes.
+nfs_server: null  # Hostname or IP address for the NFS server where data is stored.
+nfs_path: null  # Path to store data in the NFS server.
+ib_resource_name: "nvidia.com/hostdev"  # Specify the resource name for IB devices according to kubernetes, such as "nvidia.com/hostdev" for Mellanox IB adapters.
+ib_count: "8"  # Specify the number of IB devices to include per node in each pod.

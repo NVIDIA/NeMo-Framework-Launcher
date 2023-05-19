@@ -19,6 +19,7 @@ import logging
 import json
 import re
 from pathlib import Path
+import shutil
 from typing import Any, Dict, List, Optional
 
 import omegaconf
@@ -28,7 +29,7 @@ from nemo_launcher.utils.data_utils.prepare_squad import (
     prepare_squad_for_prompt_learning,
 )
 from nemo_launcher.utils.job_utils import JobPaths
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, DictConfig
 
 
 class NemoMegatronStage:
@@ -73,9 +74,14 @@ class NemoMegatronStage:
             self.cfg['training']["trainer"]["num_nodes"] = nodes
             logging.info(f"global batch size and number of nodes will change following this schedule:\n {self.nodes_scheduler}")
 
-        stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(self.stage_cfg, job_path)
+        stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(self.stage_cfg, job_path, self.cfg)
         # Make cluster parameters
         cluster_parameters = self._make_cluster_parameters(self.cluster)
+        # Make k8s config file if necessary
+        if self.cluster == 'k8s':
+            template_root = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'k8s_templates/{self.stage_name}')
+            self._make_k8s_spec_file(template_root, cluster_parameters, job_path)
+            self._copy_k8s_helm_chart(template_root, job_path)
         # Make command groups
         command_groups = self.make_stage_command_groups(stage_cfg_path)
         # Create launcher
@@ -92,15 +98,30 @@ class NemoMegatronStage:
         results_folder.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
-    def save_stage_hydra_config(stage_cfg: OmegaConf, job_path: JobPaths) -> Path:
+    def save_stage_hydra_config(stage_cfg: OmegaConf, job_path: JobPaths, cfg: OmegaConf) -> Path:
         """
         Interpolate and save hydra config file for current stage
 
         :param OmegaConf stage_cfg: current stage's hydra configuration
         :param JobPaths job_path: JobPaths object
+        :param OmegaConf cfg: base config for job
         :return: path current stage's essential nemo scripts code
         :rtype: Path
         """
+        # Since k8s uses a Helm chart that launches a job based on the Hydra config
+        # file, the Hydra config file that is generated needs to contain all of the
+        # required keys for each stage.
+        if cfg.cluster_type == "k8s":
+            # OmegaConf doesn't allow adding new keys. Temporarily create a dictionary
+            # representation and add the new keys before converting back to an
+            # OmegaConf object.
+            temp_config = OmegaConf.to_object(stage_cfg)
+            temp_config['data_dir'] = cfg.data_dir
+            temp_config['cluster_type'] = cfg.cluster_type
+            temp_config['launcher_scripts_path'] = cfg.launcher_scripts_path
+            temp_config['data_config'] = stage_cfg.run.name
+            stage_cfg = OmegaConf.create(temp_config)
+
         _hydra_interpolation(stage_cfg)
 
         cfg_save_path = job_path.config_file
@@ -138,6 +159,10 @@ class NemoMegatronStage:
             "git rev-parse HEAD",
             f'export PYTHONPATH={self._nemo_code_path}:\${{PYTHONPATH}}',
         ]
+
+    def _make_k8s_spec_file(self, template_root: str, cluster_parameters: Dict, job_path: JobPaths):
+        """Create a yaml spec file for kubernetes jobs"""
+        raise NotImplementedError
 
     # def _make_numa_mapping_command(self) -> List[str]:
     #     """Make a command of numa mapping call"""
@@ -285,6 +310,17 @@ class NemoMegatronStage:
             )
         elif cluster == "interactive":
             cluster_parameters.update(shared_parameters)
+        elif cluster == "k8s":
+            cluster_cfg = cfg.get("cluster")
+            k8s_cfg = {**copy.deepcopy(cluster_cfg)}
+
+            cluster_parameters = {**k8s_cfg}
+            cluster_parameters.update(
+                {
+                    **shared_parameters,
+                    "container_image": container_image,
+                }
+            )
 
         return cluster_parameters
     
@@ -540,6 +576,72 @@ class NeMoStage(NemoMegatronStage):
         if self.cluster == "bcp":
             hydra_override += ["+rank=\${RANK}"]
         return hydra_override
+    
+    def _copy_k8s_helm_chart(self, template_root: str, job_path: JobPaths):
+        """
+        Copy the k8s Helm charts to the results directory.
+
+        :param str template_root: path to where the k8s template files are located
+        :param JobPaths job_path: JobPaths object
+        """
+        template_file = os.path.join(template_root, 'training.yaml')
+        chart_file = os.path.join(template_root, 'Chart.yaml')
+        training_path = Path(job_path.folder / 'k8s_template' / 'templates' / 'training.yaml')
+        training_path.parent.mkdir(parents=True, exist_ok=True)
+        config_path = Path(job_path.folder / 'k8s_template' / 'config')
+        config_path.mkdir(parents=True, exist_ok=True)
+        chart_path = Path(job_path.folder / 'k8s_template' / 'Chart.yaml')
+        training_config_file = os.path.join(template_root, 'training-config.yaml')
+        training_config_path = Path(job_path.folder / 'k8s_template' / 'templates' / 'training-config.yaml')
+        hydra_config_path = Path(job_path.folder / 'k8s_template' / 'config')
+
+        shutil.copy2(template_file, training_path)
+        shutil.copy2(chart_file, chart_path)
+        shutil.copy2(training_config_file, training_config_path)
+        shutil.copy2(job_path.config_file, hydra_config_path)
+
+    def _add_wandb_key_to_chart(self) -> str:
+        """
+        Read the WandB API key file and return it to be placed in the Helm chart.
+
+        :return: a string of the WandB API key.
+        :rtype: str
+        """
+        with open(self.cfg.wandb_api_key_file, "r") as f:
+            wandb_api_key = f.readline().rstrip()
+        return wandb_api_key
+
+    def _make_k8s_spec_file(self, template_root: str, cluster_parameters: Dict, job_path: JobPaths):
+        """
+        Create a spec file for a Kubernetes training job.
+        The spec file is generated based on the parameters in the cluster and training config files.
+
+        :param str template_root: path to where the k8s template files are located
+        :param Dict cluster_parameters: settings specific to the cluster that is being used
+        :param JobPaths job_path: JobPaths object
+        """
+        with open(os.path.join(template_root, 'values.yaml')) as value_file:
+            values_template = OmegaConf.load(value_file)
+
+        values_template.image.trainingImage = cluster_parameters['container_image']
+        values_template.image.pullSecret = cluster_parameters['pull_secret']
+        values_template.image.numGPUs = self.stage_cfg.trainer.devices
+        values_template.image.nodes = self.stage_cfg.trainer.num_nodes
+        values_template.trainingConfig.shmSize = cluster_parameters['shm_size']
+        values_template.trainingConfig.NFSServer = cluster_parameters['nfs_server']
+        values_template.trainingConfig.NFSPath = cluster_parameters['nfs_path']
+        values_template.trainingConfig.ibResourceName = cluster_parameters['ib_resource_name']
+        values_template.trainingConfig.ibCount = cluster_parameters['ib_count']
+
+        if self.cfg.wandb_api_key_file is not None:
+            values_template.trainingConfig.wandbKey = self._add_wandb_key_to_chart()
+
+        k8s_template_path = job_path.folder
+        k8s_template_file = Path(k8s_template_path / 'k8s_template' / 'values.yaml')
+        k8s_template_file.parent.mkdir(parents=True, exist_ok=True)
+
+        conf = OmegaConf.create(values_template)
+        OmegaConf.save(conf, k8s_template_file)
 
     def get_env_vars(self) -> Dict:
         """
@@ -814,6 +916,57 @@ class Conversion(NemoMegatronStage):
             f"{' '.join(checkpoint_override)}"
         )
 
+    def _make_k8s_spec_file(self, template_root: str, cluster_parameters: Dict, job_path: JobPaths):
+        """
+        Create a spec file for a Kubernetes conversion job.
+        The spec file is generated based on the parameters in the cluster and conversion config files.
+
+        :param str template_root: path to where the k8s template files are located
+        :param Dict cluster_parameters: settings specific to the cluster that is being used
+        :param JobPaths job_path: JobPaths object
+        """
+        with open(os.path.join(template_root, 'values.yaml')) as value_file:
+            values_template = OmegaConf.load(value_file)
+
+        num_gpus = self.cfg.conversion.model.pipeline_model_parallel_size * self.cfg.conversion.model.tensor_model_parallel_size
+
+        values_template.image.trainingImage = cluster_parameters['container_image']
+        values_template.image.pullSecret = cluster_parameters['pull_secret']
+        values_template.image.gpuNum = num_gpus
+        values_template.trainingConfig.shmSize = cluster_parameters['shm_size']
+        values_template.trainingConfig.NFSServer = cluster_parameters['nfs_server']
+        values_template.trainingConfig.NFSPath = cluster_parameters['nfs_path']
+        values_template.trainingConfig.vocabPath = self.cfg.conversion.model.vocab_file
+        values_template.trainingConfig.mergesPath = self.cfg.conversion.model.merge_file
+        values_template.trainingConfig.resultsDirectory = str(job_path.folder)
+        values_template.trainingConfig.trainingDirectory = self.cfg.conversion.run.train_dir
+        values_template.trainingConfig.launcherScriptsPath = self.cfg.launcher_scripts_path
+        values_template.trainingConfig.tensorParallelism = self.cfg.conversion.model.tensor_model_parallel_size
+        values_template.trainingConfig.pipelineParallelism = self.cfg.conversion.model.pipeline_model_parallel_size
+
+        k8s_template_path = job_path.folder
+        k8s_template_file = Path(k8s_template_path / 'k8s_template' / 'values.yaml')
+        k8s_template_file.parent.mkdir(parents=True, exist_ok=True)
+
+        conf = OmegaConf.create(values_template)
+        OmegaConf.save(conf, k8s_template_file)
+
+    def _copy_k8s_helm_chart(self, template_root: str, job_path: JobPaths):
+        """
+        Copy the k8s Helm charts to the results directory.
+
+        :param str template_root: path to where the k8s template files are located
+        :param JobPaths job_path: JobPaths object
+        """
+        template_file = os.path.join(template_root, 'conversion.yaml')
+        chart_file = os.path.join(template_root, 'Chart.yaml')
+        conversion_path = Path(job_path.folder / 'k8s_template' / 'templates' / 'conversion.yaml')
+        conversion_path.parent.mkdir(parents=True, exist_ok=True)
+        chart_path = Path(job_path.folder / 'k8s_template' / 'Chart.yaml')
+
+        shutil.copy2(template_file, conversion_path)
+        shutil.copy2(chart_file, chart_path)
+
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """
         Make the command groups for current stage
@@ -986,6 +1139,77 @@ class EvalHarnessEvaluation(NemoMegatronStage):
         download_command = [f"python3 {code_path}", *args]
         download_command_string = " \\\n  ".join(download_command)
         return download_command_string
+
+    def _make_k8s_spec_file(self, template_root: str, cluster_parameters: Dict, job_path: JobPaths):
+        """
+        Create a spec file for a Kubernetes conversion job.
+        The spec file is generated based on the parameters in the cluster and conversion config files.
+
+        :param str template_root: path to where the k8s template files are located
+        :param Dict cluster_parameters: settings specific to the cluster that is being used
+        :param JobPaths job_path: JobPaths object
+        """
+        with open(os.path.join(template_root, 'values.yaml')) as value_file:
+            values_template = OmegaConf.load(value_file)
+
+        num_gpus = self.cfg.evaluation.model.pipeline_model_parallel_size * self.cfg.evaluation.model.tensor_model_parallel_size
+
+        values_template.image.trainingImage = cluster_parameters['container_image']
+        values_template.image.pullSecret = cluster_parameters['pull_secret']
+        values_template.image.gpuNum = num_gpus
+        values_template.trainingConfig.shmSize = cluster_parameters['shm_size']
+        values_template.trainingConfig.NFSServer = cluster_parameters['nfs_server']
+        values_template.trainingConfig.NFSPath = cluster_parameters['nfs_path']
+        values_template.trainingConfig.vocabPath = self.cfg.evaluation.model.vocab_file
+        values_template.trainingConfig.mergesPath = self.cfg.evaluation.model.merge_file
+        values_template.trainingConfig.resultsDirectory = str(job_path.folder)
+        values_template.trainingConfig.trainingDirectory = self.cfg.evaluation.run.train_dir
+        values_template.trainingConfig.launcherScriptsPath = self.cfg.launcher_scripts_path
+        values_template.trainingConfig.tensorParallelism = self.cfg.evaluation.model.tensor_model_parallel_size
+        values_template.trainingConfig.pipelineParallelism = self.cfg.evaluation.model.pipeline_model_parallel_size
+        values_template.trainingConfig.name = self.cfg.evaluation.run.name
+        values_template.trainingConfig.model = self.cfg.evaluation.model.model_type
+        values_template.trainingConfig.cacheDir = os.path.join(self.cfg.data_dir, 'eval_harness_data')
+        values_template.trainingConfig.outputPath = os.path.join(self.cfg.evaluation.run.results_dir,
+                                                                 self.cfg.evaluation.run.eval_name,
+                                                                 'results')
+        values_template.trainingConfig.batchSize = self.cfg.evaluation.model.eval_batch_size
+        values_template.trainingConfig.precision = self.cfg.evaluation.model.precision
+        values_template.trainingConfig.nemoModel = self.cfg.evaluation.model.nemo_model
+        values_template.trainingConfig.checkpointFolder = self.cfg.evaluation.model.checkpoint_folder
+        values_template.trainingConfig.checkpointName = self.cfg.evaluation.model.checkpoint_name
+        values_template.trainingConfig.hparamsFile = self.cfg.evaluation.model.hparams_file
+        values_template.trainingConfig.tasks = self.cfg.evaluation.run.tasks
+
+        k8s_template_path = job_path.folder
+        k8s_template_file = Path(k8s_template_path / 'k8s_template' / 'values.yaml')
+        k8s_template_file.parent.mkdir(parents=True, exist_ok=True)
+
+        conf = OmegaConf.create(values_template)
+        OmegaConf.save(conf, k8s_template_file)
+
+    def _copy_k8s_helm_chart(self, template_root: str, job_path: JobPaths):
+        """
+        Copy the k8s Helm charts to the results directory.
+
+        :param str template_root: path to where the k8s template files are located
+        :param JobPaths job_path: JobPaths object
+        """
+        template_file = os.path.join(template_root, 'evaluation.yaml')
+        chart_file = os.path.join(template_root, 'Chart.yaml')
+        evaluation_path = Path(job_path.folder / 'k8s_template' / 'templates' / 'evaluation.yaml')
+        evaluation_path.parent.mkdir(parents=True, exist_ok=True)
+        config_path = Path(job_path.folder / 'k8s_template' / 'config')
+        config_path.mkdir(parents=True, exist_ok=True)
+        chart_path = Path(job_path.folder / 'k8s_template' / 'Chart.yaml')
+        evaluation_config_file = os.path.join(template_root, 'evaluation-config.yaml')
+        evaluation_config_path = Path(job_path.folder / 'k8s_template' / 'templates' / 'evaluation-config.yaml')
+        hparams_config_path = Path(job_path.folder / 'k8s_template' / 'config')
+
+        shutil.copy2(template_file, evaluation_path)
+        shutil.copy2(chart_file, chart_path)
+        shutil.copy2(evaluation_config_file, evaluation_config_path)
+        shutil.copy2(os.path.join(self.cfg.evaluation.run.train_dir, 'results', 'hparams.yaml'), hparams_config_path)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """

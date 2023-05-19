@@ -1,0 +1,53 @@
+{{ $config := .Values.trainingConfig }}
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nlp-evaluation
+  labels:
+    app: nlp-evaluation
+spec:
+  template:
+    spec:
+      containers:
+      - name: nlp-evaluation
+        image: {{ .Values.image.trainingImage }}
+        env:
+          - name: NCCL_AVOID_RECORD_STREAMS
+            value: "1"
+        command: ["/bin/bash", "-c"]
+        args:
+          - 'python3 {{ $config.launcherScriptsPath }}/nemo_launcher/collections/eval_harness/download.py --tasks=all_tasks --cache-dir={{ $config.cacheDir }} &&
+          mkdir -p {{ $config.outputPath }} &&
+          python3 {{ $config.launcherScriptsPath }}/nemo_launcher/collections/eval_harness/evaluate.py --name={{ $config.name }} --model={{ $config.model }} --tasks={{ $config.tasks }} --cache_dir={{ $config.cacheDir }} --output_path={{ $config.outputPath }} --batch_size={{ $config.batchSize }} --tensor_model_parallel_size={{ $config.tensorParallelism }} --pipeline_model_parallel_size={{ $config.pipelineParallelism }} --precision={{ $config.precision }} --vocab_file={{ $config.vocabPath }} --merge_file={{ $config.mergesPath }} {{- if $config.nemoModel }} --nemo_model={{ $config.nemoModel }}{{ end }} --checkpoint_folder={{ $config.checkpointFolder }} --checkpoint_name={{ $config.checkpointName }} --hparams_file=/config/hparams.yaml'
+        imagePullPolicy: Always
+        resources:
+          requests:
+            nvidia.com/gpu: {{ .Values.image.gpuNum }}
+          limits:
+            nvidia.com/gpu: {{ .Values.image.gpuNum }}
+        volumeMounts:
+        - mountPath: {{ $config.NFSPath }}
+          name: workspace
+        - mountPath: /dev/shm
+          name: dshm
+        - mountPath: /config
+          name: evaluation-config
+      restartPolicy: Never
+      imagePullSecrets:
+      - name: {{ .Values.image.pullSecret }}
+
+      volumes:
+      - name: workspace
+        nfs:
+          server: {{ $config.NFSServer }}
+          path: {{ $config.NFSPath }}
+
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: {{ $config.shmSize }}
+
+      - configMap:
+          name: evaluation-config
+        name: evaluation-config

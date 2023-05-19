@@ -91,7 +91,7 @@ def main(cfg):
         os.system(runcmd)
         if rm_extracted:
             os.remove(extracted_path)
-    elif cfg.get("cluster_type") == "bcp":
+    elif cfg.get("cluster_type") in ["bcp", "k8s"]:
         file_numbers = cfg.get("file_numbers")
         files_list = utils.convert_file_numbers(file_numbers)
         # Assumes launched via mpirun:

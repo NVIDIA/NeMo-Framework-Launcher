@@ -108,7 +108,7 @@ class Export(NemoMegatronStage):
             job_path = self.get_job_path(sub_stage)
             job_path.folder.mkdir(parents=True, exist_ok=True)
 
-            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(self.stage_cfg, job_path)
+            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(self.stage_cfg, job_path, self.cfg)
             if job_id:
                 dependency = f"aftercorr:{job_id}"
                 self.stage_cfg["run"]["dependency"] = dependency
