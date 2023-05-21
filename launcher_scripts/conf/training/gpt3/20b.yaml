@@ -53,10 +53,6 @@ model:
   pipeline_model_parallel_size: 1
   virtual_pipeline_model_parallel_size: null # interleaved pipeline
   resume_from_checkpoint: null # manually set the checkpoint file to load from
-
-  overlap_p2p_comm: true
-  batch_p2p_comm: false
-
   # model architecture
   encoder_seq_length: 2048
   max_position_embeddings: 2048

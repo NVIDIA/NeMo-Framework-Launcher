@@ -52,8 +52,6 @@ model:
   tensor_model_parallel_size: 2
   pipeline_model_parallel_size: 1
   virtual_pipeline_model_parallel_size: null
-  overlap_p2p_comm: true
-  batch_p2p_comm: false
   encoder_seq_length: 2048
   max_position_embeddings: 2048
   num_layers: 32
