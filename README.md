@@ -1,4 +1,4 @@
-# NeMo Framework Open Beta - Inference Container 
+# NeMo Framework Open Beta - Inference Container
 
 # Table of contents
 - [1. Support Matrix](#1-support-matrix)
@@ -15,19 +15,18 @@
   * [4.1. GPT Results](#41-gpt-results)
     + [4.1.1. Inference Performance](#411-inference-performance)
 
-# 1. Support Matrix
+### 1. Support Matrix
 <a id="markdown-support-matrix" name="support-matrix"></a>
 
 | Software                | Version          |
 |-------------------------|------------------|
-| NVIDIA Triton           | 2.24.0           |
-| FasterTransformer       | v5.3+c6e8f60     |
-| TransformerEngine       | v0.6+f18e677     |
-| PyTorch                 | 2.0.0a0+1767026  |
+| NVIDIA Triton           | 2.33.0           |
+| FasterTransformer       | v5.3+57704cd     |
+| PyTorch                 | 2.0.1            |
 | NeMo                    | 1.18.0+ddbe0f3   |
 | PyTorch Lightning       | 1.9.4            |
 | Hydra                   | 1.2.0            |
-| NCCL                    | 2.17.1           |
+| NCCL                    | 2.14.3           |
 
 ### 2. Model Export
 <a id="markdown-model-export" name="model-export"></a>
@@ -79,9 +78,9 @@ model:
   load_checkpoints_to_cpu: False
 ```
 
-To specify the NVIDIA Triton Inference Server 
+To specify the NVIDIA Triton Inference Server
 [model directory](https://github.com/triton-inference-server/server/blob/main/docs/model_repository.md#repository-layout) and
-[FasterTransformer backend](https://github.com/triton-inference-server/fastertransformer_backend/blob/main/docs/gpt_guide.md#how-to-set-the-model-configuration) parameters, 
+[FasterTransformer backend](https://github.com/triton-inference-server/fastertransformer_backend/blob/main/docs/gpt_guide.md#how-to-set-the-model-configuration) parameters,
 use the `triton_deployment` parameter.
 
 ```yaml
@@ -131,7 +130,7 @@ In order to run the export stage on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
 from the command line, using hydra. The export scripts must be launched in a multi-node job.
 
-To run the export pipeline to evaluate a 126M GPT model checkpoint stored in 
+To run the export pipeline to evaluate a 126M GPT model checkpoint stored in
 `/mount/results/gpt3_126m/checkpoints`, run:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py \
@@ -144,7 +143,7 @@ export.triton_deployment.pipeline_model_parallel_size=1 \
 >> /results/export_gpt3_log.txt 2>&1
 ```
 
-The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
+The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`.
 The stdout and stderr outputs will also be redirected to the `/results/export_gpt3_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
