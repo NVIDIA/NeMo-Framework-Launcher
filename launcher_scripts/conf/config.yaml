@@ -44,8 +44,6 @@ env_vars:
   NCCL_PROTO: null # Protocol NCCL will use. Set to "simple" for AWS
   TRANSFORMER_OFFLINE: 1
   NCCL_AVOID_RECORD_STREAMS: 1
-  NVTE_FWD_LAYERNORM_SM_MARGIN: 4
-  NVTE_BWD_LAYERNORM_SM_MARGIN: 4
 
 # GPU Mapping
 numa_mapping:
