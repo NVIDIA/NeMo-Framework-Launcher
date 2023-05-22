@@ -5541,7 +5541,6 @@ The table and chart below show the performance results.
 * Addressed issue in RLHF which prevented some jobs from running in Slurm clusters
 * Corrections related to the renaming of NeMo Megatron to NeMo Framework
 * Modified run.name in the *_improved configuration files to match the correct parameter count
-* Updated NeMo Launcher with run script guidelines to use with the new 23.04 features
 
 **NeMo Framework 23.04**
 * NeMo Data Curator - a scalable Python library for curating large-scale datasets required for training large language foundation models
