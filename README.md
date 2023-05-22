@@ -1933,7 +1933,7 @@ launcher_scripts_path: ${auto_configurator_path}/../launcher_scripts
 fastertransformer_path: ${auto_configurator_path}/../FasterTransformer
 base_results_dir: ${auto_configurator_path}/results
 data_dir: ${launcher_scripts_path}/data
-training_container: nvcr.io/ea-bignlp/nemofw-training:23.04a-py3
+training_container: nvcr.io/ea-bignlp/nemofw-training:23.04.1-py3
 container_mounts:
     - null
 wandb:  # Weights and Biases (W&B) logging.
@@ -4890,7 +4890,7 @@ RM_MODEL=/path/to/reward_model.nemo
 ACTOR_MODEL=/path/to/sft_model.nemo
 
 DIR=/opt/nemo-rlhf
-CONTAINER="nvcr.io/ea-bignlp/nemofw-training:23.04a-py3"
+CONTAINER="nvcr.io/ea-bignlp/nemofw-training:23.04.1-py3"
 
 # START HETEROGENEUS JOB 0
 
@@ -5537,7 +5537,7 @@ The table and chart below show the performance results.
 ## 8. Changelog
 <a id="markdown-changelog" name="changelog"></a>
 
-**NeMo Framework 23.04a**
+**NeMo Framework 23.04.1**
 * Addressed issue in RLHF which prevented some jobs from running in Slurm clusters
 * Corrections related to the renaming of NeMo Megatron to NeMo Framework
 * Modified run.name in the *_improved configuration files to match the correct parameter count
