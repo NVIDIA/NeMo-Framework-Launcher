@@ -2,9 +2,9 @@
 ## Open Beta
 
 Scripts and code to provide end-to-end data preparation and training for
-NeMo-Megatron.
+NeMo Framework.
 
-The most recent version of the README can be found at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training).
+The most recent version of the README can be found at [https://ngc.nvidia.com/containers/ea-bignlp:nemofw-training](https://ngc.nvidia.com/containers/ea-bignlp:nemofw-training).
 
 ## Table of contents
 - [1. Model Overview](#1-model-overview)
@@ -1933,7 +1933,7 @@ launcher_scripts_path: ${auto_configurator_path}/../launcher_scripts
 fastertransformer_path: ${auto_configurator_path}/../FasterTransformer
 base_results_dir: ${auto_configurator_path}/results
 data_dir: ${launcher_scripts_path}/data
-training_container: nvcr.io/ea-bignlp/bignlp-training:23.04-py3
+training_container: nvcr.io/ea-bignlp/nemofw-training:23.04.1-py3
 container_mounts:
     - null
 wandb:  # Weights and Biases (W&B) logging.
@@ -4890,7 +4890,7 @@ RM_MODEL=/path/to/reward_model.nemo
 ACTOR_MODEL=/path/to/sft_model.nemo
 
 DIR=/opt/nemo-rlhf
-CONTAINER="nvcr.io/ea-bignlp/bignlp-training:23.04-py3"
+CONTAINER="nvcr.io/ea-bignlp/nemofw-training:23.04.1-py3"
 
 # START HETEROGENEUS JOB 0
 
@@ -5537,6 +5537,11 @@ The table and chart below show the performance results.
 ## 8. Changelog
 <a id="markdown-changelog" name="changelog"></a>
 
+**NeMo Framework 23.04.1**
+* Addressed issue in RLHF which prevented some jobs from running in Slurm clusters
+* Corrections related to the renaming of NeMo Megatron to NeMo Framework
+* Modified run.name in the *_improved configuration files to match the correct parameter count
+
 **NeMo Framework 23.04**
 * NeMo Data Curator - a scalable Python library for curating large-scale datasets required for training large language foundation models
 * Enable Continued Training for P-Tuning
@@ -5668,7 +5673,6 @@ The table and chart below show the performance results.
 Fixes for the following issues will be released shortly:
 * The inference hyperparameter search is not available in this release for T5 and mT5
 * Accuracy and performance measurement for GPT is currently not supported. Please use the NeMo Framework 22.05 inference container to use this feature
-* For running inference on BCP please use the NeMo Framework 22.03 inference container
 * The fine-tuning SQuAD results for T5 are lower than expected
 * There is a known slowdown for T5 TP8 3B configurations - the other T5 3B configurations are performing well
 * In 23.04, there is a slight regression in autocast performance - it is recommended to use previous releases for autocast use cases
