@@ -128,6 +128,9 @@ model:
     name: fused_adam
     lr: 2.5e-4
     weight_decay: 0.1
+    overlap_grad_sync: True
+    overlap_param_sync: True
+    grad_sync_dtype: bf16
     betas:
       - 0.9
       - 0.95

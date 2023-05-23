@@ -51,7 +51,9 @@ model:
   global_batch_size: 1536
   tensor_model_parallel_size: 8
   pipeline_model_parallel_size: 2
-  virtual_pipeline_model_parallel_size: null
+  virtual_pipeline_model_parallel_size: 24
+  overlap_p2p_comm: true
+  batch_p2p_comm: false 
   encoder_seq_length: 2048
   max_position_embeddings: 2048
   num_layers: 48
@@ -128,6 +130,9 @@ model:
     name: fused_adam
     lr: 9e-5
     weight_decay: 0.1
+    overlap_grad_sync: True
+    overlap_param_sync: True
+    grad_sync_dtype: bf16
     betas:
       - 0.9
       - 0.95

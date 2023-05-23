@@ -52,6 +52,8 @@ model:
   tensor_model_parallel_size: 8
   pipeline_model_parallel_size: 16
   virtual_pipeline_model_parallel_size: 6 # interleaved pipeline
+  overlap_p2p_comm: true
+  batch_p2p_comm: false 
   resume_from_checkpoint: null # manually set the checkpoint file to load from
   # model architecture
   encoder_seq_length: 2048
@@ -137,8 +139,9 @@ model:
   optim:
     name: distributed_fused_adam
     bucket_cap_mb: 200
-    overlap_grad_sync: False
+    overlap_grad_sync: True
     contiguous_grad_buffer: True
+    grad_sync_dtype: bf16
     lr: 0.9e-4
     weight_decay: 0.1 
     betas: 
