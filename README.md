@@ -4663,6 +4663,33 @@ From the above example, there is no clear "input" and "output" field that SFT re
 
 `python launcher_scripts/nemo_launcher/collections/dataprep_scripts/dolly_datapreep/preprocess.py --input /path/to/save/data.jsonl` generates a file `/path/to/save/data-output.jsonl` that can provided to SFT training described below.
 
+For dialogue dataset, it is formatted as a JSONL file with each line formatted as:
+```
+{
+  "mask": "User",
+  "system": "A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.\n\n",
+  "conversations": [
+    {
+      "from": "User",
+      "value": "Who are you?"
+    },
+    {
+      "from": "Assistant",
+      "value": "I am NV Assistant, a language model trained by researchers from NVIDIA NeMo team."
+    },
+    {
+      "from": "User",
+      "value": "What can you do?"
+    },
+    {
+      "from": "Assistant",
+      "value": "I can chat with you."
+    }
+  ]
+}, 
+```
+where the field `system` is used to define the system prompt for the conversation. The `conversations` is a list of multiple turn conversations. `from` is the name of the person and `value` is the actual conversation text. The `mask` field indicate which person's conversation is going to be masked during the SFT, so it is not used to compute the cross-entropy loss. 
+
 #### 5.14.2 SFT Training
 <a id="markdown-sft-training" name="sft-training"></a>
 
@@ -4716,6 +4743,11 @@ python /opt/NeMo/examples/nlp/language_modeling/megatron_gpt_sft.py \
 ```
 
 The `${TP_SIZE}` and `${PP_SIZE}` above should correspond to the Tensor and Pipeline model parallel sizes the `/path/to/your/gpt.nemo` model was saved with.
+
+For finetuning dialogue dataset, we just need to add one extra configuration line to indicate the dataset type is dialogue.  
+```bash
+  model.data.chat=True
+```
 
 ### 5.15. Reinforcement Learning from Human Feedback
 <a id="markdown-reinforcement-learning-from-human-feedback" name="reinforcement-learning-from-human-feedback"></a>
