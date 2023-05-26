@@ -4690,6 +4690,8 @@ For dialogue dataset, it is formatted as a JSONL file with each line formatted a
 ```
 where the field `system` is used to define the system prompt for the conversation. The `conversations` is a list of multiple turn conversations. `from` is the name of the person and `value` is the actual conversation text. The `mask` field indicates which person's conversation is going to be masked during the SFT, so it is not used to compute the cross-entropy loss. 
 
+It is important to ensure that the dialogue length is within the model's maximum sequence length. Otherwise, the entire dialogue may be masked out because it is truncated inside the dataset. In this case, you will see a 'NaN' error during training. To avoid this issue, you can split long dialogues into shorter segments, or use a model that can handle longer sequences
+
 #### 5.14.2 SFT Training
 <a id="markdown-sft-training" name="sft-training"></a>
 
