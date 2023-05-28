@@ -12,6 +12,7 @@ run:
 
 model:
   model_type: nemo-gpt3
+  nemo_model: null # run eval with a .nemo file, produced when converted interleaved checkpoints
   checkpoint_folder: ${evaluation.run.train_dir}/results/checkpoints
   checkpoint_name: latest # latest OR name pattern of a checkpoint (e.g. megatron_gpt-*last.ckpt)
   hparams_file: ${evaluation.run.train_dir}/results/hparams.yaml
