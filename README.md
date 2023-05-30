@@ -620,6 +620,8 @@ numa_mapping:
   max_cores: 8  # Maximum number of physical cores per process. Can be null to use all available cores.
 ```
 
+**Interactive**: In order to run the launcher in an interactive job or locally on a workstation, 
+set `cluster_type=interactive` in `conf/config.yaml`.
 
 **Slurm**: The `launcher_scripts_path` parameter will automatically be mounted to the
 container at the same path as in the local file system. Any additional
