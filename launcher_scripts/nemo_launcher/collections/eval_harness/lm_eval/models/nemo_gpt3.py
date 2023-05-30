@@ -13,17 +13,17 @@
 # limitations under the License.
 
 import os
+from omegaconf import OmegaConf, open_dict
 
 import torch
 import tqdm
-from apex.transformer import parallel_state
+from megatron.core import parallel_state
 from lm_eval import utils
 from lm_eval.base import LM
 from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import MegatronGPTModel
 from nemo.collections.nlp.modules.common.megatron.megatron_init import fake_initialize_model_parallel
 from nemo.collections.nlp.modules.common.text_generation_utils import generate, get_computeprob_response
-from nemo.collections.nlp.parts.nlp_overrides import NLPDDPStrategy
-from nemo.core.connectors.save_restore_connector import SaveRestoreConnector
+from nemo.collections.nlp.parts.nlp_overrides import NLPDDPStrategy, NLPSaveRestoreConnector
 from nemo.utils import logging
 from nemo.utils.app_state import AppState
 from nemo.utils.get_rank import is_global_rank_zero
@@ -92,14 +92,33 @@ def setup_trainer_and_model(args):
             pipeline_model_parallel_size_=args.pipeline_model_parallel_size,
         )
 
-    if args.nemo_model is not None:
-        logging.info(f"**** Loading checkpoint from {args.nemo_model}")
-        connector = SaveRestoreConnector()
+    if args.nemo_model is not None and args.nemo_model != "None":
+        logging.info(f"**** Loading checkpoint from nemo model: {args.nemo_model}")
+        save_restore_connector = NLPSaveRestoreConnector()
         if os.path.isdir(args.nemo_model):
-            connector._model_extracted_dir = args.nemo_model
-        model = MegatronGPTModel.restore_from(
-            restore_path=args.nemo_model, save_restore_connector=connector, trainer=trainer
+            save_restore_connector._model_extracted_dir = args.nemo_model
+        pretrained_cfg = MegatronGPTModel.restore_from(
+            restore_path=args.nemo_model,
+            trainer=trainer,
+            return_config=True,
+            save_restore_connector=save_restore_connector,
         )
+        OmegaConf.set_struct(pretrained_cfg, True)
+        with open_dict(pretrained_cfg):
+            pretrained_cfg.sequence_parallel = False
+            pretrained_cfg.activations_checkpoint_granularity = None
+            pretrained_cfg.activations_checkpoint_method = None
+            pretrained_cfg.precision = trainer.precision
+            if trainer.precision == "16":
+                pretrained_cfg.megatron_amp_O2 = False
+        model = MegatronGPTModel.restore_from(
+            restore_path=args.nemo_model,
+            trainer=trainer,
+            override_config_path=pretrained_cfg,
+            save_restore_connector=save_restore_connector,
+            map_location=f'cuda:{trainer.local_rank}',
+        )
+
     else:
         if args.tensor_model_parallel_size > 1 or args.pipeline_model_parallel_size > 1:
             app_state.pipeline_model_parallel_size = args.pipeline_model_parallel_size

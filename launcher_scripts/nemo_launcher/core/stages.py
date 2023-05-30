@@ -911,10 +911,12 @@ class EvalHarnessEvaluation(NemoMegatronStage):
                 prompt_dataset_paths=model_cfg.get("prompt_dataset_paths"),
             )
         else:
+            # GPT evaluation
             args += create_args_list(
                 replace_underscore=False,
                 vocab_file=model_cfg.get("vocab_file"),
                 merge_file=model_cfg.get("merge_file"),
+                nemo_model=model_cfg.get("nemo_model"),
                 checkpoint_folder=model_cfg.get("checkpoint_folder"),
                 checkpoint_name=model_cfg.get("checkpoint_name"),
                 hparams_file=model_cfg.get("hparams_file"),
