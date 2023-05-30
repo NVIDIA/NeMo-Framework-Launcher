@@ -42,7 +42,7 @@ env_vars:
   NCCL_IB_TIMEOUT: null # InfiniBand Verbs Timeout. Set to 22 for Azure
   NCCL_DEBUG: null # Logging level for NCCL. Set to "INFO" for debug information
   NCCL_PROTO: null # Protocol NCCL will use. Set to "simple" for AWS
-  TRANSFORMER_OFFLINE: 1
+  TRANSFORMERS_OFFLINE: 1
   NCCL_AVOID_RECORD_STREAMS: 1
 
 # GPU Mapping
