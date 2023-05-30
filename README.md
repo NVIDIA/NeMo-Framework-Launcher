@@ -140,6 +140,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.12.1.1. Common](#51211-common)
       - [5.12.1.2. Slurm](#51212-slurm)
       - [5.12.1.3. Base Command Platform](#51213-base-command-platform)
+      - [5.12.1.4. Interleaved Pipeline Parallelism](#51214-interleaved-pipeline-parallelism)
     + [5.12.2. T5 Evaluation](#5122-t5-evaluation)
       - [5.12.2.1. Common](#51221-common)
       - [5.12.2.2. Slurm](#51222-slurm)
@@ -3671,6 +3672,40 @@ evaluation.model.tensor_model_parallel_size=1 \
 The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
 The stdout and stderr outputs will also be redirected to the `/results/eval_gpt3_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
+
+##### 5.12.1.4 Interleaved Pipeline Parallelism
+<a id="markdown-interleaved-pipeline-parallelism" name="interleaved-pipeline-parallelism"></a>
+If your model was trained with interleaved pipeline parallelism, then the model must converted to a non-interleaved model.
+In order to check if your model used interleaved, inspect the training config and verify that
+`model.virtual_pipeline_model_parallel_size>0`.
+
+To convert the model, use the script from the NeMo Toolkit: [examples/nlp/language_modeling/megatron_change_num_partitions.py](https://github.com/NVIDIA/NeMo/blob/main/examples/nlp/language_modeling/megatron_change_num_partitions.py)
+
+```
+CUDA_VISIBLE_DEVICES=0 python3 -u /opt/NeMo/examples/nlp/language_modeling/megatron_change_num_partitions.py  \
+  --num_gpu_per_node=1 \
+  --model_extracted_dir=${RESULTS_DIR}/checkpoints \
+  --target_file=${RESULTS_DIR}/checkpoints/megatron_gpt_converted.nemo \
+  --ckpt_name='megatron_gpt--val_loss=2.59-step=9421-consumed_samples=2411520.0-last.ckpt' \
+  --tensor_model_parallel_size=1 \
+  --target_tensor_model_parallel_size=1 \
+  --pipeline_model_parallel_size=4 \
+  --target_pipeline_model_parallel_size=4 \
+  --virtual_pipeline_model_parallel_size=3 \
+  --hparams_file=${RESULTS_DIR}/hparams.yaml \
+  --precision=bf16 "
+```
+
+Note the conversion script should only be run with a single GPU.
+
+The output of the conversion script is a `.nemo` file. This file should be added to your evaluation config:
+
+```
+evaluation.model.nemo_model=/path/to/converted.nemo \
+evaluation.model.checkpoint_folder=null \
+evaluation.model.checkpoint_name=null \
+evaluation.model.hparams_file=null \
+```
 
 
 #### 5.12.2. T5 Evaluation
