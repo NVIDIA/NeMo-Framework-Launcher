@@ -92,7 +92,7 @@ def setup_trainer_and_model(args):
             pipeline_model_parallel_size_=args.pipeline_model_parallel_size,
         )
 
-    if args.nemo_model is not None:
+    if args.nemo_model is not None and args.nemo_model != "None":
         logging.info(f"**** Loading checkpoint from nemo model: {args.nemo_model}")
         save_restore_connector = NLPSaveRestoreConnector()
         if os.path.isdir(args.nemo_model):
