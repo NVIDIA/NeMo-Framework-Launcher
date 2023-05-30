@@ -3677,7 +3677,7 @@ Any other parameter can also be added to the command to modify its behavior.
 <a id="markdown-interleaved-pipeline-parallelism" name="interleaved-pipeline-parallelism"></a>
 If your model was trained with interleaved pipeline parallelism, then the model must converted to a non-interleaved model.
 In order to check if your model used interleaved, inspect the training config and verify that
-`model.virtual_pipeline_model_parallel_size>0`.
+`model.virtual_pipeline_model_parallel_size > 0`.
 
 To convert the model, use the script from the NeMo Toolkit: [examples/nlp/language_modeling/megatron_change_num_partitions.py](https://github.com/NVIDIA/NeMo/blob/main/examples/nlp/language_modeling/megatron_change_num_partitions.py)
 
