@@ -216,7 +216,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
   * [7.4. BERT Results](#74-bert-results)
     + [7.4.1. Training Accuracy Results](#741-training-accuracy-results)
     + [7.4.2. Training Performance Results](#742-training-performance-results)
-    + [7.4.3. Training Performance Results (LDDL)](#742-training-performance-results-LDDL) 
+    + [7.4.3. Training Performance Results (LDDL)](#743-training-performance-results-lddl) 
 - [8. Changelog](#8-changelog)
 - [9. Known Issues](#9-known-issues)
 
@@ -5627,7 +5627,7 @@ The table and chart below show the performance results.
 <img src="img/4B_bert_throughput_2211.png"/>
 
 #### 7.4.3. Training Performance Results (LDDL)
-<a id="markdown-training-performance-results-LDDL" name="training-performance-results-LDDL"></a>
+<a id="markdown-training-performance-results-lddl" name="training-performance-results-lddl"></a>
 We measured the performance of different Bert configurations with and without LDDL and saw an average 25% reduction in training time. 
 The table and chart below show the performance results.
 
