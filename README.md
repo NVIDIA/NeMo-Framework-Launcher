@@ -216,6 +216,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
   * [7.4. BERT Results](#74-bert-results)
     + [7.4.1. Training Accuracy Results](#741-training-accuracy-results)
     + [7.4.2. Training Performance Results](#742-training-performance-results)
+    + [7.4.3. Training Performance Results (LDDL)](#742-training-performance-results-LDDL) 
 - [8. Changelog](#8-changelog)
 - [9. Known Issues](#9-known-issues)
 
@@ -5625,7 +5626,17 @@ The table and chart below show the performance results.
 
 <img src="img/4B_bert_throughput_2211.png"/>
 
+#### 7.4.3. Training Performance Results (LDDL)
+<a id="markdown-training-performance-results-LDDL" name="training-performance-results-LDDL"></a>
+We measured the performance of different Bert configurations with and without LDDL and saw an average 25% reduction in training time. 
+The table and chart below show the performance results.
 
+| Bert Config | Train time without LDDL | Trian time with LDDL | MODEL SPEC                 | TFLOPS w/o LDDL | TFLOPS(LDDL) | Speedup (%) |
+| ----------- | ----------------------- | -------------------- | -------------------------- | --------------- | ------------ | ----------- |
+| 110m        | 0.078                   | 0.076                | 8 Nodes TP1 PP1 GBS 256    | 18.280          | 18.900       | 2.63%       |
+| 4b          | 1.794                   | 1.393                | 16 Nodes TP 1 PP1 GBS 2048 | 108.900         | 140.400      | 28.79%      |
+| 20b         | 7.956                   | 6.79                 | 32 Nodes TP4 PP4 GBS 4096  | 137.300         | 160.870      | 17.17%      |
+| 100b        | 9.743                   | 7.54                 | 128Nodes TP4 PP16 GBS 4096 | 124.88          | 162.83       | 29.22%      |
 
 ## 8. Changelog
 <a id="markdown-changelog" name="changelog"></a>
