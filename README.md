@@ -786,12 +786,12 @@ In this example, we will demonstrate how to customize the pipeline according to 
    stages:
      - training
    ```
-2. **Select the `stable_diffusion` model with `860m_res_256` configuration**: Update the `training` field in
+2. **Select the `stable_diffusion` model with `860m_res_256_pretrain` configuration**: Update the `training` field in
    the `defaults` section of `conf/config.yaml`:
    ```yaml
-   training: stable_diffusion/860m_res_256
+   training: stable_diffusion/860m_res_256_pretrain
    ```
-3. **Change the training epochs**: Navigate to the `conf/training/stable_diffusion/860m_res_256.yaml` file and update
+3. **Change the training epochs**: Navigate to the `conf/training/stable_diffusion/860m_res_256_pretrain.yaml` file and update
    the `max_epochs` field under the `trainer` section:
    ```yaml
     trainer:
@@ -799,7 +799,7 @@ In this example, we will demonstrate how to customize the pipeline according to 
    ```
 4. **Pipeline Execution**: With these customizations in place, the pipeline will now execute only the `training` stage,
    using
-   the `stable_diffusion` model with the `860m_res_256` configuration, and train for a total of `10` epochs.
+   the `stable_diffusion` model with the `860m_res_256_pretrain` configuration, and train for a total of `10` epochs.
    To run the customized pipeline, simply execute:
    ```
    python3 main.py
@@ -811,7 +811,7 @@ original files. To run the customized pipeline according to the instructions pro
 command:
 
 ```
-python3 main.py stages=[training] training=stable_diffusion/860m_res_256 training.trainer.max_epochs=10
+python3 main.py stages=[training] training=stable_diffusion/860m_res_256_pretrain training.trainer.max_epochs=10
 ```
 
 **Note**: When using Hydra's override feature, make sure to include the stage name (training in this example) for
@@ -1236,7 +1236,7 @@ To enable the training stage with Stable Diffusion, make sure:
 
 **Remark**:
 
-1.To continue training the Stable Diffusion model from the pretraining results, we reset the trainig process
+1.To continue training the Stable Diffusion model from the pretraining results, we reset the training process
 by only loading the UNet weights. You can do this by using the last checkpoint from the previous training and passing it
 to `training.model.unet_config.from_pretrained`. Due to different naming in model parameters, indicating you are loading
 from checkpoint trained by NeMo , set `training.model.unet_config.from_NeMo=True`. If you are resuming training from a
@@ -1254,7 +1254,7 @@ are based on public data which may contain copyrighted material. Consult your le
 | CLIP          |  [link](https://huggingface.co/openai/clip-vit-large-patch14)                  |     Yes            |
 
 
-3.There is no guarantee that training Stable Diffusion for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the later stages of convergence.
+3.There is no guarantee that training Stable Diffusion for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the late stages of convergence.
 
 #### 6.3.4. InstructPix2Pix Training
 
@@ -1664,6 +1664,11 @@ To enable the inference stage with Stable Diffusion, configure the configuration
    ```
 3. Configure `prompts` and `num_images_per_prompt` fields of `conf/fw_inference/stable_diffusion/text2img.yaml`.
    Set `model.restore_from_path` to the `.nemo` ckpt you want generate images with.
+
+**Remarks**:
+
+We have supported three types of inference samplers, 'DDIM', 'PLMS' and 'DPM', which can be changed by from config files. 'DPM' 
+sampler is added in recent updates and able to achieve similar image quality with half of steps needed for inference.
 
 #### 6.7.4. InstructPix2Pix Inference (in NeMo Framework)
 

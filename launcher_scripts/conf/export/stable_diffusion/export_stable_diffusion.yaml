@@ -1,7 +1,7 @@
 run:
   name: export_${.model_train_name}
   time_limit: "2:00:00"
-  model_train_name: "stable-diffusion"
+  model_train_name: stable_diffusion_860m_res_256_pretrain
   dependency: "singleton"
   training_dir: ${base_results_dir}/${.model_train_name}
   config_summary: stable_diffusion_fp${export.model.precision}

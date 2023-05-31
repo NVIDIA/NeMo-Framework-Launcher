@@ -59,6 +59,15 @@ def checkpoint_search(cfg):
         latest_checkpoint = max(checkpoint_list, key=os.path.getctime)
         checkpoint_name = os.path.basename(latest_checkpoint)
 
+    if checkpoint_name == "latest-EMA":
+        checkpoints = os.path.join(checkpoint_folder, "*-EMA.ckpt")
+        checkpoints = _inject_model_parallel_rank(
+            checkpoints, tensor_model_parallel_size, pipeline_model_parallel_size
+        )
+        checkpoint_list = glob.glob(checkpoints)
+        latest_checkpoint = max(checkpoint_list, key=os.path.getctime)
+        checkpoint_name = os.path.basename(latest_checkpoint)
+
     checkpoint = os.path.join(checkpoint_folder, checkpoint_name)
     checkpoint = _inject_model_parallel_rank(checkpoint, tensor_model_parallel_size, pipeline_model_parallel_size)
     checkpoint_list = glob.glob(checkpoint)
