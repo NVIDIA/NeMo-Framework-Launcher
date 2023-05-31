@@ -50,6 +50,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
         * [5.1.2.4.1. Slurm](#51241-slurm)
         * [5.1.2.4.2. Base Command Platform](#51242-base-command-platform)
         * [5.1.2.4.3. Common](#51243-common)
+        * [5.1.2.4.3. LDDL](#51243-LDDL)
   * [5.2. Training with Predefined Configurations](#52-training-with-predefined-configurations)
     + [5.2.1. Predefined Configurations of GPT Models](#521-predefined-configurations-of-gpt-models)
     + [5.2.2. Predefined Configurations of T5 Models](#522-predefined-configurations-of-t5-models)
@@ -1151,6 +1152,27 @@ tokenizer_type: BertWordPieceLowerCase
 rm_downloaded: True # Extract script will remove downloaded zst after extraction
 rm_extracted: True # Preprocess script will remove extracted files after preproc.
 ```
+
+###### 5.1.2.4.4. LDDL
+<a id="markdown-51243-LDDL" name="51243-LDDL"></a>
+
+Language Datasets and Data Loaders (LDDL) is a utility library that minimizes the friction during dataset retrieval, preprocessing and loading for the language models.  LDDL provides dataset preprocesssing and dataloaders that allow for efficient training of Bert with dynamic sequence lengths in order to maximize training performance. To use LDDL with Nemo FW follow the directions provided [here] (https://github.com/NVIDIA/LDDL#bert) for preprocessing data with binning.
+
+With the data preprocessed in binned LDDL format the LDDL format can be used with the following changes to the YAML file:
+
+```yaml
+trainer:
+  data:
+    data_prefix: 
+      - /path/to/train/LDDL/Dataset
+      - /path/to/val/LDDL/Dataset
+      - /path/to/test/LDDL/Dataset
+    dataloader_type: LDDL
+
+```
+
+Note: Nemo FW currently only works with LDDL datasets that have been preprocessed with binning.
+
 
 ### 5.2. Training with Predefined Configurations
 <a id="markdown-training-with-predefined-configurations" name="training-with-predefined-configurations"></a>
