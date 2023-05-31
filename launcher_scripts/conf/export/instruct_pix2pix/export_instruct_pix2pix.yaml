@@ -19,4 +19,3 @@ edit:
   cfg_text: 7.5
   cfg_image: 1.2
   num_images_per_prompt: 4
-  input: path/to/input/picture
