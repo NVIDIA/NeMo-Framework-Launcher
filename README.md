@@ -3591,15 +3591,14 @@ Any other parameter can also be added to the command to modify its behavior.
 
 ### 5.12 LoRA Model and Generalized PEFT Framework
 <a id="markdown-peft-model" name="lora-peft-framework"></a>
-There are lot of overlapping functionalities in many of the Parameter efficient fine-tuning (PEFT) models. We have moved towards unifying the NeMo codebase 
-to use a more streamlined implementation of all supported PEFT methods. Additionally, we also introduce Low-rank Adapter PEFT model in NeMo for GPT-style base models.
+Many Parameter Efficient Fine-Tuning (PEFT) models have overlapping functionalities. In order to enhance NeMo's codebase, we have worked towards unifying the implementation of all supported PEFT methods, making it more streamlined. Furthermore, we have introduced the Low-rank Adapter PEFT model for GPT-style base models in NeMo.
 
-The new PEFT framework builds on top of the SFT models and datasets thus sharing all the requirements of dataset preparation of SFT (See SFT section below for details).
+The new PEFT framework is built upon the SFT models and datasets, thereby inheriting all the dataset preparation requirements from SFT. For more details, please refer to the SFT section below.
 
 ### 5.12.1 PEFT training and inference
-We provide a training and inference script in NeMo. An example usage for the training script is shown below. The `TRAIN_FILE`s (and `VALIDATION_FILE`s) are in the same format used in SFT.
+We offer a training and inference script in NeMo. Below is an example of how to use the training script. The `TRAIN_FILE`s (and `VALIDATION_FILE`s) follow the same format as SFT.
 
-Note the `model.peft.peft_scheme` argument, training a LoRA, P-tuning, Adapter or IA3 model can be achived by simply setting this argument with the desired PEFT method.
+Take note of the `model.peft.peft_scheme` argument. You can train a LoRA, P-tuning, Adapter, or IA3 model by setting this argument to the desired PEFT method.
 ```bash
 python3 /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py \
   model.restore_from_path=<BASE_GPT_MODEL> \ 
