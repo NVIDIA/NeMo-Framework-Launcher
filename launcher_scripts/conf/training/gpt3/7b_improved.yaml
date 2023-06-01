@@ -135,7 +135,7 @@ model:
   fp8_amax_history_len: 1 # Number of steps for which amax history is recorded per tensor
   fp8_amax_compute_algo: most_recent # 'most_recent' or 'max'. Algorithm for computing amax from history
   use_emha: False
-  ub_tp_comm_overlap: False # leaving this test without TP overlap for fuctional test variety
+  ub_tp_comm_overlap: True # leaving this test without TP overlap for fuctional test variety
 
   optim:
     name: fused_adam
