@@ -4791,9 +4791,9 @@ For finetuning dialogue dataset, we just need to add one extra configuration lin
 ### 5.15. Reinforcement Learning from Human Feedback
 <a id="markdown-reinforcement-learning-from-human-feedback" name="reinforcement-learning-from-human-feedback"></a>
 
-NeMo-RLHF is a library to fine-tune LLMs using Reinforcement Learning from Human Feedback (RLHF) in a fully distributed manner.
+NeMo-RLHF is a library to fine-tune LLMs using Reinforcement Learning from Human Feedback (RLHF) in a scalable and fully distributed manner.
 
-NeMo-RLHF supports only GPT models and implements the Proximal Policy Optimization (PPO) algorithm. Support for other models and RL algorithms will be added in future releases. Furthermore, NeMo-RLHF is not currently integrated into NeMo-Megatron-Launcher, so the RLHF jobs must be launched directly from the NeMo-RLHF repository in `/opt/nemo-rlhf`.
+NeMo-RLHF supports only GPT models and implements the Proximal Policy Optimization (PPO) algorithm. Support for other models and RL algorithms will be added in future releases. Furthermore, NeMo-RLHF is not currently integrated into NeMo-Megatron-Launcher, so the RLHF jobs must be launched directly from the NeMo-RLHF repository in `/opt/nemo-rlhf`, which should be copied to the local file system in the login node.
 
 We provide configurations to try RLHF on the newly released 2B GPT model with 4096 sequence length [available on HuggingFace](https://huggingface.co/nvidia/GPT-2B-001). We recommend users use the Anthropic HH-RLHF or the Stack Exchange Preferences datasets to get started.
 
@@ -4817,7 +4817,7 @@ With your own or publicly available data, start by processing them into a jsonl 
 
 where 1 and 2 are different prompts. Note that for the same prompt, prompt+good_response must come before prompt+bad_response in the dataset.
 
-For reference we used the following command for preprocessing
+For reference we used the following command for preprocessing the dataset using the SentencePiece tokenizer.
 
 ```bash
 python3 /opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py \
@@ -4885,8 +4885,6 @@ cd /opt/nemo-rlhf \
 
 This command will launch the RM inference server on the local computer, using port 5555. All the configuration parameters can be modified in the `inference_rm.yaml` file, or by overriding them through the CLI command. Ensure `server=True` is set in the configuration of this job to correctly launch the inference server.
 
-Note: data parallelism is not available for the inference servers, so only a single copy of the model will be available.
-
 ##### 5.15.2.2 Launching the Initial Policy inference server
 <a id="markdown-launching-the-initial-policy-inference-server" name="launching-the-initial-policy-inference-server"></a>
 
@@ -4905,8 +4903,6 @@ cd /opt/nemo-rlhf \
 
 This command will launch the Initial Policy inference server on the local computer, using port 5556. All the configuration parameters can be modified in the `inference_initial_policy.yaml` file, or by overriding them through the CLI command. Ensure `server=True` is set in the configuration of this job to correctly launch the inference server.
 
-Note: data parallelism is not available for the inference servers, so only a single copy of the model will be available
-
 ##### 5.15.2.3 Launching the PPO Critic Training and Inference Server
 <a id="markdown-launching-the-ppo-critic-training-and-inference-server" name="launching-the-ppo-critic-training-and-inference-server"></a>
 
@@ -4924,8 +4920,6 @@ cd /opt/nemo-rlhf \
 ```
 
 This command will launch the PPO Critic server on the local computer, using port 5557. All the configuration parameters can be modified in the `gpt_ppo_critic.yaml` file, or by overriding them through the CLI command. Ensure `inference.server=True` is set in the configuration of this job to correctly launch the server.
-
-Note: data parallelism is not available for the servers, so only a single copy of the model will be available.
 
 ##### 5.15.2.4 Launching the PPO Actor Training
 <a id="markdown-launching-the-ppo-actor-training" name="launching-the-ppo-actor-training"></a>
@@ -4949,11 +4943,11 @@ Heterogeneous jobs can be used to launch all four jobs simultaneously in differe
 
 ```bash
 #!/bin/bash
-#SBATCH -N 1 --ntasks-per-node 1 -t 4:00:00 --exclusive
+#SBATCH -N 1 --ntasks-per-node 8 -t 4:00:00 --exclusive
 #SBATCH hetjob
-#SBATCH -N 1 --ntasks-per-node -t 4:00:00 --exclusive
+#SBATCH -N 1 --ntasks-per-node 8 -t 4:00:00 --exclusive
 #SBATCH hetjob
-#SBATCH -N 1 --ntasks-per-node 1 -t 4:00:00 --exclusive
+#SBATCH -N 1 --ntasks-per-node 8 -t 4:00:00 --exclusive
 #SBATCH hetjob
 #SBATCH -N 8 --ntasks-per-node 8 -t 4:00:00 --exclusive
 
@@ -4961,7 +4955,7 @@ RM_MODEL=/path/to/reward_model.nemo
 ACTOR_MODEL=/path/to/sft_model.nemo
 
 DIR=/opt/nemo-rlhf
-CONTAINER="nvcr.io/ea-bignlp/nemofw-training:23.04.1-py3"
+CONTAINER="nvcr.io/ea-bignlp/nemofw-training:23.05-py3"
 
 # START HETEROGENEUS JOB 0
 
@@ -5028,6 +5022,9 @@ TRAIN_DATA_PATH=/path/to/train_data
 VALID_DATA_PATH=/path/to/val_data
 TEST_DATA_PATH=/path/to/test_data
 
+host_rm="$(scontrol show hostnames=$SLURM_JOB_NODELIST_HET_GROUP_0 | head -n1)"
+host_init_policy="$(scontrol show hostnames=$SLURM_JOB_NODELIST_HET_GROUP_1 | head -n1)"
+host_critic="$(scontrol show hostnames=$SLURM_JOB_NODELIST_HET_GROUP_2 | head -n1)"
 
 read -r -d '' cmd_ppo <<EOF
 cd ${DIR} \
@@ -5039,11 +5036,11 @@ cd ${DIR} \
     trainer.num_nodes=8 \
     "model.data.data_prefix={train: [${TRAIN_DATA_PATH}], validation: [${VALID_DATA_PATH}], test: [${TEST_DATA_PATH}]}" \
     model.pretrained_checkpoint.restore_from_path=${ACTOR_MODEL} \
-    model.rlhf.reward_model.ip=${SLURM_JOB_NODELIST_HET_GROUP_0} \
+    model.rlhf.reward_model.ip=${host_rm} \
     model.rlhf.reward_model.port=${RM_PORT} \
-    model.rlhf.initial_policy.ip=${SLURM_JOB_NODELIST_HET_GROUP_1} \
+    model.rlhf.initial_policy.ip=${host_init_policy} \
     model.rlhf.initial_policy.port=${INIT_POLICY_PORT} \
-    model.rlhf.critic.ip=${SLURM_JOB_NODELIST_HET_GROUP_2} \
+    model.rlhf.critic.ip=${host_critic} \
     model.rlhf.critic.port=${CRITIC_PORT}
 EOF
 
@@ -5067,6 +5064,7 @@ All the model related parameters can be controlled the same way as in other NeMo
 - `rlhf.initial_policy`: Provide the ip address and the port where the Initial Policy will be running, to enable communication with it.
 - `rlhf.ppo.entropy_penalty`: Control the effect of the entropy term in PPO.
 - `rlhf.ppo.inital_pollicy_kl_penalty`: Control the effect of the initial policy KL Divergence term in PPO.
+- `rlhf.ppo.use_absolute_kl`: Whether to use the absolute value of the initial policy KL Divergence or not.
 - `rlhf.ppo.epochs`: Number of epochs the actor and critic will perform on the data stored in the rollout buffer each time.
 - `rlhf.ppo.num_rollout_samples`: Number of samples that will be generated during the rollout stage before moving to the training stage.
 - `rlhf.ppo.rollout_micro_batch_size`: Micro batch size for the rollout phase. Each GPU will load this many prompts and generate responses for them.
