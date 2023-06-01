@@ -1157,9 +1157,9 @@ rm_extracted: True # Preprocess script will remove extracted files after preproc
 ###### 5.1.2.4.4. LDDL
 <a id="markdown-51243-LDDL" name="51243-LDDL"></a>
 
-Language Datasets and Data Loaders (LDDL) is a utility library that minimizes the friction during dataset retrieval, preprocessing and loading for the language models.  LDDL provides dataset preprocesssing and dataloaders that allow for efficient training of Bert with dynamic sequence lengths in order to maximize training performance. To use LDDL with Nemo FW follow the directions provided [here] (https://github.com/NVIDIA/LDDL#bert) for preprocessing data with binning.
+Language Datasets and Data Loaders (LDDL) is a utility library that minimizes the friction during dataset retrieval, preprocessing and loading for the language models.  LDDL provides dataset preprocesssing and dataloaders that allow for efficient training of Bert with dynamic sequence lengths in order to maximize training performance. LDDL currently is not installed by default in the NeMo FW container.  It can be installed with `pip install git+https://github.com/NVIDIA/lddl.git`. The directions for how to preprocess data into the LDDL binned format that can be used with NeMo can be found [here] (https://github.com/NVIDIA/LDDL#bert) for preprocessing data with binning.
 
-With the data preprocessed in binned LDDL format the LDDL format can be used with the following changes to the YAML file:
+With the data preprocessed in binned LDDL format the LDDL dataset can be used with the following changes to the YAML file:
 
 ```yaml
 trainer:
