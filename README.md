@@ -50,6 +50,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
         * [5.1.2.4.1. Slurm](#51241-slurm)
         * [5.1.2.4.2. Base Command Platform](#51242-base-command-platform)
         * [5.1.2.4.3. Common](#51243-common)
+        * [5.1.2.4.3. LDDL](#51243-LDDL)
   * [5.2. Training with Predefined Configurations](#52-training-with-predefined-configurations)
     + [5.2.1. Predefined Configurations of GPT Models](#521-predefined-configurations-of-gpt-models)
     + [5.2.2. Predefined Configurations of T5 Models](#522-predefined-configurations-of-t5-models)
@@ -215,6 +216,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
   * [7.4. BERT Results](#74-bert-results)
     + [7.4.1. Training Accuracy Results](#741-training-accuracy-results)
     + [7.4.2. Training Performance Results](#742-training-performance-results)
+    + [7.4.3. Training Performance Results (LDDL)](#743-training-performance-results-lddl) 
 - [8. Changelog](#8-changelog)
 - [9. Known Issues](#9-known-issues)
 
@@ -1151,6 +1153,27 @@ tokenizer_type: BertWordPieceLowerCase
 rm_downloaded: True # Extract script will remove downloaded zst after extraction
 rm_extracted: True # Preprocess script will remove extracted files after preproc.
 ```
+
+###### 5.1.2.4.4. LDDL
+<a id="markdown-51243-LDDL" name="51243-LDDL"></a>
+
+Language Datasets and Data Loaders (LDDL) is a utility library that minimizes the friction during dataset retrieval, preprocessing and loading for the language models.  LDDL provides dataset preprocesssing and dataloaders that allow for efficient training of Bert with dynamic sequence lengths in order to maximize training performance. LDDL currently is not installed by default in the NeMo FW container.  It can be installed with `pip install git+https://github.com/NVIDIA/lddl.git`. The directions for how to preprocess data into the LDDL binned format that can be used with NeMo can be found [here] (https://github.com/NVIDIA/LDDL#bert) for preprocessing data with binning.
+
+With the data preprocessed in binned LDDL format the LDDL dataset can be used with the following changes to the YAML file:
+
+```yaml
+trainer:
+  data:
+    data_prefix: 
+      - /path/to/train/LDDL/Dataset
+      - /path/to/val/LDDL/Dataset
+      - /path/to/test/LDDL/Dataset
+    dataloader_type: LDDL
+
+```
+
+Note: Nemo FW currently only works with LDDL datasets that have been preprocessed with binning.
+
 
 ### 5.2. Training with Predefined Configurations
 <a id="markdown-training-with-predefined-configurations" name="training-with-predefined-configurations"></a>
@@ -5603,7 +5626,17 @@ The table and chart below show the performance results.
 
 <img src="img/4B_bert_throughput_2211.png"/>
 
+#### 7.4.3. Training Performance Results (LDDL)
+<a id="markdown-training-performance-results-lddl" name="training-performance-results-lddl"></a>
+We measured the performance of different Bert configurations with and without LDDL and saw an average 25% reduction in training time. 
+The table and chart below show the performance results.
 
+| Bert Config | Train time without LDDL | Trian time with LDDL | MODEL SPEC                 | TFLOPS w/o LDDL | TFLOPS(LDDL) | Speedup (%) |
+| ----------- | ----------------------- | -------------------- | -------------------------- | --------------- | ------------ | ----------- |
+| 110m        | 0.078                   | 0.076                | 8 Nodes TP1 PP1 GBS 256    | 18.280          | 18.900       | 2.63%       |
+| 4b          | 1.794                   | 1.393                | 16 Nodes TP 1 PP1 GBS 2048 | 108.900         | 140.400      | 28.79%      |
+| 20b         | 7.956                   | 6.79                 | 32 Nodes TP4 PP4 GBS 4096  | 137.300         | 160.870      | 17.17%      |
+| 100b        | 9.743                   | 7.54                 | 128Nodes TP4 PP16 GBS 4096 | 124.88          | 162.83       | 29.22%      |
 
 ## 8. Changelog
 <a id="markdown-changelog" name="changelog"></a>
