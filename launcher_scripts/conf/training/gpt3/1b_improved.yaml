@@ -126,7 +126,7 @@ model:
   gc_interval: 100 # Interval of the host memory garbage collection
 
   ## Transformer Engine
-  transformer_engine: True # leaving this test without TE for fuctional test variety
+  transformer_engine: False
   fp8: False # enables fp8 in TransformerLayer forward
   fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
   fp8_hybrid: False # sets fp8_format = recipe.Format.HYBRID
