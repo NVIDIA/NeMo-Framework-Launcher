@@ -123,8 +123,8 @@ model:
   fp8_amax_compute_algo: most_recent
   reduce_amax: true
   use_emha: false
-  overlap_p2p_comm: False # Overlap p2p communication with computes
-  batch_p2p_comm: True # Batch consecutive inter-peer send/recv operations
+  overlap_p2p_comm: True # Overlap p2p communication with computes
+  batch_p2p_comm: False # Batch consecutive inter-peer send/recv operations
   gc_interval: 100 # Interval of the host memory garbage collection
   
   ## Transformer Engine
