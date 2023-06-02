@@ -5110,7 +5110,9 @@ During the rollout phase, the sampling parameters for the model can also be modi
 The NeMo Data Curator is a Python library that consists of a collection of scalable data-mining modules for curating NLP data for training LLMs. The modules within the NeMo Data Curator enable NLP researchers to mine high-quality text at scale from massive uncurated web corpora.
 
 Currently, within the NeMo Data Curator, we support the following data-curation modules:
- - Text extraction from HTML via [jusText](https://github.com/miso-belica/jusText)
+ - Configurable data download and text extraction:
+   - Default implementations of download and extraction of Common Crawl, Wikipedia, and ArXiv data
+   - Users can easily customize the download and extraction and extend to other datasets (see NeMo Data Curator internal documentation available in the container for more info)
  - Text reformatting and cleaning via [ftfy](https://ftfy.readthedocs.io/en/latest/)
  - Quality filtering:
    - Multilingual heuristic-based filtering
