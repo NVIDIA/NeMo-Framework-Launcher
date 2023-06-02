@@ -340,23 +340,22 @@ Figure 1: The GPT family architecture. The 5B variant includes 24 transformer la
 ### 3.1. Support Matrix
 <a id="markdown-support-matrix" name="support-matrix"></a>
 
-| Software                | Version          |
+| Software                | EA               |
 |-------------------------|------------------|
-| NVIDIA Triton           | 2.24.0           |
-| FasterTransformer       | v5.3+c6e8f60     |
-| TransformerEngine       | v0.6+f18e677     |
-| PyTorch                 | 2.0.0a0+1767026  |
-| NeMo                    | 1.18.0+ddbe0f3   |
+| NVIDIA Triton           | 123              |
+| FasterTransformer       |                  |
+| PyTorch                 | 2.1.0a0+fe05266  |
+| NeMo                    | 1.19.0+913e5e5   |
 | PyTorch Lightning       | 1.9.4            |
 | Hydra                   | 1.2.0            |
 | CUDA                    | NVIDIA CUDA 12.1 |
-| cuBLAS                  | 11.11.3.6        |
-| cuDNN                   | 8.8.1.3          |
+| cuBLAS                  | 12.1.3.1         |
+| cuDNN                   | 8.9.0.131        |
 | NCCL                    | 2.17.1           |
 | Container OS            | Ubuntu 20.04     |
 | rdma-core               | 36.0             |
 | GDRcopy                 | 2.3              |
-| HPC-X                   | 2.13             |
+| HPC-X                   | v2.13            |
 | Base Command Manager    | 1.0.0            |
 | DeepOps                 | 21.06            |
 
@@ -1959,7 +1958,7 @@ launcher_scripts_path: ${auto_configurator_path}/../launcher_scripts
 fastertransformer_path: ${auto_configurator_path}/../FasterTransformer
 base_results_dir: ${auto_configurator_path}/results
 data_dir: ${launcher_scripts_path}/data
-training_container: nvcr.io/ea-bignlp/nemofw-training:23.04.1-py3
+training_container: nvcr.io/ea-bignlp/nemofw-training:23.05-py3
 container_mounts:
     - null
 wandb:  # Weights and Biases (W&B) logging.
