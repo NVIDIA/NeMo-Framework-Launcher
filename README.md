@@ -340,10 +340,10 @@ Figure 1: The GPT family architecture. The 5B variant includes 24 transformer la
 ### 3.1. Support Matrix
 <a id="markdown-support-matrix" name="support-matrix"></a>
 
-| Software                | EA               |
+| Software                | Version          |
 |-------------------------|------------------|
-| NVIDIA Triton           | 123              |
-| FasterTransformer       |                  |
+| NVIDIA Triton           | 2.24.0           |
+| FasterTransformer       | v5.3+c6e8f60     |
 | PyTorch                 | 2.1.0a0+fe05266  |
 | NeMo                    | 1.19.0+913e5e5   |
 | PyTorch Lightning       | 1.9.4            |
@@ -355,7 +355,7 @@ Figure 1: The GPT family architecture. The 5B variant includes 24 transformer la
 | Container OS            | Ubuntu 20.04     |
 | rdma-core               | 36.0             |
 | GDRcopy                 | 2.3              |
-| HPC-X                   | v2.13            |
+| HPC-X                   | 2.13             |
 | Base Command Manager    | 1.0.0            |
 | DeepOps                 | 21.06            |
 
