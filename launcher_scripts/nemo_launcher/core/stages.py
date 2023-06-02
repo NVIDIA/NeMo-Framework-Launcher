@@ -15,6 +15,7 @@
 import copy
 import functools
 import glob, os
+import logging
 import json
 import re
 from pathlib import Path
@@ -70,6 +71,7 @@ class NemoMegatronStage:
             nodes = self.nodes_scheduler[str(current_gbs)]
             self.stage_cfg["trainer"]["num_nodes"] = nodes
             self.cfg['training']["trainer"]["num_nodes"] = nodes
+            logging.info(f"global batch size and number of nodes will change following this schedule:\n {self.nodes_scheduler}")
 
         stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(self.stage_cfg, job_path)
         # Make cluster parameters
@@ -295,25 +297,32 @@ class NemoMegatronStage:
             tp = cfg.get('training').get('model').get('tensor_model_parallel_size')
             pp = cfg.get('training').get('model').get('pipeline_model_parallel_size')
             num_nodes = cfg.get('training').get('trainer').get('num_nodes')
+            start_bs = rampup_bs[0]
             increment = rampup_bs[1]
 
-            bs = 0
-            rbs = []
-            while bs <= (gbs - increment):
-                rbs.append(bs + increment)
-                bs += increment
+            cbs = start_bs
+            rbs = [start_bs]
+            while cbs <= (gbs - increment):
+                rbs.append(rbs[-1] + increment)
+                cbs += increment
 
-            self.nodes_scheduler[gbs] = num_nodes
-            for b in rbs[::-1]:
+            self.nodes_scheduler[str(gbs)] = num_nodes
+            for b in rbs[::-1][1:]:
                 optimal_lst = []
-                prev = min(list(self.nodes_scheduler.values()))
+                prev = int(min(list(self.nodes_scheduler.values())))
                 for nodes in range(1, prev + 1):
                     dp = (gpus * nodes) // (tp * pp)
                     if b % (mbs * dp) == 0 and b % (mbs * gpus * nodes) == 0 and nodes <= prev:
                         optimal_lst.append(nodes)
-        
+
                 self.nodes_scheduler[str(b)] = max(optimal_lst)
             
+            sched_rbs = [int(i) for i in self.nodes_scheduler.keys()]
+            assert rbs[::-1] == sched_rbs, (
+                "please, make sure you enter the correct combination of"
+                " ramp up batch size and number of nodes"
+            )
+
             with open(nodes_scheduler_path, 'w') as nodes_scheduler:
                 nodes_scheduler.write(json.dumps(self.nodes_scheduler))
     
