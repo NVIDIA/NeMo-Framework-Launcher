@@ -3589,6 +3589,41 @@ The stdout and stderr outputs will also be redirected to the `/results/ia3_learn
 Any other parameter can also be added to the command to modify its behavior.
 
 
+### 5.12 LoRA Model and Generalized PEFT Framework
+<a id="markdown-peft-model" name="lora-peft-framework"></a>
+Many Parameter Efficient Fine-Tuning (PEFT) models have overlapping functionalities. In order to enhance NeMo's codebase, we have worked towards unifying the implementation of all supported PEFT methods, making it more streamlined. Furthermore, we have introduced the Low-rank Adapter PEFT model for GPT-style base models in NeMo.
+
+The new PEFT framework is built upon the SFT models and datasets, thereby inheriting all the dataset preparation requirements from SFT. For more details, please refer to the SFT section below.
+
+### 5.12.1 PEFT training and inference
+We offer a training and inference script in NeMo. Below is an example of how to use the training script. The `TRAIN_FILE`s (and `VALIDATION_FILE`s) follow the same format as SFT.
+
+Take note of the `model.peft.peft_scheme` argument. You can train a LoRA, P-tuning, Adapter, or IA3 model by setting this argument to the desired PEFT method.
+```bash
+python3 /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py \
+  model.restore_from_path=<BASE_GPT_MODEL> \ 
+  model.data.train_ds.num_workers=0 \
+  model.data.validation_ds.num_workers=0 \
+  model.data.train_ds.file_names=[<TRAIN_FILE1>,<TRAIN_FILE2>,...] \ 
+  model.data.train_ds.concat_sampling_probabilities=[0.3,0.2,..] \ # should sum to 1 and be of the same length as number of training files
+  model.data.validation_ds.file_names=[<VALIDATION_FILE1>, <VALIDATION_FILE2>,...] \ 
+  model.data.train_ds.prompt_template='{input} Answer: {output}' \
+  model.peft.peft_scheme='lora'  # can be replaced with 'adapter', 'ptuning' or 'ia3'
+  model.answer_only_loss=True 
+```
+At the end of training a '.nemo' model is generated which contains the parameters for the PEFT model.
+Similarly, the PEFT framework has a single inference script as well:
+```bash
+python3 /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py \
+model.restore_from_path=<BASE_GPT_MODEL> \
+model.peft.restore_from_path=<PEFT_MODEL> \
+model.data.test_ds.file_names=[<TEST_FILE>] \
+model.data.test_ds.names=['my_test_set'] \
+model.data.test_ds.tokens_to_generate=30 \
+inference.greedy=True \
+inference.outfile_path=<OUTPUT_FILE>
+```
+Additionally, NeMo has a notebook which walks through the steps (which these scripts encapsulate) to train and run inference for PEFT models: https://github.com/NVIDIA/NeMo/blob/main/tutorials/nlp/lora.ipynb
 ### 5.12. Model Evaluation
 <a id="markdown-model-evaluation" name="model-evaluation"></a>
 
