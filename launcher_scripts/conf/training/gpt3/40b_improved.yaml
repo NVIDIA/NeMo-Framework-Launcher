@@ -51,7 +51,7 @@ model:
   global_batch_size: 1536
   tensor_model_parallel_size: 8
   pipeline_model_parallel_size: 2
-  virtual_pipeline_model_parallel_size: null # leaving this test without interleaved for fuctional test variety
+  virtual_pipeline_model_parallel_size: 24
   encoder_seq_length: 2048
   max_position_embeddings: 2048
   num_layers: 48
@@ -113,7 +113,7 @@ model:
   activations_checkpoint_num_layers: 1
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
-  sequence_parallel: false
+  sequence_parallel: false # does not support sequence parallel
   fp8: false
   fp8_e4m3: false
   fp8_hybrid: false
