@@ -137,7 +137,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.11.2.2. Slurm](#51122-slurm)
       - [5.11.2.3. Base Command Platform](#51123-base-command-platform)
   * [5.12 LoRA Model and Generalized PEFT Framework](#512-lora-model-and-generalized-peft-framework)
-    + [5.12.1 PEFT training and inference](#5121-peft-training-and-inference)
+    + [5.12.1 PEFT Training and Inference](#5121-peft-training-and-inference)
   * [5.13. Model Evaluation](#513-model-evaluation)
     + [5.13.1. GPT Evaluation](#5131-gpt-evaluation)
       - [5.13.1.1. Common](#51311-common)
@@ -190,8 +190,8 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.16.1.2 Reward Model Training](#51612-reward-model-training)
       - [5.16.1.3 Reward Model Evaluation](#51613-reward-model-evaluation)
     + [5.16.2. PPO Training](#5162-ppo-training)
-      - [5.16.2.1 Launching the Reward Model inference server](#51621-launching-the-reward-model-inference-server)
-      - [5.16.2.2 Launching the Initial Policy inference server](#51622-launching-the-initial-policy-inference-server)
+      - [5.16.2.1 Launching the Reward Model Inference Server](#51621-launching-the-reward-model-inference-server)
+      - [5.16.2.2 Launching the Initial Policy Inference Server](#51622-launching-the-initial-policy-inference-server)
       - [5.16.2.3 Launching the PPO Critic Training and Inference Server](#51623-launching-the-ppo-critic-training-and-inference-server)
       - [5.16.2.4 Launching the PPO Actor Training](#51624-launching-the-ppo-actor-training)
       - [5.16.2.5 Launching every job at once with SLURM](#51625-launching-every-job-at-once-with-slurm)
@@ -3597,7 +3597,7 @@ Many Parameter Efficient Fine-Tuning (PEFT) models have overlapping functionalit
 
 The new PEFT framework is built upon the SFT models and datasets, thereby inheriting all the dataset preparation requirements from SFT. For more details, please refer to the SFT section below.
 
-#### 5.12.1 PEFT training and inference
+#### 5.12.1 PEFT Training and Inference
 We offer a training and inference script in NeMo. Below is an example of how to use the training script. The `TRAIN_FILE`s (and `VALIDATION_FILE`s) follow the same format as SFT.
 
 Take note of the `model.peft.peft_scheme` argument. You can train a LoRA, P-tuning, Adapter, or IA3 model by setting this argument to the desired PEFT method.
@@ -4927,7 +4927,7 @@ To launch a full PPO training job, we need to launch the RM and the Initial Poli
 
 Our architecture is designed to launch all four models completely separately. Therefore, we will launch two inference servers (one for the RM and one for the initial policy), one server that can do inference and training (the PPO Critic), and one master job to do training (the PPO Actor). Next we will look at how to launch each of those four jobs.
 
-##### 5.16.2.1 Launching the Reward Model inference server
+##### 5.16.2.1 Launching the Reward Model Inference Server
 <a id="markdown-launching-the-reward-model-inference-server" name="launching-the-reward-model-inference-server"></a>
 
 To launch the Reward Model inference server in a Linux system, this command can be run inside the container:
@@ -4945,7 +4945,7 @@ cd /opt/nemo-rlhf \
 
 This command will launch the RM inference server on the local computer, using port 5555. All the configuration parameters can be modified in the `inference_rm.yaml` file, or by overriding them through the CLI command. Ensure `server=True` is set in the configuration of this job to correctly launch the inference server.
 
-##### 5.16.2.2 Launching the Initial Policy inference server
+##### 5.16.2.2 Launching the Initial Policy Inference Server
 <a id="markdown-launching-the-initial-policy-inference-server" name="launching-the-initial-policy-inference-server"></a>
 
 To launch the Initial Policy inference server in a Linux system, this command can be run inside the container:
@@ -5682,7 +5682,7 @@ The table and chart below show the performance results.
 * Low-Rank Adaptation (LoRA) Support for GPT
 * LDDL (Language Datasets and Data Loaders) for BERT on 100B model resulting in a 30% performance speedup
 * Unify dataset and model classes for all PEFT (p-tuning, adapters, IA3) with SFT model class as parent for GPT
-* Converter from Interleaved PP to non-interleaved PP
+* Converter from Interleaved PP to non-Interleaved PP
 * Dialog dataset guidance for SFT to help create better chat models
 * Support Dynamic Sequence Length Batches with GPT SFT
 * Data parallelism enabled for RLHF servers, providing a 2x end-to-end speedup in most jobs
@@ -5821,9 +5821,9 @@ The table and chart below show the performance results.
 ## 9. Known Issues
 <a id="markdown-known-issues" name="known-issues"></a>
 Fixes for the following issues will be released shortly:
-* The inference hyperparameter search is not available in this release for T5 and mT5
-* Accuracy and performance measurement for GPT is currently not supported. Please use the NeMo Framework 22.05 inference container to use this feature
-* The fine-tuning SQuAD results for T5 are lower than expected
-* There is a known slowdown for T5 TP8 3B configurations - the other T5 3B configurations are performing well
-* In 23.04, there is a slight regression in autocast performance - it is recommended to use previous releases for autocast use cases
-* Evaluation for GPT has been tested for PP <=2 and may have issues for PP >2.  It is recommended to convert to TP only for Evaluation.
+* The inference hyperparameter search is not available in this release for T5 and mT5.
+* Accuracy and performance measurement for GPT-3 is currently not supported. Please use the NeMo Megatron 22.05 inference container to use this feature.
+* The fine-tuning SQuAD results for T5 are lower than expected.
+* There has been a slight regression in T5 performance and this will be addressed in an upcoming release.
+* Evaluation for GPT has been tested for PP <=2 and may have issues for PP >2. It is recommended to convert to TP only for Evaluation.
+
