@@ -8,7 +8,7 @@ name: nemo_clip
 
 trainer:
   devices: 8
-  num_nodes: 50
+  num_nodes: 46
   accelerator: gpu
   precision: bf16
   logger: False # logger provided by exp_manager
@@ -56,8 +56,8 @@ model:
   precision: ${training.trainer.precision}
   # specify micro_batch_size, global_batch_size, and model parallelism
   # gradient accumulation will be done automatically based on data_parallel_size
-  micro_batch_size: 80 # limited by GPU memory
-  global_batch_size: 32000 # Gradient accumulation is not supported in CLIP yet. will use more micro batches to reach global batch size;
+  micro_batch_size: 88 # limited by GPU memory
+  global_batch_size: 32384 # Gradient accumulation is not supported in CLIP yet. will use more micro batches to reach global batch size;
   tensor_model_parallel_size: 1 # intra-layer model parallelism
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
   virtual_pipeline_model_parallel_size: null # interleaved pipeline
@@ -111,9 +111,9 @@ model:
     persist_layer_norm: True # Use of persistent fused layer norm kernel.
 
     ## Activation Checkpointing
-    activations_checkpoint_granularity: full # 'selective' or 'full'
-    activations_checkpoint_method: block # 'uniform', 'block', not used with 'selective'
-    activations_checkpoint_num_layers: 8 # not used with 'selective'
+    activations_checkpoint_granularity: null # 'selective' or 'full'
+    activations_checkpoint_method: null # 'uniform', 'block', not used with 'selective'
+    activations_checkpoint_num_layers: null # not used with 'selective'
     sequence_parallel: False
 
     # precision
@@ -162,9 +162,9 @@ model:
     persist_layer_norm: True # Use of persistent fused layer norm kernel.
 
     ## Activation Checkpointing
-    activations_checkpoint_granularity: full # 'selective' or 'full'
-    activations_checkpoint_method: block # 'uniform', 'block', not used with 'selective'
-    activations_checkpoint_num_layers: 0 # not used with 'selective'
+    activations_checkpoint_granularity: null # 'selective' or 'full'
+    activations_checkpoint_method: null # 'uniform', 'block', not used with 'selective'
+    activations_checkpoint_num_layers: null # not used with 'selective'
     num_micro_batches_with_partial_activation_checkpoints: null
     activations_checkpoint_layers_per_pipeline: null
     sequence_parallel: False
@@ -241,7 +241,7 @@ model:
     gen_shape: False # Generate model and kernel details including input shapes
 
   optim:
-    name: fused_adam
+    name: distributed_fused_adam
     lr: 5e-4
     weight_decay: 0.2
     betas:

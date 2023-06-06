@@ -120,12 +120,12 @@ model:
   # These memory intensive activations are also less compute intensive which makes activation checkpointing more efficient for LLMs (20B+).
   # See Reducing Activation Recomputation in Large Transformer Models: https://arxiv.org/abs/2205.05198 for more details.
   # 'full' will checkpoint the entire transformer layer.
-  activations_checkpoint_granularity: full # 'selective' or 'full', 'selective' not supported in vision atm
-  activations_checkpoint_method: block # 'uniform', 'block', not used with 'selective'
+  activations_checkpoint_granularity: null # 'selective' or 'full', 'selective' not supported in vision atm
+  activations_checkpoint_method: null # 'uniform', 'block', not used with 'selective'
   # 'uniform' divides the total number of transformer layers and checkpoints the input activation
   # of each chunk at the specified granularity
   # 'block' checkpoints the specified number of layers per pipeline stage at the specified granularity
-  activations_checkpoint_num_layers: 4 # not used with 'selective'
+  activations_checkpoint_num_layers: null # not used with 'selective'
   # when using 'uniform' this creates groups of transformer layers to checkpoint. Usually set to 1. Increase to save more memory.
   # when using 'block' this this will checkpoint the first activations_checkpoint_num_layers per pipeline stage.
 
@@ -155,7 +155,7 @@ model:
     gen_shape: False # Generate model and kernel details including input shapes
 
   optim:
-    name: fused_adam
+    name: distributed_fused_adam
     lr: 3e-3
     weight_decay: 0.3
     betas:

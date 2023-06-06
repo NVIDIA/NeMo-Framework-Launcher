@@ -8,7 +8,7 @@ name: nemo_clip
 
 trainer:
   devices: 8
-  num_nodes: 36
+  num_nodes: 32
   accelerator: gpu
   precision: bf16
   logger: False # logger provided by exp_manager
@@ -56,8 +56,8 @@ model:
   precision: ${training.trainer.precision}
   # specify micro_batch_size, global_batch_size, and model parallelism
   # gradient accumulation will be done automatically based on data_parallel_size
-  micro_batch_size: 112 # limited by GPU memory
-  global_batch_size: 32256 # Gradient accumulation is not supported in CLIP yet. will use more micro batches to reach global batch size;
+  micro_batch_size: 128 # limited by GPU memory
+  global_batch_size: 32768 # Gradient accumulation is not supported in CLIP yet. will use more micro batches to reach global batch size;
   tensor_model_parallel_size: 1 # intra-layer model parallelism
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
   virtual_pipeline_model_parallel_size: null # interleaved pipeline
@@ -241,7 +241,7 @@ model:
     gen_shape: False # Generate model and kernel details including input shapes
 
   optim:
-    name: fused_adam
+    name: distributed_fused_adam
     lr: 5e-4
     weight_decay: 0.2
     betas:

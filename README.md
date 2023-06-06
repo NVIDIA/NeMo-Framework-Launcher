@@ -125,6 +125,11 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
 
 ## 1. Release Notes
 
+**NeMo Multimodal 23.05**
+
+1. Added support for distributed optimizer in ViT and CLIP models, enhancing memory 
+   efficiency when utilizing more nodes with higher data parallel values.
+
 **NeMo Multimodal 23.03 (Initial Release)**
 
 Added support for the following:
@@ -245,7 +250,7 @@ modification, and artistic rendering, while still preserving the subject's key f
 | Inference deployment     | N/A                                                      | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton) |
 | SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                      |
 | NVfuser                  | No                                                       | N/A                                                                                                                                           |
-| Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
+| Distributed Optimizer    | Yes                                                      | N/A                                                                                                                                           |
 | TorchInductor            | No                                                       | N/A                                                                                                                                           |
 | Flash Attention          | No                                                       | N/A                                                                                                                                           |
 
@@ -268,7 +273,7 @@ modification, and artistic rendering, while still preserving the subject's key f
 | Inference deployment     | N/A                                                      | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton) |
 | SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                      |
 | NVfuser                  | No                                                       | N/A                                                                                                                                           |
-| Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
+| Distributed Optimizer    | Yes                                                      | N/A                                                                                                                                           |
 | TorchInductor            | No                                                       | N/A                                                                                                                                           |
 | Flash Attention          | No                                                       | N/A                                                                                                                                           |
 
@@ -2036,34 +2041,34 @@ The tables and charts below show the performance results.
 |          |                                  |        |         |         | Nodes   |          |
 |----------|----------------------------------|--------|---------|---------|---------|----------|
 |          |                                  | 1      | 2       | 4       | 8       | 16       |
-|          | Samples per Second               | 708.06 | 1369.35 | 2729.57 | 5397.29 | 10837.41 |
-| ViT g/14 | Perfect Linear Scaling (Samples) | 708.06 | 1416.13 | 2832.25 | 5664.50 | 11329.00 |
-|          | Speedup                          | 1x     | 1.93x   | 3.85x   | 7.62x   | 15.31x   |
+|          | Samples per Second               |   720 |   1386 |   2830 |   5599 |  10934 |
+| ViT g/14 | Perfect Linear Scaling (Samples) |   720 |   1440 |   2880 |   5761 |  11522 |
+|          | Speedup                          |    1x |  1.92x |  3.93x |  7.77x | 15.18x |
 
-<img src="img/ViT g_14 NeMo Megatron Throughput (A100).svg"/>
+<img src="img/ViT g_14 NeMo Megatron Throughput (A100) (2305).svg"/>
 
 - NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for ViT g/14 model)
 
 |          |                                  |      |       |       | Nodes |        |
 |----------|----------------------------------|------|-------|-------|-------|--------|
 |          |                                  | 1    | 2     | 4     | 8     | 16     |
-|          | Samples per Second               | 1527 | 3006  | 5900  | 11743 | 24002  |
-| ViT g/14 | Perfect Linear Scaling (Samples) | 1527 | 3054  | 6109  | 12219 | 24439  |
-|          | Speedup                          | 1x   | 1.97x | 3.86x | 7.69x | 15.71x |
+|          | Samples per Second               |   1449 |   2850 |   5795 |  11247 |  22825 |
+| ViT g/14 | Perfect Linear Scaling (Samples) |   1449 |   2898 |   5795 |  11590 |  23181 |
+|          | Speedup                          |     1x |  1.97x |     4x |  7.76x | 15.75x |
 
-<img src="img/ViT g_14 NeMo Megatron Throughput (H100).svg"/>
+<img src="img/ViT g_14 NeMo Megatron Throughput (H100) (2305).svg"/>
 
 - DGX A100 vs. DGX H100: A Comparative Analysis of Vision Transformer Training
 
 | Model       | Nodes | Global Batch Size | Micro Batch Size | Precision | Global Batch / Sec (A100) | Global Batch / Sec (H100) | Speedup (x) |
 |-------------|-------|-------------------|------------------|-----------|---------------------------|---------------------------|-------------|
-| ViT B/16    | 2     | 4096              | 256              | bf16 (O2) | 2.65                      | 5.88                      | 2.2         |
-| ViT L/16    | 2     | 4096              | 256              | bf16 (O2) | 1.34                      | 2.84                      | 2.1         |
-| ViT H/14    | 4     | 4096              | 128              | bf16 (O2) | 1.02                      | 2.17                      | 2.1         |
-| ViT g/14    | 4     | 4096              | 64               | bf16 (O2) | 0.70                      | 1.52                      | 2.2         |
-| ViT bigG/14 | 4     | 4096              | 32               | bf16 (O2) | 0.42                      | 0.86                      | 2.1         |
+| ViT B/16    | 2     | 4096              | 256              | bf16 (O2) |                      3.06 |                      5.11 |         1.7 |
+| ViT L/16    | 2     | 4096              | 256              | bf16 (O2) |                      1.33 |                      2.76 |         2.1 |
+| ViT H/14    | 4     | 4096              | 128              | bf16 (O2) |                      1.07 |                      2.23 |         2.1 |
+| ViT g/14    | 4     | 4096              | 64               | bf16 (O2) |                      0.70 |                      1.40 |         2.0 |
+| ViT bigG/14 | 4     | 4096              | 32               | bf16 (O2) |                      0.43 |                      0.91 |         2.1 |
 
-<img src="img/Vision Transformer Training Throughput Comparison.svg"/>
+<img src="img/Vision Transformer Training Throughput Comparison (2305).svg"/>
 
 #### 8.1.3. Inference Performance Results
 
@@ -2120,32 +2125,32 @@ The tables and charts below show the performance results.
 |           |                                  |        |         |         | Nodes   |         |
 |-----------|----------------------------------|--------|---------|---------|---------|---------|
 |           |                                  | 1      | 2       | 4       | 8       | 16      |
-|           | Samples per Second               | 621.90 | 1230.88 | 2446.72 | 4863.68 | 9650.36 |
-| CLIP g/14 | Perfect Linear Scaling (Samples) | 621.90 | 1243.81 | 2487.61 | 4975.22 | 9950.44 |
-|           | Speedup                          | 1x     | 1.98x   | 3.93x   | 7.82x   | 15.52x  |
+|           | Samples per Second               |    575 |   1171 |  2267 |  4567 |   8863 |
+| CLIP g/14 | Perfect Linear Scaling (Samples) |    575 |   1150 |  2300 |  4599 |   9199 |
+|           | Speedup                          |     1x |  2.04x | 3.94x | 7.94x | 15.42x |
 
-<img src="img/CLIP g_14 NeMo Megatron Throughput (A100).svg"/>
+<img src="img/CLIP g_14 NeMo Megatron Throughput (A100) (2305).svg"/>
 
 - NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for CLIP g/14 model)
 
 |           |                                  |         |         |         | Nodes   |          |
 |-----------|----------------------------------|---------|---------|---------|---------|----------|
 |           |                                  | 1       | 2       | 4       | 8       | 16       |
-|           | Samples per Second               | 1039.81 | 2005.48 | 4013.33 | 7627.56 | 14913.53 |
-| CLIP g/14 | Perfect Linear Scaling (Samples) | 1039.81 | 2079.61 | 4159.22 | 8318.44 | 16636.88 |
-|           | Speedup                          | 1x      | 1.93x   | 3.86x   | 7.34x   | 14.34x   |
+|           | Samples per Second               |    930 |   1845 |   3482 |  6461 |  13672 |
+| CLIP g/14 | Perfect Linear Scaling (Samples) |    930 |   1859 |   3718 |  7436 |  14873 |
+|           | Speedup                          |     1x |  1.98x |  3.75x | 6.95x | 14.71x |
 
-<img src="img/CLIP g_14 NeMo Megatron Throughput (H100).svg"/>
+<img src="img/CLIP g_14 NeMo Megatron Throughput (H100) (2305).svg"/>
 
 - DGX A100 vs. DGX H100: A Comparative Analysis of CLIP Training
 
 | Model     | Nodes | Global Batch Size | Micro Batch Size | Precision | Global Batch / Sec (A100) | Global Batch / Sec (H100) | Speedup (x) |
 |-----------|-------|-------------------|------------------|-----------|---------------------------|---------------------------|-------------|
-| CLIP B/32 | 4     | 16000             | 500              | bf16 (O2) | 1.49                      | 4.83                      | 3.2         |
-| CLIP H/14 | 4     | 3584              | 112              | bf16 (O2) | 0.96                      | 1.92                      | 2.0         |
-| CLIP g/14 | 4     | 2560              | 80               | bf16 (O2) | 1.08                      | 2.25                      | 2.1         |
+| CLIP B/32 | 4     | 16000             | 500              | bf16 (O2) |                      3.01 |                      6.68 |         2.2 |
+| CLIP H/14 | 4     | 3584              | 112              | bf16 (O2) |                      0.90 |                      1.92 |         2.1 |
+| CLIP g/14 | 4     | 2560              | 80               | bf16 (O2) |                      0.89 |                      2.25 |         2.5 |
 
-<img src="img/CLIP Training Throughput Comparison.svg"/>
+<img src="img/CLIP Training Throughput Comparison (2305).svg"/>
 
 #### 8.2.3. Inference Performance Results
 
