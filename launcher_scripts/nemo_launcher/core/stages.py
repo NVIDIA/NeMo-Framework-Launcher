@@ -251,7 +251,7 @@ class NemoMegatronStage:
             if cfg.get("training").get("model").get("ub_tp_comm_overlap", False):
                 if "srun_args" not in cluster_cfg:
                     cluster_cfg["srun_args"] = []
-                cluster_cfg["srun_args"] += ["--mpi pmix"]
+                cluster_cfg["srun_args"] += ["--mpi=pmix"]
             slurm_cfg = {**copy.deepcopy(cluster_cfg)}
             job_name_prefix = slurm_cfg.pop("job_name_prefix")
             cluster_parameters = {**slurm_cfg}
@@ -491,6 +491,9 @@ class Training(NeMoStage):
                 f"blending_alpha={blending_alpha}"
             )
             hydra_override += [f"model.data.data_prefix=\$({auto_blend_command})"]
+        if self.stage_cfg.model.get("ub_tp_comm_overlap", False):
+            get_ub_cfg_file_command = self._get_ub_cfg_file()
+            hydra_override += [f"+model.ub_tp_comm_overlap_cfg=\$({get_ub_cfg_file_command})"]
         return hydra_override
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
@@ -510,14 +513,26 @@ class Training(NeMoStage):
         }
         return model_type_to_code_path[model_type]
 
-    # @property
-    # def _nvte_bias_gelu_nvfusion(self) -> str:
-    #     """Only used in pretraining; override in training class; not supported on BCP"""
-    #     return (
-    #         "NVTE_BIAS_GELU_NVFUSION="
-    #         "\$(python3 -c 'import torch; "
-    #         "print(int(torch.cuda.get_device_properties(torch.cuda.current_device()).major >= 9))')"
-    #     )
+    def _get_ub_cfg_file(self) -> str:
+        """
+        Spawn the script to search UB configuration file
+        """
+        tp_size = self.stage_cfg.model.get("tensor_model_parallel_size")
+        hidden_size = self.stage_cfg.model.get("hidden_size")
+        mb_size = self.stage_cfg.model.get("micro_batch_size")
+        seqlen = self.stage_cfg.model.get("encoder_seq_length")
+        ub_cfg_path = os.path.join(self._launcher_scripts_path, "launcher_scripts/conf/training/gpt3/ub-confs")
+
+        get_ub_cfg_file_command = (
+            f"python3 {self._launcher_scripts_path / 'launcher_scripts/nemo_launcher/collections/conditional_cfgs.py'} "
+            f"name=get_ub_cfg_file "
+            f"ub_cfg_path={ub_cfg_path} "
+            f"tp_size={tp_size} "
+            f"hidden_size={hidden_size} "
+            f"mb_size={mb_size} "
+            f"seqlen={seqlen}"
+        )
+        return get_ub_cfg_file_command
 
 
 class FineTuning(NeMoStage):
