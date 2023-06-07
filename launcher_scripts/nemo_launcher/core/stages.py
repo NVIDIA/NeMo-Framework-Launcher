@@ -342,6 +342,19 @@ class NemoMegatronStage:
             results_dir = results_dir / sub_stage
         return JobPaths(results_dir, self.job_name)
 
+    @property
+    def _set_ln_sm_margin(self) -> str:
+        """ """
+        if (self.cfg.training.model.get("overlap_p2p_comm", False) and
+            self.cfg.training.model.get("pipeline_model_parallel_size") > 1 and
+            self.cfg.training.model.get("virtual_pipeline_model_parallel_size") > 1):
+            get_ln_sm_margin_command = (
+                f"python3 {self._launcher_scripts_path / 'launcher_scripts/nemo_launcher/collections/conditional_cfgs.py'} "
+                f"name=get_ln_sm_margin"
+            )
+            return f"NVTE_FWD_LAYERNORM_SM_MARGIN=\$({get_ln_sm_margin_command}) NVTE_BWD_LAYERNORM_SM_MARGIN=\$({get_ln_sm_margin_command})"
+        return ""
+
 
 class NeMoStage(NemoMegatronStage):
     """
@@ -380,6 +393,7 @@ class NeMoStage(NemoMegatronStage):
             core_command = [
                 self._cuda_device_max_connections,
                 self._cuda_visible_devices,
+                self._set_ln_sm_margin,
                 self._nvte_bias_gelu_nvfusion,
             ]
 
@@ -449,7 +463,7 @@ class NeMoStage(NemoMegatronStage):
         if self.cluster != "bcm":
             env_vars["SLURM_NTASKS_PER_NODE"] = devices
         if self.cluster == "bcp":  # Set env prefix as env var on BCP
-            for env_var_str in [self._cuda_device_max_connections, self._cuda_visible_devices]:
+            for env_var_str in [self._cuda_device_max_connections, self._cuda_visible_devices, self._set_ln_sm_margin]:
                 if env_var_str:
                     var_name, var_val = env_var_str.split("=")
                     env_vars[var_name] = var_val

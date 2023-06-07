@@ -1,0 +1,6 @@
+name: 'get_ub_cfg_file'
+ub_cfg_path: null
+tp_size: null
+hidden_size: null
+mb_size: null
+seqlen: null
