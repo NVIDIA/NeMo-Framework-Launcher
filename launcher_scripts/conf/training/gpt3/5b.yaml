@@ -47,8 +47,7 @@ exp_manager:
     buffer_size: 5
 
 model:
-  # model parallelism: MBS=2, TPS=2, AGB=8 for 80GB nodes. 
-  micro_batch_size: 2
+  micro_batch_size: 4
   global_batch_size: 2048
   tensor_model_parallel_size: 1
   pipeline_model_parallel_size: 1
@@ -140,8 +139,10 @@ model:
   optim:
     name: distributed_fused_adam
     bucket_cap_mb: 200
-    overlap_grad_sync: False
+    overlap_grad_sync: True
+    overlap_param_sync: true
     contiguous_grad_buffer: True
+    grad_sync_dtype: bf16
     lr: 1.6e-4
     weight_decay: 0.1 
     betas: 
