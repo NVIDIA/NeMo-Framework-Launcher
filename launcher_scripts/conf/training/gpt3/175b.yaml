@@ -118,7 +118,6 @@ model:
   fp8_amax_compute_algo: most_recent # 'most_recent' or 'max'. Algorithm for computing amax from history
   use_emha: False
   ub_tp_comm_overlap: True
-  #ub_tp_comm_overlap_cfg: ${launcher_scripts_path}/launcher_scripts/confs/training/gpt3/ub-confs/ub_cfg_a100_175b_tp4_mbs1_seqlen2k_bf16grad.yaml
 
   # miscellaneous
   seed: 1234
