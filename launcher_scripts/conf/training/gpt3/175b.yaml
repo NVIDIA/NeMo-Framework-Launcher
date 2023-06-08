@@ -54,7 +54,7 @@ model:
   virtual_pipeline_model_parallel_size: 6 # interleaved pipeline, set to maximum
   resume_from_checkpoint: null # manually set the checkpoint file to load from
   # model architecture
-  ub_tp_comm_overlap_cfg: ${launcher_scripts_path}/launcher_scripts/confs/training/gpt3/ub-confs/ub_cfg_a100_175b_tp4_mbs1_seqlen2k_bf16grad.yaml
+  ub_tp_comm_overlap_cfg: ${launcher_scripts_path}/confs/training/gpt3/ub-confs/ub_cfg_a100_175b_tp4_mbs1_seqlen2k_bf16grad.yaml
   encoder_seq_length: 2048
   max_position_embeddings: 2048
   num_layers: 96
