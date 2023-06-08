@@ -355,6 +355,19 @@ class NemoMegatronStage:
             return f"NVTE_FWD_LAYERNORM_SM_MARGIN=\$({get_ln_sm_margin_command}) NVTE_BWD_LAYERNORM_SM_MARGIN=\$({get_ln_sm_margin_command})"
         return ""
 
+    @property
+    def _skip_ag_overlap(self) -> str:
+        """ """
+        if self.cfg.training.model.get("ub_tp_comm_overlap", False):
+            use_fp8 = self.cfg.training.model.get("fp8", False)
+            get_ag_overlap_command = (
+                f"python3 {self._launcher_scripts_path / 'launcher_scripts/nemo_launcher/collections/conditional_cfgs.py'} "
+                f"name=get_ag_overlap "
+                f"fp8={use_fp8} "
+            )
+            return f"NVTE_UB_SPLIT_AG=\$({get_ag_overlap_command})"
+        return ""
+
 
 class NeMoStage(NemoMegatronStage):
     """
@@ -394,6 +407,7 @@ class NeMoStage(NemoMegatronStage):
                 self._cuda_device_max_connections,
                 self._cuda_visible_devices,
                 self._set_ln_sm_margin,
+                self._skip_ag_overlap,
                 self._nvte_bias_gelu_nvfusion,
             ]
 
@@ -463,7 +477,7 @@ class NeMoStage(NemoMegatronStage):
         if self.cluster != "bcm":
             env_vars["SLURM_NTASKS_PER_NODE"] = devices
         if self.cluster == "bcp":  # Set env prefix as env var on BCP
-            for env_var_str in [self._cuda_device_max_connections, self._cuda_visible_devices, self._set_ln_sm_margin]:
+            for env_var_str in [self._cuda_device_max_connections, self._cuda_visible_devices, self._set_ln_sm_margin, self._skip_ag_overlap,]:
                 if env_var_str:
                     var_name, var_val = env_var_str.split("=")
                     env_vars[var_name] = var_val

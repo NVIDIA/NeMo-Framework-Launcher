@@ -21,23 +21,25 @@ from collections import defaultdict
 
 import hydra
 
-global device_arch
 pynvml.nvmlInit()
 handle = pynvml.nvmlDeviceGetHandleByIndex(0)
 device_arch = pynvml.nvmlDeviceGetArchitecture(handle)
 pynvml.nvmlShutdown()
 
+global device_name
+device_name = None
+if device_arch == pynvml.NVML_DEVICE_ARCH_AMPERE:
+    device_name = "a100"
+elif device_arch == pynvml.NVML_DEVICE_ARCH_HOPPER:
+    device_name = "h100"
+
 
 @hydra.main(config_path="conf", config_name="get_ub_cfg_file")
 def get_ub_cfg_file(cfg):
     """
+    Find and return the userbuffer config file. If it doesn't exist return `null`.
     """
-    global device_arch
-    device_name = None
-    if device_arch == pynvml.NVML_DEVICE_ARCH_AMPERE:
-        device_name = "a100"
-    elif device_arch == pynvml.NVML_DEVICE_ARCH_HOPPER:
-        device_name = "h100"
+    global device_name
     ub_cfg_path = cfg.get("ub_cfg_path")
     tp_size = cfg.get("tp_size")
     hidden_size = cfg.get("hidden_size")
@@ -55,12 +57,30 @@ def get_ub_cfg_file(cfg):
 @hydra.main(config_path="conf", config_name="get_ln_sm_margin")
 def get_ln_sm_margin(cfg):
     """
+    Set SM margin to LayerNorm layer at H100. This is to overlap LN kernel with communication kernels.
     """
-    global device_arch
-    if device_arch == pynvml.NVML_DEVICE_ARCH_HOPPER:
+    global device_name
+    if device_name == 'h100':
         print(4)
     else:
         print(0)
+
+
+@hydra.main(config_path="conf", config_name="get_ag_overlap")
+def get_ag_overlap(cfg):
+    """
+    Disable AG overlap with P2P ring-exchange at H100 BF16 training.
+    FIXME: Fix the bug and remove this conditional setting.
+    """
+    global device_name
+    fp8 = cfg.get("fp8")
+    if device_name == 'h100':
+        if fp8:
+            print(1)
+        else:
+            print(0)
+    else:
+        print(1)
 
 
 if __name__ == "__main__":
@@ -68,3 +88,7 @@ if __name__ == "__main__":
         get_ub_cfg_file()
     elif sys.argv[1] == "name=get_ln_sm_margin":
         get_ln_sm_margin()
+    elif sys.argv[1] == "name=get_ag_overlap":
+        get_ag_overlap()
+    else:
+        raise ValueError("The provided conditional config function does not exist.")
