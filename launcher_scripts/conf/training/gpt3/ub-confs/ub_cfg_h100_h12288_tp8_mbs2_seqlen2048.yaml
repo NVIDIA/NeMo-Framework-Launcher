@@ -2,56 +2,56 @@
 # Model configs: H100/175B/TP8/MBS2/SeqLen2K/FP8
 
 # Bulk overlap with AllGather
-qkv_dgrad
+qkv_dgrad:
   method: bulk
   num_sm: 8
   cga_size: 2
   set_sm_margin: 0
 
-qkv_wgrad
+qkv_wgrad:
   method: bulk
   num_sm: 16
   cga_size: 2
   set_sm_margin: 0
 
-fc1_dgrad
+fc1_dgrad:
   method: bulk
   num_sm: 4
   cga_size: 2
   set_sm_margin: 0
 
-fc1_wgrad
+fc1_wgrad:
   method: bulk
   num_sm: 16
   cga_size: 2
   set_sm_margin: 0
 
 ## Ring-exchange overlap with AllGather
-qkv_fprop
+qkv_fprop:
   method: ring_exchange
   aggregate: 0
 
-proj_dgrad
+proj_dgrad:
   method: ring_exchange
   aggregate: 1
 
-fc1_fprop
+fc1_fprop:
   method: ring_exchange
   aggregate: 0
 
-fc2_dgrad
+fc2_dgrad:
   method: ring_exchange
   aggregate: 0
 
 # Chunked-collective overlap with ReduceScatter
-proj_fprop
+proj_fprop:
   method: pipeline
   num_sm: 16
   cga_size: 2
   num_splits: 4
   set_sm_margin: 1
 
-fc2_fprop
+fc2_fprop:
   method: pipeline
   num_sm: 24
   cga_size: 2
