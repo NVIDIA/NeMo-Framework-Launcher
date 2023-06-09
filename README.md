@@ -1258,6 +1258,8 @@ are based on public data which may contain copyrighted material. Consult your le
 | AutoencoderKL |  [link](https://huggingface.co/CompVis/stable-diffusion-v1-4/tree/main/vae)    |      No           |
 | CLIP          |  [link](https://huggingface.co/openai/clip-vit-large-patch14)                  |     Yes            |
 
+In the latest update, we have introduced support for using the Clip encoder provided by NeMo. To learn how to convert weights to NeMo Clip checkpoints, please refer to [Sec.@Bobby] in the documentation.
+If you prefer to restore the previous behavior and use the HF Clip encoder, you can find instructions in the comments within the stable diffusion configuration files.
 
 3.There is no guarantee that training Stable Diffusion for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the late stages of convergence.
 
