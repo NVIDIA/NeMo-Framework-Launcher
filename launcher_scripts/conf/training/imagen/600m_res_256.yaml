@@ -130,7 +130,7 @@ model:
       use_webdataset: True
       object_store: False
       infinite_sampler: True
-      local_root_path: /datasets
+      local_root_path: ${data_dir}/your_dataset/tarfiles_reorganized/  # each tarfile in wdinfo is relative to this
       verbose: False
 
   optim:
