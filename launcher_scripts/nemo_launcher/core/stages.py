@@ -344,7 +344,7 @@ class NemoMegatronStage:
 
     @property
     def _set_ln_sm_margin(self) -> str:
-        """ """
+        """ Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel """
         if (self.cfg.training.model.get("overlap_p2p_comm", False) and
             self.cfg.training.model.get("pipeline_model_parallel_size") > 1 and
             self.cfg.training.model.get("virtual_pipeline_model_parallel_size") > 1):
@@ -357,8 +357,9 @@ class NemoMegatronStage:
 
     @property
     def _skip_ag_overlap(self) -> str:
-        """ """
-        if self.cfg.training.model.get("ub_tp_comm_overlap", False):
+        """ Skip TP-AllGather overlap with ring-exchange at (1) bf16 and (2) PP > 1 """
+        if (self.cfg.training.model.get("ub_tp_comm_overlap", False) and
+            self.cfg.training.model.get("pipeline_model_parallel_size") > 1):
             use_fp8 = self.cfg.training.model.get("fp8", False)
             get_ag_overlap_command = (
                 f"python3 {self._launcher_scripts_path / 'launcher_scripts/nemo_launcher/collections/conditional_cfgs.py'} "
