@@ -349,7 +349,7 @@ class NemoMegatronStage:
             self.cfg.training.model.get("pipeline_model_parallel_size") > 1 and
             self.cfg.training.model.get("virtual_pipeline_model_parallel_size") > 1):
             get_ln_sm_margin_command = (
-                f"python3 {self._launcher_scripts_path / 'launcher_scripts/nemo_launcher/collections/conditional_cfgs.py'} "
+                f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/conditional_cfgs.py'} "
                 f"name=get_ln_sm_margin"
             )
             return f"NVTE_FWD_LAYERNORM_SM_MARGIN=\$({get_ln_sm_margin_command}) NVTE_BWD_LAYERNORM_SM_MARGIN=\$({get_ln_sm_margin_command})"
@@ -362,7 +362,7 @@ class NemoMegatronStage:
             self.cfg.training.model.get("pipeline_model_parallel_size") > 1):
             use_fp8 = self.cfg.training.model.get("fp8", False)
             get_ag_overlap_command = (
-                f"python3 {self._launcher_scripts_path / 'launcher_scripts/nemo_launcher/collections/conditional_cfgs.py'} "
+                f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/conditional_cfgs.py'} "
                 f"name=get_ag_overlap "
                 f"fp8={use_fp8} "
             )
@@ -553,7 +553,7 @@ class Training(NeMoStage):
         ub_cfg_path = os.path.join(self._launcher_scripts_path, "launcher_scripts/conf/training/gpt3/ub-confs")
 
         get_ub_cfg_file_command = (
-            f"python3 {self._launcher_scripts_path / 'launcher_scripts/nemo_launcher/collections/conditional_cfgs.py'} "
+            f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/conditional_cfgs.py'} "
             f"name=get_ub_cfg_file "
             f"ub_cfg_path={ub_cfg_path} "
             f"tp_size={tp_size} "
