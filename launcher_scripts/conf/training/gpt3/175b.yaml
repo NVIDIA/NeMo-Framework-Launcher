@@ -108,7 +108,7 @@ model:
   grad_allreduce_chunk_size_mb: 125
 
   ## Transformer Engine
-  # To use fp8, change only `fp8` to `True`.
+  # To use fp8, please set `transformer_engine=True` and `fp8=True`.
   # The rest of fp8 knobs are set for the fp8 training mode, which are ignored in non-fp8 training
   transformer_engine: True
   fp8: False # enables fp8 in TransformerLayer forward
