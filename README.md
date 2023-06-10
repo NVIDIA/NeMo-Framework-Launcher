@@ -1366,7 +1366,7 @@ creating the job (number of replicas).
 Transformer Engine (TE) is a library for accelerating Transformer-based models on **NVIDIA Hopper GPUs**. It enables using 8-bit floating point (FP8) precision to provide better performance with lower memory utilization in both training and inference. NVIDIA open-sourced TE on [github](https://github.com/NVIDIA/TransformerEngine).
 
 In NeMo Framework, you can now use `fp8` to pre-train GPT models. For example, if you want to turn on `fp8` to pre-train a 
-GPT3 5B model, you can modify `gpt3/5b` training config inside `conf/training/gpt3/5b.yaml` file as following.
+GPT3 5B model, you can modify `gpt3/5b` training config inside `conf/training/gpt3/5b.yaml` file as following. To run a job with fp8, please set `transformer_engine=True` and `fp8=True`. Other fp8-associated knobs are set accordingly in the baseline pre-training scripts, which are ignored in bf16 training.
 ```yaml
   ## Transformer Engine
   transformer_engine: True # turn on Transformer Engine
@@ -1375,7 +1375,7 @@ GPT3 5B model, you can modify `gpt3/5b` training config inside `conf/training/gp
   fp8_hybrid: True # sets fp8_format = recipe.Format.HYBRID
   fp8_margin: 0 # scaling margin
   fp8_interval: 1 # scaling update interval
-  fp8_amax_history_len: 32 # Number of steps for which amax history is recorded per tensor
+  fp8_amax_history_len: 1024 # Number of steps for which amax history is recorded per tensor
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   use_emha: False
 ```
