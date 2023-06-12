@@ -523,6 +523,9 @@ class Training(NeMoStage):
         if self.stage_cfg.model.get("ub_tp_comm_overlap", False):
             get_ub_cfg_file_command = self._get_ub_cfg_file()
             hydra_override += [f"+model.ub_tp_comm_overlap_cfg=\$({get_ub_cfg_file_command})"]
+        if self.stage_cfg.model.get("gc_interval", 0) > 1:
+            gc_interval = min(self.stage_cfg.model.get("gc_interval"), self.cfg.training.trainer.get("val_check_interval"))
+            hydra_override += [f"model.gc_interval={gc_interval}"]
         return hydra_override
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
