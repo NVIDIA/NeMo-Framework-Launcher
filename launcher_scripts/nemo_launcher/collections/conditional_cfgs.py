@@ -28,7 +28,7 @@ cuda_capability, _ = pynvml.nvmlDeviceGetCudaComputeCapability(handle)
 pynvml.nvmlShutdown()
 
 
-@hydra.main(config_path="conf", config_name="get_ub_cfg_file")
+@hydra.main(version_base=None, config_path="conf", config_name="get_ub_cfg_file")
 def get_ub_cfg_file(cfg):
     """
     Find and return the userbuffer config file. If it doesn't exist return `null`.
@@ -53,7 +53,7 @@ def get_ub_cfg_file(cfg):
         print(f"null")
 
 
-@hydra.main(config_path="conf", config_name="get_ln_sm_margin")
+@hydra.main(version_base=None, config_path="conf", config_name="get_ln_sm_margin")
 def get_ln_sm_margin(cfg):
     """
     Set SM margin to LayerNorm layer at H100. This is to overlap LN kernel with communication kernels.
@@ -65,7 +65,7 @@ def get_ln_sm_margin(cfg):
         print(0)
 
 
-@hydra.main(config_path="conf", config_name="get_ag_overlap")
+@hydra.main(version_base=None, config_path="conf", config_name="get_ag_overlap")
 def get_ag_overlap(cfg):
     """
     Disable AG overlap with P2P ring-exchange at H100 BF16 training.
