@@ -114,7 +114,6 @@ model:
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
   sequence_parallel: false # does not support sequence parallel
-  gc_interval: 100 # Interval of the host memory garbage collection
   
   ## Transformer Engine
   # fp8 training is currently not supported in the improved models
