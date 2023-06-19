@@ -263,6 +263,10 @@ class NemoMegatronStage:
         }
         if cluster == "bcm":
             cluster_cfg = cfg.get("cluster")
+            if cfg.get("training").get("model").get("ub_tp_comm_overlap", False):
+                if "srun_args" not in cluster_cfg:
+                    cluster_cfg["srun_args"] = []
+                cluster_cfg["srun_args"] += ["--mpi=pmix"]
             slurm_cfg = {**copy.deepcopy(cluster_cfg)}
             job_name_prefix = slurm_cfg.pop("job_name_prefix")
             cluster_parameters = {**slurm_cfg}
@@ -417,6 +421,33 @@ class NemoMegatronStage:
             results_dir = results_dir / sub_stage
         return JobPaths(results_dir, self.job_name)
 
+    @property
+    def _set_ln_sm_margin(self) -> str:
+        """ Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel """
+        if (self.cfg.training.model.get("overlap_p2p_comm", False) and
+            self.cfg.training.model.get("pipeline_model_parallel_size") > 1 and
+            self.cfg.training.model.get("virtual_pipeline_model_parallel_size") > 1):
+            get_ln_sm_margin_command = (
+                f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/conditional_cfgs.py'} "
+                f"name=get_ln_sm_margin"
+            )
+            return f"NVTE_FWD_LAYERNORM_SM_MARGIN=\$({get_ln_sm_margin_command}) NVTE_BWD_LAYERNORM_SM_MARGIN=\$({get_ln_sm_margin_command})"
+        return ""
+
+    @property
+    def _skip_ag_overlap(self) -> str:
+        """ Skip TP-AllGather overlap with ring-exchange at (1) bf16 and (2) PP > 1 """
+        if (self.cfg.training.model.get("ub_tp_comm_overlap", False) and
+            self.cfg.training.model.get("pipeline_model_parallel_size") > 1):
+            use_fp8 = self.cfg.training.model.get("fp8", False)
+            get_ag_overlap_command = (
+                f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/conditional_cfgs.py'} "
+                f"name=get_ag_overlap "
+                f"fp8={use_fp8} "
+            )
+            return f"NVTE_UB_SPLIT_AG=\$({get_ag_overlap_command})"
+        return ""
+
 
 class NeMoStage(NemoMegatronStage):
     """
@@ -455,6 +486,8 @@ class NeMoStage(NemoMegatronStage):
             core_command = [
                 self._cuda_device_max_connections,
                 self._cuda_visible_devices,
+                self._set_ln_sm_margin,
+                self._skip_ag_overlap,
                 self._nvte_bias_gelu_nvfusion,
             ]
 
@@ -524,7 +557,7 @@ class NeMoStage(NemoMegatronStage):
         if self.cluster != "bcm":
             env_vars["SLURM_NTASKS_PER_NODE"] = devices
         if self.cluster == "bcp":  # Set env prefix as env var on BCP
-            for env_var_str in [self._cuda_device_max_connections, self._cuda_visible_devices]:
+            for env_var_str in [self._cuda_device_max_connections, self._cuda_visible_devices, self._set_ln_sm_margin, self._skip_ag_overlap,]:
                 if env_var_str:
                     var_name, var_val = env_var_str.split("=")
                     env_vars[var_name] = var_val
@@ -566,6 +599,12 @@ class Training(NeMoStage):
                 f"blending_alpha={blending_alpha}"
             )
             hydra_override += [f"model.data.data_prefix=\$({auto_blend_command})"]
+        if self.stage_cfg.model.get("ub_tp_comm_overlap", False):
+            get_ub_cfg_file_command = self._get_ub_cfg_file()
+            hydra_override += [f"+model.ub_tp_comm_overlap_cfg=\$({get_ub_cfg_file_command})"]
+        if self.stage_cfg.model.get("gc_interval", 0) > 1:
+            gc_interval = min(self.stage_cfg.model.get("gc_interval"), self.cfg.training.trainer.get("val_check_interval"))
+            hydra_override += [f"model.gc_interval={gc_interval}"]
         return hydra_override
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
@@ -585,14 +624,26 @@ class Training(NeMoStage):
         }
         return model_type_to_code_path[model_type]
 
-    # @property
-    # def _nvte_bias_gelu_nvfusion(self) -> str:
-    #     """Only used in pretraining; override in training class; not supported on BCP"""
-    #     return (
-    #         "NVTE_BIAS_GELU_NVFUSION="
-    #         "\$(python3 -c 'import torch; "
-    #         "print(int(torch.cuda.get_device_properties(torch.cuda.current_device()).major >= 9))')"
-    #     )
+    def _get_ub_cfg_file(self) -> str:
+        """
+        Spawn the script to search UB configuration file
+        """
+        tp_size = self.stage_cfg.model.get("tensor_model_parallel_size")
+        hidden_size = self.stage_cfg.model.get("hidden_size")
+        mb_size = self.stage_cfg.model.get("micro_batch_size")
+        seqlen = self.stage_cfg.model.get("encoder_seq_length")
+        ub_cfg_path = os.path.join(self._launcher_scripts_path, "launcher_scripts/conf/training/gpt3/ub-confs")
+
+        get_ub_cfg_file_command = (
+            f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/conditional_cfgs.py'} "
+            f"name=get_ub_cfg_file "
+            f"ub_cfg_path={ub_cfg_path} "
+            f"tp_size={tp_size} "
+            f"hidden_size={hidden_size} "
+            f"mb_size={mb_size} "
+            f"seqlen={seqlen}"
+        )
+        return get_ub_cfg_file_command
 
 
 class FineTuning(NeMoStage):
@@ -990,10 +1041,12 @@ class EvalHarnessEvaluation(NemoMegatronStage):
                 prompt_dataset_paths=model_cfg.get("prompt_dataset_paths"),
             )
         else:
+            # GPT evaluation
             args += create_args_list(
                 replace_underscore=False,
                 vocab_file=model_cfg.get("vocab_file"),
                 merge_file=model_cfg.get("merge_file"),
+                nemo_model=model_cfg.get("nemo_model"),
                 checkpoint_folder=model_cfg.get("checkpoint_folder"),
                 checkpoint_name=model_cfg.get("checkpoint_name"),
                 hparams_file=model_cfg.get("hparams_file"),

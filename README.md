@@ -2,9 +2,9 @@
 ## Open Beta
 
 Scripts and code to provide end-to-end data preparation and training for
-NeMo-Megatron.
+NeMo Framework.
 
-The most recent version of the README can be found at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training).
+The most recent version of the README can be found at [https://ngc.nvidia.com/containers/ea-bignlp:nemofw-training](https://ngc.nvidia.com/containers/ea-bignlp:nemofw-training).
 
 ## Table of contents
 - [1. Model Overview](#1-model-overview)
@@ -50,6 +50,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
         * [5.1.2.4.1. Slurm](#51241-slurm)
         * [5.1.2.4.2. Base Command Platform](#51242-base-command-platform)
         * [5.1.2.4.3. Common](#51243-common)
+        * [5.1.2.4.4. LDDL](#51244-lddl)
   * [5.2. Training with Predefined Configurations](#52-training-with-predefined-configurations)
     + [5.2.1. Predefined Configurations of GPT Models](#521-predefined-configurations-of-gpt-models)
     + [5.2.2. Predefined Configurations of T5 Models](#522-predefined-configurations-of-t5-models)
@@ -135,65 +136,68 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.11.2.1. Common](#51121-common)
       - [5.11.2.2. Slurm](#51122-slurm)
       - [5.11.2.3. Base Command Platform](#51123-base-command-platform)
-  * [5.12. Model Evaluation](#512-model-evaluation)
-    + [5.12.1. GPT Evaluation](#5121-gpt-evaluation)
-      - [5.12.1.1. Common](#51211-common)
-      - [5.12.1.2. Slurm](#51212-slurm)
-      - [5.12.1.3. Base Command Platform](#51213-base-command-platform)
-    + [5.12.2. T5 Evaluation](#5122-t5-evaluation)
-      - [5.12.2.1. Common](#51221-common)
-      - [5.12.2.2. Slurm](#51222-slurm)
-      - [5.12.2.3. Base Command Platform](#51223-base-command-platform)
-    + [5.12.3. mT5 Evaluation](#5123-mt5-evaluation)
-      - [5.12.3.1. Common](#51231-common)
-      - [5.12.3.2. Slurm](#51232-slurm)
-      - [5.12.3.3. Base Command Platform](#51233-base-command-platform)
-    + [5.12.4. Prompt Learned GPT Evaluation](#5124-prompt-learned-gpt-evaluation)
-      - [5.12.4.1. Common](#51241-common)
-      - [5.12.4.2. Slurm](#51242-slurm)
-      - [5.12.4.3. Base Command Platform](#51243-base-command-platform)
-    + [5.12.5. Prompt Learned T5 and mT5 Evaluation](#5125-prompt-learned-t5-and-mt5-evaluation)
-      - [5.12.5.1. Common](#51251-common)
-      - [5.12.5.2. Slurm](#51252-slurm)
-      - [5.12.5.3. Base Command Platform](#51253-base-command-platform)
-    + [5.12.6. Adapter Learned and IA3 Learned GPT Evaluation](#5126-adapter-learned-and-ia3-learned-gpt-evaluation)
-      - [5.12.6.1. Common](#51261-common)
-      - [5.12.6.2. Slurm](#51262-slurm)
-      - [5.12.6.3. Base Command Platform](#51263-base-command-platform)
-    + [5.12.7. Adapter Learned and IA3 Learned T5 Evaluation](#5127-adapter-learned-and-ia3-learned-t5-evaluation)
-      - [5.12.7.1. Common](#51271-common)
-      - [5.12.7.2. Slurm](#51272-slurm)
-      - [5.12.7.3. Base Command Platform](#51273-base-command-platform)
-  * [5.13. Model Export](#513-model-export)
-    + [5.13.1. GPT Export](#5131-gpt-export)
+  * [5.12 LoRA Model and Generalized PEFT Framework](#512-lora-model-and-generalized-peft-framework)
+    + [5.12.1 PEFT Training and Inference](#5121-peft-training-and-inference)
+  * [5.13. Model Evaluation](#513-model-evaluation)
+    + [5.13.1. GPT Evaluation](#5131-gpt-evaluation)
       - [5.13.1.1. Common](#51311-common)
       - [5.13.1.2. Slurm](#51312-slurm)
       - [5.13.1.3. Base Command Platform](#51313-base-command-platform)
-    + [5.13.2. T5 Export](#5132-t5-export)
+      - [5.13.1.4 Interleaved Pipeline Parallelism](#51314-interleaved-pipeline-parallelism)
+    + [5.13.2. T5 Evaluation](#5132-t5-evaluation)
       - [5.13.2.1. Common](#51321-common)
       - [5.13.2.2. Slurm](#51322-slurm)
       - [5.13.2.3. Base Command Platform](#51323-base-command-platform)
-    + [5.13.3. mT5 Export](#5133-mt5-export)
+    + [5.13.3. mT5 Evaluation](#5133-mt5-evaluation)
       - [5.13.3.1. Common](#51331-common)
       - [5.13.3.2. Slurm](#51332-slurm)
       - [5.13.3.3. Base Command Platform](#51333-base-command-platform)
-  * [5.14 Instruction Following via Supervised Finetuning (SFT)](#514-instruction-following-via-supervised-finetuning--sft-)
-    + [5.14.1 SFT Data Formatting](#5141-sft-data-formatting)
-    + [5.14.2 SFT Training](#5142-sft-training)
-  * [5.15. Reinforcement Learning from Human Feedback](#515-reinforcement-learning-from-human-feedback)
-    + [5.15.1. Reward Model Training](#5151-reward-model-training)
-      - [5.15.1.1 Data preprocessing](#51511-data-preprocessing)
-      - [5.15.1.2 Reward Model Training](#51512-reward-model-training)
-      - [5.15.1.3 Reward Model Evaluation](#51513-reward-model-evaluation)
-    + [5.15.2. PPO Training](#5152-ppo-training)
-      - [5.15.2.1 Launching the Reward Model inference server](#51521-launching-the-reward-model-inference-server)
-      - [5.15.2.2 Launching the Initial Policy inference server](#51522-launching-the-initial-policy-inference-server)
-      - [5.15.2.3 Launching the PPO Critic Training and Inference Server](#51523-launching-the-ppo-critic-training-and-inference-server)
-      - [5.15.2.4 Launching the PPO Actor Training](#51524-launching-the-ppo-actor-training)
-      - [5.15.2.5 Launching every job at once with SLURM](#51525-launching-every-job-at-once-with-slurm)
-      - [5.15.2.6 PPO Hyper-parameters](#51526-ppo-hyper-parameters)
-    + [5.15.3. Future Work](#5153-future-work)
-  * [5.16 Curating pretraining datasets with the NeMo Data Curator](#516-curating-pretraining-datasets-with-the-nemo-data-curator)
+    + [5.13.4. Prompt Learned GPT Evaluation](#5134-prompt-learned-gpt-evaluation)
+      - [5.13.4.1. Common](#51341-common)
+      - [5.13.4.2. Slurm](#51342-slurm)
+      - [5.13.4.3. Base Command Platform](#51343-base-command-platform)
+    + [5.13.5. Prompt Learned T5 and mT5 Evaluation](#5135-prompt-learned-t5-and-mt5-evaluation)
+      - [5.13.5.1. Common](#51351-common)
+      - [5.13.5.2. Slurm](#51352-slurm)
+      - [5.13.5.3. Base Command Platform](#51353-base-command-platform)
+    + [5.13.6. Adapter Learned and IA3 Learned GPT Evaluation](#5136-adapter-learned-and-ia3-learned-gpt-evaluation)
+      - [5.13.6.1. Common](#51361-common)
+      - [5.13.6.2. Slurm](#51362-slurm)
+      - [5.13.6.3. Base Command Platform](#51363-base-command-platform)
+    + [5.13.7. Adapter Learned and IA3 Learned T5 Evaluation](#5137-adapter-learned-and-ia3-learned-t5-evaluation)
+      - [5.13.7.1. Common](#51371-common)
+      - [5.13.7.2. Slurm](#51372-slurm)
+      - [5.13.7.3. Base Command Platform](#51373-base-command-platform)
+  * [5.14. Model Export](#514-model-export)
+    + [5.14.1. GPT Export](#5141-gpt-export)
+      - [5.14.1.1. Common](#51411-common)
+      - [5.14.1.2. Slurm](#51412-slurm)
+      - [5.14.1.3. Base Command Platform](#51413-base-command-platform)
+    + [5.14.2. T5 Export](#5142-t5-export)
+      - [5.14.2.1. Common](#51421-common)
+      - [5.14.2.2. Slurm](#51422-slurm)
+      - [5.14.2.3. Base Command Platform](#51423-base-command-platform)
+    + [5.14.3. mT5 Export](#5143-mt5-export)
+      - [5.14.3.1. Common](#51431-common)
+      - [5.14.3.2. Slurm](#51432-slurm)
+      - [5.14.3.3. Base Command Platform](#51433-base-command-platform)
+  * [5.15 Instruction Following via Supervised Finetuning (SFT)](#515-instruction-following-via-supervised-finetuning--sft-)
+    + [5.15.1 SFT Data Formatting](#5151-sft-data-formatting)
+    + [5.15.2 SFT Training](#5152-sft-training)
+  * [5.16. Reinforcement Learning from Human Feedback](#516-reinforcement-learning-from-human-feedback)
+    + [5.16.1. Reward Model Training](#5161-reward-model-training)
+      - [5.16.1.1 Data preprocessing](#51611-data-preprocessing)
+      - [5.16.1.2 Reward Model Training](#51612-reward-model-training)
+      - [5.16.1.3 Reward Model Evaluation](#51613-reward-model-evaluation)
+    + [5.16.2. PPO Training](#5162-ppo-training)
+      - [5.16.2.1 Launching the Reward Model Inference Server](#51621-launching-the-reward-model-inference-server)
+      - [5.16.2.2 Launching the Initial Policy Inference Server](#51622-launching-the-initial-policy-inference-server)
+      - [5.16.2.3 Launching the PPO Critic Training and Inference Server](#51623-launching-the-ppo-critic-training-and-inference-server)
+      - [5.16.2.4 Launching the PPO Actor Training](#51624-launching-the-ppo-actor-training)
+      - [5.16.2.5 Launching every job at once with SLURM](#51625-launching-every-job-at-once-with-slurm)
+      - [5.16.2.6 PPO Hyper-parameters](#51626-ppo-hyper-parameters)
+    + [5.16.3. Future Work](#5163-future-work)
+  * [5.17 Curating pretraining datasets with the NeMo Data Curator](#517-curating-pretraining-datasets-with-the-nemo-data-curator)
 - [6. Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
   * [6.1. Run NVIDIA Triton Server with Generated Model Repository](#61-run-nvidia-triton-server-with-generated-model-repository)
 - [6.2. GPT Text Generation with Ensemble](#62-gpt-text-generation-with-ensemble)
@@ -214,6 +218,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
   * [7.4. BERT Results](#74-bert-results)
     + [7.4.1. Training Accuracy Results](#741-training-accuracy-results)
     + [7.4.2. Training Performance Results](#742-training-performance-results)
+    + [7.4.3. Training Performance Results (LDDL)](#743-training-performance-results--lddl-)
 - [8. Changelog](#8-changelog)
 - [9. Known Issues](#9-known-issues)
 
@@ -341,14 +346,14 @@ Figure 1: The GPT family architecture. The 5B variant includes 24 transformer la
 |-------------------------|------------------|
 | NVIDIA Triton           | 2.24.0           |
 | FasterTransformer       | v5.3+c6e8f60     |
-| TransformerEngine       | v0.6+f18e677     |
-| PyTorch                 | 2.0.0a0+1767026  |
-| NeMo                    | 1.18.0+ddbe0f3   |
+| TransformerEngine       | v0.8+8e5f00f     |
+| PyTorch                 | 2.1.0a0+fe05266  |
+| NeMo                    | 1.19.0+913e5e5   |
 | PyTorch Lightning       | 1.9.4            |
 | Hydra                   | 1.2.0            |
 | CUDA                    | NVIDIA CUDA 12.1 |
-| cuBLAS                  | 11.11.3.6        |
-| cuDNN                   | 8.8.1.3          |
+| cuBLAS                  | 12.1.3.1         |
+| cuDNN                   | 8.9.0.131        |
 | NCCL                    | 2.17.1           |
 | Container OS            | Ubuntu 20.04     |
 | rdma-core               | 36.0             |
@@ -565,7 +570,7 @@ Command Manager.
 
 
 ```
-srun -p [partition] -N 1 --container-mounts=/path/to/local/dir:/workspace/mount_dir --container-image=[container_tag] bash -c "cp -r /opt/NeMo-Megatron-Launcher/launcher_scripts /opt/NeMo-Megatron-Launcher/auto_configurator /opt/FasterTransformer /opt/nemo-data-curator /workspace/mount_dir/"
+srun -p [partition] -N 1 --container-mounts=/path/to/local/dir:/workspace/mount_dir --container-image=[container_tag] bash -c "cp -r /opt/NeMo-Megatron-Launcher/launcher_scripts /opt/NeMo-Megatron-Launcher/auto_configurator /opt/FasterTransformer /opt/nemo-data-curator /opt/nemo-rlhf /workspace/mount_dir/"
 ```
 
 Install the NeMo Framework scripts dependencies on the head node of the cluster:
@@ -619,6 +624,8 @@ numa_mapping:
   max_cores: 8  # Maximum number of physical cores per process. Can be null to use all available cores.
 ```
 
+**Interactive**: In order to run the launcher in an interactive job or locally on a workstation, 
+set `cluster_type=interactive` in `conf/config.yaml`.
 
 **Slurm**: The `launcher_scripts_path` parameter will automatically be mounted to the
 container at the same path as in the local file system. Any additional
@@ -1149,6 +1156,27 @@ rm_downloaded: True # Extract script will remove downloaded zst after extraction
 rm_extracted: True # Preprocess script will remove extracted files after preproc.
 ```
 
+###### 5.1.2.4.4. LDDL
+<a id="markdown-51243-LDDL" name="51243-LDDL"></a>
+
+Language Datasets and Data Loaders (LDDL) is a utility library that minimizes the friction during dataset retrieval, preprocessing and loading for the language models.  LDDL provides dataset preprocesssing and dataloaders that allow for efficient training of Bert with dynamic sequence lengths in order to maximize training performance. LDDL currently is not installed by default in the NeMo FW container.  It can be installed with `pip install git+https://github.com/NVIDIA/lddl.git`. The directions for how to preprocess data into the LDDL binned format that can be used with NeMo can be found [here] (https://github.com/NVIDIA/LDDL#bert) for preprocessing data with binning.
+
+With the data preprocessed in binned LDDL format the LDDL dataset can be used with the following changes to the YAML file:
+
+```yaml
+trainer:
+  data:
+    data_prefix: 
+      - /path/to/train/LDDL/Dataset
+      - /path/to/val/LDDL/Dataset
+      - /path/to/test/LDDL/Dataset
+    dataloader_type: LDDL
+
+```
+
+Note: Nemo FW currently only works with LDDL datasets that have been preprocessed with binning.
+
+
 ### 5.2. Training with Predefined Configurations
 <a id="markdown-training-with-predefined-configurations" name="training-with-predefined-configurations"></a>
 
@@ -1338,7 +1366,7 @@ creating the job (number of replicas).
 Transformer Engine (TE) is a library for accelerating Transformer-based models on **NVIDIA Hopper GPUs**. It enables using 8-bit floating point (FP8) precision to provide better performance with lower memory utilization in both training and inference. NVIDIA open-sourced TE on [github](https://github.com/NVIDIA/TransformerEngine).
 
 In NeMo Framework, you can now use `fp8` to pre-train GPT models. For example, if you want to turn on `fp8` to pre-train a 
-GPT3 5B model, you can modify `gpt3/5b` training config inside `conf/training/gpt3/5b.yaml` file as following.
+GPT3 5B model, you can modify `gpt3/5b` training config inside `conf/training/gpt3/5b.yaml` file as following. To run a job with fp8, please set `transformer_engine=True` and `fp8=True`. Other fp8-associated knobs are set accordingly in the baseline pre-training scripts, which are ignored in bf16 training.
 ```yaml
   ## Transformer Engine
   transformer_engine: True # turn on Transformer Engine
@@ -1347,7 +1375,7 @@ GPT3 5B model, you can modify `gpt3/5b` training config inside `conf/training/gp
   fp8_hybrid: True # sets fp8_format = recipe.Format.HYBRID
   fp8_margin: 0 # scaling margin
   fp8_interval: 1 # scaling update interval
-  fp8_amax_history_len: 32 # Number of steps for which amax history is recorded per tensor
+  fp8_amax_history_len: 1024 # Number of steps for which amax history is recorded per tensor
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   use_emha: False
 ```
@@ -1933,7 +1961,7 @@ launcher_scripts_path: ${auto_configurator_path}/../launcher_scripts
 fastertransformer_path: ${auto_configurator_path}/../FasterTransformer
 base_results_dir: ${auto_configurator_path}/results
 data_dir: ${launcher_scripts_path}/data
-training_container: nvcr.io/ea-bignlp/bignlp-training:23.04-py3
+training_container: nvcr.io/ea-bignlp/nemofw-training:23.05-py3
 container_mounts:
     - null
 wandb:  # Weights and Biases (W&B) logging.
@@ -3567,10 +3595,45 @@ The stdout and stderr outputs will also be redirected to the `/results/ia3_learn
 Any other parameter can also be added to the command to modify its behavior.
 
 
-### 5.12. Model Evaluation
+### 5.12 LoRA Model and Generalized PEFT Framework
+<a id="markdown-peft-model" name="lora-peft-framework"></a>
+Many Parameter Efficient Fine-Tuning (PEFT) models have overlapping functionalities. In order to enhance NeMo's codebase, we have worked towards unifying the implementation of all supported PEFT methods, making it more streamlined. Furthermore, we have introduced the Low-rank Adapter PEFT model for GPT-style base models in NeMo.
+
+The new PEFT framework is built upon the SFT models and datasets, thereby inheriting all the dataset preparation requirements from SFT. For more details, please refer to the SFT section below.
+
+#### 5.12.1 PEFT Training and Inference
+We offer a training and inference script in NeMo. Below is an example of how to use the training script. The `TRAIN_FILE`s (and `VALIDATION_FILE`s) follow the same format as SFT.
+
+Take note of the `model.peft.peft_scheme` argument. You can train a LoRA, P-tuning, Adapter, or IA3 model by setting this argument to the desired PEFT method.
+```bash
+python3 /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py \
+  model.restore_from_path=<BASE_GPT_MODEL> \ 
+  model.data.train_ds.num_workers=0 \
+  model.data.validation_ds.num_workers=0 \
+  model.data.train_ds.file_names=[<TRAIN_FILE1>,<TRAIN_FILE2>,...] \ 
+  model.data.train_ds.concat_sampling_probabilities=[0.3,0.2,..] \ # should sum to 1 and be of the same length as number of training files
+  model.data.validation_ds.file_names=[<VALIDATION_FILE1>, <VALIDATION_FILE2>,...] \ 
+  model.data.train_ds.prompt_template='{input} Answer: {output}' \
+  model.peft.peft_scheme='lora'  # can be replaced with 'adapter', 'ptuning' or 'ia3'
+  model.answer_only_loss=True 
+```
+At the end of training a '.nemo' model is generated which contains the parameters for the PEFT model.
+Similarly, the PEFT framework has a single inference script as well:
+```bash
+python3 /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py \
+model.restore_from_path=<BASE_GPT_MODEL> \
+model.peft.restore_from_path=<PEFT_MODEL> \
+model.data.test_ds.file_names=[<TEST_FILE>] \
+model.data.test_ds.names=['my_test_set'] \
+model.data.test_ds.tokens_to_generate=30 \
+inference.greedy=True \
+inference.outfile_path=<OUTPUT_FILE>
+```
+Additionally, NeMo has a notebook which walks through the steps (which these scripts encapsulate) to train and run inference for PEFT models: https://github.com/NVIDIA/NeMo/blob/main/tutorials/nlp/lora.ipynb
+### 5.13. Model Evaluation
 <a id="markdown-model-evaluation" name="model-evaluation"></a>
 
-#### 5.12.1. GPT Evaluation
+#### 5.13.1. GPT Evaluation
 <a id="markdown-gpt-evaluation" name="gpt-evaluation"></a>
 
 We also provide a simple tool to help evaluate the trained checkpoints. You can
@@ -3589,7 +3652,7 @@ file to use for evaluation purposes. The `evaluation` parameter must be included
 parameters can be modified to adapt different evaluation tasks and checkpoints
 in evaluation runs. For Base Command Platform, all these parameters should be overridden from the command line.
 
-##### 5.12.1.1. Common
+##### 5.13.1.1. Common
 <a id="markdown-common" name="common"></a>
 To specify the configuration for what tasks to run for evaluation, use the `run.tasks` parameter. 
 And use all the `run` parameters to define the job specific config:
@@ -3623,7 +3686,7 @@ model:
     merge_file: ${data_dir}/bpe/merges.txt
 ```
 
-##### 5.12.1.2. Slurm
+##### 5.13.1.2. Slurm
 <a id="markdown-slurm" name="slurm"></a>
 
 Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
@@ -3654,7 +3717,7 @@ then run:
 python3 main.py
 ```
 
-##### 5.12.1.3. Base Command Platform
+##### 5.13.1.3. Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 In order to run the evaluation script on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
@@ -3676,8 +3739,42 @@ The command above assumes you mounted the data workspace in `/mount/data`, and t
 The stdout and stderr outputs will also be redirected to the `/results/eval_gpt3_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
+##### 5.13.1.4 Interleaved Pipeline Parallelism
+<a id="markdown-interleaved-pipeline-parallelism" name="interleaved-pipeline-parallelism"></a>
+If your model was trained with interleaved pipeline parallelism, then the model must converted to a non-interleaved model.
+In order to check if your model used interleaved, inspect the training config and verify that
+`model.virtual_pipeline_model_parallel_size > 0`.
 
-#### 5.12.2. T5 Evaluation
+To convert the model, use the script from the NeMo Toolkit: [examples/nlp/language_modeling/megatron_change_num_partitions.py](https://github.com/NVIDIA/NeMo/blob/main/examples/nlp/language_modeling/megatron_change_num_partitions.py)
+
+```
+CUDA_VISIBLE_DEVICES=0 python3 -u /opt/NeMo/examples/nlp/language_modeling/megatron_change_num_partitions.py  \
+  --num_gpu_per_node=1 \
+  --model_extracted_dir=${RESULTS_DIR}/checkpoints \
+  --target_file=${RESULTS_DIR}/checkpoints/megatron_gpt_converted.nemo \
+  --ckpt_name='megatron_gpt--val_loss=2.59-step=9421-consumed_samples=2411520.0-last.ckpt' \
+  --tensor_model_parallel_size=1 \
+  --target_tensor_model_parallel_size=1 \
+  --pipeline_model_parallel_size=4 \
+  --target_pipeline_model_parallel_size=4 \
+  --virtual_pipeline_model_parallel_size=3 \
+  --hparams_file=${RESULTS_DIR}/hparams.yaml \
+  --precision=bf16 "
+```
+
+Note the conversion script should only be run with a single GPU.
+
+The output of the conversion script is a `.nemo` file. This file should be added to your evaluation config:
+
+```
+evaluation.model.nemo_model=/path/to/converted.nemo \
+evaluation.model.checkpoint_folder=null \
+evaluation.model.checkpoint_name=null \
+evaluation.model.hparams_file=null \
+```
+
+
+#### 5.13.2. T5 Evaluation
 <a id="markdown-t5-evaluation" name="gpt-evaluation"></a>
 
 
@@ -3694,7 +3791,7 @@ parameters can be modified to adapt different evaluation tasks and checkpoints
 in evaluation runs. For Base Command Platform, all these parameters should be overridden from the command line.
 
 
-##### 5.12.2.1. Common
+##### 5.13.2.1. Common
 <a id="markdown-common" name="common"></a>
 To specify the configuration for what tasks to run for evaluation, use the `run.task_name` parameter. 
 And use all the `run` parameters to define the job specific config: 
@@ -3718,7 +3815,7 @@ model:
     pipeline_model_parallel_size: 1
 ```
 
-##### 5.12.2.2. Slurm
+##### 5.13.2.2. Slurm
 <a id="markdown-slurm" name="slurm"></a>
 
 Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
@@ -3749,7 +3846,7 @@ then run:
 python3 main.py
 ```
 
-##### 5.12.2.3. Base Command Platform
+##### 5.13.2.3. Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 In order to run the evaluation script on Base Command Platform for T5 models, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
@@ -3771,7 +3868,7 @@ The stdout and stderr outputs will also be redirected to the `/results/eval_t5_l
 Any other parameter can also be added to the command to modify its behavior.
 
 
-#### 5.12.3. mT5 Evaluation
+#### 5.13.3. mT5 Evaluation
 <a id="markdown-mt5-evaluation" name="mt5-evaluation"></a>
 
 
@@ -3791,7 +3888,7 @@ parameters can be modified to adapt different evaluation tasks and checkpoints
 in evaluation runs. For Base Command Platform, all these parameters should be overridden from the command line.
 
 
-##### 5.12.3.1. Common
+##### 5.13.3.1. Common
 <a id="markdown-common" name="common"></a>
 To specify the configuration for what tasks to run for evaluation, use the `run.task_name` parameter. 
 And use all the `run` parameters to define the job specific config: 
@@ -3815,7 +3912,7 @@ model:
     pipeline_model_parallel_size: 1
 ```
 
-##### 5.12.3.2. Slurm
+##### 5.13.3.2. Slurm
 <a id="markdown-slurm" name="slurm"></a>
 
 Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
@@ -3846,7 +3943,7 @@ then run:
 python3 main.py
 ```
 
-##### 5.12.3.3. Base Command Platform
+##### 5.13.3.3. Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 In order to run the evaluation script on Base Command Platform for mT5 models, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
@@ -3867,7 +3964,7 @@ The stdout and stderr outputs will also be redirected to the `/results/eval_mt5_
 Any other parameter can also be added to the command to modify its behavior.
 
 
-#### 5.12.4. Prompt Learned GPT Evaluation
+#### 5.13.4. Prompt Learned GPT Evaluation
 <a id="markdown-prompt-learned-gpt-evaluation" name="prompt-learned-gpt-evaluation"></a>
 
 We also provide a simple tool to help evaluate the prompt learned GPT checkpoints. You can
@@ -3883,7 +3980,7 @@ file to be used for evaluation purposes. The `evaluation` parameter must be incl
 parameters can be modified to adapt different evaluation tasks and checkpoints
 in evaluation runs. For Base Command Platform, all these parameters should be overridden from the command line.
 
-##### 5.12.4.1. Common
+##### 5.13.4.1. Common
 <a id="markdown-common" name="common"></a>
 To specify the configuration, use all the `run` parameters to define the job specific config. (
 `run.tasks` has to be set to `prompt` to run evaluation on prompt learning test tasks):
@@ -3916,7 +4013,7 @@ model:
   disable_special_tokens: False # Whether to disable virtual tokens in prompt model evaluation. This is equivalent to evaluate without prompt-/p-tuning.
 ```
 
-##### 5.12.4.2. Slurm
+##### 5.13.4.2. Slurm
 <a id="markdown-slurm" name="slurm"></a>
 
 Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
@@ -3947,7 +4044,7 @@ then run:
 python3 main.py
 ```
 
-##### 5.12.4.3. Base Command Platform
+##### 5.13.4.3. Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 In order to run the evaluation script on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
@@ -3969,7 +4066,7 @@ The stdout and stderr outputs will also be redirected to the `/results/eval_prom
 Any other parameter can also be added to the command to modify its behavior.
 
 
-#### 5.12.5. Prompt Learned T5 and mT5 Evaluation
+#### 5.13.5. Prompt Learned T5 and mT5 Evaluation
 <a id="markdown-prompt-learned-t5-and-mt5-evaluation" name="prompt-learned-t5-and-mt5-evaluation"></a>
 
 We also provide a simple tool to help evaluate the prompt learned T5 or mT5 checkpoints. You can
@@ -3986,7 +4083,7 @@ file to use for evaluation purposes. The `evaluation` parameter must be included
 parameters can be modified to adapt different evaluation tasks and checkpoints
 in evaluation runs. For Base Command Platform, all these parameters should be overridden from the command line.
 
-##### 5.12.5.1. Common
+##### 5.13.5.1. Common
 <a id="markdown-common" name="common"></a>
 To specify the configuration, use all the `run` parameters to define the job specific config (
 `run.tasks` has to be set to `prompt` to run evaluation on prompt learning test tasks):
@@ -4019,7 +4116,7 @@ language_model_path: ${base_results_dir}/${evaluation.run.model_train_name}/conv
 virtual_prompt_model_file: ${evaluation.run.prompt_learning_dir}/results/megatron_t5_prompt.nemo # or megatron_mt5_prompt.nemo
 ```
 
-##### 5.12.5.2. Slurm
+##### 5.13.5.2. Slurm
 <a id="markdown-slurm" name="slurm"></a>
 
 Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
@@ -4050,7 +4147,7 @@ then run:
 python3 main.py
 ```
 
-##### 5.12.5.3. Base Command Platform
+##### 5.13.5.3. Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 In order to run the evaluation script on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
@@ -4082,7 +4179,7 @@ The command above assumes you mounted the data workspace in `/mount/data`, and t
 The stdout and stderr outputs will also be redirected to the `/results/eval_prompt_mt5_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
-#### 5.12.6. Adapter Learned and IA3 Learned GPT Evaluation
+#### 5.13.6. Adapter Learned and IA3 Learned GPT Evaluation
 <a id="markdown-prompt-learned-and-ia3-learned-gpt-evaluation" name="prompt-learned-and-ia3-learned-gpt-evaluation"></a>
 
 We also provide a simple tool to help evaluate the adapter and IA3 learned GPT checkpoints. You can
@@ -4098,7 +4195,7 @@ file to be used for evaluation purposes. The `evaluation` parameter must be incl
 The parameters can be modified to adapt different evaluation tasks and checkpoints
 in evaluation runs. For Base Command Platform, all these parameters should be overridden from the command line.
 
-##### 5.12.6.1. Common
+##### 5.13.6.1. Common
 <a id="markdown-common" name="common"></a>
 To specify the configuration, use all the `run` parameters to define the job specific config. (
 `run.tasks` has to be set to `adapter` to run evaluation on adapter learning test tasks):
@@ -4133,7 +4230,7 @@ language_model_path: ${base_results_dir}/${evaluation.run.model_train_name}/conv
 adapter_model_file: ${evaluation.run.adapter_learning_dir}/results/megatron_gpt_adapter.nemo # or megatron_gpt_ia3.nemo
 ```
 
-##### 5.12.6.2. Slurm
+##### 5.13.6.2. Slurm
 <a id="markdown-slurm" name="slurm"></a>
 
 Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
@@ -4164,7 +4261,7 @@ then run:
 python3 main.py
 ```
 
-##### 5.12.6.3. Base Command Platform
+##### 5.13.6.3. Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 In order to run the evaluation script on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
@@ -4198,7 +4295,7 @@ The stdout and stderr outputs will also be redirected to the `/results/eval_ia3_
 Any other parameter can also be added to the command to modify its behavior.
 
 
-#### 5.12.7. Adapter Learned and IA3 Learned T5 Evaluation
+#### 5.13.7. Adapter Learned and IA3 Learned T5 Evaluation
 <a id="markdown-adapter-learned-and-ia3-t5-evaluation" name="adapter-learned-and-ia3-t5-evaluation"></a>
 
 The configuration used for the evaluation needs to be defined in the
@@ -4210,7 +4307,7 @@ file to use for evaluation purposes. The `evaluation` parameter must be included
 parameters can be modified to adapt different evaluation tasks and checkpoints
 in evaluation runs. For Base Command Platform, all these parameters should be overridden from the command line.
 
-##### 5.12.7.1. Common
+##### 5.13.7.1. Common
 <a id="markdown-common" name="common"></a>
 To specify the configuration, use all the `run` parameters to define the job specific config:
 ```yaml
@@ -4242,7 +4339,7 @@ language_model_path: ${base_results_dir}/${evaluation.run.model_train_name}/conv
 adapter_model_file: ${evaluation.run.adapter_learning_dir}/results/megatron_t5_adapter.nemo # or megatron_t5_ia3.nemo
 ```
 
-##### 5.12.7.2. Slurm
+##### 5.13.7.2. Slurm
 <a id="markdown-slurm" name="slurm"></a>
 
 Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
@@ -4273,7 +4370,7 @@ then run:
 python3 main.py
 ```
 
-##### 5.12.7.3. Base Command Platform
+##### 5.13.7.3. Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 In order to run the evaluation script on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
@@ -4305,7 +4402,7 @@ The command above assumes you mounted the data workspace in `/mount/data`, and t
 The stdout and stderr outputs will also be redirected to the `/results/eval_ia3_t5_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
-### 5.13. Model Export
+### 5.14. Model Export
 <a id="markdown-model-export" name="model-export"></a>
 
 We also provide a tool to enable deployment of the NeMo Framework model on the NVIDIA Triton
@@ -4315,7 +4412,7 @@ The export supports only GPT. You can checkout T5 and mT5 support
 in FasterTransformer repository but it is limited to older versions of
 NeMo and Megatron-LM.
 
-#### 5.13.1. GPT Export
+#### 5.14.1. GPT Export
 <a id="markdown-gpt-export" name="gpt-export"></a>
 
 GPT model is evaluated with `lambada` task which results can be compared with results from evaluation stage.
@@ -4328,7 +4425,7 @@ to run the training pipeline export stage. The default value is set to
 parameters can be modified to adapt different export and set of tests run on prepared Triton Model Repository.
 For Base Command Platform, all these parameters should be overridden from the command line.
 
-##### 5.13.1.1. Common
+##### 5.14.1.1. Common
 <a id="markdown-common" name="common"></a>
 Also the other `run` parameters might be used to define the job specific config:
 ```yaml
@@ -4371,7 +4468,7 @@ triton_deployment:
 ```
 
 
-##### 5.13.1.2. Slurm
+##### 5.14.1.2. Slurm
 <a id="markdown-slurm" name="slurm"></a>
 
 Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
@@ -4401,7 +4498,7 @@ then run:
 python3 main.py
 ```
 
-##### 5.13.1.3. Base Command Platform
+##### 5.14.1.3. Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 In order to run the export stage on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
@@ -4424,7 +4521,7 @@ The command above assumes you mounted the data workspace in `/mount/data`, and t
 The stdout and stderr outputs will also be redirected to the `/results/export_gpt3_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
-#### 5.13.2. T5 Export
+#### 5.14.2. T5 Export
 <a id="markdown-t5-export" name="t5-export"></a>
 
 T5 models are evaluated with `lambada` task which results can be compared with results from evaluation stage.
@@ -4435,7 +4532,7 @@ file to use for export purposes. The `export` parameter must be inclueded in `st
 to run the training pipeline export stage. The value can be set to `t5/export_t5`, which can be found in `conf/export/t5/export_t5.yaml`. The parameters can be modified to adapt different export and set of tests run on prepared Triton Model Repository.
 For Base Command Platform, all these parameters should be overridden from the command line.
 
-##### 5.13.2.1. Common
+##### 5.14.2.1. Common
 <a id="markdown-common" name="common"></a>
 Also the other `run` parameters might be used to define the job specific config:
 ```yaml
@@ -4477,7 +4574,7 @@ triton_deployment:
   data_type: fp16  # fp32|fp16|bf16
 ```
 
-##### 5.13.2.2. Slurm
+##### 5.14.2.2. Slurm
 <a id="markdown-slurm" name="slurm"></a>
 
 Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
@@ -4507,7 +4604,7 @@ then run:
 python3 main.py
 ```
 
-##### 5.13.2.3. Base Command Platform
+##### 5.14.2.3. Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 In order to run the export stage on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
@@ -4532,7 +4629,7 @@ Any other parameter can also be added to the command to modify its behavior.
 
 
 
-#### 5.13.3. mT5 Export
+#### 5.14.3. mT5 Export
 <a id="markdown-mt5-export" name="mt5-export"></a>
 
 T5 models are evaluated with `lambada` task which results can be compared with results from evaluation stage.
@@ -4543,7 +4640,7 @@ file to use for export purposes. The `export` parameter must be inclueded in `st
 to run the training pipeline export stage. The value can be set to `mt5/export_mt5`, which can be found in `conf/export/mt5/export_mt5.yaml`. The parameters can be modified to adapt different export and set of tests run on prepared Triton Model Repository.
 For Base Command Platform, all these parameters should be overridden from the command line.
 
-##### 5.13.3.1. Common
+##### 5.14.3.1. Common
 <a id="markdown-common" name="common"></a>
 Also the other `run` parameters might be used to define the job specific config:
 ```yaml
@@ -4586,7 +4683,7 @@ triton_deployment:
 ```
 
 
-##### 5.13.3.2. Slurm
+##### 5.14.3.2. Slurm
 <a id="markdown-slurm" name="slurm"></a>
 
 Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
@@ -4616,7 +4713,7 @@ then run:
 python3 main.py
 ```
 
-##### 5.13.3.3. Base Command Platform
+##### 5.14.3.3. Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 In order to run the export stage on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
@@ -4639,11 +4736,11 @@ The command above assumes you mounted the data workspace in `/mount/data`, and t
 The stdout and stderr outputs will also be redirected to the `/results/export_mt5_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
-### 5.14 Instruction Following via Supervised Finetuning (SFT)
+### 5.15 Instruction Following via Supervised Finetuning (SFT)
 <a id="markdown-instruction-following-via-supervised-finetuning-(sft)" name="instruction-following-via-supervised-finetuning-(sft)"></a>
 SFT is the process of finetuning all of the model's parameters on supervised data of inputs and outputs that teaches the model how to follow user specified instructions. It is typically done after model pre-training. This section describes the steps involved in finetuning a GPT model for instruction following. In the subsequent sections, we will describe how to format your data and run training.
 
-#### 5.14.1 SFT Data Formatting
+#### 5.15.1 SFT Data Formatting
 <a id="markdown-data-formatting" name="data-formatting"></a>
 To demonstrate how to format your SFT data, we'll take the Dolly dataset (https://github.com/databrickslabs/dolly) as an example, which consists of 15k instruction-context-response triples.
 
@@ -4667,7 +4764,36 @@ From the above example, there is no clear "input" and "output" field that SFT re
 
 `python launcher_scripts/nemo_launcher/collections/dataprep_scripts/dolly_datapreep/preprocess.py --input /path/to/save/data.jsonl` generates a file `/path/to/save/data-output.jsonl` that can provided to SFT training described below.
 
-#### 5.14.2 SFT Training
+For dialogue dataset, it is formatted as a JSONL file with each line formatted as:
+```
+{
+  "mask": "User",
+  "system": "A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.\n\n",
+  "conversations": [
+    {
+      "from": "User",
+      "value": "Who are you?"
+    },
+    {
+      "from": "Assistant",
+      "value": "I am NV Assistant, a language model trained by researchers from NVIDIA NeMo team."
+    },
+    {
+      "from": "User",
+      "value": "What can you do?"
+    },
+    {
+      "from": "Assistant",
+      "value": "I can chat with you."
+    }
+  ]
+}, 
+```
+where the field `system` is used to define the system prompt for the conversation. The `conversations` is a list of multiple turn conversations. `from` is the name of the person and `value` is the actual conversation text. The `mask` field indicates which person's conversation is going to be masked during the SFT, so it is not used to compute the cross-entropy loss. 
+
+It is important to ensure that the dialogue length is within the model's maximum sequence length. Otherwise, the entire dialogue may be masked out because it is truncated inside the dataset. In this case, you will see a 'NaN' error during training. To avoid this issue, you can split long dialogues into shorter segments, or use a model that can handle longer sequences
+
+#### 5.15.2 SFT Training
 <a id="markdown-sft-training" name="sft-training"></a>
 
 Once you have one or more dataset you would like to finetune on, you can run the finetuning script from NeMo as follows:
@@ -4721,21 +4847,26 @@ python /opt/NeMo/examples/nlp/language_modeling/megatron_gpt_sft.py \
 
 The `${TP_SIZE}` and `${PP_SIZE}` above should correspond to the Tensor and Pipeline model parallel sizes the `/path/to/your/gpt.nemo` model was saved with.
 
-### 5.15. Reinforcement Learning from Human Feedback
+For finetuning dialogue dataset, we just need to add one extra configuration line to indicate the dataset type is dialogue.  
+```bash
+  model.data.chat=True
+```
+
+### 5.16. Reinforcement Learning from Human Feedback
 <a id="markdown-reinforcement-learning-from-human-feedback" name="reinforcement-learning-from-human-feedback"></a>
 
-NeMo-RLHF is a library to fine-tune LLMs using Reinforcement Learning from Human Feedback (RLHF) in a fully distributed manner.
+NeMo-RLHF is a library to fine-tune LLMs using Reinforcement Learning from Human Feedback (RLHF) in a scalable and fully distributed manner.
 
-NeMo-RLHF supports only GPT models and implements the Proximal Policy Optimization (PPO) algorithm. Support for other models and RL algorithms will be added in future releases. Furthermore, NeMo-RLHF is not currently integrated into NeMo-Megatron-Launcher, so the RLHF jobs must be launched directly from the NeMo-RLHF repository in `/opt/nemo-rlhf`.
+NeMo-RLHF supports only GPT models and implements the Proximal Policy Optimization (PPO) algorithm. Support for other models and RL algorithms will be added in future releases. Furthermore, NeMo-RLHF is not currently integrated into NeMo-Megatron-Launcher, so the RLHF jobs must be launched directly from the NeMo-RLHF repository in `/opt/nemo-rlhf`, which should be copied to the local file system in the login node.
 
 We provide configurations to try RLHF on the newly released 2B GPT model with 4096 sequence length [available on HuggingFace](https://huggingface.co/nvidia/GPT-2B-001). We recommend users use the Anthropic HH-RLHF or the Stack Exchange Preferences datasets to get started.
 
-#### 5.15.1. Reward Model Training
+#### 5.16.1. Reward Model Training
 <a id="markdown-reward-model-training" name="reward-model-training"></a>
 
 NeMo-RLHF can be used to train your own reward model. The reward model is trained using a pairwise comparison loss and therefore needs a dataset with response pairs, where one response in the pair is ranked better than the other. A good reward model is crucial for the success of the PPO training in the next stage.
 
-##### 5.15.1.1 Data preprocessing
+##### 5.16.1.1 Data preprocessing
 <a id="markdown-data-preprocessing" name="data-preprocessing"></a>
 
 With your own or publicly available data, start by processing them into a jsonl format. This is where prefixes should be inserted. Then use the `preprocess_data_for_megatron.py` script to convert this jsonl format into the NeMo format. Format your pairwise comparison dataset with the following structure:
@@ -4750,7 +4881,7 @@ With your own or publicly available data, start by processing them into a jsonl 
 
 where 1 and 2 are different prompts. Note that for the same prompt, prompt+good_response must come before prompt+bad_response in the dataset.
 
-For reference we used the following command for preprocessing
+For reference we used the following command for preprocessing the dataset using the SentencePiece tokenizer.
 
 ```bash
 python3 /opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py \
@@ -4766,7 +4897,7 @@ python3 /opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py 
 ```
 Which will generate files with `output_document.bin` and `output_document.idx` to use for reward model training.
 
-##### 5.15.1.2 Reward Model Training
+##### 5.16.1.2 Reward Model Training
 <a id="markdown-reward-model-training" name="reward-model-training"></a>
 
 To launch reward model training we first need to start with a pre-trained or fine-tuned nemo checkpoint. Our `training_rm.yaml` file has default configurations for the 2B model but feel free to use any model you like. An example command to begin training is:
@@ -4781,12 +4912,12 @@ cd /opt/nemo-rlhf \
     "model.data.data_prefix={train: [${train_output_document}], validation: [${val_output_document}], test: [${test_output_document}]}"
 ```
 
-##### 5.15.1.3 Reward Model Evaluation
+##### 5.16.1.3 Reward Model Evaluation
 <a id="markdown-reward-model-evaluation" name="reward-model-evaluation"></a>
 
 To learn how to serve the reward model for evaluation, see the section "Launching the Reward Model inference server" below.
 
-#### 5.15.2. PPO Training
+#### 5.16.2. PPO Training
 <a id="markdown-ppo-training" name="ppo-training"></a>
 
 After fine-tuning a GPT model using Supervised Finetuning(SFT) and training a Reward Model as explained in the previous sections, NeMo-RLHF can be used to launch PPO jobs to fine-tune the SFT model using RLHF. During PPO training, four different models will be interacting with each other:
@@ -4800,7 +4931,7 @@ To launch a full PPO training job, we need to launch the RM and the Initial Poli
 
 Our architecture is designed to launch all four models completely separately. Therefore, we will launch two inference servers (one for the RM and one for the initial policy), one server that can do inference and training (the PPO Critic), and one master job to do training (the PPO Actor). Next we will look at how to launch each of those four jobs.
 
-##### 5.15.2.1 Launching the Reward Model inference server
+##### 5.16.2.1 Launching the Reward Model Inference Server
 <a id="markdown-launching-the-reward-model-inference-server" name="launching-the-reward-model-inference-server"></a>
 
 To launch the Reward Model inference server in a Linux system, this command can be run inside the container:
@@ -4818,9 +4949,7 @@ cd /opt/nemo-rlhf \
 
 This command will launch the RM inference server on the local computer, using port 5555. All the configuration parameters can be modified in the `inference_rm.yaml` file, or by overriding them through the CLI command. Ensure `server=True` is set in the configuration of this job to correctly launch the inference server.
 
-Note: data parallelism is not available for the inference servers, so only a single copy of the model will be available.
-
-##### 5.15.2.2 Launching the Initial Policy inference server
+##### 5.16.2.2 Launching the Initial Policy Inference Server
 <a id="markdown-launching-the-initial-policy-inference-server" name="launching-the-initial-policy-inference-server"></a>
 
 To launch the Initial Policy inference server in a Linux system, this command can be run inside the container:
@@ -4838,9 +4967,7 @@ cd /opt/nemo-rlhf \
 
 This command will launch the Initial Policy inference server on the local computer, using port 5556. All the configuration parameters can be modified in the `inference_initial_policy.yaml` file, or by overriding them through the CLI command. Ensure `server=True` is set in the configuration of this job to correctly launch the inference server.
 
-Note: data parallelism is not available for the inference servers, so only a single copy of the model will be available
-
-##### 5.15.2.3 Launching the PPO Critic Training and Inference Server
+##### 5.16.2.3 Launching the PPO Critic Training and Inference Server
 <a id="markdown-launching-the-ppo-critic-training-and-inference-server" name="launching-the-ppo-critic-training-and-inference-server"></a>
 
 The PPO Critic has to perform both training and inference. We designed the Critic to have both capabilities. To launch the PPO Critic server in a Linux system, this command can be run inside the container:
@@ -4858,9 +4985,7 @@ cd /opt/nemo-rlhf \
 
 This command will launch the PPO Critic server on the local computer, using port 5557. All the configuration parameters can be modified in the `gpt_ppo_critic.yaml` file, or by overriding them through the CLI command. Ensure `inference.server=True` is set in the configuration of this job to correctly launch the server.
 
-Note: data parallelism is not available for the servers, so only a single copy of the model will be available.
-
-##### 5.15.2.4 Launching the PPO Actor Training
+##### 5.16.2.4 Launching the PPO Actor Training
 <a id="markdown-launching-the-ppo-actor-training" name="launching-the-ppo-actor-training"></a>
 The PPO Actor training job contains the master HTTP controller that makes the HTTP calls to all three servers when needed. To launch the PPO Actor server in a Linux system, this command can be run inside the container:
 
@@ -4876,17 +5001,17 @@ cd /opt/nemo-rlhf \
 ```
 This command will launch the PPO Actor job on the local computer. All the configuration parameters can be modified in the `gpt_ppo_actor.yaml` file, or by overriding them through the CLI command.
 
-##### 5.15.2.5 Launching every job at once with SLURM
+##### 5.16.2.5 Launching every job at once with SLURM
 <a id="markdown-launching-every-job-at-once-with-slurm" name="launching-every-job-at-once-with-slurm"></a>
 Heterogeneous jobs can be used to launch all four jobs simultaneously in different nodes, using a script like the one shown next:
 
 ```bash
 #!/bin/bash
-#SBATCH -N 1 --ntasks-per-node 1 -t 4:00:00 --exclusive
+#SBATCH -N 1 --ntasks-per-node 8 -t 4:00:00 --exclusive
 #SBATCH hetjob
-#SBATCH -N 1 --ntasks-per-node -t 4:00:00 --exclusive
+#SBATCH -N 1 --ntasks-per-node 8 -t 4:00:00 --exclusive
 #SBATCH hetjob
-#SBATCH -N 1 --ntasks-per-node 1 -t 4:00:00 --exclusive
+#SBATCH -N 1 --ntasks-per-node 8 -t 4:00:00 --exclusive
 #SBATCH hetjob
 #SBATCH -N 8 --ntasks-per-node 8 -t 4:00:00 --exclusive
 
@@ -4894,7 +5019,7 @@ RM_MODEL=/path/to/reward_model.nemo
 ACTOR_MODEL=/path/to/sft_model.nemo
 
 DIR=/opt/nemo-rlhf
-CONTAINER="nvcr.io/ea-bignlp/bignlp-training:23.04-py3"
+CONTAINER="nvcr.io/ea-bignlp/nemofw-training:23.05-py3"
 
 # START HETEROGENEUS JOB 0
 
@@ -4961,6 +5086,9 @@ TRAIN_DATA_PATH=/path/to/train_data
 VALID_DATA_PATH=/path/to/val_data
 TEST_DATA_PATH=/path/to/test_data
 
+host_rm="$(scontrol show hostnames=$SLURM_JOB_NODELIST_HET_GROUP_0 | head -n1)"
+host_init_policy="$(scontrol show hostnames=$SLURM_JOB_NODELIST_HET_GROUP_1 | head -n1)"
+host_critic="$(scontrol show hostnames=$SLURM_JOB_NODELIST_HET_GROUP_2 | head -n1)"
 
 read -r -d '' cmd_ppo <<EOF
 cd ${DIR} \
@@ -4972,11 +5100,11 @@ cd ${DIR} \
     trainer.num_nodes=8 \
     "model.data.data_prefix={train: [${TRAIN_DATA_PATH}], validation: [${VALID_DATA_PATH}], test: [${TEST_DATA_PATH}]}" \
     model.pretrained_checkpoint.restore_from_path=${ACTOR_MODEL} \
-    model.rlhf.reward_model.ip=${SLURM_JOB_NODELIST_HET_GROUP_0} \
+    model.rlhf.reward_model.ip=${host_rm} \
     model.rlhf.reward_model.port=${RM_PORT} \
-    model.rlhf.initial_policy.ip=${SLURM_JOB_NODELIST_HET_GROUP_1} \
+    model.rlhf.initial_policy.ip=${host_init_policy} \
     model.rlhf.initial_policy.port=${INIT_POLICY_PORT} \
-    model.rlhf.critic.ip=${SLURM_JOB_NODELIST_HET_GROUP_2} \
+    model.rlhf.critic.ip=${host_critic} \
     model.rlhf.critic.port=${CRITIC_PORT}
 EOF
 
@@ -4990,7 +5118,7 @@ It is important to launch each job with & after the `srun` command, to ensure ea
 
 Note: the three servers do not support data parallelism. Therefore, the SLURM `–ntasks-per-node` value should be set to the model parallelism value (tensor parallelism * pipeline parallelism) for that same job. And the trainer.devices value must also be set to that same value as well. However, the PPO actor supports data parallelism, so `–ntasks-per-node` can be set to the number of GPUs in each node.
 
-##### 5.15.2.6 PPO Hyper-parameters
+##### 5.16.2.6 PPO Hyper-parameters
 <a id="markdown-ppo-hyper-parameters" name="ppo-hyper-parameters"></a>
 
 All the model related parameters can be controlled the same way as in other NeMo training jobs. However, we also provide full control of the behavior of PPO during training, with a section in the config yaml files inside `model.rlhf`. These are the descriptions of the available hyper-parameters:
@@ -5000,6 +5128,7 @@ All the model related parameters can be controlled the same way as in other NeMo
 - `rlhf.initial_policy`: Provide the ip address and the port where the Initial Policy will be running, to enable communication with it.
 - `rlhf.ppo.entropy_penalty`: Control the effect of the entropy term in PPO.
 - `rlhf.ppo.inital_pollicy_kl_penalty`: Control the effect of the initial policy KL Divergence term in PPO.
+- `rlhf.ppo.use_absolute_kl`: Whether to use the absolute value of the initial policy KL Divergence or not.
 - `rlhf.ppo.epochs`: Number of epochs the actor and critic will perform on the data stored in the rollout buffer each time.
 - `rlhf.ppo.num_rollout_samples`: Number of samples that will be generated during the rollout stage before moving to the training stage.
 - `rlhf.ppo.rollout_micro_batch_size`: Micro batch size for the rollout phase. Each GPU will load this many prompts and generate responses for them.
@@ -5010,19 +5139,21 @@ All the model related parameters can be controlled the same way as in other NeMo
 
 During the rollout phase, the sampling parameters for the model can also be modified, by using the parameters in `model.sampling_params`.
 
-#### 5.15.3. Future Work
+#### 5.16.3. Future Work
 <a id="markdown-future-work" name="future-work"></a>
 
 - The reward model training only supports datasets with two responses per prompt. We will add support for training with datasets that have more than 2 responses per prompt in future releases.
 - The throughput of PPO will be greatly increased in future releases.
 - The stability of the PPO learning process is not good enough. We will continue working to improve the PPO learning for our models.
 
-### 5.16 Curating pretraining datasets with the NeMo Data Curator
+### 5.17 Curating pretraining datasets with the NeMo Data Curator
 
 The NeMo Data Curator is a Python library that consists of a collection of scalable data-mining modules for curating NLP data for training LLMs. The modules within the NeMo Data Curator enable NLP researchers to mine high-quality text at scale from massive uncurated web corpora.
 
 Currently, within the NeMo Data Curator, we support the following data-curation modules:
- - Text extraction from HTML via [jusText](https://github.com/miso-belica/jusText)
+ - Configurable data download and text extraction:
+   - Default implementations of download and extraction of Common Crawl, Wikipedia, and ArXiv data
+   - Users can easily customize the download and extraction and extend to other datasets (see NeMo Data Curator internal documentation available in the container for more information)
  - Text reformatting and cleaning via [ftfy](https://ftfy.readthedocs.io/en/latest/)
  - Quality filtering:
    - Multilingual heuristic-based filtering
@@ -5036,7 +5167,7 @@ Currently, within the NeMo Data Curator, we support the following data-curation 
 The modules are implemented in a scalable manner using [Message Passing Interface (MPI) for Python (mpi4py)](https://mpi4py.readthedocs.io/en/stable/) and we use [Dask](https://dask.org) for creating balanced input jsonl files. With the scalable modules within the NeMo Data Curator, we have been have been able to fully process a [Common Crawl Snapshot](https://commoncrawl.org/2020/12/nov-dec-2020-crawl-archive-now-available/) (consisting of 60 TB of compressed WARC files) in approximately two days using 30 CPU nodes (with hardware similar to the `c5.24xlarge` [Amazon AWS C5 instance](https://aws.amazon.com/ec2/instance-types/c5/)). Please note that the core functions used within the NeMo Data Curator (e.g., html extraction, text cleaning, heuristic filtering, etc.) have not been fully optimized. The main goal of the NeMo Data Curator is to provide users the capability to apply these functions to their large datasets using many compute nodes.
 
 If users to desire to use the NeMo Data Curator in order to curate their own pretraining datasets, they should copy it out of the container using the
-command provided in the [environment preparation section of the quick start guide](#5111-slurm). Within the `Nemo-Data-Curator` directory, they
+command provided in the [environment preparation section of the quick start guide](#5111-slurm). Within the `nemo-data-curator` directory, they
 can use the example SLURM scripts and additional documentation provided in the docs sub-directory and README of that directory.
 
 ## 6. Deploying the NeMo Megatron Model
@@ -5536,10 +5667,34 @@ The table and chart below show the performance results.
 
 <img src="img/4B_bert_throughput_2211.png"/>
 
+#### 7.4.3. Training Performance Results (LDDL)
+<a id="markdown-training-performance-results-lddl" name="training-performance-results-lddl"></a>
+We measured the performance of different Bert configurations with and without LDDL and saw an average 25% reduction in training time. 
+The table and chart below show the performance results.
 
+| Bert Config | Train time without LDDL | Trian time with LDDL | MODEL SPEC                 | TFLOPS w/o LDDL | TFLOPS(LDDL) | Speedup (%) |
+| ----------- | ----------------------- | -------------------- | -------------------------- | --------------- | ------------ | ----------- |
+| 110m        | 0.078                   | 0.076                | 8 Nodes TP1 PP1 GBS 256    | 18.280          | 18.900       | 2.63%       |
+| 4b          | 1.794                   | 1.393                | 16 Nodes TP 1 PP1 GBS 2048 | 108.900         | 140.400      | 28.79%      |
+| 20b         | 7.956                   | 6.79                 | 32 Nodes TP4 PP4 GBS 4096  | 137.300         | 160.870      | 17.17%      |
+| 100b        | 9.743                   | 7.54                 | 128Nodes TP4 PP16 GBS 4096 | 124.88          | 162.83       | 29.22%      |
 
 ## 8. Changelog
 <a id="markdown-changelog" name="changelog"></a>
+
+**NeMo Framework 23.05**
+* Low-Rank Adaptation (LoRA) Support for GPT
+* LDDL (Language Datasets and Data Loaders) for BERT on 100B model resulting in a 30% performance speedup
+* Unify dataset and model classes for all PEFT (p-tuning, adapters, IA3) with SFT model class as parent for GPT
+* Converter from Interleaved PP to non-Interleaved PP
+* Dialog dataset guidance for SFT to help create better chat models
+* Support Dynamic Sequence Length Batches with GPT SFT
+* Data parallelism enabled for RLHF servers, providing a 2x end-to-end speedup in most jobs
+
+**NeMo Framework 23.04.1**
+* Addressed issue in RLHF which prevented some jobs from running in Slurm clusters
+* Corrections related to the renaming of NeMo Megatron to NeMo Framework
+* Modified run.name in the *_improved configuration files to match the correct parameter count
 
 **NeMo Framework 23.04**
 * NeMo Data Curator - a scalable Python library for curating large-scale datasets required for training large language foundation models
@@ -5670,10 +5825,9 @@ The table and chart below show the performance results.
 ## 9. Known Issues
 <a id="markdown-known-issues" name="known-issues"></a>
 Fixes for the following issues will be released shortly:
-* The inference hyperparameter search is not available in this release for T5 and mT5
-* Accuracy and performance measurement for GPT is currently not supported. Please use the NeMo Framework 22.05 inference container to use this feature
-* For running inference on BCP please use the NeMo Framework 22.03 inference container
-* The fine-tuning SQuAD results for T5 are lower than expected
-* There is a known slowdown for T5 TP8 3B configurations - the other T5 3B configurations are performing well
-* In 23.04, there is a slight regression in autocast performance - it is recommended to use previous releases for autocast use cases
-* Evaluation for GPT has been tested for PP <=2 and may have issues for PP >2.  It is recommended to convert to TP only for Evaluation.
+* The inference hyperparameter search is not available in this release for T5 and mT5.
+* Accuracy and performance measurement for GPT-3 is currently not supported. Please use the NeMo Megatron 22.05 inference container to use this feature.
+* The fine-tuning SQuAD results for T5 are lower than expected.
+* There has been a slight regression in T5 performance and this will be addressed in an upcoming release.
+* Evaluation for GPT has been tested for PP <=2 and may have issues for PP >2. It is recommended to convert to TP only for Evaluation.
+

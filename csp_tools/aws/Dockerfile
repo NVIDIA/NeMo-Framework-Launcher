@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM nvcr.io/ea-bignlp/bignlp-training:23.04-py3
+FROM nvcr.io/ea-bignlp/nemofw-training:23.05-py3
 
 ARG EFA_INSTALLER_VERSION=latest
 ARG AWS_OFI_NCCL_VERSION=1.4.0-aws

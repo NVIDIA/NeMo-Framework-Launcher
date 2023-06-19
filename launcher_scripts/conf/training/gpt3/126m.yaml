@@ -55,7 +55,6 @@ model:
   pipeline_model_parallel_size: 1
   virtual_pipeline_model_parallel_size: null # interleaved pipeline
   resume_from_checkpoint: null # manually set the checkpoint file to load from
-
   # model architecture
   encoder_seq_length: 2048
   max_position_embeddings: 2048
@@ -111,15 +110,18 @@ model:
   grad_allreduce_chunk_size_mb: 125
 
   ## Transformer Engine
-  transformer_engine: False
+  # To use fp8, please set `transformer_engine=True` and `fp8=True`.
+  # The rest of fp8 knobs are set for the fp8 training mode, which are ignored in non-fp8 training
+  transformer_engine: True
   fp8: False # enables fp8 in TransformerLayer forward
   fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
-  fp8_hybrid: False # sets fp8_format = recipe.Format.HYBRID
+  fp8_hybrid: True # sets fp8_format = recipe.Format.HYBRID
   fp8_margin: 0 # scaling margin
   fp8_interval: 1 # scaling update interval
-  fp8_amax_history_len: 1 # Number of steps for which amax history is recorded per tensor
-  fp8_amax_compute_algo: most_recent # 'most_recent' or 'max'. Algorithm for computing amax from history
+  fp8_amax_history_len: 1024 # Number of steps for which amax history is recorded per tensor
+  fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   use_emha: False
+  ub_tp_comm_overlap: False
 
   # miscellaneous
   seed: 1234
@@ -140,8 +142,10 @@ model:
   optim:
     name: distributed_fused_adam
     bucket_cap_mb: 200
-    overlap_grad_sync: False
+    overlap_grad_sync: True
+    overlap_param_sync: true
     contiguous_grad_buffer: True
+    grad_sync_dtype: bf16
     lr: 6e-4
     weight_decay: 0.1 
     betas: 
