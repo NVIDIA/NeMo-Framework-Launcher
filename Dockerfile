@@ -19,7 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 ARG BIGNLP_BACKEND=pytorch
-ARG BIGNLP_BACKEND_BRANCH_TAG=23.02
+ARG BIGNLP_BACKEND_BRANCH_TAG=23.04
 
 FROM nvcr.io/nvidia/${BIGNLP_BACKEND}:${BIGNLP_BACKEND_BRANCH_TAG}-py3 as pytorch
 
@@ -129,6 +129,16 @@ RUN git clone https://github.com/NVIDIA/TransformerEngine.git && \
         git checkout FETCH_HEAD; \
     fi && \
     NVTE_FRAMEWORK=pytorch pip install .
+
+# Install Megatron-core
+ARG MEGATRONCORE_COMMIT
+RUN git clone https://github.com/NVIDIA/Megatron-LM.git && \
+    cd Megatron-LM && \
+    if [ ! -z $MEGATRONCORE_COMMIT ]; then \
+        git fetch origin $MEGATRONCORE_COMMIT && \
+        git checkout FETCH_HEAD; \
+    fi && \
+    pip install -e .
 
 # Install launch scripts
 COPY . NeMo-Megatron-Launcher
