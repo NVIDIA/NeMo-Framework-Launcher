@@ -30,6 +30,7 @@ from nemo_launcher.core.stages import (
     Conversion,
     DiffusionModelEvaluation,
     EvalHarnessEvaluation,
+    ExternalConversion,
     FineTuning,
     FWInference,
     IA3Learning,
@@ -49,6 +50,7 @@ STR2STAGECLASS = {
     "adapter_learning": AdapterLearning,
     "ia3_learning": IA3Learning,
     "conversion": Conversion,
+    "external_conversion": ExternalConversion,
     "export": Export,
     "fw_inference": FWInference,
     "evaluation": {

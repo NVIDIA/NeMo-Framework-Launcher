@@ -8,6 +8,7 @@ defaults:
   - evaluation: clip/imagenet_zeroshot
   - fw_inference: null
   - export: clip/export_clip
+  - external_conversion: null
   - override hydra/job_logging: stdout
 
 stages:
@@ -61,3 +62,4 @@ evaluation_config: ${hydra:runtime.choices.evaluation}
 conversion_config: ${hydra:runtime.choices.conversion}
 export_config: ${hydra:runtime.choices.export}
 fw_inference_config: ${hydra:runtime.choices.fw_inference}
+external_conversion_config: ${hydra:runtime.choices.external_conversion}

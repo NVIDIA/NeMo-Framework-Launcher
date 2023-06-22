@@ -803,6 +803,59 @@ class Conversion(NemoMegatronStage):
         return command_groups
 
 
+class ExternalConversion(NemoMegatronStage):
+    """Stage class of converting external checkpoints to .nemo format"""
+
+    def setup_stage_vars(self, cfg: OmegaConf):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "external_conversion"
+        self.stage_cfg = cfg.get("external_conversion")
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """
+        Make the command groups for current stage
+        Command groups is a list of command group. A command group is defined as:
+              0. Command group is a list of command strings
+              1. Each command group occupies one bcprun, srun or bash
+              2. Each command group eventually has multiple commands connected by ";"
+
+        :param Path stage_cfg_path: path to interpolated and saved configuration
+        :return: command groups for current stage
+        :rtype: List[List[str]]
+        """
+        choice_model_type, choice_name = self.get_stage_config_choice()
+        if choice_model_type == "clip":
+            code_path = self._nemo_code_path / "examples/multimodal/foundation/clip/convert_external_clip_to_nemo.py"
+        else:
+            raise NotImplementedError(
+                f"Model type `{choice_model_type}` doesn't support conversion from external source."
+            )
+
+        command_groups = [[]]
+        run_cfg = self.stage_cfg.get("run")
+        model_cfg = self.stage_cfg.get("model")
+        nemo_file_name = run_cfg.get("nemo_file_name")
+        nemo_file_path = self.get_job_path().results_folder / nemo_file_name
+        args = create_args_list(
+            replace_underscore=False,
+            gpus_per_node=run_cfg.get("ntasks_per_node"),
+            arch=model_cfg.get("arch"),
+            version=model_cfg.get("version"),
+            hparams_file=model_cfg.get("hparams_file"),
+            nemo_file_path=nemo_file_path,
+            tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size", 1),
+            pipeline_model_parallel_size=model_cfg.get("pipeline_model_parallel_size", 1),
+        )
+        args += ["--bcp"] if self.cluster == "bcp" else []
+
+        core_command = [f"python3 -u {code_path}", *args]
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
 class NeMoEvaluation(NeMoStage):
     """
         Stage class of gpt3/t5/mt5 evaluation with NeMo scripts
