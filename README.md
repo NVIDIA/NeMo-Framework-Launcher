@@ -1936,8 +1936,8 @@ The first model is the VAE Decoder, the second model is the UNet, and the third 
 ### 6.9. Convert Checkpoints from External Sources to Nemo
 
 We provide a convenient tool for converting checkpoints from external sources to the `.nemo` format. The `.nemo`
-format checkpoints can be used in NeMo multimodal training, e.g. in Stable Diffusion. At the moment, we support
-converting CLIP model from Huggingface or OpenCLIP into `.nemo` format.
+format checkpoints can be used in NeMo multimodal training, e.g., in Stable Diffusion. Currently, we support
+the conversion of the CLIP model from Huggingface or OpenCLIP into the `.nemo` format.
 
 All external conversion configuration files can be
 found in the `conf/external_conversion` folder. For additional guidance on customizing configurations, please refer
