@@ -1933,6 +1933,52 @@ The first model is the VAE Decoder, the second model is the UNet, and the third 
 1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/export/dreambooth/export_dreambooth.yaml`.
 
+### 6.9. Convert Checkpoints from External Sources to Nemo
+
+We provide a convenient tool for converting checkpoints from external sources to the `.nemo` format. The `.nemo`
+format checkpoints can be used in NeMo multimodal training, e.g. in Stable Diffusion. At the moment, we support
+converting CLIP model from Huggingface or OpenCLIP into `.nemo` format.
+
+All external conversion configuration files can be
+found in the `conf/external_conversion` folder. For additional guidance on customizing configurations, please refer
+to [Section 6.1](#61-getting-started-with-nemo-multimodal) in the
+documentation.
+
+To enable the `external_conversion` stage and configure external conversion settings, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `external_conversion` field to point to the desired model type's
+   configuration file. For example, if you want to convert a CLIP model, change the `external_conversion` field
+   to `clip/convert_external_clip`.
+   ```yaml
+    defaults:
+      - external_conversion: clip/convert_external_clip
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `external_conversion` stage is included. For example,
+   ```yaml
+    stages:
+      ...
+      - external_conversion
+      ...
+   ```
+3. In the target external conversion YAML file, modify required fields like `version` and `arch`. Meanwhile, you also
+   need to prepare a NeMo configuration YAML file for model initialization. You can copy a YAML file from
+   `conf/training/clip` and modify the architecture parameters correspondingly based on the source external checkpoint.
+   For example, to convert a CLIP H/14 model from OpenCLIP, modify or override the following fields
+   inside `conf/external_conversion/clip/convert_external_clip.yaml`.
+   ```yaml
+   model:
+     arch: ViT-H-14
+     version: laion2b_s32b_b79k
+     hparams_file: /path/to/modified_hparam.yaml
+   ```
+
+**Remark**:
+
+1. If you are converting from Huggingface, simply set `version` to `huggingface` and `arch` to Huggingface
+   model name.
+
+
 ## 7. Deploying the NeMo Multimodal Model
 
 ### 7.1. Setup
