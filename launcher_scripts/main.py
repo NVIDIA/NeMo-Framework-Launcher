@@ -18,6 +18,7 @@ import sys
 import hydra
 import omegaconf
 from nemo_launcher.core.data_stages import CustomDataPreparation, MC4DataPreparation, PileDataPreparation
+from nemo_launcher.core.data_curation_stages import CommonCrawl
 from nemo_launcher.core.export_stages import Export
 from nemo_launcher.core.stages import (
     AdapterLearning,
@@ -51,6 +52,7 @@ STR2STAGECLASS = {
         MC4DataPreparation: ["mt5"],
         CustomDataPreparation: ["generic"],
     },
+    "data_curation": CommonCrawl,
 }
 
 

@@ -1,0 +1,30 @@
+run:
+  name: download_extract_cc_warcs
+  # Output directory to where the extracted documents will be written
+  results_dir: ${base_results_dir}/${.name}
+  time_limit: "8:00:00"
+  dependency: "singleton"
+  num_nodes: 20
+  cpus_per_node: 48
+
+# Describe how to get the URLs
+url_retrieval:
+  starting_snapshot: "2023-14"
+  ending_snapshot: "2023-14"
+  # By default, all urls from a single snapshot are downloaded 
+  # (Typically between 60,000 - 80,000 WARCs)
+  num_urls: -1
+  # Output file where WARC urls will be stored
+  output_warc_url_file_name: "cc_2023-14_warcs.txt"
+
+# Provide the downloader, data loader and extraction modules that
+# define how the dataset will be built from the URLs
+dataset_builder:
+  download_module: ndc.download.commoncrawl.CommonCrawlWARCDownloader
+  download_params: {}
+  iterator_module: ndc.download.commoncrawl.CommonCrawlWARCIterator
+  iterator_params: {}
+  extract_module: ndc.download.commoncrawl.CommonCrawlWARCExtractor
+  extract_params: {}
+
+output_json_dir: "/datasets/json"
