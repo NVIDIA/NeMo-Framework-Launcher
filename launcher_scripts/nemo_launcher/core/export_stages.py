@@ -116,7 +116,7 @@ class Export(NemoMegatronStage):
 
             stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(self.stage_cfg, job_path)
             if job_id:
-                dependency = f"aftercorr:{job_id}"
+                dependency = f"afterok:{job_id}"
                 self.stage_cfg["run"]["dependency"] = dependency
 
             # Make cluster parameters
