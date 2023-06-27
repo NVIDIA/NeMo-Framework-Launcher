@@ -5826,4 +5826,5 @@ Fixes for the following issues will be released shortly:
 * The fine-tuning SQuAD results for T5 are lower than expected.
 * There has been a slight regression in T5 performance and this will be addressed in an upcoming release.
 * Evaluation for GPT has been tested for PP <=2 and may have issues for PP >2. It is recommended to convert to TP only for Evaluation.
-
+* Transformer Engine (TE)-based GPT models are currently not supported for any Parameter Efficient Fine Tuning (PEFT) techniques - this will be added soon.
+* TE-based GPT Eval will take more memory than non-TE-based GPT Eval.

@@ -19,7 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 ARG BIGNLP_BACKEND=pytorch
-ARG BIGNLP_BACKEND_BRANCH_TAG=23.02
+ARG BIGNLP_BACKEND_BRANCH_TAG=23.04
 
 FROM nvcr.io/nvidia/${BIGNLP_BACKEND}:${BIGNLP_BACKEND_BRANCH_TAG}-py3 as pytorch
 
@@ -128,7 +128,18 @@ RUN git clone https://github.com/NVIDIA/TransformerEngine.git && \
         git fetch origin $TE_COMMIT && \
         git checkout FETCH_HEAD; \
     fi && \
-    NVTE_FRAMEWORK=pytorch pip install .
+    git submodule init && git submodule update && \
+    NVTE_FRAMEWORK=pytorch NVTE_WITH_USERBUFFERS=1 MPI_HOME=/usr/local/mpi pip install .
+
+# Install Megatron-core
+ARG MEGATRONCORE_COMMIT
+RUN git clone https://github.com/NVIDIA/Megatron-LM.git && \
+    cd Megatron-LM && \
+    if [ ! -z $MEGATRONCORE_COMMIT ]; then \
+        git fetch origin $MEGATRONCORE_COMMIT && \
+        git checkout FETCH_HEAD; \
+    fi && \
+    pip install -e .
 
 # Install launch scripts
 COPY . NeMo-Megatron-Launcher
@@ -139,7 +150,7 @@ ENV LAUNCHER_SCRIPTS_PATH=/opt/NeMo-Megatron-Launcher/launcher_scripts
 ENV PYTHONPATH=/opt/NeMo-Megatron-Launcher/launcher_scripts:${PYTHONPATH}
 
 # pip install required python packages
-RUN pip install --no-cache-dir wandb==0.12.20 \
+RUN pip install --no-cache-dir wandb==0.15.3 \
         'best_download>=0.0.6' \
         black==20.8b1 \
         'click>=8.0.1' \
@@ -160,6 +171,7 @@ RUN pip install --no-cache-dir wandb==0.12.20 \
         tqdm-multiprocess==0.0.11 \
         zstandard==0.17.0 \
         tritonclient[all]~=2.22.4 \
+	'nvidia-pytriton==0.1.5' \
         'nltk>=3.6.7' \
         'ipython>=7.31.1' \
         'torchmetrics==0.9.1'
