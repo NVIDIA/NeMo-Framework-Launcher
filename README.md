@@ -1983,7 +1983,7 @@ To enable the `external_conversion` stage and configure external conversion sett
 
 ### 7.1. Setup
 
-Prior to deploying a model or pipeline, the model or pipeline must be exported following the steps in section 5.8.
+Prior to deploying a model or pipeline, the model or pipeline must be exported following the steps in [Section 6.8](#68-model-export)
 No other additional setup is required as the NeMo container comes with the relevant NVIDIA Triton Inference Server
 libraries
 preinstalled and ready to go.
