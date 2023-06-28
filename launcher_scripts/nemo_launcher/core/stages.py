@@ -29,7 +29,7 @@ from omegaconf import OmegaConf
 
 __LANGUAGE_MODELS_LIST__ = ["gpt3", "t5", "mt5", "bert"]
 __VISION_MODELS_LIST__ = ["vit"]
-__MULTIMODAL_MODELS_LIST__ = ["clip", "stable_diffusion", "instruct_pix2pix", "dreambooth", "imagen"]
+__MULTIMODAL_MODELS_LIST__ = ["clip", "stable_diffusion", "instruct_pix2pix", "dreambooth", "imagen", "controlnet"]
 
 
 class NemoMegatronStage:
@@ -517,6 +517,7 @@ class Training(NeMoStage):
             / "examples/multimodal/generative/instruct_pix2pix/sd_finetune.py",
             "imagen": self._nemo_code_path / "examples/multimodal/generative/imagen/imagen_training.py",
             "dreambooth": self._nemo_code_path / "examples/multimodal/generative/dreambooth/dreambooth.py",
+            "controlnet": self._nemo_code_path / "examples/multimodal/generative/controlnet/controlnet_train.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -677,6 +678,7 @@ class FWInference(NeMoStage):
             / "examples/multimodal/generative/instruct_pix2pix/sd_edit_cli.py",
             "dreambooth": self._nemo_code_path / "examples/multimodal/generative/dreambooth/dreambooth_infer.py",
             "imagen": self._nemo_code_path / "examples/multimodal/generative/imagen/imagen_infer.py",
+            "controlnet": self._nemo_code_path / "examples/multimodal/generative/controlnet/controlnet_infer.py",
         }
         return model_type_to_code_path[model_type]
 
