@@ -19,12 +19,13 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
     - [2.3. Stable Diffusion](#23-stable-diffusion)
     - [2.4. InstructPix2Pix](#24-instructpix2pix)
     - [2.5. DreamBooth](#25-dreambooth)
-    - [2.6. Imagen](#26-imagen)
+    - [2.6. ControlNet](#26-controlnet)
+    - [2.7. Imagen](#27-imagen)
   - [3. Feature Matrix](#3-feature-matrix)
     - [3.1. ViT Models](#31-vit-models)
     - [3.2. CLIP Models](#32-clip-models)
     - [3.3. Stable Diffusion](#33-stable-diffusion)
-    - [3.4. InstructPix2Pix / DreamBooth Models](#34-instructpix2pix--dreambooth-models)
+    - [3.4. InstructPix2Pix / DreamBooth / ControlNet Models](#34-instructpix2pix--dreambooth--controlnet-models)
     - [3.5 Imagen Models](#35-imagen-models)
   - [4. Setup Details](#4-setup-details)
   - [5. Cloud Service Providers](#5-cloud-service-providers)
@@ -67,13 +68,15 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [6.2.4. MSCOCO for FID Evaluation](#624-mscoco-for-fid-evaluation)
         - [6.2.4.1. Download and Setup](#6241-download-and-setup)
         - [6.2.4.2. Preprocess Images and Captions](#6242-preprocess-images-and-captions)
+      - [6.2.5. ControlNet](#625-controlnet)
     - [6.3. Model Training](#63-model-training)
       - [6.3.1. Vision Transformer Training](#631-vision-transformer-training)
       - [6.3.2. CLIP Training](#632-clip-training)
       - [6.3.3. Stable Diffusion Training](#633-stable-diffusion-training)
       - [6.3.4. InstructPix2Pix Training](#634-instructpix2pix-training)
       - [6.3.5. DreamBooth Training](#635-dreambooth-training)
-      - [6.3.6. Imagen Training](#636-imagen-training)
+      - [6.3.6. ControlNet Training](#636-controlnet-training)
+      - [6.3.7. Imagen Training](#637-imagen-training)
     - [6.4. Checkpoint Conversion](#64-checkpoint-conversion)
     - [6.5. Model Fine-tuning](#65-model-fine-tuning)
       - [6.5.1. Vision Transformer Fine-tuning](#651-vision-transformer-fine-tuning)
@@ -88,14 +91,16 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [6.7.3. Stable Diffusion Inference (in NeMo Framework)](#673-stable-diffusion-inference-in-nemo-framework)
       - [6.7.4. InstructPix2Pix Inference (in NeMo Framework)](#674-instructpix2pix-inference-in-nemo-framework)
       - [6.7.5. DreamBooth Inference (in NeMo Framework)](#675-dreambooth-inference-in-nemo-framework)
-      - [6.7.3. Imagen Inference (in NeMo Framework)](#673-imagen-inference-in-nemo-framework)
+      - [6.7.6. ControlNet Inference (in NeMo Framework)](#676-controlnet-inference-in-nemo-framework)
+      - [6.7.7. Imagen Inference (in NeMo Framework)](#673-imagen-inference-in-nemo-framework)
     - [6.8. Model Export](#68-model-export)
       - [6.8.1. Vision Transformer Export](#681-vision-transformer-export)
       - [6.8.2. CLIP Export](#682-clip-export)
       - [6.8.3. Stable Diffusion Export](#683-stable-diffusion-export)
       - [6.8.4. InstructPix2Pix Export](#684-instructpix2pix-export)
       - [6.8.5. DreamBooth Export](#685-dreambooth-export)
-      - [6.8.6. Imagen Export](#686-imagen-export)
+      - [6.8.6. ControlNet Export](#686-controlnet-export)
+      - [6.8.7. Imagen Export](#687-imagen-export)
     - [6.9. Convert Checkpoints from External Sources to Nemo](#69-convert-checkpoints-from-external-sources-to-nemo)
   - [7. Deploying the NeMo Multimodal Model](#7-deploying-the-nemo-multimodal-model)
     - [7.1. Setup](#71-setup)
@@ -104,7 +109,8 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [7.2.2. InstructPix2Pix](#722-instructpix2pix)
       - [7.2.3. Vision Transformer](#723-vision-transformer)
       - [7.2.4. CLIP](#724-clip)
-      - [7.2.5 Imagen](#725-imagen)
+      - [7.2.5. ControlNet](#725-controlnet)
+      - [7.2.6 Imagen](#725-imagen)
     - [7.3. Query NVIDIA Triton Inference Server](#73-query-nvidia-triton-inference-server)
       - [7.3.1. Stable Diffusion and DreamBooth](#731-stable-diffusion-and-dreambooth)
       - [7.3.2. InstructPix2Pix](#732-instructpix2pix)
@@ -128,10 +134,14 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
     - [8.5. DreamBooth Results](#85-dreambooth-results)
       - [8.5.1. Training Quality Results](#851-training-quality-results)
       - [8.5.2. Inference Performance Results](#852-inference-performance-results)
-    - [8.3. Imagen Results](#83-imagen-results)
-      - [8.3.1. Training Accuracy Results](#831-training-accuracy-results-1)
-      - [8.3.2. Training Performance Results](#832-training-performance-results-1)
-      - [8.3.3. Inference Performance Results](#833-inference-performance-results-1)
+    - [8.6. ControlNet Results](#86-controlnet-results)
+      - [8.6.1 Training Performance Results](#861-traning-performace-results)
+      - [8.6.2 Training Quality Results](#862-training-quality-results)
+      - [8.6.3 Inference Performance Results](#863-inference-performance-results)
+    - [8.7. Imagen Results](#87-imagen-results)
+      - [8.7.1. Training Accuracy Results](#871-training-accuracy-results-1)
+      - [8.7.2. Training Performance Results](#872-training-performance-results-1)
+      - [8.7.3. Inference Performance Results](#873-inference-performance-results-1)
   - [9. Known Issues](#9-known-issues)
 
 <!-- /TOC -->
@@ -154,6 +164,7 @@ Added support for the following:
 |  **Stable Diffusion (SD)**  | &check;|    _|  &check;|&check;|&check;|&check;| 
 | **InstructPix2Pix (for SD tuning)**| &check;|    _|  _|&check;|&check;|&check;| 
 |**DreamBooth (for SD tuning)**| &check;|    _|  _|&check;|&check;|&check;| 
+|**ControlNet (for SD tuning)**| &check;|    _|  _|&check;|&check;|&check;|
 
 Accuracy metrics/plots and training/inference performance for all supported models included.
 
@@ -242,7 +253,16 @@ views, and lighting conditions that do not appear in the reference images. With 
 several previously-unassailable tasks, including subject recontextualization, text-guided view synthesis, appearance
 modification, and artistic rendering, while still preserving the subject's key features.
 
-### 2.6. Imagen
+
+### 2.6. ControlNet
+
+[ControlNet](https://github.com/lllyasviel/ControlNet) is a neural network structure to control diffusion models by adding extra conditions. 
+It copys the weights of neural network blocks into a "locked" copy and a "trainable" copy. The "trainable" one learns your condition. The "locked" one preserves your model. In this way, the ControlNet can reuse the SD encoder as a deep, strong, robust, and powerful backbone to learn diverse controls.
+
+NeMo Multimodal provides a training pipeline and example implementation for generating images based on segmentation maps. Users have the flexibility to explore other implementations using their own control input dataset and recipe.
+
+
+### 2.7. Imagen
 
 [Imagen](https://arxiv.org/abs/2205.11487) is a multi-stage text-to-image diffusion model with an unprecedented degree of photorealism and a deep level of language understanding. Given a text prompt, Imagen first generates an image at a 64x64 resolution and then upsamples the generated image to 256x256 and 1024x1024 resolutions, all using diffusion models.
 
@@ -317,8 +337,9 @@ NeMo Imagen provides various options to fully cusotomize the Imagen training. Fo
 | Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
 | TorchInductor            | Yes                                                      | N/A                                                                                                                                           |
 | Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
+| NHWC GroupNorm           | Yes                                                      | Yes                                                                                                                                           |
 
-### 3.4. InstructPix2Pix / DreamBooth Models
+### 3.4. InstructPix2Pix / DreamBooth / ControlNet Models
 
 | Feature                  | Training                                                 | Inference                                                                                                                                     |
 |--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
@@ -340,6 +361,7 @@ NeMo Imagen provides various options to fully cusotomize the Imagen training. Fo
 | Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
 | TorchInductor            | Yes                                                      | N/A                                                                                                                                           |
 | Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
+
 ### 3.5 Imagen Models
 | Feature                  | Training                                                 | Inference                                                                                                                                     |
 |--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
@@ -911,7 +933,7 @@ Users should review any applicable links associated with the dataset before plac
 
 ##### 6.2.2.1. Overview
 
-For all multimodal models (except Instruct-Pix2Pix; see Section 5.2.3), we provide a generic pipeline as detailed below
+For all multimodal models (except Instruct-Pix2Pix and ControlNet; see Section 6.2.3 and Section 6.2.5), we provide a generic pipeline as detailed below
 to download and prepare the dataset. The pipeline is suitable for any multimodal datasets hosted on the
 [Hugging Face data repository](https://huggingface.co/datasets?task_categories=task_categories:text-to-image)
 where the data is stored as one or more parquet files. The pipeline processes the dataset into the
@@ -1133,6 +1155,29 @@ Then run:
 ```
 python3 main.py
 ```
+
+#### 6.2.5. ControlNet
+
+_Note: It is the responsibility of each user to check the content
+of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
+Users should review any applicable links associated with the dataset before placing the data on their machine._
+
+Controlnet needs an extra conditioning input given in image format, following [Section 6.2.2](#622-multimodal-datasets), 
+the dataset should be organized into tarfiles in the following way:
+
+```text
+contolnet0001.tar
+|---- 00000.png (conditioning image)
+|---- 00000.jpg (target image)
+|---- 00000.txt (text prompt)
+|---- 00001.png (conditioning image)
+|---- 00001.jpg (target image)
+|---- 00001.txt (text prompt)
+...
+```
+
+To utilize segmentation maps as conditioning input, the conditioning image can be obtained through a detector model, while text prompts can be derived from blip captioning. For further guidance on preparing your own dataset, you may find the documentation of [ControlNet](https://github.com/lllyasviel/ControlNet/blob/main/docs/train.md) helpful.  
+
 
 ### 6.3. Model Training
 
@@ -1383,7 +1428,40 @@ Please be advised the scripts that NVIDIA provides are optional to use and will 
 
 4.By default, DreamBooth training results are not stored in NEMO checkpoint format. However, a customized conversion stage is available to convert DreamBooth checkpoint files to '.nemo', enabling compatibility with Stable Diffusion inference pipelines.
 
-#### 6.3.6. Imagen Training
+#### 6.3.6. ControlNet Training
+
+ControlNet essentially performs tuning on top of an existing Stable Diffusion checkpoint. The recommended
+configuration can be found in the `conf/training/controlnet` directory. You can access and modify the parameters
+to customize the hyperparameters according to your specific training requirements.
+
+To enable the training stage with an ControlNet model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `training` field to point to the desired InstructPix2Pix
+   configuration file. For example,
+   if you want to use the `controlnet_v1-5.yaml`, change the `training` field to `controlnet/controlnet_v1-5.yaml`.
+   ```yaml
+    defaults:
+      - _self_
+      - cluster: bcm
+      - data_preparation: null
+      - training: controlnet/controlnet_v1-5.yaml
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the training stage is included. For example,
+   ```yaml
+    stages:
+      - data_preparation
+      - training
+      ...
+   ```
+
+**Remarks**: 
+1. ControlNet copies encoder and middle blocks from Stable Diffusion and finetune a copy of these blocks, thus providing
+a pretrained checkpoint of Stable Diffusion needs to be passed into the config file, for both `control_stage_config.from_pretrained` and 
+`unet_config.from_pretrained`.
+
+
+#### 6.3.7. Imagen Training
 
 We have curated configurations with suggested hyperparameters specifically for the NVIDIA DGX SuperPOD, which is
 equipped with 8 NVIDIA A100 80GB GPUs. The configurations for the curated models can be found in
@@ -1456,6 +1534,7 @@ are based on public data which may contain copyrighted material. Consult your le
 
 
 5.There is no guarantee that training Imagen for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the late stages of convergence.
+
 
 ### 6.4. Checkpoint Conversion
 
@@ -1891,7 +1970,7 @@ For DreamBooth, the inference script generates images from text prompts defined 
 subject, so make sure the special token you trained on is included in the text prompt. For
 example, `a photo of sks dog sleeping`.
 
-To enable the inference stage with dreambooth, configure the configuration files:
+To enable the inference stage with DreamBooth, configure the configuration files:
 
 1. In the `defaults` section of `conf/config.yaml`, update the `fw_inference` field to point to the desired DreamBooth
    inference configuration file. For example,
@@ -1917,7 +1996,38 @@ Please refer to [6.3.5. DreamBooth Training](#635-dreambooth-training), the infe
 subsequent to the DreamBooth conversion process. This conversion transforms the DreamBooth ckpt into a '.nemo' format and meanwhile 
 remapping the parameter keys into Stable Diffusion style, allowing for a consistent inference pipeline.
 
-#### 6.7.3. Imagen Inference (in NeMo Framework)
+#### 6.7.6. ControlNet Inference (in NeMo Framework)
+
+For ControlNet, the inference script generates images from text prompts defined in the config file, similar to section
+5.7.3. Note that, an image conditioning is required besides text prompt. 
+
+To enable the inference stage with ControlNet, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `fw_inference` field to point to the desired DreamBooth
+   inference configuration file. For example,
+   if you want to use the `controlnet/controlnet_infer.yaml` configuration, change the `fw_inference` field
+   to `controlnet/controlnet_infer`.
+   ```yaml
+    defaults:
+      - fw_inference: controlnet/controlnet_infer
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `fw_inference` stage is included. For example,
+   ```yaml
+    stages:
+      - fw_inference
+      ...
+   ```
+3. Configure `prompts` and `num_images_per_prompt` fields of `conf/fw_inference/controlnet/controlnet_infer.yaml`.
+   Set `model.restore_from_path` to the ckpt generated from dreambooth training.
+
+**Remarks**:
+We have implemented an example processing function to extract segmentation map from a target image, and use that as the 
+conditioning to generate images. To utilize that function, please specify `infer.control_image_preprocess=seg2img`. In other use cases, the input image specified at `infer.control` should be the conditioning image
+instead of target image, and set `infer.control_image_preprocess=null`.
+
+
+#### 6.7.7. Imagen Inference (in NeMo Framework)
 
 For text-to-image models, the inference script generates images from text prompts defined in the config file.
 
@@ -2119,7 +2229,38 @@ The first model is the VAE Decoder, the second model is the UNet, and the third 
 1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/export/dreambooth/export_dreambooth.yaml`.
 
-#### 6.8.6. Imagen Export
+#### 6.8.6. ControlNet Export
+
+For ControlNet, the export script generates four different optimized inference models.
+The first model is the VAE Decoder, the second model is the UNet, the third model is the CLIP Encoder and the fourth is the control model.
+
+1. In the `defaults` section of `conf/config.yaml`, update the `export` field to point to the desired ControlNet
+   inference configuration file. For example,
+   if you want to use the `controlnet/export_controlnet.yaml` configuration, change the `export` field
+   to `controlnet/export_controlnet`.
+   ```yaml
+    defaults:
+      - export: controlnet/export_controlnet
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `export` stage is included. For example,
+   ```yaml
+    stages:
+      - export
+      ...
+   ```
+3. Configure `infer.num_images_per_prompt` of the `conf/export/controlnet/export_controlnet.yaml` file to set the
+   batch_size to use for the ONNX and
+   NVIDIA TensorRT models.
+
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/export/controlnet/export_controlnet.yaml`.
+
+2. Only `num_images_per_prompt: 1` is supported for now.
+
+#### 6.8.7. Imagen Export
 
 For text-to-image models, the export script generates two different optimized inference models.
 The first model is the UNet, and the second model is the T5 encoder. The script generates separate UNet model for different resolutions (e.g. 64x64, 256x256, 1024x1024) 
@@ -2215,7 +2356,7 @@ To start the NVIDIA Triton Inference Server
 /opt/tritonserver/bin/tritonserver --log-verbose 2 --model-repository /opt/NeMo-Megatron-Launcher/deployment/server --model-control-mode=explicit --load-model <model>
 ```
 
-`<model>` can be substitued for the `stable_diffusion`, `instruct_pix2pix`, `clip_trt`, `clip_vision_trt`, `vit_trt`.
+`<model>` can be substituted for the `stable_diffusion`, `instruct_pix2pix`, `clip_trt`, `clip_vision_trt`, `vit_trt`, `controlnet`.
 
 #### 7.2.1. Stable Diffusion, DreamBooth
 
@@ -2237,7 +2378,11 @@ models need to be loaded
 `--load-model clip_vision_trt --load-model clip_trt`. Querying `clip_trt` will provide tokenization and automatically
 call `clip_vision_trt` using BLS.
 
-#### 7.2.5 Imagen
+#### 7.2.5. ControlNet
+
+Copy the generated `plan` directory to the `deployment/server/controlnet/1/` directory.
+
+#### 7.2.6 Imagen
 
 For Imagen, copy the generated `plan` directory to the `deployment/server/imagen/1/`
 directory.
@@ -2260,7 +2405,13 @@ are not set, the defaults are the values set during export.
 The return is a single numpy array containing `num_images_per_prompt` images. In the client example, make sure to set
 the path to the input image.
 
-#### 7.3.3 Imagen
+#### 7.3.3. ControlNet
+
+At query time, the values, `seed`, `unconditional_guidance_scale`, `inference_steps`, `eta`, `guess_mode`, `strength` can be used as optional inputs. If these are not set, the defaults are the values set during export.
+The return is a single numpy array containing `num_images_per_prompt` images.  In the client example, make sure to set
+the path to the control image.
+
+#### 7.3.4 Imagen
 
 At query time, the values, `seed`, `cfg` can be used as optional
 inputs. If these are not set, the defaults are the values set during export.
@@ -2615,9 +2766,61 @@ Batch Size: Synonymous with `num_images_per_prompt`
 | DreamBooth (Res=256) | 2          | DDIM    | 100             | 3.1                   | 9.0                        | 2.9                   |
 | DreamBooth (Res=256) | 4          | DDIM    | 100             | 5.7                   | 16.0                       | 2.8                   |
 
-### 8.3. Imagen Results
 
-#### 8.3.1. Training Accuracy Results
+### 8.6. ControlNet Results
+
+#### 8.6.1. Traning Performace Results
+
+We applied multiple optimizations to speedup the training throughput of controlnet. The following numbers are got from running on a single A100 GPU.
+
+| Model      | Batch Size | Flash Attention | Channels Last   | Inductor   | samples per second | Memory Usage | Weak Scaling |
+|------------|------------|-----------------|-----------------|------------|--------------------|--------------|--------------|
+| ControlNet | 8          | NO              | NO              | NO         | 11.68              | 76G          | 1.0          |
+| ControlNet | 8          | YES             | NO              | NO         | 16.40              | 33G          | 1.4          |
+| ControlNet | 8          | YES             | YES             | NO         | 20.24              | 29G          | 1.73         |
+| ControlNet | 8          | YES             | YES             | YES        | 21.52              | 29G          | 1.84         |
+| ControlNet | 32         | YES             | YES             | YES        | 27.20              | 66G          | 2.33         |
+
+
+#### 8.6.2. Training Quality Results
+
+Here we show the examples of controlnet generations. The left column is the original input (upper) and conditioning image (lower).
+
+Prompt: House.
+
+<img src="img/ControlNet%20house.png" width="30%">
+
+Prompt: House in oil painting style.
+
+<img src="img/ControlNet%20painting%20house.png" width="30%">
+
+Prompt: Bear.
+
+<img src="img/ControlNet%20bears.png" width="30%">
+
+
+#### 8.6.3. Inference Performance Results
+
+Latency times are started directly before the text encoding (CLIP) and stopped directly after the output image
+decoding (VAE).
+For framework we use the Torch Automated Mixed Precision (AMP) for FP16 computation. For TRT, we export the various
+models
+with the FP16 acceleration. We use the optimized TRT engine setup present in the deployment directory to get the numbers
+in the same environment as the framework.
+
+GPU: NVIDIA DGX A100 (1x A100 80 GB)
+Batch Size: Synonymous with `num_images_per_prompt`
+
+| Model                | Batch Size | Sampler | Inference Steps | TRT FP 16 Latency (s) | FW FP 16 (AMP) Latency (s) | TRT vs FW Speedup (x) |
+|----------------------|------------|---------|-----------------|-----------------------|----------------------------|-----------------------|
+| ControlNet (Res=512) | 1          | DDIM    | 50              | 1.7                   | 6.5                        | 3.8                   |
+| ControlNet (Res=512) | 2          | DDIM    | 50              | 2.6                   | 7.1                        | 2.8                   |
+| ControlNet (Res=512) | 4          | DDIM    | 50              | 4.4                   | 11.1                       | 2.5                   |
+| ControlNet (Res=512) | 8          | DDIM    | 50              | 8.2                   | 21.1                       | 2.6                   |
+
+### 8.7. Imagen Results
+
+#### 8.7.1. Training Accuracy Results
 
 We evaluate Imagen model with FID-CLIP curve, and comparing it to other open-source ckpt at same scale of
 consumed sample.
@@ -2642,7 +2845,7 @@ Below, we present the outcomes obtained from our own checkpoint following [Secti
 
 ##ADD Imagen FID-CLIP curve
 
-#### 8.3.2. Training Performance Results
+#### 8.7.2. Training Performance Results
 
 We measured the throughput of training Imagen models on
 different numbers of DGX A100 nodes and DGX H100 nodes, and we achieved near-linear
@@ -2699,7 +2902,7 @@ The tables and charts below show the performance results.
 
 <img src="img/Imagen Training Throughput Comparison.svg"/>
 
-#### 8.3.3. Inference Performance Results
+#### 8.7.3. Inference Performance Results
 
 Latency times are started directly before the text encoding (T5) and stopped directly after the output image (UNet).
 For framework we provide both using the Torch Automated Mixed Precision (AMP) or pure FP16 computation. For TRT, we export the various

@@ -86,6 +86,7 @@ class Export(NemoMegatronStage):
                 "instruct_pix2pix": self._get_instruct_pix2pix_conversion_cmds,
                 "clip": self._get_megatron_clip_conversion_cmds,
                 "vit": self._get_megatron_vit_conversion_cmds,
+                "controlnet": self._get_controlnet_conversion_cmds,
                 "imagen": self._get_imagen_conversion_cmds,
             },
         }[sub_stage][choice_model_type]
@@ -383,4 +384,19 @@ class Export(NemoMegatronStage):
         converter_path = NEMO_PATH / "examples/multimodal/generative/imagen/imagen_export.py"
         convert_cmd = f"python -u {converter_path} \\\n" f" {model_args}" f" {unet_args}"
         print(convert_cmd)
+        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
+
+    def _get_controlnet_conversion_cmds(self, cfg):
+        """Generate export commands for controlnet models"""
+        model_cfg = cfg.export.model
+        infer_cfg = cfg.export.infer
+
+        converter_path = NEMO_PATH / "examples/multimodal/generative/controlnet/controlnet_export.py"
+        infer_args = " \\\n".join([f"infer.{k}={v}" for k, v in infer_cfg.items()])
+        convert_cmd = (
+            f"python -u {converter_path} \\\n"
+            f" model.restore_from_path={model_cfg.restore_from_path}"
+            f" trainer.precision={model_cfg.precision}"
+            f" {infer_args}"
+        )
         return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
