@@ -86,6 +86,7 @@ class Export(NemoMegatronStage):
                 "instruct_pix2pix": self._get_instruct_pix2pix_conversion_cmds,
                 "clip": self._get_megatron_clip_conversion_cmds,
                 "vit": self._get_megatron_vit_conversion_cmds,
+                "imagen": self._get_imagen_conversion_cmds,
             },
         }[sub_stage][choice_model_type]
         return cmds_fn(self.cfg)
@@ -370,4 +371,16 @@ class Export(NemoMegatronStage):
             f" trainer.precision={model_cfg.precision} \\\n"
             f" {infer_args}"
         )
+        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
+
+    def _get_imagen_conversion_cmds(self, cfg):
+        """ Generate export commands for imagen models"""
+        run_cfg = cfg.export.run
+        model_cfg = cfg.export.model
+        unet_args = " ".join([f'customized_model.{k}={v}' for k, v in model_cfg.customized_model.items()])
+        del model_cfg.customized_model
+        model_args = " ".join([f'{k}={v}' for k, v in model_cfg.items()])
+        converter_path = NEMO_PATH / "examples/multimodal/generative/imagen/imagen_export.py"
+        convert_cmd = f"python -u {converter_path} \\\n" f" {model_args}" f" {unet_args}"
+        print(convert_cmd)
         return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]

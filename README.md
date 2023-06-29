@@ -19,12 +19,14 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
     - [2.3. Stable Diffusion](#23-stable-diffusion)
     - [2.4. InstructPix2Pix](#24-instructpix2pix)
     - [2.5. DreamBooth](#25-dreambooth)
+    - [2.6. Imagen](#26-imagen)
   - [3. Feature Matrix](#3-feature-matrix)
     - [3.1. ViT Models](#31-vit-models)
     - [3.2. CLIP Models](#32-clip-models)
     - [3.3. Stable Diffusion](#33-stable-diffusion)
     - [3.4. InstructPix2Pix / DreamBooth Models](#34-instructpix2pix--dreambooth-models)
-  - [4. Setup](#4-setup-details)
+    - [3.5 Imagen Models](#35-imagen-models)
+  - [4. Setup Details](#4-setup-details)
   - [5. Cloud Service Providers](#5-cloud-service-providers)
     - [5.1. Cluster Bring-Up](#51-cluster-bring-up)
       - [5.1.1. Common](#511-common)
@@ -71,6 +73,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [6.3.3. Stable Diffusion Training](#633-stable-diffusion-training)
       - [6.3.4. InstructPix2Pix Training](#634-instructpix2pix-training)
       - [6.3.5. DreamBooth Training](#635-dreambooth-training)
+      - [6.3.6. Imagen Training](#636-imagen-training)
     - [6.4. Checkpoint Conversion](#64-checkpoint-conversion)
     - [6.5. Model Fine-tuning](#65-model-fine-tuning)
       - [6.5.1. Vision Transformer Fine-tuning](#651-vision-transformer-fine-tuning)
@@ -78,18 +81,22 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [6.6.1. Vision Transformer Evaluation](#661-vision-transformer-evaluation)
       - [6.6.2. CLIP Evaluation](#662-clip-evaluation)
       - [6.6.3. Stable Diffusion Evaluation](#663-stable-diffusion-evaluation)
+      - [6.6.4. Imagen Evaluation](#664-imagen-evaluation)
     - [6.7. Model Inference (in NeMo Framework)](#67-model-inference-in-nemo-framework)
       - [6.7.1. Vision Transformer Inference (in NeMo Framework)](#671-vision-transformer-inference-in-nemo-framework)
       - [6.7.2. CLIP Inference (in NeMo Framework)](#672-clip-inference-in-nemo-framework)
       - [6.7.3. Stable Diffusion Inference (in NeMo Framework)](#673-stable-diffusion-inference-in-nemo-framework)
       - [6.7.4. InstructPix2Pix Inference (in NeMo Framework)](#674-instructpix2pix-inference-in-nemo-framework)
       - [6.7.5. DreamBooth Inference (in NeMo Framework)](#675-dreambooth-inference-in-nemo-framework)
+      - [6.7.3. Imagen Inference (in NeMo Framework)](#673-imagen-inference-in-nemo-framework)
     - [6.8. Model Export](#68-model-export)
       - [6.8.1. Vision Transformer Export](#681-vision-transformer-export)
       - [6.8.2. CLIP Export](#682-clip-export)
       - [6.8.3. Stable Diffusion Export](#683-stable-diffusion-export)
       - [6.8.4. InstructPix2Pix Export](#684-instructpix2pix-export)
       - [6.8.5. DreamBooth Export](#685-dreambooth-export)
+      - [6.8.6. Imagen Export](#686-imagen-export)
+    - [6.9. Convert Checkpoints from External Sources to Nemo](#69-convert-checkpoints-from-external-sources-to-nemo)
   - [7. Deploying the NeMo Multimodal Model](#7-deploying-the-nemo-multimodal-model)
     - [7.1. Setup](#71-setup)
     - [7.2. Start NVIDIA Triton Inference Server](#72-start-nvidia-triton-inference-server)
@@ -97,9 +104,11 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [7.2.2. InstructPix2Pix](#722-instructpix2pix)
       - [7.2.3. Vision Transformer](#723-vision-transformer)
       - [7.2.4. CLIP](#724-clip)
+      - [7.2.5 Imagen](#725-imagen)
     - [7.3. Query NVIDIA Triton Inference Server](#73-query-nvidia-triton-inference-server)
       - [7.3.1. Stable Diffusion and DreamBooth](#731-stable-diffusion-and-dreambooth)
       - [7.3.2. InstructPix2Pix](#732-instructpix2pix)
+      - [7.3.3 Imagen](#733-imagen)
   - [8. Performance](#8-performance)
     - [8.1. Vision Transformer Results](#81-vision-transformer-results)
       - [8.1.1. Training Accuracy Results](#811-training-accuracy-results)
@@ -119,6 +128,10 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
     - [8.5. DreamBooth Results](#85-dreambooth-results)
       - [8.5.1. Training Quality Results](#851-training-quality-results)
       - [8.5.2. Inference Performance Results](#852-inference-performance-results)
+    - [8.3. Imagen Results](#83-imagen-results)
+      - [8.3.1. Training Accuracy Results](#831-training-accuracy-results-1)
+      - [8.3.2. Training Performance Results](#832-training-performance-results-1)
+      - [8.3.3. Inference Performance Results](#833-inference-performance-results-1)
   - [9. Known Issues](#9-known-issues)
 
 <!-- /TOC -->
@@ -229,6 +242,11 @@ views, and lighting conditions that do not appear in the reference images. With 
 several previously-unassailable tasks, including subject recontextualization, text-guided view synthesis, appearance
 modification, and artistic rendering, while still preserving the subject's key features.
 
+### 2.6. Imagen
+
+[Imagen](https://arxiv.org/abs/2205.11487) is a multi-stage text-to-image diffusion model with an unprecedented degree of photorealism and a deep level of language understanding. Given a text prompt, Imagen first generates an image at a 64x64 resolution and then upsamples the generated image to 256x256 and 1024x1024 resolutions, all using diffusion models.
+
+NeMo Imagen provides various options to fully cusotomize the Imagen training. For super-resolution (SR) model, we support both regular UNet and efficient UNet as proposed in the paper.
 ## 3. Feature Matrix
 
 ### 3.1. ViT Models
@@ -321,6 +339,26 @@ modification, and artistic rendering, while still preserving the subject's key f
 | NVfuser                  | No                                                       | N/A                                                                                                                                           |
 | Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
 | TorchInductor            | Yes                                                      | N/A                                                                                                                                           |
+| Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
+### 3.5 Imagen Models
+| Feature                  | Training                                                 | Inference                                                                                                                                     |
+|--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| Data parallelism         | Yes                                                      | N/A                                                                                                                                           |
+| Tensor parallelism       | No                                                       | No                                                                                                                                            |
+| Pipeline parallelism     | No                                                       | No                                                                                                                                            |
+| Sequence parallelism     | No                                                       | No                                                                                                                                            |
+| Activation checkpointing | Yes                                                      | Yes                                                                                                                                           |
+| FP32/TF32                | Yes                                                      | Yes                                                                                                                                           |
+| AMP/FP16                 | No                                                       | Yes                                                                                                                                          |
+| AMP/BF16                 | Yes                                                      | Yes                                                                                                                                           |
+| BF16 O2                  | No                                                       | No                                                                                                                                            |
+| TransformerEngine/FP8    | No                                                       | No                                                                                                                                            |
+| Multi-GPU                | Yes                                                      | Yes                                                                                                                                           |
+| Multi-Node               | Yes                                                      | Yes                                                                                                                                           |
+| Inference deployment     | N/A                                                      | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton) |
+| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                      |
+| NVfuser                  | No                                                       | N/A                                                                                                                                           |
+| Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
 | Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
 
 ## 4. Setup Details
@@ -1345,6 +1383,79 @@ Please be advised the scripts that NVIDIA provides are optional to use and will 
 
 4.By default, DreamBooth training results are not stored in NEMO checkpoint format. However, a customized conversion stage is available to convert DreamBooth checkpoint files to '.nemo', enabling compatibility with Stable Diffusion inference pipelines.
 
+#### 6.3.6. Imagen Training
+
+We have curated configurations with suggested hyperparameters specifically for the NVIDIA DGX SuperPOD, which is
+equipped with 8 NVIDIA A100 80GB GPUs. The configurations for the curated models can be found in
+the `conf/training/imagen` directory. You can access and modify the parameters to adjust the hyperparameters
+for your
+specific training runs. By customizing these settings, you can tailor the model's performance and training efficiency to
+better suit your needs and requirements.
+
+The training process for Imagen typically involves multiple stages of models at different resolutions (64x64, 256x256, 1024x1024). Datasets
+are deliberately alternated to achieve superior image quality. We provide ??? training configurations here: 
+
+Base model:
+ - base64-2b: Training 2B params 64x64 model as described in Imagen paper Appendix F.1
+ - base64-500m: Training 500m params 64x64 model with reduced channel size
+SR256 model:
+ - sr256-600m: Training 600m params 256x256 EfficientUNet model as described in Imagen paper Appendix F.2
+ - sr256-400m: Training 400m params 256x256 UNet model with similar configurattion as DeepFloyd IF-II-M
+SR1024 model:
+ - sr1024-600m: Training 600m params 1024x1024 EfficientUNet model as described in Imagen paper Appendix F.3
+
+
+\**Our multimodal dataset is originated from Common Crawl with custom filtering and contains 670M image-caption pairs.*
+| Model         | Resolution | Unet model size (M) | Text conditioning model | Batch size per GPU | Accumulated Global Batch size | Precision | AMP Level | Dataset Filtering  | Total Training Samples |
+|---------------|------------|---------------------|-------------------------|--------------------|-------------------------------|-----------|-----------|--------------------|------------------------|
+| 500m_res_64   | 64         | 524                 | "t5-11b"                | 64                 | 4096                          | BF16      | O1        | None               | 680M                   |
+| 2b_res_64     | 64         | 2100                | "t5-11b"                | 16                 | 2048                          | BF16      | O1        | None               | 680M                   |
+| 600m_res_256  | 256        | 646                 | "t5-11b"                | 64                 | 4096                          | BF16      | O1        | Resolution >= 256  | 544M                   |
+| 400m_res_256  | 256        | 429                 | "t5-11b"                | 16                 | 2048                          | BF16      | O1        | Resolution >= 256  | 544M                   |
+| 600m_res_1024 | 1024       | 427                 | "t5-11b"                | 64                 | 4096                          | BF16      | O1        | Resolution >= 1024 | 409M                   |
+To enable the training stage with Imagen, make sure:
+
+1. In the `defaults` section, update the `training` field to point to the desired Imagen configuration file.
+   For example,
+   if you want to start training base64 500m model from scratch, change the training field to `imagen/500m_res_64.yaml`.
+   ```yaml
+    defaults:
+      - _self_
+      - cluster: bcm
+      - data_preparation: multimodal/download_multimodal
+      - training: imagen/500m_res_64.yaml
+      ...
+   ```
+2. In the stages field, make sure the training stage is included. For example,
+   ```yaml
+    stages:
+      - data_preparation
+      - training
+      ...
+   ```
+
+**Remark**:
+
+1.There is no dependency in training different resolution models. Ideally it is possible to train all 64x64, 256x256, 1024x1024 at the same time independently given the sufficient computing resources. 
+
+2.We recommend to pre-process the training dataset with precached embeddings. Imagen typically use T5 embedding, and T5 encoder are giant in size and can significantly reduce training throughput if loading it while training. We noticed significant batch size drop and throughput drop if using online-encoding option
+
+3.Despite the fact that Imagen paper they state that EfficientUNet has better throughput and does not harm visual quality, Emperically we found that training the regular UNet for SR model still yeilds more visually-appealing images.
+
+4.We provide two scheduling/sampling for Imagen Training: Continous DDPM and EDM. Continous DDPM is the default schema used in the original paper. EDM ([Elucidating the Design Space of Diffusion-Based Generaive Models](https://arxiv.org/abs/2206.00364)). Emperically, we found that EDM yeilds lower FID score. 
+
+5.While in paper they use T5-xxl (4096 dimension) encoder, We use T5-11b (1024 dimension) encoder during training due to space considerations.
+
+Please be advised the scripts that NVIDIA provides are optional to use and will download models that 
+are based on public data which may contain copyrighted material. Consult your legal department before using these scripts.
+
+| model | link | download by script |
+|---------------|--------------------------------------------------------------------------------|-----------------|
+| T5-11b |  [link](https://huggingface.co/t5-11b)    |      Yes           |
+| T5-xxl          |  [link](https://huggingface.co/google/t5-v1_1-xxl)                  |     Yes            |
+
+
+5.There is no guarantee that training Imagen for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the late stages of convergence.
 
 ### 6.4. Checkpoint Conversion
 
@@ -1568,7 +1679,55 @@ below:
 | TFinceptionV3 |  [link](https://github.com/mseitzer/pytorch-fid/releases/download/fid_weights/pt_inception-2015-12-05-6726825d.pth)    |      Yes           |
 | CLIP          |  [link](https://github.com/mlfoundations/open_clip/blob/main/src/open_clip/pretrained.py#L121)                  |     Yes            |
 
+#### 6.6.4. Imagen Evaluation
 
+Our evaluation script performs image generation for the captions provided in the validation subset of the MS COCO
+dataset, computes the FID score between real and generated images, computes the CLIP score betweel generated images and
+teh corresponding captions, and plots the FID-CLIP graph. This is a multi-stage evaluation, and our scripts will
+automatically generate SLURM jobs with dependencies.
+
+To configure the configuration files and enable the evaluation stage for Stable Diffusion, follow the steps outlined
+below:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `evaluation` field to point to the desired Imagen configuration file. For example,
+   if you want to use the `imagen/fid_clip` configuration, change the `evaluation` field
+   to `imagen/fid_clip`.
+   ```yaml
+    defaults:
+      - evaluation: imagen/fid_clip
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `evaluation` stage is included. For example,
+   ```yaml
+    stages:
+      - evaluation
+      ...
+   ```
+3. Configure `conf/evaluation/imagen/fid_clip.yaml` to specify `node_array_size` and `ntasks_per_node`, as
+   well as which sub-stages to run.
+   ```yaml
+    generate_images: True
+    compute_fid_scores: True
+    compute_clip_scores: True
+    plot_fid_clip: True
+   ```
+
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `models` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/evaluation/imagen/fid_clip.yaml`.
+2. We highly recommend users to use the same precision (i.e. `trainer.precision`) for evaluation as was used during
+   training.
+3. The `generate_images` sub-stage involves a multi-node run, whereas the other stages utilize only a single GPU.
+4. It is possible to save intermediate stage images (lower resolution images) along with the final image by setting `fid.save_all_res=True`. Only the final images are used for evaluation.
+5. To save the text along with images for manual checking, set `fid.save_text=True`.
+6. To evaluate the quality of generated images, a pretrained Inception network and CLIP model are necessary.  We list below
+   the recommended ckpt sources. Please note that the scripts that NVIDIA provides are optional to use and will download models that are based on public data which may contain copyrighted material. Consult your legal department before using these scripts.
+
+| model | link | download by script |
+|---------------|--------------------------------------------------------------------------------|-----------------|
+| TFinceptionV3 |  [link](https://github.com/mseitzer/pytorch-fid/releases/download/fid_weights/pt_inception-2015-12-05-6726825d.pth)    |      Yes           |
+| CLIP          |  [link](https://github.com/mlfoundations/open_clip/blob/main/src/open_clip/pretrained.py#L121)                  |     Yes            |
 
 ### 6.7. Model Inference (in NeMo Framework)
 
@@ -1758,6 +1917,33 @@ Please refer to [6.3.5. DreamBooth Training](#635-dreambooth-training), the infe
 subsequent to the DreamBooth conversion process. This conversion transforms the DreamBooth ckpt into a '.nemo' format and meanwhile 
 remapping the parameter keys into Stable Diffusion style, allowing for a consistent inference pipeline.
 
+#### 6.7.3. Imagen Inference (in NeMo Framework)
+
+For text-to-image models, the inference script generates images from text prompts defined in the config file.
+
+To enable the inference stage with Imagen, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `fw_inference` field to point to the desired Stable
+   Diffusion inference configuration file. For example,
+   if you want to use the `imagen/text2img.yaml` configuration, change the `fw_inference` field to `imagen/text2img`.
+   ```yaml
+    defaults:
+      - fw_inference: imagen/text2img
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `fw_inference` stage is included. For example,
+   ```yaml
+    stages:
+      - fw_inference
+      ...
+   ```
+3. Configure `infer.texts` and `infer.num_images_per_prompt` fields of `conf/fw_inference/imagen/text2img.yaml`.
+   Set `model.customized_model.base_ckpt&sr256_ckpt&sr1024_ckpt` to the `.nemo` ckpt you want generate images with. Set `infer.target_resolution` to the desired resolution.
+
+**Remarks**:
+
+We provide both DDPM and EDM sampler. We recommend for EDM training, at least 30 steps of inference is required; for DDPM training, at least 250 steps of inference is required.
+
 ### 6.8. Model Export
 
 In NeMo Multimodal, we provide scripts to perform export directly via NeMo framework to ONNX and NVIDIA
@@ -1933,6 +2119,36 @@ The first model is the VAE Decoder, the second model is the UNet, and the third 
 1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/export/dreambooth/export_dreambooth.yaml`.
 
+#### 6.8.6. Imagen Export
+
+For text-to-image models, the export script generates two different optimized inference models.
+The first model is the UNet, and the second model is the T5 encoder. The script generates separate UNet model for different resolutions (e.g. 64x64, 256x256, 1024x1024) 
+
+1. In the `defaults` section of `conf/config.yaml`, update the `export` field to point to the desired Stable Diffusion
+   inference configuration file. For example,
+   if you want to use the `imagen/export_imagen.yaml` configuration, change the `export` field
+   to `imagen/export_imagen`.
+   ```yaml
+    defaults:
+      - export: imagen/export_imagen
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `export` stage is included. For example,
+   ```yaml
+    stages:
+      - export
+      ...
+   ```
+3. Configure `infer.num_images_per_prompt` of the `conf/export/imagen/export_imagen.yaml` file to
+   set the batch_size to use for the ONNX and
+   NVIDIA TensorRT models.
+
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `base_ckpt`, `sr256_ckpt`, `sr1024_ckpt` field in the `model.customized_model` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/export/imagen/export_imagen.yaml`. Make sure `model.target_resolution` is set to desired resolution.
+
+
 ### 6.9. Convert Checkpoints from External Sources to Nemo
 
 We provide a convenient tool for converting checkpoints from external sources to the `.nemo` format. The `.nemo`
@@ -2021,6 +2237,11 @@ models need to be loaded
 `--load-model clip_vision_trt --load-model clip_trt`. Querying `clip_trt` will provide tokenization and automatically
 call `clip_vision_trt` using BLS.
 
+#### 7.2.5 Imagen
+
+For Imagen, copy the generated `plan` directory to the `deployment/server/imagen/1/`
+directory.
+
 ### 7.3. Query NVIDIA Triton Inference Server
 
 In a separate instance of the NeMo container, we can setup a client to query the server. In `deployment/client`, there
@@ -2038,6 +2259,12 @@ At query time, the values, `seed`, `text_cfg_scale`, `steps`, `image_cfg_scale` 
 are not set, the defaults are the values set during export.
 The return is a single numpy array containing `num_images_per_prompt` images. In the client example, make sure to set
 the path to the input image.
+
+#### 7.3.3 Imagen
+
+At query time, the values, `seed`, `cfg` can be used as optional
+inputs. If these are not set, the defaults are the values set during export.
+The return is a single numpy array containing `num_images_per_prompt` images.
 
 ## 8. Performance
 
@@ -2387,6 +2614,107 @@ Batch Size: Synonymous with `num_images_per_prompt`
 | DreamBooth (Res=256) | 1          | DDIM    | 100             | 2.0                   | 5.6                        | 2.8                   |
 | DreamBooth (Res=256) | 2          | DDIM    | 100             | 3.1                   | 9.0                        | 2.9                   |
 | DreamBooth (Res=256) | 4          | DDIM    | 100             | 5.7                   | 16.0                       | 2.8                   |
+
+### 8.3. Imagen Results
+
+#### 8.3.1. Training Accuracy Results
+
+We evaluate Imagen model with FID-CLIP curve, and comparing it to other open-source ckpt at same scale of
+consumed sample.
+
+FID (Fréchet Inception Distance) is a metric used to evaluate the quality of generated images in machine learning. It
+measures the distance between the real image distribution and the distribution of generated images using the features
+extracted by a pre-trained Inception model.
+
+The VIT-L/14 version of the CLIP model was utilized to assess the relevance between image prompts and generated images.
+
+The evaluation was conducted using different classifier-free guidance scales, specifically 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, and 6.0. The evaluation process involved generating 30,000 images from randomly selected prompts from the COCO2014
+validation dataset, with 30 EDM steps on the base64 model 20 EDM steps on the sr256 model, and evaluating the results at a resolution of 256x256.
+
+We have referred to but made certain modifications to the training recipe outlined
+in [Imagen Paper](https://arxiv.org/abs/2205.11487).
+
+Note that our curve is not fully comparable with the plots on the paper for the few reasons: 1. Our dataset is different and smaller than the one Imagen paper uses. 2. We chose to train a much smaller variation of the model (500M) for convergence instead of the proposed one (2B) 3. While in paper they use T5-xxl (4096 dimension) encoder, We use T5-11b (1024 dimension) encoder during training due to space considerations. The FID score is slightly higher than our Stable Diffusion results as for the fact that we only used a subset of dataset to train Imagen because caching T5 embedding is expensive on disk resource.
+
+\**Our multimodal dataset is originated from Common Crawl with custom filtering.*
+
+Below, we present the outcomes obtained from our own checkpoint following [Section 6.3.6](#636-imagen-training).
+
+##ADD Imagen FID-CLIP curve
+
+#### 8.3.2. Training Performance Results
+
+We measured the throughput of training Imagen models on
+different numbers of DGX A100 nodes and DGX H100 nodes, and we achieved near-linear
+scaling on both platforms.
+
+We are comparing the out-of-box performance on DGX H100 machines with the same configuration from DGX A100 machines.
+This comparison is an apple-to-apple assessment, ensuring that we evaluate the relative performance of the two machine
+types under equivalent conditions and configurations.
+
+The tables and charts below show the performance results.
+
+- NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for Imagen Base 2B model)
+
+|                         |                                  |             |             |             | Nodes       |             |
+|-------------------------|----------------------------------|-------------|-------------|-------------|-------------|-------------|
+|                         |                                  |           1 |           2 |           4 |           8 |          16 |
+|                         | Samples per Second               | 344.09 | 632.88 | 1256.44 | 2500.61 | 4940.89 |
+| ImagenBase (2B, Res=64) | Perfect Linear Scaling (Samples) | 344.09 |  688.17 | 1376.34 | 2752.69 | 5505.37 |
+|                         | Speedup                          |          1x |       1.84x |       3.65x |       7.27x |      14.36x |
+
+<img src="img/ImagenBase (2B, Res=64) NeMo Megatron Throughput (A100).svg"/>
+
+- NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for Imagen Base 500M model)
+
+|                         |                                  |        |         |         | Nodes   |          |
+|-------------------------|----------------------------------|--------|---------|---------|---------|----------|
+|                         |                                  |      1 |       2 |       4 |       8 |       16 |
+|                         | Samples per Second               | 645.65 | 1216.15 | 2412.25 | 4870.39 |  9737.31 |
+| ImagenBase (2B, Res=64) | Perfect Linear Scaling (Samples) | 645.65 | 1291.30 | 2582.60 | 5165.20 | 10330.39 |
+|                         | Speedup                          | 1x     | 1.88x   | 3.74x   | 7.54x   | 15.08x   |
+
+<img src="img/ImagenBase (500M, Res=64) NeMo Megatron Throughput (A100).svg"/>
+
+- NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for Imagen Base 2B model)
+
+|                         |                                  |        |         |         | Nodes   |          |
+|-------------------------|----------------------------------|--------|---------|---------|---------|----------|
+|                         |                                  |      1 |       2 |       4 |       8 |       16 |
+| ImagenBase (2B, Res=64) | Samples per Second               | 717.89 | 1339.26 | 2641.90 | 5073.07 |  9260.68 |
+|                         | Perfect Linear Scaling (Samples) | 717.89 | 1435.78 | 2871.56 | 5743.13 | 11486.26 |
+|                         | Speedup                          |     1x |   1.87x |   3.68x |   7.07x |    12.9x |
+
+<img src="img/ImagenBase (2B, Res=64) NeMo Megatron Throughput (H100).svg"/>
+
+- DGX A100 vs. DGX H100: A Comparative Analysis of Imagen Training
+
+| Model                     | Nodes | Global Batch | Micro Batch | Precision | Sec/Batch (A100) | Sec/Batch (H100) | Speedup (x) |
+|---------------------------|-------|--------------|-------------|-----------|------------------|------------------|-------------|
+| ImagenBase (500M, Res=64) |     4 |         4096 |         128 | bf16 (O1) |            1.198 |            2.364 |         2.0 |
+| ImagenBase (2B, Res=64)   |     4 |         4096 |         128 | bf16 (O1) |            1.269 |            2.514 |         2.0 |
+| ImagenSR (400M, Res=256)  |     4 |         4096 |         128 | bf16 (O1) |            1.213 |            2.247 |         1.9 |
+| ImagenSR (600M, Res=256)  |     4 |         4096 |         128 | bf16 (O1) |            1.007 |            1.885 |         1.9 |
+| ImagenSR (600M, Res=1024) |     4 |         1024 |          32 | bf16 (O1) |            1.006 |            1.830 |         1.8 |
+
+<img src="img/Imagen Training Throughput Comparison.svg"/>
+
+#### 8.3.3. Inference Performance Results
+
+Latency times are started directly before the text encoding (T5) and stopped directly after the output image (UNet).
+For framework we provide both using the Torch Automated Mixed Precision (AMP) or pure FP16 computation. For TRT, we export the various
+models
+with the FP16 acceleration. We use the optimized TRT engine setup present in the deployment directory to get the numbers
+in the same environment as the framework.
+
+GPU: NVIDIA DGX A100 (1x A100 80 GB)
+Batch Size: Synonymous with `num_images_per_prompt`
+
+| Model                   | Batch Size | Sampler | Inference Steps | TRT FP16 Latency (s) | FW FP16 Latency (s) | FW FP16 (AMP) Latency (s) | TRT vs FW Speedup (x) |
+|-------------------------|------------|---------|-----------------|----------------------|---------------------|---------------------------|-----------------------|
+| Imagen Base64x64 500M   | 4          | EDM     | 30              | 2.72                 | 5.011               | 5.805                     | 1.84 \| 2.13          |
+| Imagen SR256x256 600M   | 4          | EDM     | 20              | 1.79                 | 3.181               | 3.549                     | 1.78 \| 1.98          |
+| Imagen SR1024x1024 600M | 4          | EDM     | 20              | 16.26                | 23.588              | 27.799                    | 1.45 \| 1.71          |
 
 ## 9. Known Issues
 

@@ -2,7 +2,7 @@ run:
   name: fw_inference_${.model_train_name}
   time_limit: "01:00:00"
   dependency: "singleton"
-  model_train_name: nemo_imagen_base64_500m_edm
+  model_train_name: imagen_base64_500m_edm
   results_dir: ${base_results_dir}/${.model_train_name}/${.name}
 
 infer:
@@ -31,7 +31,7 @@ infer:
 
   output_path: ${fw_inference.run.results_dir}/results # Save location
   record_time: True # Whether to record inference time meta
-  encoder_path: '/ckpts/encoders' # Set to null if you wish to download encoders on the fly
+  encoder_path: /path/to/t5/folder # Set to null if you wish to download encoders on the fly
   samplings:
     - # Base64
       step: 30 # 30 for EDM; 250 for DDPM
