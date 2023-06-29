@@ -138,11 +138,7 @@ model:
     gen_shape: False # Generate model and kernel details including input shapes
 
   optim:
-    name: distributed_fused_adam
-    bucket_cap_mb: 200
-    overlap_grad_sync: True
-    overlap_param_sync: true
-    contiguous_grad_buffer: True
+    name: fused_adam
     lr: 1.1e-4
     weight_decay: 0.1 
     betas: 
