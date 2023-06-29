@@ -23,6 +23,7 @@ import argparse
 import csv
 import multiprocessing
 import os
+from functools import partial
 from glob import glob
 
 import open_clip
@@ -73,10 +74,10 @@ class CLIPEncoder(nn.Module):
         return similarity
 
 
-def clip_score_one_subfolder(idx):
+def clip_score_one_subfolder(idx, clip_version):
     print('Init CLIP Encoder..')
     cuda_idx = idx % torch.cuda.device_count()
-    encoder = CLIPEncoder(clip_version='ViT-L-14', device=f'cuda:{cuda_idx}')
+    encoder = CLIPEncoder(clip_version=clip_version, device=f'cuda:{cuda_idx}')
 
     images = sorted(
         glob(f'{subfolders[idx]}/*.png'), key=lambda x: (int(x.split('/')[-1].strip('.png').strip("image")))
@@ -107,6 +108,7 @@ if __name__ == '__main__':
     parser.add_argument('--captions_path', default='/coco2014/coco2014_val_sampled_30k/captions/', type=str)
     parser.add_argument('--fid_images_path', default=None, type=str)
     parser.add_argument('--output_path', default='./clip_scores.csv', type=str)
+    parser.add_argument('--clip_version', default='ViT-L-14', type=str)
     args = parser.parse_args()
 
     captions_path = args.captions_path
@@ -122,7 +124,7 @@ if __name__ == '__main__':
     torch.set_num_threads(multiprocessing.cpu_count() // num_processes)
     print(f"multiprocessing with {num_processes} processes")
     with multiprocessing.Pool(num_processes) as p:
-        ave_sims = p.map(clip_score_one_subfolder, range(len(subfolders)))
+        ave_sims = p.map(partial(clip_score_one_subfolder, clip_version=args.clip_version), range(len(subfolders)))
 
     # Create output CSV file
     with open(args.output_path, 'w', newline='') as csvfile:

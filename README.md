@@ -150,7 +150,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
 
 **NeMo Multimodal 23.05**
 
-1. Added support for distributed optimizer in ViT and CLIP models, enhancing memory 
+1. Added support for distributed optimizer in ViT and CLIP models, enhancing memory
    efficiency when utilizing more nodes with higher data parallel values.
 
 **NeMo Multimodal 23.03 (Initial Release)**
@@ -158,12 +158,12 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
 Added support for the following:
 
 | Model/ Method | Training | Fine-Tuning | Evaulation | In-framework Inference| Export (to TensorRT and ONNX) | Triton deployment |
-| :---        | :----:   |    ---: |    :----:  |    ---:     |    :----:   |          ---: | 
-|**Vision Transformer (ViT)**| &check;|&check;|&check;|&check;|&check;|&check;| 
-| **CLIP**   | &check;|    _|  &check;|&check;|&check;|&check;| 
-|  **Stable Diffusion (SD)**  | &check;|    _|  &check;|&check;|&check;|&check;| 
-| **InstructPix2Pix (for SD tuning)**| &check;|    _|  _|&check;|&check;|&check;| 
-|**DreamBooth (for SD tuning)**| &check;|    _|  _|&check;|&check;|&check;| 
+| :---        | :----:   |    ---: |    :----:  |    ---:     |    :----:   |          ---: |
+|**Vision Transformer (ViT)**| &check;|&check;|&check;|&check;|&check;|&check;|
+| **CLIP**   | &check;|    _|  &check;|&check;|&check;|&check;|
+|  **Stable Diffusion (SD)**  | &check;|    _|  &check;|&check;|&check;|&check;|
+| **InstructPix2Pix (for SD tuning)**| &check;|    _|  _|&check;|&check;|&check;|
+|**DreamBooth (for SD tuning)**| &check;|    _|  _|&check;|&check;|&check;|
 |**ControlNet (for SD tuning)**| &check;|    _|  _|&check;|&check;|&check;|
 
 Accuracy metrics/plots and training/inference performance for all supported models included.
@@ -256,7 +256,7 @@ modification, and artistic rendering, while still preserving the subject's key f
 
 ### 2.6. ControlNet
 
-[ControlNet](https://github.com/lllyasviel/ControlNet) is a neural network structure to control diffusion models by adding extra conditions. 
+[ControlNet](https://github.com/lllyasviel/ControlNet) is a neural network structure to control diffusion models by adding extra conditions.
 It copys the weights of neural network blocks into a "locked" copy and a "trainable" copy. The "trainable" one learns your condition. The "locked" one preserves your model. In this way, the ControlNet can reuse the SD encoder as a deep, strong, robust, and powerful backbone to learn diverse controls.
 
 NeMo Multimodal provides a training pipeline and example implementation for generating images based on segmentation maps. Users have the flexibility to explore other implementations using their own control input dataset and recipe.
@@ -659,7 +659,7 @@ configurations.
 
 The first parameter that must be set is the `launcher_scripts_path` parameter inside the
 `conf/config.yaml` file. This parameter must point to the absolute path where
-the `launcher_scripts` folder (pulled from the container) is stored in the file system.    
+the `launcher_scripts` folder (pulled from the container) is stored in the file system.
 Additionally, if using a Slurm based
 cluster, the config file in the subfolder of `conf/cluster/bcm.yaml` has the
 parameters to set the generic cluster related information, such as the
@@ -955,8 +955,8 @@ The 6 sub-stages are as follows.
    you have the option to precache (precompute) image and/or text encodings (embeddings) in this sub-stage.
    Precaching these encodings can significantly enhance training throughput.
 5. `generate_wdinfo`: (Optional) The `wdinfo.pkl` file, which stores information on dataset shards, is generated.
-6. `merge_source_tar`: (Optional) After precaching, this sub-stage can copy and append any additional objects 
-(such as original image or metadata files) from the source tar files to the result tar files. 
+6. `merge_source_tar`: (Optional) After precaching, this sub-stage can copy and append any additional objects
+(such as original image or metadata files) from the source tar files to the result tar files.
 
 Depending on your specific circumstance, not all sub-stages need to be run all at once.
 For example, for parquet datasets not hosted on HuggingFace or whose format is not parquet,
@@ -1162,7 +1162,7 @@ _Note: It is the responsibility of each user to check the content
 of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
 Users should review any applicable links associated with the dataset before placing the data on their machine._
 
-Controlnet needs an extra conditioning input given in image format, following [Section 6.2.2](#622-multimodal-datasets), 
+Controlnet needs an extra conditioning input given in image format, following [Section 6.2.2](#622-multimodal-datasets),
 the dataset should be organized into tarfiles in the following way:
 
 ```text
@@ -1176,7 +1176,7 @@ contolnet0001.tar
 ...
 ```
 
-To utilize segmentation maps as conditioning input, the conditioning image can be obtained through a detector model, while text prompts can be derived from blip captioning. For further guidance on preparing your own dataset, you may find the documentation of [ControlNet](https://github.com/lllyasviel/ControlNet/blob/main/docs/train.md) helpful.  
+To utilize segmentation maps as conditioning input, the conditioning image can be obtained through a detector model, while text prompts can be derived from blip captioning. For further guidance on preparing your own dataset, you may find the documentation of [ControlNet](https://github.com/lllyasviel/ControlNet/blob/main/docs/train.md) helpful.
 
 
 ### 6.3. Model Training
@@ -1301,6 +1301,13 @@ datasets recommended in the Huggingface model cards is straightforward with our 
 | SD v1.2     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | 218M                  | Resolution >= 512x512   | 1.23B                  |
 | SD v1.5     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | 218M                  | Resolution >= 512x512   | 1.32B                  |
 
+For SD v2.0 base, the text conditioning model is replaced with OpenCLIP-ViT/H. Training stages are similar to the original configuration, which contain pretraining with 256x256 resolution and follow by finetuing with 512x512 resolution. We can use the datasets recommended in the Huggingface model cards to reproduce the result of SD v2.0 base.
+
+| Stage       | Resolution | Unet model size (M) | Text conditioning model       | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Effective Dataset size| Dataset Filtering       | Total Training Samples Seen  |
+|-------------|------------|---------------------|-------------------------------|--------------------|-------------------------------|-----------|-----------|-----------------------|-------------------------|------------------------|
+| SD v2.0 Pretraining | 256        | 865                 | OpenCLIP-ViT/H | 128                | 8192                          | FP16      | O1        | 676M                  | None                    | 680M                   |
+| SD v2.0 Base        | 512        | 865                 | OpenCLIP-ViT/H | 32                 | 8192                          | FP16      | O1        | 218M                  | Resolution >= 512x512   | 1.32B                  |
+
 To enable the training stage with Stable Diffusion, make sure:
 
 1. In the `defaults` section, update the `training` field to point to the desired Stable Diffusion configuration file.
@@ -1333,16 +1340,27 @@ set `training.model.unet_config.from_NeMo=False`.
 
 2.To improve the quality of generated images, it is recommended to utilize pretrained checkpoints for AutoencoderKL and CLIP. We have compiled a list of recommended sources for these checkpoints, but please note that the AutoencoderKL checkpoint cannot be downloaded via the provided script. Instead, you must download it locally and ensure that the correct path is specified in the configuration file before proceeding.
 
-Please be advised the scripts that NVIDIA provides are optional to use and will download models that 
+Please be advised the scripts that NVIDIA provides are optional to use and will download models that
 are based on public data which may contain copyrighted material. Consult your legal department before using these scripts.
 
+The following are the pretrained checkpoints for SD v1
 | model | link | download by script |
 |---------------|--------------------------------------------------------------------------------|-----------------|
 | AutoencoderKL |  [link](https://huggingface.co/CompVis/stable-diffusion-v1-4/tree/main/vae)    |      No           |
 | CLIP          |  [link](https://huggingface.co/openai/clip-vit-large-patch14)                  |     Yes            |
 
-In the latest update, we have introduced support for using the Clip encoder provided by NeMo. To learn how to convert weights to NeMo Clip checkpoints, please refer to [Sec.@Bobby] in the documentation.
+
+The following are the pretrained checkpoints for SD v2.0
+| model | link | download by script |
+|---------------|--------------------------------------------------------------------------------|-----------------|
+| AutoencoderKL |  [link](https://huggingface.co/stabilityai/stable-diffusion-2-base/tree/main/vae)    |      No           |
+| OpenCLIP      |  [link](https://huggingface.co/laion/CLIP-ViT-H-14-laion2B-s32B-b79K)                  |     Yes            |
+
+
+In the latest update, we have introduced support for using the Clip encoder provided by NeMo. To learn how to convert weights to NeMo Clip checkpoints, please refer to [Section 6.9](#69-convert-checkpoints-from-external-sources-to-nemo) in the documentation.
 If you prefer to restore the previous behavior and use the HF Clip encoder, you can find instructions in the comments within the stable diffusion configuration files.
+
+Note: If you use NeMo Clip checkpoints as the Clip encoder, the Clip checkpoint need to be kept in the same path as specified in the configuration file when you load a stable diffusion checkpoint.
 
 3.There is no guarantee that training Stable Diffusion for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the late stages of convergence.
 
@@ -1373,7 +1391,7 @@ To enable the training stage with an InstructPix2Pix model, configure the config
       ...
    ```
 
-**Remarks**: 
+**Remarks**:
 1.You can feed the trained Stable Diffusion checkpoint into InstructPix2Pix training by
 specifying `training.model.ckpt_path` (or set `ckpt_path` field in the `model` section of `860m_sd_edit.yaml`). The
 checkpoint can be sourced from either NeMo or Hugging Face in the form of a `.ckpt` file.
@@ -1455,9 +1473,9 @@ To enable the training stage with an ControlNet model, configure the configurati
       ...
    ```
 
-**Remarks**: 
+**Remarks**:
 1. ControlNet copies encoder and middle blocks from Stable Diffusion and finetune a copy of these blocks, thus providing
-a pretrained checkpoint of Stable Diffusion needs to be passed into the config file, for both `control_stage_config.from_pretrained` and 
+a pretrained checkpoint of Stable Diffusion needs to be passed into the config file, for both `control_stage_config.from_pretrained` and
 `unet_config.from_pretrained`.
 
 
@@ -1471,7 +1489,7 @@ specific training runs. By customizing these settings, you can tailor the model'
 better suit your needs and requirements.
 
 The training process for Imagen typically involves multiple stages of models at different resolutions (64x64, 256x256, 1024x1024). Datasets
-are deliberately alternated to achieve superior image quality. We provide ??? training configurations here: 
+are deliberately alternated to achieve superior image quality. We provide ??? training configurations here:
 
 Base model:
  - base64-2b: Training 2B params 64x64 model as described in Imagen paper Appendix F.1
@@ -1514,17 +1532,17 @@ To enable the training stage with Imagen, make sure:
 
 **Remark**:
 
-1.There is no dependency in training different resolution models. Ideally it is possible to train all 64x64, 256x256, 1024x1024 at the same time independently given the sufficient computing resources. 
+1.There is no dependency in training different resolution models. Ideally it is possible to train all 64x64, 256x256, 1024x1024 at the same time independently given the sufficient computing resources.
 
 2.We recommend to pre-process the training dataset with precached embeddings. Imagen typically use T5 embedding, and T5 encoder are giant in size and can significantly reduce training throughput if loading it while training. We noticed significant batch size drop and throughput drop if using online-encoding option
 
 3.Despite the fact that Imagen paper they state that EfficientUNet has better throughput and does not harm visual quality, Emperically we found that training the regular UNet for SR model still yeilds more visually-appealing images.
 
-4.We provide two scheduling/sampling for Imagen Training: Continous DDPM and EDM. Continous DDPM is the default schema used in the original paper. EDM ([Elucidating the Design Space of Diffusion-Based Generaive Models](https://arxiv.org/abs/2206.00364)). Emperically, we found that EDM yeilds lower FID score. 
+4.We provide two scheduling/sampling for Imagen Training: Continous DDPM and EDM. Continous DDPM is the default schema used in the original paper. EDM ([Elucidating the Design Space of Diffusion-Based Generaive Models](https://arxiv.org/abs/2206.00364)). Emperically, we found that EDM yeilds lower FID score.
 
 5.While in paper they use T5-xxl (4096 dimension) encoder, We use T5-11b (1024 dimension) encoder during training due to space considerations.
 
-Please be advised the scripts that NVIDIA provides are optional to use and will download models that 
+Please be advised the scripts that NVIDIA provides are optional to use and will download models that
 are based on public data which may contain copyrighted material. Consult your legal department before using these scripts.
 
 | model | link | download by script |
@@ -1912,7 +1930,7 @@ To enable the inference stage with Stable Diffusion, configure the configuration
 
 **Remarks**:
 
-We have supported three types of inference samplers, 'DDIM', 'PLMS' and 'DPM', which can be changed by from config files. 'DPM' 
+We have supported three types of inference samplers, 'DDIM', 'PLMS' and 'DPM', which can be changed by from config files. 'DPM'
 sampler is added in recent updates and able to achieve similar image quality with half of steps needed for inference.
 
 #### 6.7.4. InstructPix2Pix Inference (in NeMo Framework)
@@ -1992,14 +2010,14 @@ To enable the inference stage with DreamBooth, configure the configuration files
 
 **Remarks**:
 
-Please refer to [6.3.5. DreamBooth Training](#635-dreambooth-training), the inference stage of DreamBooth should be conducted 
-subsequent to the DreamBooth conversion process. This conversion transforms the DreamBooth ckpt into a '.nemo' format and meanwhile 
+Please refer to [6.3.5. DreamBooth Training](#635-dreambooth-training), the inference stage of DreamBooth should be conducted
+subsequent to the DreamBooth conversion process. This conversion transforms the DreamBooth ckpt into a '.nemo' format and meanwhile
 remapping the parameter keys into Stable Diffusion style, allowing for a consistent inference pipeline.
 
 #### 6.7.6. ControlNet Inference (in NeMo Framework)
 
 For ControlNet, the inference script generates images from text prompts defined in the config file, similar to section
-5.7.3. Note that, an image conditioning is required besides text prompt. 
+5.7.3. Note that, an image conditioning is required besides text prompt.
 
 To enable the inference stage with ControlNet, configure the configuration files:
 
@@ -2022,7 +2040,7 @@ To enable the inference stage with ControlNet, configure the configuration files
    Set `model.restore_from_path` to the ckpt generated from dreambooth training.
 
 **Remarks**:
-We have implemented an example processing function to extract segmentation map from a target image, and use that as the 
+We have implemented an example processing function to extract segmentation map from a target image, and use that as the
 conditioning to generate images. To utilize that function, please specify `infer.control_image_preprocess=seg2img`. In other use cases, the input image specified at `infer.control` should be the conditioning image
 instead of target image, and set `infer.control_image_preprocess=null`.
 
@@ -2263,7 +2281,7 @@ The first model is the VAE Decoder, the second model is the UNet, the third mode
 #### 6.8.7. Imagen Export
 
 For text-to-image models, the export script generates two different optimized inference models.
-The first model is the UNet, and the second model is the T5 encoder. The script generates separate UNet model for different resolutions (e.g. 64x64, 256x256, 1024x1024) 
+The first model is the UNet, and the second model is the T5 encoder. The script generates separate UNet model for different resolutions (e.g. 64x64, 256x256, 1024x1024)
 
 1. In the `defaults` section of `conf/config.yaml`, update the `export` field to point to the desired Stable Diffusion
    inference configuration file. For example,
@@ -2623,6 +2641,10 @@ of the open-source Stable Diffusion 1.5.
 
 <img src="img/Stable Diffusion FID-CLIP.png"/>
 
+For Stable Diffusion 2.0 base, we followed the same configuration but evaluated CLIP score by VIT-g/14 version of the CLIP model. The result are presented below, our own checkpoint can be compared to open-source Stable Diffusion 2.0 base.
+
+<img src="img/Stable Diffusion 2.0 FID-CLIP.png"/>
+
 #### 8.3.2. Training Performance Results
 
 We measured the throughput of training Stable Diffusion models on
@@ -2633,7 +2655,7 @@ We are comparing the out-of-box performance on DGX H100 machines with the same c
 This comparison is an apple-to-apple assessment, ensuring that we evaluate the relative performance of the two machine
 types under equivalent conditions and configurations.
 
-The tables and charts below show the performance results.
+The tables and charts below show the performance results for SD v1.
 
 - NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for Stable Diffusion Res=512 model)
 
@@ -2666,6 +2688,16 @@ The tables and charts below show the performance results.
 
 <img src="img/Stable Diffusion Training Throughput Comparison.svg"/>
 
+The following is SD v2.0 result
+- NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for Stable Diffusion Res=512 model)
+|                          |                                  |        |        |        | Nodes   |         |
+|--------------------------|----------------------------------|--------|--------|--------|---------|---------|
+|                          |                                  | 1      | 2      | 4      | 8       | 16      |
+|                          | Samples per Second               | 197.68 | 391.39 | 775.02 | 1511.43 | 2844.44 |
+| Stable Diffusion Res=512 | Perfect Linear Scaling (Samples) | 197.68 | 395.36 | 790.92 | 1581.44 | 3162.88 |
+|                          | Speedup                          | 1x     | 1.98x  | 3.92x  | 7.65x   | 14.39x  |
+
+
 #### 8.3.3. Inference Performance Results
 
 Latency times are started directly before the text encoding (CLIP) and stopped directly after the output image
@@ -2682,7 +2714,17 @@ Batch Size: Synonymous with `num_images_per_prompt`
 |----------------------------|------------|---------|-----------------|-----------------------|----------------------------|-----------------------|
 | Stable Diffusion (Res=512) | 1          | PLMS    | 50              | 0.9                   | 3.3                        | 3.7                   |
 | Stable Diffusion (Res=512) | 2          | PLMS    | 50              | 1.7                   | 5.2                        | 3.1                   |
-| Stable Diffusion (Res=512) | 4          | PLMS    | 50              | 2.9                   | 9.2                        | 3.2                   |  
+| Stable Diffusion (Res=512) | 4          | PLMS    | 50              | 2.9                   | 9.2                        | 3.2                   |
+
+The following is SD v2.0 performance
+GPU: NVIDIA DGX A100 (1x A100 80 GB)
+Batch Size: Synonymous with `num_images_per_prompt`
+
+| Model                      | Batch Size | Sampler | Inference Steps | TRT FP 16 Latency (s) | FW FP 16 (AMP) Latency (s) | TRT vs FW Speedup (x) |
+|----------------------------|------------|---------|-----------------|-----------------------|----------------------------|-----------------------|
+| Stable Diffusion (Res=512) | 1          | PLMS    | 50              | 1.2                   | 3.2                        | 2.7                   |
+| Stable Diffusion (Res=512) | 2          | PLMS    | 50              | 2.4                   | 5.0                        | 2.1                   |
+| Stable Diffusion (Res=512) | 4          | PLMS    | 50              | 3.9                   | 8.5                        | 2.2                   |
 
 ### 8.4. InstructPix2Pix Results
 
@@ -2744,7 +2786,7 @@ Prompt: A 'sks' dog mecha robot.
 <img src="img/Dreambooth mecha robot.png" width="30%">
 
 The original source of images used for above results are from [link](https://github.com/google/dreambooth/tree/main/dataset/dog6)
-and is subject to following [license](https://github.com/google/dreambooth/blob/main/dataset/references_and_licenses.txt). 
+and is subject to following [license](https://github.com/google/dreambooth/blob/main/dataset/references_and_licenses.txt).
 
 
 
