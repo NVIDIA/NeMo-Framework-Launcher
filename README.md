@@ -153,6 +153,14 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
 
 1. Added support for distributed optimizer in ViT and CLIP models, enhancing memory
    efficiency when utilizing more nodes with higher data parallel values.
+2. Improved Stable Diffusion training performance by adding support to NHWC format and optimized Group Normalization.
+3. Added support fot the following
+
+| Model/ Method | Training | Fine-Tuning | Evaulation | In-framework Inference| Export (to TensorRT and ONNX) | Triton deployment |
+| :---        | :----:   |    :---: |    :----:  |    :---:     |    :----:   |          :---: |
+|**ControlNet (for SD tuning)**| &check;| _|  _|&check;|&check;|&check;|
+|**Stable Diffusion V2**| &check;| _| &check;|&check;|&check;|&check;|
+|**Imagen**| &check;| _|  &check;|&check;|&check;|&check;|
 
 **NeMo Multimodal 23.03 (Initial Release)**
 
@@ -165,7 +173,7 @@ Added support for the following:
 |  **Stable Diffusion (SD)**  | &check;|    _|  &check;|&check;|&check;|&check;|
 | **InstructPix2Pix (for SD tuning)**| &check;|    _|  _|&check;|&check;|&check;|
 |**DreamBooth (for SD tuning)**| &check;|    _|  _|&check;|&check;|&check;|
-|**ControlNet (for SD tuning)**| &check;|    _|  _|&check;|&check;|&check;|
+
 
 Accuracy metrics/plots and training/inference performance for all supported models included.
 
@@ -2656,25 +2664,25 @@ types under equivalent conditions and configurations.
 
 The tables and charts below show the performance results for SD v1.
 
-- NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for Stable Diffusion Res=512 model)
+- NVIDIA DGX SuperPODs (64 x 8 x A100 80GB for Stable Diffusion Res=512 model)
 
-|                          |                                  |        |        |        | Nodes   |         |
-|--------------------------|----------------------------------|--------|--------|--------|---------|---------|
-|                          |                                  | 1      | 2      | 4      | 8       | 16      |
-|                          | Samples per Second               | 199.98 | 390.60 | 786.78 | 1504.99 | 2952.49 |
-| Stable Diffusion Res=512 | Perfect Linear Scaling (Samples) | 199.98 | 399.97 | 799.94 | 1599.87 | 3199.75 |
-|                          | Speedup                          | 1x     | 1.95x  | 3.93x  | 7.53x   | 14.76x  |
+|                          |                                  |        |        |        | Nodes   |         |         |          |
+|--------------------------|----------------------------------|--------|--------|--------|---------|---------| --------| ---------|
+|                          |                                  | 1      | 2      | 4      | 8       | 16      | 32      | 64       |
+|                          | Samples per Second               | 221.59 | 435.22 | 868.21 | 1682.43 | 3237.60 | 6448.60 | 12683.95 |
+| Stable Diffusion Res=512 | Perfect Linear Scaling (Samples) | 221.59 | 443.18 | 886.36 | 1772.73 | 3545.46 | 7090.92 | 14181.84 |
+|                          | Speedup                          | 1x     | 1.96x  | 3.92x  | 7.59x   | 14.61x  | 29.1x   | 57.24x   |
 
 <img src="img/Stable Diffusion (Res=512) NeMo Megatron Throughput (A100).svg"/>
 
-- NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for Stable Diffusion Res=512 model)
+- NVIDIA DGX SuperPODs (64 x 8 x H100 80GB for Stable Diffusion Res=512 model)
 
-|                          |                                  |        |        |         | Nodes   |         |
-|--------------------------|----------------------------------|--------|--------|---------|---------|---------|
-|                          |                                  | 1      | 2      | 4       | 8       | 16      |
-|                          | Samples per Second               | 419.47 | 840.86 | 1591.79 | 3090.85 | 6056.48 |
-| Stable Diffusion Res=512 | Perfect Linear Scaling (Samples) | 419.47 | 838.93 | 1677.86 | 3355.73 | 6711.45 |
-|                          | Speedup                          | 1x     | 2x     | 3.79x   | 7.37x   | 14.44x  |
+|                          |                                  |        |         |         | Nodes   |         |         |          |
+|--------------------------|----------------------------------|--------|---------|---------|---------|---------| --------| ---------|
+|                          |                                  | 1      | 2       | 4       | 8       | 16      | 32      | 64       |
+|                          | Samples per Second               | 505.42 | 970.41  | 1888.39 | 3564.35 | 6920.54 | 12666.60| 23474.56 |
+| Stable Diffusion Res=512 | Perfect Linear Scaling (Samples) | 505.42 | 1010.84 | 2021.67 | 4043.35 | 8086.69 | 16173.39| 14181.84 |
+|                          | Speedup                          | 1x     | 1.92x   | 3.74x   | 7.05x   | 13.69x  | 25.06x  | 46.45x   |
 
 <img src="img/Stable Diffusion (Res=512) NeMo Megatron Throughput (H100).svg"/>
 
@@ -2682,13 +2690,14 @@ The tables and charts below show the performance results for SD v1.
 
 | Model                      | Nodes | Global Batch | Micro Batch | Precision | Global Batch/Sec (A100) | Global Batch/Sec (H100) | Speedup (x) |
 |----------------------------|-------|--------------|-------------|-----------|------------------|------------------|-------------|
-| Stable Diffusion (Res=256) | 4     | 4096         | 128         | amp fp16  | 0.829            | 1.709            | 2.1         |
-| Stable Diffusion (Res=512) | 4     | 1024         | 32          | amp fp16  | 0.758            | 1.603            | 2.1         |
+| Stable Diffusion (Res=256) | 4     | 4096         | 128         | amp fp16  | 0.962            | 1.892            | 2.0         |
+| Stable Diffusion (Res=512) | 4     | 1024         | 32          | amp fp16  | 0.849            | 1.840            | 2.2         |
 
 <img src="img/Stable Diffusion Training Throughput Comparison.svg"/>
 
 The following is SD v2.0 result
 - NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for Stable Diffusion Res=512 model)
+
 |                          |                                  |        |        |        | Nodes   |         |
 |--------------------------|----------------------------------|--------|--------|--------|---------|---------|
 |                          |                                  | 1      | 2      | 4      | 8       | 16      |
