@@ -92,7 +92,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [6.7.4. InstructPix2Pix Inference (in NeMo Framework)](#674-instructpix2pix-inference-in-nemo-framework)
       - [6.7.5. DreamBooth Inference (in NeMo Framework)](#675-dreambooth-inference-in-nemo-framework)
       - [6.7.6. ControlNet Inference (in NeMo Framework)](#676-controlnet-inference-in-nemo-framework)
-      - [6.7.7. Imagen Inference (in NeMo Framework)](#673-imagen-inference-in-nemo-framework)
+      - [6.7.7. Imagen Inference (in NeMo Framework)](#677-imagen-inference-in-nemo-framework)
     - [6.8. Model Export](#68-model-export)
       - [6.8.1. Vision Transformer Export](#681-vision-transformer-export)
       - [6.8.2. CLIP Export](#682-clip-export)
@@ -110,11 +110,12 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [7.2.3. Vision Transformer](#723-vision-transformer)
       - [7.2.4. CLIP](#724-clip)
       - [7.2.5. ControlNet](#725-controlnet)
-      - [7.2.6 Imagen](#725-imagen)
+      - [7.2.6 Imagen](#726-imagen)
     - [7.3. Query NVIDIA Triton Inference Server](#73-query-nvidia-triton-inference-server)
       - [7.3.1. Stable Diffusion and DreamBooth](#731-stable-diffusion-and-dreambooth)
       - [7.3.2. InstructPix2Pix](#732-instructpix2pix)
-      - [7.3.3 Imagen](#733-imagen)
+      - [7.3.3. ControlNet](#733-controlnet)
+      - [7.3.4 Imagen](#734-imagen)
   - [8. Performance](#8-performance)
     - [8.1. Vision Transformer Results](#81-vision-transformer-results)
       - [8.1.1. Training Accuracy Results](#811-training-accuracy-results)
@@ -135,13 +136,13 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [8.5.1. Training Quality Results](#851-training-quality-results)
       - [8.5.2. Inference Performance Results](#852-inference-performance-results)
     - [8.6. ControlNet Results](#86-controlnet-results)
-      - [8.6.1 Training Performance Results](#861-traning-performace-results)
-      - [8.6.2 Training Quality Results](#862-training-quality-results)
-      - [8.6.3 Inference Performance Results](#863-inference-performance-results)
+      - [8.6.1. Traning Performace Results](#861-traning-performace-results)
+      - [8.6.2. Training Quality Results](#862-training-quality-results)
+      - [8.6.3. Inference Performance Results](#863-inference-performance-results)
     - [8.7. Imagen Results](#87-imagen-results)
-      - [8.7.1. Training Accuracy Results](#871-training-accuracy-results-1)
-      - [8.7.2. Training Performance Results](#872-training-performance-results-1)
-      - [8.7.3. Inference Performance Results](#873-inference-performance-results-1)
+      - [8.7.1. Training Accuracy Results](#871-training-accuracy-results)
+      - [8.7.2. Training Performance Results](#872-training-performance-results)
+      - [8.7.3. Inference Performance Results](#873-inference-performance-results)
   - [9. Known Issues](#9-known-issues)
 
 <!-- /TOC -->
@@ -253,7 +254,6 @@ views, and lighting conditions that do not appear in the reference images. With 
 several previously-unassailable tasks, including subject recontextualization, text-guided view synthesis, appearance
 modification, and artistic rendering, while still preserving the subject's key features.
 
-
 ### 2.6. ControlNet
 
 [ControlNet](https://github.com/lllyasviel/ControlNet) is a neural network structure to control diffusion models by adding extra conditions.
@@ -264,9 +264,9 @@ NeMo Multimodal provides a training pipeline and example implementation for gene
 
 ### 2.7. Imagen
 
-[Imagen](https://arxiv.org/abs/2205.11487) is a multi-stage text-to-image diffusion model with an unprecedented degree of photorealism and a deep level of language understanding. Given a text prompt, Imagen first generates an image at a 64x64 resolution and then upsamples the generated image to 256x256 and 1024x1024 resolutions, all using diffusion models.
+[Imagen](https://arxiv.org/abs/2205.11487) is a multi-stage text-to-image diffusion model that achieves an unprecedented level of photorealism and demonstrates deep language understanding. The model operates in several stages: given a text prompt, Imagen initially generates an image at a resolution of 64x64. It then employs diffusion models to upsample the generated image to higher resolutions of 256x256 and 1024x1024.
 
-NeMo Imagen provides various options to fully cusotomize the Imagen training. For super-resolution (SR) model, we support both regular UNet and efficient UNet as proposed in the paper.
+NeMo Imagen offers a range of options to customize the training of the Imagen model. For the super-resolution (SR) model, we provide support for both the regular UNet and the efficient UNet architectures, as proposed in the original paper.
 ## 3. Feature Matrix
 
 ### 3.1. ViT Models
@@ -361,7 +361,6 @@ NeMo Imagen provides various options to fully cusotomize the Imagen training. Fo
 | Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
 | TorchInductor            | Yes                                                      | N/A                                                                                                                                           |
 | Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
-
 ### 3.5 Imagen Models
 | Feature                  | Training                                                 | Inference                                                                                                                                     |
 |--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
@@ -382,6 +381,7 @@ NeMo Imagen provides various options to fully cusotomize the Imagen training. Fo
 | NVfuser                  | No                                                       | N/A                                                                                                                                           |
 | Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
 | Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
+
 
 ## 4. Setup Details
 
@@ -1489,26 +1489,28 @@ specific training runs. By customizing these settings, you can tailor the model'
 better suit your needs and requirements.
 
 The training process for Imagen typically involves multiple stages of models at different resolutions (64x64, 256x256, 1024x1024). Datasets
-are deliberately alternated to achieve superior image quality. We provide ??? training configurations here:
+are deliberately alternated to achieve superior image quality. We provide 5 training configurations here:
 
 Base model:
  - base64-2b: Training 2B params 64x64 model as described in Imagen paper Appendix F.1
  - base64-500m: Training 500m params 64x64 model with reduced channel size
+
 SR256 model:
  - sr256-600m: Training 600m params 256x256 EfficientUNet model as described in Imagen paper Appendix F.2
  - sr256-400m: Training 400m params 256x256 UNet model with similar configurattion as DeepFloyd IF-II-M
+
 SR1024 model:
  - sr1024-600m: Training 600m params 1024x1024 EfficientUNet model as described in Imagen paper Appendix F.3
 
 
 \**Our multimodal dataset is originated from Common Crawl with custom filtering and contains 670M image-caption pairs.*
-| Model         | Resolution | Unet model size (M) | Text conditioning model | Batch size per GPU | Accumulated Global Batch size | Precision | AMP Level | Dataset Filtering  | Total Training Samples |
-|---------------|------------|---------------------|-------------------------|--------------------|-------------------------------|-----------|-----------|--------------------|------------------------|
-| 500m_res_64   | 64         | 524                 | "t5-11b"                | 64                 | 4096                          | BF16      | O1        | None               | 680M                   |
-| 2b_res_64     | 64         | 2100                | "t5-11b"                | 16                 | 2048                          | BF16      | O1        | None               | 680M                   |
-| 600m_res_256  | 256        | 646                 | "t5-11b"                | 64                 | 4096                          | BF16      | O1        | Resolution >= 256  | 544M                   |
-| 400m_res_256  | 256        | 429                 | "t5-11b"                | 16                 | 2048                          | BF16      | O1        | Resolution >= 256  | 544M                   |
-| 600m_res_1024 | 1024       | 427                 | "t5-11b"                | 64                 | 4096                          | BF16      | O1        | Resolution >= 1024 | 409M                   |
+| Model         | Resolution | Unet model size   (M) | Text conditioning   model | Batch size per   GPU | Accumulated   Global Batch size | Precision | AMP Level | Effective Dataset Size | Dataset Filtering  | Total Training   Samples Seen |
+|---------------|------------|-----------------------|---------------------------|----------------------|---------------------------------|-----------|-----------|------------------------|--------------------|-------------------------------|
+| 500m_res_64   | 64         | 524                   | "t5-11b"                  | 64                   | 4096                            | BF16      | O1        | 676M                   | None               | 5.12B                         |
+| 2b_res_64     | 64         | 2100                  | "t5-11b"                  | 16                   | 2048                            | BF16      | O1        | 676M                   | None               | 5.12B                         |
+| 600m_res_256  | 256        | 646                   | "t5-11b"                  | 64                   | 4096                            | BF16      | O1        | 544M                   | Resolution >= 256  | 1.23B                         |
+| 400m_res_256  | 256        | 429                   | "t5-11b"                  | 16                   | 2048                            | BF16      | O1        | 544M                   | Resolution >= 256  | 1.23B                         |
+| 600m_res_1024 | 1024       | 427                   | "t5-11b"                  | 64                   | 4096                            | BF16      | O1        | 39.5M                  | Resolution >= 1024 | 1.23B                         |
 To enable the training stage with Imagen, make sure:
 
 1. In the `defaults` section, update the `training` field to point to the desired Imagen configuration file.
@@ -1532,18 +1534,17 @@ To enable the training stage with Imagen, make sure:
 
 **Remark**:
 
-1.There is no dependency in training different resolution models. Ideally it is possible to train all 64x64, 256x256, 1024x1024 at the same time independently given the sufficient computing resources.
+1.There is no dependency in training models of different resolutions. Ideally, it is possible to train all models (64x64, 256x256, 1024x1024) simultaneously and independently, given sufficient computing resources.
 
-2.We recommend to pre-process the training dataset with precached embeddings. Imagen typically use T5 embedding, and T5 encoder are giant in size and can significantly reduce training throughput if loading it while training. We noticed significant batch size drop and throughput drop if using online-encoding option
+2.We recommend preprocessing the training dataset with pre-cached embeddings. Imagen typically uses T5 embeddings, and T5 encoders are large in size. Loading them during training can significantly reduce training throughput. We observed a significant drop in batch size and throughput when using the online-encoding option.
 
-3.Despite the fact that Imagen paper they state that EfficientUNet has better throughput and does not harm visual quality, Emperically we found that training the regular UNet for SR model still yeilds more visually-appealing images.
+3.Despite the claim made in the Imagen paper that EfficientUNet has better throughput and does not compromise visual quality, we empirically found that training the regular UNet for the SR model still produces more visually appealing images.
 
-4.We provide two scheduling/sampling for Imagen Training: Continous DDPM and EDM. Continous DDPM is the default schema used in the original paper. EDM ([Elucidating the Design Space of Diffusion-Based Generaive Models](https://arxiv.org/abs/2206.00364)). Emperically, we found that EDM yeilds lower FID score.
+4.We provide two scheduling/sampling options for Imagen Training: Continuous DDPM and EDM. Continuous DDPM is the default scheme used in the original paper. Empirically, we found that EDM yields a lower FID score. (Reference to the EDM paper is given in parentheses.)
 
-5.While in paper they use T5-xxl (4096 dimension) encoder, We use T5-11b (1024 dimension) encoder during training due to space considerations.
+5.While the paper uses the T5-xxl (4096 dimension) encoder, we use the T5-11b (1024 dimension) encoder during training due to space considerations.
 
-Please be advised the scripts that NVIDIA provides are optional to use and will download models that
-are based on public data which may contain copyrighted material. Consult your legal department before using these scripts.
+Please note that the scripts provided by NVIDIA are optional to use, and they may download models based on public data that could contain copyrighted material. It is advisable to consult your legal department before using these scripts.
 
 | model | link | download by script |
 |---------------|--------------------------------------------------------------------------------|-----------------|
@@ -1551,8 +1552,7 @@ are based on public data which may contain copyrighted material. Consult your le
 | T5-xxl          |  [link](https://huggingface.co/google/t5-v1_1-xxl)                  |     Yes            |
 
 
-5.There is no guarantee that training Imagen for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the late stages of convergence.
-
+6.There is no guarantee that training Imagen for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the late stages of convergence.
 
 ### 6.4. Checkpoint Conversion
 
@@ -1811,15 +1811,14 @@ below:
 
 **Remarks**:
 
-1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `models` section to the path
+1. To load pretrained checkpoints for inference (for multiple resoluion models), set the `restore_from_path` field in the `models` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/evaluation/imagen/fid_clip.yaml`.
 2. We highly recommend users to use the same precision (i.e. `trainer.precision`) for evaluation as was used during
    training.
 3. The `generate_images` sub-stage involves a multi-node run, whereas the other stages utilize only a single GPU.
 4. It is possible to save intermediate stage images (lower resolution images) along with the final image by setting `fid.save_all_res=True`. Only the final images are used for evaluation.
 5. To save the text along with images for manual checking, set `fid.save_text=True`.
-6. To evaluate the quality of generated images, a pretrained Inception network and CLIP model are necessary.  We list below
-   the recommended ckpt sources. Please note that the scripts that NVIDIA provides are optional to use and will download models that are based on public data which may contain copyrighted material. Consult your legal department before using these scripts.
+6. To evaluate the quality of generated images, a pretrained Inception network and CLIP model are necessary.  We list below the recommended ckpt sources. Please note that the scripts that NVIDIA provides are optional to use and will download models that are based on public data which may contain copyrighted material. Consult your legal department before using these scripts.
 
 | model | link | download by script |
 |---------------|--------------------------------------------------------------------------------|-----------------|
@@ -2681,7 +2680,7 @@ The tables and charts below show the performance results for SD v1.
 
 - DGX A100 vs. DGX H100: A Comparative Analysis of Stable Diffusion Training
 
-| Model                      | Nodes | Global Batch | Micro Batch | Precision | Sec/Batch (A100) | Sec/Batch (H100) | Speedup (x) |
+| Model                      | Nodes | Global Batch | Micro Batch | Precision | Global Batch/Sec (A100) | Global Batch/Sec (H100) | Speedup (x) |
 |----------------------------|-------|--------------|-------------|-----------|------------------|------------------|-------------|
 | Stable Diffusion (Res=256) | 4     | 4096         | 128         | amp fp16  | 0.829            | 1.709            | 2.1         |
 | Stable Diffusion (Res=512) | 4     | 1024         | 32          | amp fp16  | 0.758            | 1.603            | 2.1         |
@@ -2879,13 +2878,18 @@ validation dataset, with 30 EDM steps on the base64 model 20 EDM steps on the sr
 We have referred to but made certain modifications to the training recipe outlined
 in [Imagen Paper](https://arxiv.org/abs/2205.11487).
 
-Note that our curve is not fully comparable with the plots on the paper for the few reasons: 1. Our dataset is different and smaller than the one Imagen paper uses. 2. We chose to train a much smaller variation of the model (500M) for convergence instead of the proposed one (2B) 3. While in paper they use T5-xxl (4096 dimension) encoder, We use T5-11b (1024 dimension) encoder during training due to space considerations. The FID score is slightly higher than our Stable Diffusion results as for the fact that we only used a subset of dataset to train Imagen because caching T5 embedding is expensive on disk resource.
+Please note that our curve cannot be directly compared to the plots presented in the paper for several reasons:
+1.Dataset Discrepancy: Our dataset differs from the one used by the Imagen research team, and it is also smaller in size.
+2.Model Variation: In order to ensure convergence, we made the decision to train a smaller variant of the model (500M) instead of the proposed 2B variant.
+3.Encoder Difference: The paper utilizes a T5-XXL encoder with 4096 dimensions, whereas we employed a T5-11B encoder with 1024 dimensions during training. This choice was made due to disk space limitations to store the precached T5 embeddings.
+
+Additionally, the FID score obtained is slightly higher than our Stable Diffusion results. This is because we only used a subset of the dataset for training Imagen, as precaching T5 embeddings proves to be resource-intensive on disk.
 
 \**Our multimodal dataset is originated from Common Crawl with custom filtering.*
 
 Below, we present the outcomes obtained from our own checkpoint following [Section 6.3.6](#636-imagen-training).
 
-##ADD Imagen FID-CLIP curve
+<img src="img/Imagen FID-CLIP.svg"/>
 
 #### 8.7.2. Training Performance Results
 
@@ -2901,12 +2905,12 @@ The tables and charts below show the performance results.
 
 - NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for Imagen Base 2B model)
 
-|                         |                                  |             |             |             | Nodes       |             |
-|-------------------------|----------------------------------|-------------|-------------|-------------|-------------|-------------|
-|                         |                                  |           1 |           2 |           4 |           8 |          16 |
-|                         | Samples per Second               | 344.09 | 632.88 | 1256.44 | 2500.61 | 4940.89 |
-| ImagenBase (2B, Res=64) | Perfect Linear Scaling (Samples) | 344.09 |  688.17 | 1376.34 | 2752.69 | 5505.37 |
-|                         | Speedup                          |          1x |       1.84x |       3.65x |       7.27x |      14.36x |
+|                         |                                  |        |        |        | Nodes   |         |
+|-------------------------|----------------------------------|--------|--------|--------|---------|---------|
+|                         |                                  | 1      | 2      | 4      | 8       | 16      |
+| ImagenBase (2B, Res=64) | Samples per Second               | 172.04 | 316.44 | 628.22 | 1250.31 | 2470.45 |
+|                         | Perfect Linear Scaling (Samples) | 172.04 | 344.08 | 688.16 | 1376.32 | 2752.64 |
+|                         | Speedup                          | 1x     | 1.84x  | 3.65x  | 7.27x   | 14.36x  |
 
 <img src="img/ImagenBase (2B, Res=64) NeMo Megatron Throughput (A100).svg"/>
 
@@ -2916,7 +2920,7 @@ The tables and charts below show the performance results.
 |-------------------------|----------------------------------|--------|---------|---------|---------|----------|
 |                         |                                  |      1 |       2 |       4 |       8 |       16 |
 |                         | Samples per Second               | 645.65 | 1216.15 | 2412.25 | 4870.39 |  9737.31 |
-| ImagenBase (2B, Res=64) | Perfect Linear Scaling (Samples) | 645.65 | 1291.30 | 2582.60 | 5165.20 | 10330.39 |
+| ImagenBase (500M, Res=64) | Perfect Linear Scaling (Samples) | 645.65 | 1291.30 | 2582.60 | 5165.20 | 10330.39 |
 |                         | Speedup                          | 1x     | 1.88x   | 3.74x   | 7.54x   | 15.08x   |
 
 <img src="img/ImagenBase (500M, Res=64) NeMo Megatron Throughput (A100).svg"/>
@@ -2934,7 +2938,7 @@ The tables and charts below show the performance results.
 
 - DGX A100 vs. DGX H100: A Comparative Analysis of Imagen Training
 
-| Model                     | Nodes | Global Batch | Micro Batch | Precision | Sec/Batch (A100) | Sec/Batch (H100) | Speedup (x) |
+| Model                     | Nodes | Global Batch | Micro Batch | Precision | Global Batch/Sec (A100) | Global Batch/Sec (H100) | Speedup (x) |
 |---------------------------|-------|--------------|-------------|-----------|------------------|------------------|-------------|
 | ImagenBase (500M, Res=64) |     4 |         4096 |         128 | bf16 (O1) |            1.198 |            2.364 |         2.0 |
 | ImagenBase (2B, Res=64)   |     4 |         4096 |         128 | bf16 (O1) |            1.269 |            2.514 |         2.0 |
