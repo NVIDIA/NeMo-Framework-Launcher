@@ -2641,7 +2641,7 @@ of the open-source Stable Diffusion 1.5.
 
 <img src="img/Stable Diffusion FID-CLIP.png"/>
 
-For Stable Diffusion 2.0 base, we followed the same configuration but evaluated CLIP score by VIT-g/14 version of the CLIP model. The result are presented below, our own checkpoint can be compared to open-source Stable Diffusion 2.0 base.
+For Stable Diffusion 2.0 base, we followed the same configuration to evaluate. The result are presented below, our own checkpoint can be compared to open-source Stable Diffusion 2.0 base.
 
 <img src="img/Stable Diffusion 2.0 FID-CLIP.png"/>
 
@@ -2722,9 +2722,9 @@ Batch Size: Synonymous with `num_images_per_prompt`
 
 | Model                      | Batch Size | Sampler | Inference Steps | TRT FP 16 Latency (s) | FW FP 16 (AMP) Latency (s) | TRT vs FW Speedup (x) |
 |----------------------------|------------|---------|-----------------|-----------------------|----------------------------|-----------------------|
-| Stable Diffusion (Res=512) | 1          | PLMS    | 50              | 1.2                   | 3.2                        | 2.7                   |
-| Stable Diffusion (Res=512) | 2          | PLMS    | 50              | 2.4                   | 5.0                        | 2.1                   |
-| Stable Diffusion (Res=512) | 4          | PLMS    | 50              | 3.9                   | 8.5                        | 2.2                   |
+| Stable Diffusion (Res=512) | 1          | PLMS    | 50              | 0.9                   | 3.2                        | 3.5                   |
+| Stable Diffusion (Res=512) | 2          | PLMS    | 50              | 1.6                   | 5.0                        | 3.2                   |
+| Stable Diffusion (Res=512) | 4          | PLMS    | 50              | 2.7                   | 8.5                        | 3.1                   |
 
 ### 8.4. InstructPix2Pix Results
 

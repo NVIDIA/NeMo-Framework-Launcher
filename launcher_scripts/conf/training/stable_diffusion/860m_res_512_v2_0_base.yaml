@@ -93,6 +93,8 @@ model:
   fused_opt: True
   inductor: True
   inductor_cudagraphs: False
+  capture_cudagraph_iters: -1 # -1 to disable
+  channels_last: True
 
   unet_config:
     _target_: nemo.collections.multimodal.modules.stable_diffusion.diffusionmodules.openaimodel.UNetModel
