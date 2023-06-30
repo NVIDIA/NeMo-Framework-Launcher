@@ -1,0 +1,21 @@
+train_settings:
+  model_size: 126m
+  trainer:
+    num_nodes: 8
+    devices: 8
+    preciosion: bf16
+    max_steps: 600000
+    val_check_interval: 2000
+  model:
+    tensor_parallel_size: 1
+    pipeline_parallel_size: 1
+    global_batch_size: 256
+    micro_batch_size: 4
+    rampup_batch_size: null
+    act_ckpt_layers: 0
+    transformer_engine: True
+    optim:
+      name: distributed_fused_adam
+      lr: 6e-4
+      min_lr: 6e-5
+        
