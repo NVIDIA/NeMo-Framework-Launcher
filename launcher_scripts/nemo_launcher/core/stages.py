@@ -1083,6 +1083,10 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             stage_to_code_path["generate"] = (
                 self._nemo_code_path / "examples/multimodal/generative/stable_diffusion/generate_fid_images.py"
             )
+        elif choice_model_type == 'imagen':
+            stage_to_code_path["generate"] = (
+                self._nemo_code_path / "examples/multimodal/generative/imagen/generate_fid_images.py"
+            )
 
         code_path = stage_to_code_path[sub_stage]
 

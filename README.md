@@ -2896,7 +2896,7 @@ Additionally, the FID score obtained is slightly higher than our Stable Diffusio
 
 \**Our multimodal dataset is originated from Common Crawl with custom filtering.*
 
-Below, we present the outcomes obtained from our own checkpoint following [Section 6.3.6](#636-imagen-training).
+Below, we present the outcomes obtained from our own checkpoint following [Section 6.3.7](#637-imagen-training).
 
 <img src="img/Imagen FID-CLIP.svg"/>
 
