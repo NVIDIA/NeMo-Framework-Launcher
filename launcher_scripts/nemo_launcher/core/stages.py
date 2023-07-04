@@ -64,8 +64,8 @@ class NemoMegatronStage:
         # Save stage hydra config
         job_path = self.get_job_path()
 
-        gpus = self.stage_cfg.get("trainer").get("devices")
-        if self.cfg.get('training').get('model').get('rampup_batch_size'):
+        if self.cfg.get('training').get('model').get('rampup_batch_size') and self.cfg.get('stages') == ['training']:
+            gpus = self.stage_cfg.get("trainer").get("devices")
             self._find_optimal_nodes(self.cfg, gpus)
             current_gbs = self._get_current_gbs(self.cfg)
             nodes = self.nodes_scheduler[str(current_gbs)]
