@@ -64,14 +64,17 @@ class NemoMegatronStage:
         # Save stage hydra config
         job_path = self.get_job_path()
 
-        if self.cfg.get('training').get('model').get('rampup_batch_size') and self.cfg.get('stages') == ['training']:
-            gpus = self.stage_cfg.get("trainer").get("devices")
-            self._find_optimal_nodes(self.cfg, gpus)
-            current_gbs = self._get_current_gbs(self.cfg)
-            nodes = self.nodes_scheduler[str(current_gbs)]
-            self.stage_cfg["trainer"]["num_nodes"] = nodes
-            self.cfg['training']["trainer"]["num_nodes"] = nodes
-            logging.info(f"global batch size and number of nodes will change following this schedule:\n {self.nodes_scheduler}")
+        if self.cfg.get('training').get('model').get('rampup_batch_size') and 'training' in self.cfg.get('stages'):
+            try:
+                gpus = self.stage_cfg.get("trainer").get("devices")
+                self._find_optimal_nodes(self.cfg, gpus)
+                current_gbs = self._get_current_gbs(self.cfg)
+                nodes = self.nodes_scheduler[str(current_gbs)]
+                self.stage_cfg["trainer"]["num_nodes"] = nodes
+                self.cfg['training']["trainer"]["num_nodes"] = nodes
+                logging.info(f"global batch size and number of nodes will change following this schedule:\n {self.nodes_scheduler}")
+            except AttributeError:
+                None
 
         stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(self.stage_cfg, job_path)
         # Make cluster parameters
