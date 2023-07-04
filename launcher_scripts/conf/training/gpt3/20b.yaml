@@ -49,6 +49,7 @@ exp_manager:
 model:
   micro_batch_size: 4
   global_batch_size: 2048
+  rampup_batch_size: null
   tensor_model_parallel_size: 4
   pipeline_model_parallel_size: 1
   virtual_pipeline_model_parallel_size: null # interleaved pipeline

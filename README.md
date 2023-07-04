@@ -2403,6 +2403,10 @@ in `conf/training/gpt3/5b.yaml`. The parameters can be modified to adjust the
 hyperparameters of the training runs. All supported model types and sizes can be found
 in `conf/training` folder.
 
+We support  global batch size rampup during training. It can be set by changing `rampup_batch_size` parameter under the training config. Should be a list of 3 values: `[<start_batch_size>, <batch_size_increment>, <rampup_samples>]`<br>.
+Example: `rampup_batch_size=[256, 128, 50000000]`<br>.
+In case of using ramp up batch size, nodes scheduler will be created. It allows the use of a smaller number of nodes for smaller batch size stages. Nodes scheduler will be created automatically according to `training.trainer.num_nodes` parameter which corresponds to the maximum number of nodes you want to use for the maximum global batch size. Please, note that ramp up batch size only works with fused_adam optimizer for now.
+
 ##### 5.6.1.1. Slurm
 <a id="markdown-slurm" name="slurm"></a>
 

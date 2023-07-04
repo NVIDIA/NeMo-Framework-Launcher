@@ -14,7 +14,10 @@
 
 import copy
 import functools
-import os
+import glob, os
+import logging
+import json
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -43,6 +46,8 @@ class NemoMegatronStage:
         self.setup_stage_vars(cfg)
         self.job_name = self.stage_cfg.run.get("name")
 
+        self.nodes_scheduler = {}
+
     def setup_stage_vars(self, cfg: OmegaConf):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         raise NotImplementedError
@@ -58,6 +63,16 @@ class NemoMegatronStage:
         self.setup_folder_and_data()
         # Save stage hydra config
         job_path = self.get_job_path()
+
+        gpus = self.stage_cfg.get("trainer").get("devices")
+        if self.cfg.get('training').get('model').get('rampup_batch_size'):
+            self._find_optimal_nodes(self.cfg, gpus)
+            current_gbs = self._get_current_gbs(self.cfg)
+            nodes = self.nodes_scheduler[str(current_gbs)]
+            self.stage_cfg["trainer"]["num_nodes"] = nodes
+            self.cfg['training']["trainer"]["num_nodes"] = nodes
+            logging.info(f"global batch size and number of nodes will change following this schedule:\n {self.nodes_scheduler}")
+
         stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(self.stage_cfg, job_path)
         # Make cluster parameters
         cluster_parameters = self._make_cluster_parameters(self.cluster)
@@ -218,7 +233,6 @@ class NemoMegatronStage:
         """
         cfg = self.cfg
         stage_cfg = self.stage_cfg
-
         run_cfg = stage_cfg.get("run")
         job_name = run_cfg.get("name")
         time_limit = run_cfg.get("time_limit")
@@ -226,6 +240,7 @@ class NemoMegatronStage:
         dependency = run_cfg.get("dependency")
         if nodes is None:
             nodes = stage_cfg.get("trainer").get("num_nodes")
+        
         ntasks_per_node = run_cfg.get("ntasks_per_node")
         if ntasks_per_node is None:
             ntasks_per_node = stage_cfg.get("trainer").get("devices")
@@ -272,6 +287,70 @@ class NemoMegatronStage:
             cluster_parameters.update(shared_parameters)
 
         return cluster_parameters
+    
+    def _find_optimal_nodes(self, cfg, gpus) -> None:
+        nodes_scheduler_path = f"{cfg.get('training').get('run').get('results_dir')}/nodes_scheduler.json"
+
+        try:
+            with open(nodes_scheduler_path, 'r') as nodes_scheduler:
+                self.nodes_scheduler = json.load(nodes_scheduler)
+        except FileNotFoundError:
+            mbs = cfg.get('training').get('model').get('micro_batch_size')
+            gbs = cfg.get('training').get('model').get('global_batch_size')
+            rampup_bs = cfg.get('training').get('model').get('rampup_batch_size')
+            tp = cfg.get('training').get('model').get('tensor_model_parallel_size')
+            pp = cfg.get('training').get('model').get('pipeline_model_parallel_size')
+            num_nodes = cfg.get('training').get('trainer').get('num_nodes')
+            start_bs = rampup_bs[0]
+            increment = rampup_bs[1]
+
+            cbs = start_bs
+            rbs = [start_bs]
+            while cbs <= (gbs - increment):
+                rbs.append(rbs[-1] + increment)
+                cbs += increment
+
+            self.nodes_scheduler[str(gbs)] = num_nodes
+            for b in rbs[::-1][1:]:
+                optimal_lst = []
+                prev = int(min(list(self.nodes_scheduler.values())))
+                for nodes in range(1, prev + 1):
+                    dp = (gpus * nodes) // (tp * pp)
+                    if b % (mbs * dp) == 0 and b % (mbs * gpus * nodes) == 0 and nodes <= prev:
+                        optimal_lst.append(nodes)
+
+                self.nodes_scheduler[str(b)] = max(optimal_lst)
+            
+            sched_rbs = [int(i) for i in self.nodes_scheduler.keys()]
+            assert rbs[::-1] == sched_rbs, (
+                "please, make sure you enter the correct combination of"
+                " ramp up batch size and number of nodes"
+            )
+
+            with open(nodes_scheduler_path, 'w') as nodes_scheduler:
+                nodes_scheduler.write(json.dumps(self.nodes_scheduler))
+    
+    def _get_current_gbs(self, cfg):
+        start_bs = cfg.get('training').get('model').get('rampup_batch_size')[0]
+        results_dir = cfg.get('training').get('run').get('results_dir')
+        os.chdir(results_dir)
+        job_numbers = []
+
+        try:
+            for file in glob.glob("*.out"):
+                file = file.split('_')[-1].split('.')[0]
+                job_numbers.append(int(file))
+        
+            job_number = max(job_numbers)
+            last_job = glob.glob(f"*{job_number}.out")[0]
+            with open(last_job, 'r') as logs:
+                logs = logs.read()
+        
+            current_gbs = re.findall(r'global_batch_size=(\d+)', logs)[-1]
+        except:
+            current_gbs =  start_bs
+    
+        return current_gbs
 
     def get_env_vars(self) -> Dict:
         """
