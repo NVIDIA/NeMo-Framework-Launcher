@@ -12,6 +12,7 @@ generate_images: True
 compute_fid_scores: True
 compute_clip_scores: True
 plot_fid_clip: True
+clip_version: ViT-g-14
 
 fid:
   classifier_free_guidance:
