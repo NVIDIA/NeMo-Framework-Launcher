@@ -1519,6 +1519,7 @@ SR1024 model:
 | 600m_res_256  | 256        | 646                   | "t5-11b"                  | 64                   | 4096                            | BF16      | O1        | 544M                   | Resolution >= 256  | 1.23B                         |
 | 400m_res_256  | 256        | 429                   | "t5-11b"                  | 16                   | 2048                            | BF16      | O1        | 544M                   | Resolution >= 256  | 1.23B                         |
 | 600m_res_1024 | 1024       | 427                   | "t5-11b"                  | 64                   | 4096                            | BF16      | O1        | 39.5M                  | Resolution >= 1024 | 1.23B                         |
+
 To enable the training stage with Imagen, make sure:
 
 1. In the `defaults` section, update the `training` field to point to the desired Imagen configuration file.
