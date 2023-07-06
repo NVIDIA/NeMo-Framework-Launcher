@@ -1563,7 +1563,7 @@ Please note that the scripts provided by NVIDIA are optional to use, and they ma
 
 6.There is no guarantee that training Imagen for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the late stages of convergence.
 
-7.It is possible to increase the micro batch size for `500m_res_64` up to 112 and `2b_res_64` to 20. Throughput can be further optimized if using larger batch size.
+7.It is possible to increase the micro batch size for `500m_res_64` up to 112 and `2b_res_64` to 20, which can further optimize model throughput. We will investigate this in our future release
 
 ### 6.4. Checkpoint Conversion
 
