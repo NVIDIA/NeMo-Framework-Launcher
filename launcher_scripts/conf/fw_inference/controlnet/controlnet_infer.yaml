@@ -35,7 +35,7 @@ trainer:
   logger: False # logger provided by exp_manager
 
 model:
-  restore_from_path: ${base_results_dir}/${fw_inference.run.model_train_name}/convert_nemo/results/controlnet_v1-5.nemo
+  restore_from_path: ${base_results_dir}/${fw_inference.run.model_train_name}/convert_nemo/results/nemo-controlnet.nemo
   precision: ${fw_inference.trainer.precision}
-  strength: 2.0
+  strength: 1.0
   guess_mode: False

@@ -8,7 +8,7 @@ run:
   model_train_name: controlnet_v1-5
   train_dir: ${base_results_dir}/${.model_train_name}
   results_dir: ${.train_dir}/${.convert_name}
-  nemo_file_name: controlnet_v1-5.nemo # name of nemo checkpoint; must be .nemo file
+  nemo_file_name: nemo-controlnet.nemo # name of nemo checkpoint; must be .nemo file
 
 model:
   model_type: controlnet
