@@ -2950,11 +2950,11 @@ The tables and charts below show the performance results.
 
 | Model                     | Nodes | Global Batch | Micro Batch | Precision | Global Batch/Sec (A100) | Global Batch/Sec (H100) | Speedup (x) |
 |---------------------------|-------|--------------|-------------|-----------|------------------|------------------|-------------|
-| ImagenBase (500M, Res=64) |     4 |         4096 |         128 | bf16 (O1) |            1.198 |            2.364 |         2.0 |
-| ImagenBase (2B, Res=64)   |     4 |         4096 |         128 | bf16 (O1) |            1.269 |            2.514 |         2.0 |
-| ImagenSR (400M, Res=256)  |     4 |         4096 |         128 | bf16 (O1) |            1.213 |            2.247 |         1.9 |
-| ImagenSR (600M, Res=256)  |     4 |         4096 |         128 | bf16 (O1) |            1.007 |            1.885 |         1.9 |
-| ImagenSR (600M, Res=1024) |     4 |         1024 |          32 | bf16 (O1) |            1.006 |            1.830 |         1.8 |
+| ImagenBase (500M, Res=64) |     4 |         2048 |         64 | bf16 (O1) |            1.198 |            2.364 |         2.0 |
+| ImagenBase (2B, Res=64)   |     4 |         512 |         16 | bf16 (O1) |            1.269 |            2.514 |         2.0 |
+| ImagenSR (400M, Res=256)  |     4 |         512 |         16 | bf16 (O1) |            1.213 |            2.247 |         1.9 |
+| ImagenSR (600M, Res=256)  |     4 |         2048 |         64 | bf16 (O1) |            1.007 |            1.885 |         1.9 |
+| ImagenSR (600M, Res=1024) |     4 |         2048 |          64 | bf16 (O1) |            1.006 |            1.830 |         1.8 |
 
 <img src="img/Imagen Training Throughput Comparison.svg"/>
 
