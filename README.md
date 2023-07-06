@@ -1563,6 +1563,8 @@ Please note that the scripts provided by NVIDIA are optional to use, and they ma
 
 6.There is no guarantee that training Imagen for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the late stages of convergence.
 
+7.It is possible to increase the micro batch size for `500m_res_64` up to 112 and `2b_res_64` to 20. Throughput can be further optimized if using larger batch size.
+
 ### 6.4. Checkpoint Conversion
 
 We provide a convenient tool for converting checkpoints from the `.ckpt` format to the `.nemo` format. The `.nemo`
@@ -2924,7 +2926,7 @@ The tables and charts below show the performance results.
 
 <img src="img/ImagenBase (2B, Res=64) NeMo Megatron Throughput (A100).svg"/>
 
-- NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for Imagen Base 500M model)
+- NVIDIA DGX SuperPODs (64 x 8 x A100 80GB for Imagen Base 500M model)
 
 |                         |                                  |        |         |         | Nodes   |          |
 |-------------------------|----------------------------------|--------|---------|---------|---------|----------|
