@@ -2982,5 +2982,3 @@ Batch Size: Synonymous with `num_images_per_prompt`
 * Due to a [Lightning DDP limitation](https://github.com/Lightning-AI/lightning/issues/3325), the precaching module may
 drop about 0.01% to 0.1% of input data. The specific ratio will depend on the cluster configuration, tarfile chunk_size,
 precaching batch_size and dataset size, but will be consistent across runs. We anticipate that dropping a small percentage of data will not have a significant impact on model training.
-* The CLIP model trained with BF16 shows inconsistent predictions at FP32 precision (FP16/BF16 predictions are correct though).
-
