@@ -9,3 +9,5 @@ rm_extracted: True
 tokenizer_type: null
 vocab_save_dir: null
 merges_save_dir: null
+tokenizer_library: null
+tokenizer_model: null

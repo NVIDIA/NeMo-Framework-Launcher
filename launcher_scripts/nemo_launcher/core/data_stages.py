@@ -252,6 +252,8 @@ class PileDataPreparation(DataStage):
             rm_downloaded=self.stage_cfg.get("rm_downloaded"),
             rm_extracted=self.stage_cfg.get("rm_extracted"),
             tokenizer_type=self.stage_cfg.get("tokenizer_type"),
+            tokenizer_library=self.stage_cfg.get("tokenizer_library", "megatron"),
+            tokenizer_model=self.stage_cfg.get("tokenizer_model", None),
             vocab_save_dir=self.stage_cfg.get("vocab_save_dir"),
             merges_save_dir=self.stage_cfg.get("merges_save_dir"),
         )
