@@ -176,6 +176,15 @@ class PileDataPreparation(DataStage):
         download_merges_url = data_cfg.get("download_merges_url")
         vocab_save_dir = data_cfg.get("vocab_save_dir")
         merges_save_dir = data_cfg.get("merges_save_dir")
+        download_tokenizer_url = data_cfg.get("download_tokenizer_url")
+        tokenizer_save_dir = data_cfg.get("tokenizer_save_dir")
+
+        if download_tokenizer_url is not None:
+            assert tokenizer_save_dir is not None, "tokenizer_save_dir must be a valid path."
+            download_single_file(
+                url=download_tokenizer_url, save_dir=tokenizer_save_dir, file_name="llama_tokenizer.model",
+            )
+
         # Download vocab
         if download_vocab_url is not None:
             assert vocab_save_dir is not None, "vocab_save_dir must be a valid path."

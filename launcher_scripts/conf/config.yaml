@@ -2,7 +2,7 @@ defaults:
   - _self_
   - cluster: bcm  # Leave it as bcm even if using bcp. It will be ignored for bcp.
   - data_preparation: llama/download_llama_pile
-  - training: gpt3/5b
+  - training: llama/30b
   - conversion: gpt3/convert_gpt3
   - fine_tuning: null
   - prompt_learning: null
@@ -20,8 +20,8 @@ hydra:
 debug: False
 
 stages:
-  - data_preparation
-    #- training
+        #- data_preparation
+  - training
     #- conversion
     #- evaluation
     #- export
@@ -34,7 +34,7 @@ container_mounts: # List of additional paths to mount to container. They will be
   - null
 container: nvcr.io/ea-bignlp/nemofw-training:23.05-py3
 
-wandb_api_key_file: null  # File where the w&B api key is stored. Key must be on the first line.
+wandb_api_key_file: /lustre/fsw/devtech/hpc-devtech/hongbinl/nemo_megatron/NeMo-Megatron-Launcher/wandb_api_key  # File where the w&B api key is stored. Key must be on the first line.
 
 env_vars:
   NCCL_TOPO_FILE: null # Should be a path to an XML file describing the topology

@@ -620,6 +620,7 @@ class Training(NeMoStage):
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_pretraining.py",
             "mt5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_pretraining.py",
             "gpt3": self._nemo_code_path / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "llama": self._nemo_code_path / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "bert": self._nemo_code_path / "examples/nlp/language_modeling/megatron_bert_pretraining.py",
         }
         return model_type_to_code_path[model_type]
@@ -683,7 +684,7 @@ class FineTuning(NeMoStage):
         :return: path current stage's essential nemo scripts code 
         :rtype: Path
         """
-        if model_type == "gpt3":
+        if model_type == "gpt3" or model_type == "llama":
             raise NotImplementedError("Fine-tuning is not supported in NeMo Megatron GPT-3 models.")
         model_type_to_code_path = {
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
@@ -725,6 +726,7 @@ class PromptLearning(NeMoStage):
         """
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
+            "llama": self._nemo_code_path / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
             "mt5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
         }
@@ -748,6 +750,7 @@ class AdapterLearning(PromptLearning):
         """
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
+            "llama": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py",
         }
         return model_type_to_code_path[model_type]
@@ -770,6 +773,7 @@ class IA3Learning(PromptLearning):
         """
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
+            "llama": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_t5_ia3_tuning.py",
         }
         return model_type_to_code_path[model_type]
