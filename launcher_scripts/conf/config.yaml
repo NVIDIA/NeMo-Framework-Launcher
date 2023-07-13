@@ -3,7 +3,7 @@ defaults:
   - cluster: bcm  # Leave it as bcm even if using bcp. It will be ignored for bcp.
   - data_preparation: llama/download_llama_pile
   - training: llama/30b
-  - conversion: gpt3/convert_gpt3
+  - conversion: llama/convert_llama
   - fine_tuning: null
   - prompt_learning: null
   - adapter_learning: null
@@ -21,8 +21,8 @@ debug: False
 
 stages:
         #- data_preparation
-  - training
-    #- conversion
+        #- training
+  - conversion
     #- evaluation
     #- export
 
