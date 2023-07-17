@@ -920,7 +920,7 @@ class NeMoEvaluation(NeMoStage):
             calculation_command = " \\\n  ".join(calculation_command)
         elif choice_name == "squad":
             output_file_path_prefix = self.stage_cfg.model.data.validation_ds.get("output_file_path_prefix")
-            pred_file_path = output_file_path_prefix + "_validation_dataloader0_inputs_preds_labels.json"
+            pred_file_path = output_file_path_prefix + "_validation_dataloader0_inputs_preds_labels.jsonl"
             ground_truth_file_path = self.stage_cfg.model.data.validation_ds.get("ground_truth_file_path")
             code_path = (
                 self._launcher_scripts_path / "nemo_launcher/collections/metric_calculation/fine_tuning_metric_calc.py"
