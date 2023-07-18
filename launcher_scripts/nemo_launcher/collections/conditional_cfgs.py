@@ -39,18 +39,15 @@ def get_ub_cfg_file(cfg):
         device_name = "a100"
     elif cuda_capability == 9:
         device_name = "h100"    
+    else:
+        raise ValueError("UB TP overlap is not supported for this device type.")
     ub_cfg_path = cfg.get("ub_cfg_path")
     tp_size = cfg.get("tp_size")
     hidden_size = cfg.get("hidden_size")
     mb_size = cfg.get("mb_size")
     seqlen = cfg.get("seqlen")
-    cfg_file_name =  f"ub_cfg_{device_name}_h{hidden_size}_tp{tp_size}_mbs{mb_size}_seqlen{seqlen}.yaml"
-    cfg_file = os.path.join(ub_cfg_path, cfg_file_name)
-
-    if os.path.isfile(cfg_file):
-        print(f"{cfg_file}")
-    else:
-        print(f"null")
+    ub_cfg_name =  f"ub_cfg_{device_name}_h{hidden_size}_tp{tp_size}_mbs{mb_size}_seqlen{seqlen}"
+    print(f"{ub_cfg_name}")
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="get_ln_sm_margin")
