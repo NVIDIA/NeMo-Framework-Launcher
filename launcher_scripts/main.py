@@ -43,7 +43,7 @@ STR2STAGECLASS = {
     "conversion": Conversion,
     "export": Export,
     "evaluation": {
-        EvalHarnessEvaluation: ["gpt3", "prompt_gpt3"],
+        EvalHarnessEvaluation: ["gpt3", "prompt_gpt3", "llama", "prompt_llama"],
         NeMoEvaluation: ["t5", "mt5", "prompt_t5", "prompt_mt5", "adapter_t5", "adapter_gpt3", "ia3_t5", "ia3_gpt3"],
     },
     "data_preparation": {

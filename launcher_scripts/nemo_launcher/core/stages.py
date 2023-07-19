@@ -213,8 +213,9 @@ class NemoMegatronStage:
 
         cfg = self.cfg
         data_dir = cfg.get("data_dir")
+        nemo_dir = cfg.get("nemo_dir")
         base_results_dir = cfg.get("base_results_dir")
-        mounts_string = f"{self._launcher_scripts_path}:{self._launcher_scripts_path},{data_dir}:{data_dir},{base_results_dir}:{base_results_dir}"
+        mounts_string = f"{self._launcher_scripts_path}:{self._launcher_scripts_path},{data_dir}:{data_dir},{base_results_dir}:{base_results_dir},{nemo_dir}:{nemo_dir}"
 
         container_mounts = cfg.get("container_mounts")
         mounts_string += add_container_mounts(container_mounts)
@@ -382,7 +383,7 @@ class NemoMegatronStage:
 
     @property
     def _nemo_code_path(self) -> Path:
-        return Path("/opt/NeMo")
+        return Path(self.cfg.get("nemo_dir", "/opt/NeMo"))
 
     @property
     def _data_dir(self) -> Path:
@@ -976,7 +977,8 @@ class EvalHarnessEvaluation(NemoMegatronStage):
     def __init__(self, cfg):
         super().__init__(cfg)
         choice_model_type, choice_name = self.get_stage_config_choice()
-        self.prompt_evaluation = choice_model_type == "prompt_gpt3"
+        #self.prompt_evaluation = choice_model_type == "prompt_gpt3"
+        self.prompt_evaluation = True if "prompt" in choice_model_type else False
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
@@ -1053,6 +1055,7 @@ class EvalHarnessEvaluation(NemoMegatronStage):
                 nemo_model=model_cfg.get("nemo_model"),
                 checkpoint_folder=model_cfg.get("checkpoint_folder"),
                 checkpoint_name=model_cfg.get("checkpoint_name"),
+                tokenizer_model=model_cfg.get("tokenizer_model"),
                 hparams_file=model_cfg.get("hparams_file"),
             )
 

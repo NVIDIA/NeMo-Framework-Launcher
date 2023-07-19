@@ -23,7 +23,7 @@ Example usage:
 import os
 from argparse import ArgumentParser
 
-default_link = "https://github.com/databrickslabs/dolly/raw/master/data/databricks-dolly-15k.jsonl"
+default_link = "https://huggingface.co/datasets/databricks/databricks-dolly-15k/resolve/main/databricks-dolly-15k.jsonl"
 
 def get_file_name(link):
     file_name = link.split('/')[-1]

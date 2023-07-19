@@ -2,13 +2,14 @@ defaults:
   - _self_
   - cluster: bcm  # Leave it as bcm even if using bcp. It will be ignored for bcp.
   - data_preparation: llama/download_llama_pile
-  - training: llama/30b
+  - training: llama/7b
   - conversion: llama/convert_llama
   - fine_tuning: null
-  - prompt_learning: null
-  - adapter_learning: null
-  - ia3_learning: null
-  - evaluation: gpt3/evaluate_all
+  - prompt_learning: llama/squad
+  - adapter_learning: llama/squad
+  - ia3_learning: llama/squad
+    #- evaluation: llama/evaluate_all
+  - evaluation: prompt_llama/squad
   - export: gpt3/export_gpt3
   - override hydra/job_logging: stdout
 
@@ -20,15 +21,19 @@ hydra:
 debug: False
 
 stages:
-        #- data_preparation
-        #- training
+  #- data_preparation
+  #- training
   - conversion
-    #- evaluation
-    #- export
+  #- prompt_learning
+  #- adapter_learning
+  #- ia3_learning
+  #- evaluation
+  #- export
 
 cluster_type: bcm  # bcm or bcp. If bcm, it must match - cluster above.
 launcher_scripts_path: /lustre/fsw/devtech/hpc-devtech/hongbinl/nemo_megatron/scripts/support_llama/NeMo-Megatron-Launcher/launcher_scripts  # Path to NeMo Megatron Launch scripts, should ends with /launcher_scripts
 data_dir: ${launcher_scripts_path}/data  # Location to store and read the data.
+nemo_dir: /lustre/fsw/devtech/hpc-devtech/hongbinl/nemo_megatron/nemo_repo/internal/NeMo
 base_results_dir: ${launcher_scripts_path}/results  # Location to store the results, checkpoints and logs.
 container_mounts: # List of additional paths to mount to container. They will be mounted to same path.
   - null
