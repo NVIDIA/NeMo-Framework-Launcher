@@ -446,7 +446,7 @@ def _make_sbatch_string(
     job_name: str = "nemo_launcher",
     partition: Optional[str] = None,
     time: int = 5,
-    nodes: int = 1,
+    nodes: int = 1, #TODO: list of integers
     ntasks_per_node: Optional[int] = None,
     cpus_per_task: Optional[int] = None,
     cpus_per_gpu: Optional[int] = None,
