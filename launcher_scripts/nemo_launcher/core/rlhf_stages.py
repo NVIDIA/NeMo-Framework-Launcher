@@ -27,7 +27,7 @@ from nemo_launcher.utils.job_utils import JobPaths
 from omegaconf import OmegaConf
 from nemo_launcher.core.stages import NeMoStage, clean_command_groups
 
-class TrainingRM(NeMoStage):
+class RLHFRewardModel(NeMoStage):
     """Stage class of rlhf_rm with NeMo scripts"""
 
     def setup_stage_vars(self, cfg):
@@ -45,11 +45,11 @@ class TrainingRM(NeMoStage):
         :rtype: Path
         """
         model_type_to_code_path = {
-            "gpt3": self._nemo_code_path / "examples/nlp/gpt/train_reward_model.py",
+            "gpt3": self._rlhf_code_path / "examples/nlp/gpt/train_reward_model.py",
         }
         return model_type_to_code_path[model_type]
 
-class TrainingPPO(NeMoStage):
+class RLHFPPO(NeMoStage):
     """Stage class of rlhf_rm with NeMo scripts"""
 
     def setup_stage_vars(self, cfg):
@@ -157,10 +157,10 @@ class TrainingPPO(NeMoStage):
         command_groups = []
         subcfg_list = ["reward_model_server", "initial_policy_server", "critic_server", "actor"]
         code_path_list = [
-            self._nemo_code_path / "examples/nlp/gpt/serve_reward_model.py",
-            self._nemo_code_path / "examples/nlp/gpt/serve_initial_policy.py",
-            self._nemo_code_path / "examples/nlp/gpt/serve_ppo_critic.py",
-            self._nemo_code_path / "examples/nlp/gpt/train_gpt_ppo_actor.py",
+            self._rlhf_code_path / "examples/nlp/gpt/serve_reward_model.py",
+            self._rlhf_code_path / "examples/nlp/gpt/serve_initial_policy.py",
+            self._rlhf_code_path / "examples/nlp/gpt/serve_ppo_critic.py",
+            self._rlhf_code_path / "examples/nlp/gpt/train_gpt_ppo_actor.py",
         ]
 
         for i, code_path in enumerate(code_path_list):
