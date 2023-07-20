@@ -10,8 +10,8 @@ defaults:
   - ia3_learning: null
   - evaluation: gpt3/evaluate_all
   - export: gpt3/export_gpt3
-  - rlhf_rm: training, similar to diffusion model training stage, easy to do -> gpt3/2b_rm
-  - rlhf_ppo: needs some changes, mostly regarding slurm params. -> gpt3/2b_ppo
+  - rlhf_rm: gpt3/2b_rm
+  - rlhf_ppo: gpt3/2b_ppo
   - override hydra/job_logging: stdout
 
 hydra:

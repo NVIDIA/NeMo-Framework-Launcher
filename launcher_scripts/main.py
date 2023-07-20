@@ -29,6 +29,7 @@ from nemo_launcher.core.stages import (
     PromptLearning,
     Training,
 )
+from nemo_launcher.core.rlhf_stages import TrainingRM, TrainingPPO
 
 omegaconf.OmegaConf.register_new_resolver("multiply", lambda x, y: x * y, replace=True)
 omegaconf.OmegaConf.register_new_resolver("divide_ceil", lambda x, y: int(math.ceil(x / y)), replace=True)
@@ -51,6 +52,8 @@ STR2STAGECLASS = {
         MC4DataPreparation: ["mt5"],
         CustomDataPreparation: ["generic"],
     },
+    "rlhf_rm": TrainingRM,
+    "rlhf_ppo": TrainingPPO,
 }
 
 

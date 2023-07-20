@@ -1,47 +1,39 @@
+# Copyright (c) 2023, NVIDIA CORPORATION.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
+import copy
+import functools
+import glob, os
+import logging
+import json
+import re
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-class Training(NeMoStage):
-    """Stage class of pretraining with NeMo scripts"""
+import omegaconf
+from nemo_launcher.core.launchers import AutoLauncher
+from nemo_launcher.utils.job_utils import JobPaths
+from omegaconf import OmegaConf
+from nemo_launcher.core.stages import NeMoStage, clean_command_groups
+
+class TrainingRM(NeMoStage):
+    """Stage class of rlhf_rm with NeMo scripts"""
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
-        self.stage_name = "training"
-        self.stage_cfg = cfg.get("training")
-
-    def _make_hydra_override(self) -> List:
-        """
-        Override some existing hydra configurations if necessary.
-        Example use cases are:
-            1. For bcp cluster, `+rank=\${RANK}` is required running some NeMo scripts.
-                Existing hydra config doesn't have `rank` field, so we overwrite on the fly.
-            2. Auto blend training dataset by overwriting empty `model.data.data_prefix` as
-                `model.data.data_prefix=\$({auto_blend_command})`. Existing `model.data.data_prefix`
-                could be None in cfg, so we overwrite it in this function.
-
-        :return: hydra override string added in nemo script calling
-        :rtype: str
-        """
-        hydra_override = []
-        choice_model_type, choice_name = self.get_stage_config_choice()
-        if self.cluster == "bcp":
-            hydra_override += ["+rank=\${RANK}"]
-        if self.stage_cfg.model.data.get("data_prefix", None) is None:
-            preprocessed_dir = self.stage_cfg.run.get("preprocessed_dir")
-            blending_alpha = self.stage_cfg.run.get("blending_alpha")
-            auto_blend_command = (
-                f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/auto_blend.py'} "
-                f"model_type={choice_model_type} "
-                f"preprocessed_dir={preprocessed_dir} "
-                f"blending_alpha={blending_alpha}"
-            )
-            hydra_override += [f"model.data.data_prefix=\$({auto_blend_command})"]
-        if self.stage_cfg.model.get("ub_tp_comm_overlap", False):
-            get_ub_cfg_file_command = self._get_ub_cfg_file()
-            hydra_override += [f"+model.ub_tp_comm_overlap_cfg=\$({get_ub_cfg_file_command})"]
-        if self.stage_cfg.model.get("gc_interval", 0) > 1:
-            gc_interval = min(self.stage_cfg.model.get("gc_interval"), self.cfg.training.trainer.get("val_check_interval"))
-            hydra_override += [f"model.gc_interval={gc_interval}"]
-        return hydra_override
+        self.stage_name = "rlhf_rm"
+        self.stage_cfg = cfg.get("rlhf_rm")
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
         """
@@ -53,30 +45,149 @@ class Training(NeMoStage):
         :rtype: Path
         """
         model_type_to_code_path = {
-            "t5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_pretraining.py",
-            "mt5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_pretraining.py",
-            "gpt3": self._nemo_code_path / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
-            "bert": self._nemo_code_path / "examples/nlp/language_modeling/megatron_bert_pretraining.py",
+            "gpt3": self._nemo_code_path / "examples/nlp/gpt/train_reward_model.py",
         }
         return model_type_to_code_path[model_type]
 
-    def _get_ub_cfg_file(self) -> str:
-        """
-        Spawn the script to search UB configuration file
-        """
-        tp_size = self.stage_cfg.model.get("tensor_model_parallel_size")
-        hidden_size = self.stage_cfg.model.get("hidden_size")
-        mb_size = self.stage_cfg.model.get("micro_batch_size")
-        seqlen = self.stage_cfg.model.get("encoder_seq_length")
-        ub_cfg_path = os.path.join(self._launcher_scripts_path, "launcher_scripts/conf/training/gpt3/ub-confs")
+class TrainingPPO(NeMoStage):
+    """Stage class of rlhf_rm with NeMo scripts"""
 
-        get_ub_cfg_file_command = (
-            f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/conditional_cfgs.py'} "
-            f"name=get_ub_cfg_file "
-            f"ub_cfg_path={ub_cfg_path} "
-            f"tp_size={tp_size} "
-            f"hidden_size={hidden_size} "
-            f"mb_size={mb_size} "
-            f"seqlen={seqlen}"
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "rlhf_ppo"
+        self.stage_cfg = cfg.get("rlhf_ppo")
+
+    def get_env_vars(self) -> Dict:
+        """
+        Set up dictionary for environment variables
+        The environment variables from hydra config will be set inside the job scripts.
+        For Example:
+            Set `env_vars.NVTE_BIAS_DROPOUT_FUSION=1` while calling nemo_launcherlauncher-scripts,
+            `NVTE_BIAS_DROPOUT_FUSION=1` will be set while running the job.
+
+        :return: a dictionary of env vars while running the job.
+        :rtype: Dict
+        """
+        env_vars = {k: v for k, v in self.cfg.get("env_vars").items() if v is not None}
+        return env_vars
+
+    def _make_cluster_parameters(self, cluster: str) -> Dict:
+        """
+        Make a cluster-specific parameters for jobs on different clusters.
+        Current clusters include bcm(slurm).
+        For example for bcm, it will return slurm parameters:
+            {'job_name': 'some_name', 'nodes': 2, 'ntasks_per_node': 8, ...}
+
+        :return: a dictionary of cluster parameters, e.g. `ntasks_per_node`
+        :rtype: Dict
+        """
+        cfg = self.cfg
+        stage_cfg = self.stage_cfg
+        run_cfg = stage_cfg.get("run")
+        time_limit = run_cfg.get("time_limit")
+        dependency = run_cfg.get("dependency")
+        subcfg_list = ["reward_model_server", "initial_policy_server", "critic_server", "actor"]
+
+        job_name = run_cfg.get("name")
+
+        nodes = []
+        for subcfg in subcfg_list:
+            nodes.append(stage_cfg.get(subcfg).get("trainer").get("num_nodes"))
+
+        ntasks_per_node = []
+        for subcfg in subcfg_list:
+            ntasks_per_node.append(stage_cfg.get(subcfg).get("trainer").get("devices"))
+
+        container_image = cfg.get("container")
+        container_mounts = self._make_container_mounts_string()
+
+        setup = None
+        env_vars = self.get_env_vars()
+        if env_vars:
+            setup = [f"export {k}={v}" for k, v in env_vars.items()]
+
+        cluster_parameters = {}
+        shared_parameters = {
+            "job_name": job_name,
+            "nodes": nodes,
+            "time": time_limit,
+            "ntasks_per_node": ntasks_per_node,
+            "setup": setup,
+            "heterogeneous": True,
+        }
+        if cluster == "bcm":
+            cluster_cfg = cfg.get("cluster")
+            slurm_cfg = {**copy.deepcopy(cluster_cfg)}
+            job_name_prefix = slurm_cfg.pop("job_name_prefix")
+            cluster_parameters = {**slurm_cfg}
+            cluster_parameters.update(
+                {
+                    **shared_parameters,
+                    "dependency": dependency,
+                    "container_image": container_image,
+                    "container_mounts": container_mounts,
+                }
+            )
+            cluster_parameters["job_name"] = job_name_prefix + cluster_parameters["job_name"]
+
+        return cluster_parameters
+
+    def _cuda_visible_devices(self, cfg_name) -> str:
+        ntasks_per_node = self.stage_cfg.run.get("ntasks_per_node")
+        if ntasks_per_node is None:
+            ntasks_per_node = self.stage_cfg.get(cfg_name).trainer.get("devices", 1)
+        return (
+            "CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7"
+            if ntasks_per_node == 8
+            else f"CUDA_VISIBLE_DEVICES={','.join(map(str, range(ntasks_per_node)))}"
         )
-        return get_ub_cfg_file_command
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """
+        Make the command groups for current stage
+        Command groups is a list of command group. A command group is defined as:
+              0. Command group is a list of command strings
+              1. Each command group occupies one bcprun, srun or bash
+              2. Each command group eventually has multiple commands connected by ";"
+
+        :param Path stage_cfg_path: path to interpolated and saved configuration
+        :return: command groups for current stage
+        :rtype: List[List[str]]
+        """
+        command_groups = []
+        subcfg_list = ["reward_model_server", "initial_policy_server", "critic_server", "actor"]
+        code_path_list = [
+            self._nemo_code_path / "examples/nlp/gpt/serve_reward_model.py",
+            self._nemo_code_path / "examples/nlp/gpt/serve_initial_policy.py",
+            self._nemo_code_path / "examples/nlp/gpt/serve_ppo_critic.py",
+            self._nemo_code_path / "examples/nlp/gpt/train_gpt_ppo_actor.py",
+        ]
+
+        for i, code_path in enumerate(code_path_list):
+            command = self._make_wandb_login_command()
+            command += self._make_nemo_path_command()
+            core_command = [
+                self._cuda_device_max_connections,
+                self._cuda_visible_devices(subcfg_list[i]),
+                self._set_ln_sm_margin,
+                self._skip_ag_overlap,
+                self._nvte_bias_gelu_nvfusion,
+            ]
+            nemo_cammnd = [
+                f"python3 -u {code_path} ",
+                f"--config-path={stage_cfg_path.parents[0]}",
+                f"--config-name={stage_cfg_path.name}",
+            ]
+            nemo_call_string = " \\\n  ".join(nemo_cammnd)
+            core_command += [
+                self._make_api_log_command_prefix(results_dir=self.get_job_path().results_folder),
+                self._make_nsys_command_prefix(results_dir=self.get_job_path().results_folder),
+                nemo_call_string,
+            ]
+            core_command_string = " ".join([c for c in core_command if c])
+            command += [core_command_string]
+            command_groups.append(command)
+
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
