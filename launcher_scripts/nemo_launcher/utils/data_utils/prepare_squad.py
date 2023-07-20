@@ -46,8 +46,9 @@ def prepare_squad_for_fine_tuning(data_dir):
     }
 
     for path, dev in path2dev.items():
-        if not os.path.exists(f"{os.path.splitext(path)[0]}_src.txt") or not os.path.exists(
-            f"{os.path.splitext(path)[0]}_tgt.txt"
+        if (not os.path.exists(f"{os.path.splitext(path)[0]}_src.txt") or 
+            not os.path.exists(f"{os.path.splitext(path)[0]}_tgt.txt") or
+            not os.path.exists(f"{os.path.splitext(path)[0]}_gpt.json")
         ):
             preprocess_squad_for_fine_tuning(
                 fname=path, out_fname_prefix=os.path.splitext(path)[0], dev=dev,
