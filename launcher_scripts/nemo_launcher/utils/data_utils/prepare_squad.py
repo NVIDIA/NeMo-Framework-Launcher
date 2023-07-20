@@ -55,9 +55,7 @@ def prepare_squad_for_fine_tuning(data_dir):
 
 
 def preprocess_squad_for_fine_tuning(fname, out_fname_prefix, dev=False):
-    TOKEN_START = "<extra_id_1>"
-    TOKEN_END = "<extra_id_2>"
-    
+
     x = json.load(open(fname, encoding='utf8'))
     print(f"Preprocessing \"{fname}\" for fine-tuning...")
     if (os.path.exists(f'{out_fname_prefix}_src.txt') and 
@@ -80,7 +78,7 @@ def preprocess_squad_for_fine_tuning(fname, out_fname_prefix, dev=False):
                             f_src.write(f"Title: {title} Paragraph: {context} Question: {question}\n")
                             f_tgt.write(f"{answer}\n")
                             
-                            input_text = question + TOKEN_START + title + " Paragraph: " + context
+                            input_text = f"{question} {title} Paragraph: {context}"
                             gpt_sample = {"input" : input_text, "output" : answer}
                             gpt_sample = json.dumps(gpt_sample)
                             f_gpt.write(f"{gpt_sample}\n")
@@ -91,7 +89,7 @@ def preprocess_squad_for_fine_tuning(fname, out_fname_prefix, dev=False):
                                 f_src.write(f"Title: {title} Paragraph: {context} Question: {question}\n")
                                 f_tgt.write(f"{answer}\n")
                                 
-                                input_text = question + TOKEN_START + title + " Paragraph: " + context                          
+                                input_text = f"{question} {title} Paragraph: {context}"                        
                                 gpt_sample = {"input" : input_text, "output" : answer}
                                 gpt_sample = json.dumps(gpt_sample)
                                 f_gpt.write(f"{gpt_sample}\n")
