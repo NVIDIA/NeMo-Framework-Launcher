@@ -446,8 +446,8 @@ def _make_sbatch_string(
     job_name: str = "nemo_launcher",
     partition: Optional[str] = None,
     time: int = 5,
-    nodes: int = 1, #TODO: list of integers
-    ntasks_per_node: Optional[int] = None,
+    nodes: Union[int, List[int]] = 1,
+    ntasks_per_node: Optional[Union[int, List[int]]] = None,
     cpus_per_task: Optional[int] = None,
     cpus_per_gpu: Optional[int] = None,
     num_gpus: Optional[int] = None,  # legacy
@@ -471,6 +471,7 @@ def _make_sbatch_string(
     container_mounts: Optional[str] = None,
     additional_parameters: Optional[Dict[str, Any]] = None,
     srun_args: Optional[Iterable[str]] = None,
+    heterogeneous: bool = False,
 ) -> str:
     """Creates the content of an sbatch file with provided parameters
 
@@ -510,6 +511,7 @@ def _make_sbatch_string(
         "container_image",
         "container_mounts",
         "srun_args",
+        "heterogeneous",
     ]
     parameters = {k: v for k, v in locals().items() if v is not None and k not in nonslurm}
     # rename and reformat parameters
@@ -541,8 +543,26 @@ def _make_sbatch_string(
         parameters.update(additional_parameters)
     # now create
     lines = ["#!/bin/bash", "", "# Parameters"]
-    for k in sorted(parameters):
-        lines.append(_as_sbatch_flag(k, parameters[k]))
+    if heterogeneous:
+        for i in range(len(nodes)):
+            het_parameters = parameters.copy()
+            het_parameters["output"] = parameters["output"].replace("_%j", f"_{i}_%j")
+            if "error" in parameters:
+                het_parameters["error"] = parameters["error"].replace("_%j", f"_{i}_%j")
+            het_parameters.update(
+                {
+                    "job_name": f"{job_name}_{i}",
+                    "nodes": nodes[i],
+                    "ntasks_per_node": ntasks_per_node[i],
+                }
+            )
+            for k in sorted(parameters):
+                lines.append(_as_sbatch_flag(k, het_parameters[k]))
+            if i != len(nodes) -1:
+                lines.append(f"#SBATCH hetjob")
+    else:
+        for k in sorted(parameters):
+            lines.append(_as_sbatch_flag(k, parameters[k]))
     # environment setup:
     if setup is not None:
         lines += ["", "# setup"] + setup
@@ -572,15 +592,35 @@ def _make_sbatch_string(
         ]
 
     for group_ind, command_group in enumerate(command_groups):
-        srun_cmd = shlex.join(["srun", "--output", stdout, *stderr_flags, *container_flags, *srun_args])
-        command = ";\n  ".join(command_group)
-        lines += [
-            "",
-            f"# command {group_ind + 1}",
-            f"{srun_cmd} bash -c \"",
-            f"  {command} \"",
-            "",
-        ]
+        if heterogeneous:
+            het_group = f"--het-group={group_ind}"
+            het_stdout = stdout.replace("_%j", f"_{group_ind}_%j")
+            het_stderr = stderr_flags.copy()
+            if het_stderr:
+                het_stderr[-1] = het_stderr[-1].replace("_%j", f"_{group_ind}_%j")
+            srun_cmd = shlex.join(["srun", "--output", het_stdout, *het_stderr, *container_flags, *srun_args, het_group])
+            command = ";\n  ".join(command_group)
+            lines += [
+                "",
+                f"# command {group_ind + 1}",
+                f"{srun_cmd} bash -c \"",
+                f"  {command} \" &",
+                "",
+            ]
+            if group_ind == len(nodes) - 1:
+                lines += ["wait"]
+            else:
+                lines += ["sleep 30"]
+        else:
+            srun_cmd = shlex.join(["srun", "--output", stdout, *stderr_flags, *container_flags, *srun_args])
+            command = ";\n  ".join(command_group)
+            lines += [
+                "",
+                f"# command {group_ind + 1}",
+                f"{srun_cmd} bash -c \"",
+                f"  {command} \"",
+                "",
+            ]
     return "\n".join(lines)
 
 
