@@ -55,14 +55,19 @@ def prepare_squad_for_fine_tuning(data_dir):
 
 
 def preprocess_squad_for_fine_tuning(fname, out_fname_prefix, dev=False):
+    TOKEN_START = "<extra_id_1>"
+    TOKEN_END = "<extra_id_2>"
+    
     x = json.load(open(fname, encoding='utf8'))
     print(f"Preprocessing \"{fname}\" for fine-tuning...")
-    if os.path.exists(f'{out_fname_prefix}_src.txt') and os.path.exists(f'{out_fname_prefix}_tgt.txt'):
+    if (os.path.exists(f'{out_fname_prefix}_src.txt') and 
+        os.path.exists(f'{out_fname_prefix}_tgt.txt') and 
+        os.path.exists(f'{out_fname_prefix}_gpt.json')):
         print(f"Skipped! Fine-tuning data existed at \"{out_fname_prefix}*.txt\"")
         if NEMO_LAUNCHER_CI:
             time.sleep(5)
         return
-    with open(f'{out_fname_prefix}_src.txt', 'w') as f_src, open(f'{out_fname_prefix}_tgt.txt', 'w') as f_tgt:
+    with open(f'{out_fname_prefix}_src.txt', 'w') as f_src, open(f'{out_fname_prefix}_tgt.txt', 'w') as f_tgt, open(f'{out_fname_prefix}_gpt.json', 'w') as f_gpt:
         for i in x['data']:
             title = i['title'].replace('\n', '\\n')
             for j in i['paragraphs']:
@@ -74,9 +79,24 @@ def preprocess_squad_for_fine_tuning(fname, out_fname_prefix, dev=False):
                             answer = k['answers'][0]['text'].replace('\n', '\\n')
                             f_src.write(f"Title: {title} Paragraph: {context} Question: {question}\n")
                             f_tgt.write(f"{answer}\n")
+                            
+                            input_text = question + TOKEN_START + title + " Paragraph: " + context
+                            gpt_sample = {"input" : input_text, "output" : answer}
+                            gpt_sample = json.dumps(gpt_sample)
+                            f_gpt.write(f"{gpt_sample}\n")
+                            
                         else:
                             for a in k['answers']:
                                 answer = a['text'].replace('\n', '\\n')
                                 f_src.write(f"Title: {title} Paragraph: {context} Question: {question}\n")
                                 f_tgt.write(f"{answer}\n")
-    print(f"Completed! Fine-tuning data saved at \"{out_fname_prefix}*.txt\"")
+                                
+                                input_text = question + TOKEN_START + title + " Paragraph: " + context                          
+                                gpt_sample = {"input" : input_text, "output" : answer}
+                                gpt_sample = json.dumps(gpt_sample)
+                                f_gpt.write(f"{gpt_sample}\n")
+                                                            
+    print(f"Completed! Fine-tuning data saved at:")
+    print(f"- \"{out_fname_prefix}_src.txt\"")
+    print(f"- \"{out_fname_prefix}_tgt.txt\"")
+    print(f"- \"{out_fname_prefix}_gpt.txt\"")
