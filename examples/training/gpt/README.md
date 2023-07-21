@@ -8,15 +8,26 @@ These scripts run a recommended config for GPT pretraining, for 5b and 20b model
 : Scripts to run GPT pretraining for NVIDIA H100, in fp8 data type
 
 #### Setup
-1. Update the following bash variables in the example run scripts:
+1. To run these scripts, you must have access to the nemo bignlp container (like nvcr.io/ea-bignlp/nemofw-training:23.xx-py3)
+     - If you don't have access, please signup at https://developer.nvidia.com/nemo-framework-open-beta
+       
+2. Update the following bash variables in the example run scripts:
      - ``` NEMO_MEGATRON_LAUNCHER_DIR ``` : the directory of where this repository is located
 
      - ``` DATA_DIR ``` : the directory of the dataset used for pretraining, by default this is ``` NEMO_MEGATRON_LAUNCHER_DIR/data ```
 
-2. Enter your cluster enviroment settings at 
+3. Enter your cluster enviroment settings at 
   [config.yaml](https://github.com/NVIDIA/NeMo-Megatron-Launcher/blob/master/launcher_scripts/conf/config.yaml)
     
     For bcm type clusters update the job name, partition, and account at [bcm.yaml]( https://github.com/NVIDIA/NeMo-Megatron-Launcher/blob/master/launcher_scripts/conf/cluster/bcm.yaml)
+
+4. For testing performance with synthetic data on an interactive node, you need to add the following options to your bash script:
+    ```
+            cluster_type=interactive \
+            ++training.cluster_type=BCP \
+            training.model.data.data_impl="mock" \
+            training.model.data.data_prefix=[]
+    ```
     
 For further details see [5.3.2.1 General Configuration](https://github.com/NVIDIA/NeMo-Megatron-Launcher#5321-general-configuration) 
 
