@@ -35,3 +35,4 @@ class TestPromptLearn:
     
     def test_remove_folders(self):
         os.system("rm -rf test_folder")
+        os.system("rm -rf data")
