@@ -117,7 +117,13 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.9.2.1. Common](#5921-common)
       - [5.9.2.2. Slurm](#5922-slurm)
       - [5.9.2.3. Base Command Platform](#5923-base-command-platform)
-    + [5.9.3. Fine-tuning on Custom Tasks](#593-fine-tuning-on-custom-tasks)
+    + [5.9.3. GPT Supervised Fine-tuning](#593-gpt-supervised-fine-tuning)
+      - [5.9.3.1. Common](#5931-common)
+      - [5.9.3.2. Slurm](#5932-slurm)
+      - [5.9.3.3. Base Command Platform](#5933-base-command-platform)
+    + [5.9.4. Fine-tuning on Custom Tasks](#594-fine-tuning-on-custom-tasks)
+      - [5.9.4.1. T5 and mT5](#5941-t5-and-mt5)
+      - [5.9.4.2. GPT](#5942-gpt)
   * [5.10. Model Prompt Learning](#510-model-prompt-learning)
     + [5.10.1. GPT Prompt Learning](#5101-gpt-prompt-learning)
       - [5.10.1.1. Common](#51011-common)
@@ -2937,7 +2943,7 @@ Any other parameter can also be added to the command to modify its behavior.
 <a id="markdown-model-fine_tuning" name="model-fine_tuning"></a>
 
 We also provide an easy-to-use tool to help fine-tuning the trained checkpoints
-on SQuAD for T5 models and on XQuAD for mT5 models. Fine-tuning for GPT models is not supported.
+on SQuAD for T5 and GPT models, and on XQuAD for mT5 models.
 
 #### 5.9.1. T5 Fine-tuning
 <a id="markdown-t5-fine_tuning" name="t5-fine_tuning"></a>
@@ -3026,8 +3032,8 @@ fine_tuning.model.restore_from_path=/mount/results/t5_220m/convert_nemo/results/
 >> /results/finetune_t5_log.txt 2>&1
 ```
 
-The command above assumes you mounted the data workspace in /mount/data, and the results workspace in /mount/results. 
-The stdout and stderr outputs will also be redirected to the /results/finetune_t5_log.txt file, to be able to download the logs from NGC.
+The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
+The stdout and stderr outputs will also be redirected to the `/results/finetune_t5_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
 
@@ -3120,15 +3126,107 @@ The command above assumes you mounted the data workspace in /mount/data, and the
 The stdout and stderr outputs will also be redirected to the /results/finetune_mt5_log.txt file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
-#### 5.9.3. Fine-tuning on Custom Tasks
-<a id="markdown-fine-tuning-on-custom-tasks" name="fine-tuning-on-custom-tasks"></a>
-We also support fine-tuning on custom down-stream tasks in T5 and mT5. In order to benchmark on your own
-dataset, you are required to split the original dataset into two files, i.e. a txt file corresponding to the 
-source (context) data, and txt file corresponding to the target data. Each line of these two files forms a 
-fine-tuning sample.
+#### 5.9.3. GPT Supervised Fine-tuning
+<a id="markdown-gpt-supervised-fine_tuning" name="gpt-supervised-fine_tuning"></a>
 
-Custom fine-tuning configuration files can be found in `conf/fine_tuning/t5/custom_task.yaml` for T5 models
-and `conf/fine_tuning/mt5/custom_task.yaml` for mT5 models. The essential parameters are listed below. You need
+
+The configuration used for the supervised fine-tuning needs to be specified in the
+`conf/config.yaml` file, specifying the `fine_tuning` parameter, which specifies the
+file to use for fine-tuning purposes. The `fine_tuning` parameter must be included in `stages` 
+to run the fine-tuning pipeline. To fine-tune checkpoint on `squad` task, set
+`fine_tuning` parameter to `gpt3/squad`, which can be found in `conf/fine_tuning/gpt3/squad.yaml`. 
+The provided hyper parameters are only optimized for GPT 126M model on `squad` task.
+
+##### 5.9.3.1. Common
+<a id="markdown-common" name="common"></a>
+To specify the configuration for what tasks to run for fine_tuning, 
+use the `run.task_name` parameter. 
+And use all the `run` parameters to define the job specific config:
+```yaml
+run:
+    name: ${.task_name}_${.model_train_name}
+    time_limit: "04:00:00"
+    dependency: "singleton"
+    convert_name: convert_nemo
+    model_train_name: gpt3_126m
+    task_name: "squad"
+    results_dir: ${base_results_dir}/${fine_tuning.run.model_train_name}/${fine_tuning.run.task_name}
+```
+
+To specify which model checkpoint to load and its definition, use the `model` parameter:
+
+```yaml
+model:
+    restore_from_path: ${base_results_dir}/${fine_tuning.run.model_train_name}/${fine_tuning.run.convert_name}/megatron_gpt.nemo # Path to a trained GPT .nemo file
+    tensor_model_parallel_size: 1
+    pipeline_model_parallel_size: 1
+```
+
+##### 5.9.3.2. Slurm
+<a id="markdown-slurm" name="slurm"></a>
+
+Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
+
+```yaml
+partition: null
+account: null
+exclusive: True
+gpus_per_task: null
+gpus_per_node: 8
+mem: 0
+overcommit: False
+job_name_prefix: "nemo-megatron-"
+```
+
+**Example:**
+
+To run only the fine-tuning pipeline and not the data preparation, training, 
+conversion or inference pipelines set the `conf/config.yaml` file to:
+
+```yaml
+stages:
+  - fine_tuning
+```
+
+then run:
+```
+python3 main.py
+```
+
+##### 5.9.3.3. Base Command Platform
+<a id="markdown-base-command-platform" name="base-command-platform"></a>
+In order to run the fine-tuning script on Base Command Platform, set the
+`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
+from the command line, using hydra. The evaluation script must be launched in a multi-node job.
+
+To run the fine-tuning pipeline to fine-tune a 126M GPT model converted checkpoint stored in 
+/mount/results/gpt3_126m/convert_nemo, run:
+```
+python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py fine_tuning=gpt3/squad stages=[fine_tuning] \
+ cluster_type=bcp \
+launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data base_results_dir=/mount/results \
+fine_tuning.run.model_train_name=gpt3_126m \
+fine_tuning.model.restore_from_path=/mount/results/gpt_sft/convert_nemo/results/megatron_gpt.nemo \
+>> /results/finetune_gpt3_log.txt 2>&1
+```
+
+The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
+The stdout and stderr outputs will also be redirected to the `/results/finetune_gpt3_log.txt` file, to be able to download the logs from NGC.
+Any other parameter can also be added to the command to modify its behavior.
+
+
+
+#### 5.9.4. Fine-tuning on Custom Tasks
+<a id="markdown-fine-tuning-on-custom-tasks" name="fine-tuning-on-custom-tasks"></a>
+We also support fine-tuning on custom down-stream tasks in T5, mT5 and GPT. 
+
+
+##### 5.9.4.1. T5 and mT5
+<a id="markdown-t5-and-mt5" name="t5-and-mt5"></a>
+In order to benchmark on your own dataset, you are required to split the original dataset into two files for T5 and mT5, i.e. a txt file corresponding to the 
+source (context) data, and txt file corresponding to the target data. Each line of these two files forms a fine-tuning sample.
+
+Custom fine-tuning configuration files can be found in `conf/fine_tuning/t5/custom_task.yaml` for T5 models and `conf/fine_tuning/mt5/custom_task.yaml` for mT5 models. The essential parameters are listed below. You need
 to specify the dataset paths and preferred benchmark metrics.
 ```yaml
   data:
@@ -3146,6 +3244,47 @@ to specify the dataset paths and preferred benchmark metrics.
 ```
 You can follow the instructions in T5 and mT5 fine-tuning sections to submit a custom task job.
 
+
+##### 5.9.4.2. GPT
+<a id="markdown-gpt" name="gpt"></a>
+To benchmark on your own dataset, you must supply the original data in a .jsonl format. This means providing a .jsonl file that contains the fine-tuning samples, where each sample comprises an `input` (which is represented by both context and query) and an `output` (the target answer). Each line in the file should constitute one fine-tuning sample.
+
+```
+{
+  "input": "Which NFL team represented the AFC at Super Bowl 50? Super_Bowl_50 Paragraph: Super Bowl 50 was an American football game to determine the champion of the National Football League (NFL) for the 2015 season. The American Football Conference (AFC) champion Denver Broncos defeated the National Football Conference (NFC) champion Carolina Panthers 24\u201310 to earn their third Super Bowl title. The game was played on February 7, 2016, at Levi's Stadium in the San Francisco Bay Area at Santa Clara, California. As this was the 50th Super Bowl, the league emphasized the \"golden anniversary\" with various gold-themed initiatives, as well as temporarily suspending the tradition of naming each Super Bowl game with Roman numerals (under which the game would have been known as \"Super Bowl L\"), so that the logo could prominently feature the Arabic numerals 50.",
+  "output": "Denver Broncos"
+  ...
+  }
+```
+
+Custom supervised fine-tuning configuration files can be found in `conf/fine_tuning/gpt3/custom_task.yaml` for GPT models. The essential parameters are listed below. You need to specify the dataset paths, preferred benchmark metrics and sampling probabilities from each training dataset when `strategy='random'`.
+
+```yaml
+  data:
+    train_ds:
+      # Example of how to specify paths to multiple datasets
+      # file_names: 
+      #   - /path/to/squad.jsonl
+      #   - /path/to/mnli.jsonl
+      #   - /path/to/boolq.jsonl
+      # Example of how each dataset is formatted
+      # {'input': 'John von Neumann\nVon Neumann made fundamental contributions .... Q: What did the math of artificial viscosity do?', 'output': 'smoothed the shock transition without sacrificing basic physics'}
+      file_names: ??? # Path to a list of JSONL files corresponding to the source data.
+      # Example of how to specify concat_sampling_probabilities
+      # concat_sampling_probabilities:
+      #   - 0.5
+      #   - 0.25
+      #   - 0.25
+      concat_sampling_probabilities: ??? # When providing a list of datasets, this arg defines the sampling probabilities from each dataset when strategy='random'
+
+    validation_ds:
+      file_names: ??? # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
+      metric:
+        name: "loss" # Name of the evaluation metric to use. Options: ['exact_string_match', 'loss']
+        average: null # Average the metric over the dataset. Options: ['macro', 'micro']. Works only for 'F1', 'accuracy' etc. Refer to torchmetrics for metrics where this is supported.
+        num_classes: null
+```
+You can follow the instructions in GPT supervised fine-tuning sections to submit a custom task job.
 
 
 ### 5.10. Model Prompt Learning
