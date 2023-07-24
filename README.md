@@ -3200,7 +3200,7 @@ In order to run the fine-tuning script on Base Command Platform, set the
 from the command line, using hydra. The evaluation script must be launched in a multi-node job.
 
 To run the fine-tuning pipeline to fine-tune a 126M GPT model converted checkpoint stored in 
-/mount/results/gpt3_126m/convert_nemo, run:
+`/mount/results/gpt3_126m/convert_nemo`, run:
 ```
 python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py fine_tuning=gpt3/squad stages=[fine_tuning] \
  cluster_type=bcp \
