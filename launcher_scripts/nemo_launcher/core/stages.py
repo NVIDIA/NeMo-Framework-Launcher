@@ -240,7 +240,7 @@ class NemoMegatronStage:
         dependency = run_cfg.get("dependency")
         if nodes is None:
             nodes = stage_cfg.get("trainer").get("num_nodes")
-        
+
         ntasks_per_node = run_cfg.get("ntasks_per_node")
         if ntasks_per_node is None:
             ntasks_per_node = stage_cfg.get("trainer").get("devices")
@@ -287,7 +287,7 @@ class NemoMegatronStage:
             cluster_parameters.update(shared_parameters)
 
         return cluster_parameters
-    
+
     def _find_optimal_nodes(self, cfg, gpus) -> None:
         nodes_scheduler_path = f"{cfg.get('training').get('run').get('results_dir')}/nodes_scheduler.json"
 
@@ -320,7 +320,7 @@ class NemoMegatronStage:
                         optimal_lst.append(nodes)
 
                 self.nodes_scheduler[str(b)] = max(optimal_lst)
-            
+
             sched_rbs = [int(i) for i in self.nodes_scheduler.keys()]
             assert rbs[::-1] == sched_rbs, (
                 "please, make sure you enter the correct combination of"
@@ -329,7 +329,7 @@ class NemoMegatronStage:
 
             with open(nodes_scheduler_path, 'w') as nodes_scheduler:
                 nodes_scheduler.write(json.dumps(self.nodes_scheduler))
-    
+
     def _get_current_gbs(self, cfg):
         start_bs = cfg.get('training').get('model').get('rampup_batch_size')[0]
         results_dir = cfg.get('training').get('run').get('results_dir')
@@ -340,16 +340,16 @@ class NemoMegatronStage:
             for file in glob.glob("*.out"):
                 file = file.split('_')[-1].split('.')[0]
                 job_numbers.append(int(file))
-        
+
             job_number = max(job_numbers)
             last_job = glob.glob(f"*{job_number}.out")[0]
             with open(last_job, 'r') as logs:
                 logs = logs.read()
-        
+
             current_gbs = re.findall(r'global_batch_size=(\d+)', logs)[-1]
         except:
             current_gbs =  start_bs
-    
+
         return current_gbs
 
     def get_env_vars(self) -> Dict:
@@ -528,11 +528,11 @@ class NeMoStage(NemoMegatronStage):
     def _make_hydra_override(self) -> List:
         """
         Override some existing hydra configurations if necessary.
-        
+
         Example use cases are:
             1. For bcp cluster, `+rank=\${RANK}` is required running some NeMo scripts.
                 Existing hydra config doesn't have `rank` field, so we overwrite on the fly.
-            2. Auto blend training dataset by overwriting empty `model.data.data_prefix` as 
+            2. Auto blend training dataset by overwriting empty `model.data.data_prefix` as
                 `model.data.data_prefix=\$({auto_blend_command})`. Existing `model.data.data_prefix`
                 could be None in cfg, so we overwrite it in this function.
         """
@@ -578,7 +578,7 @@ class Training(NeMoStage):
         Example use cases are:
             1. For bcp cluster, `+rank=\${RANK}` is required running some NeMo scripts.
                 Existing hydra config doesn't have `rank` field, so we overwrite on the fly.
-            2. Auto blend training dataset by overwriting empty `model.data.data_prefix` as 
+            2. Auto blend training dataset by overwriting empty `model.data.data_prefix` as
                 `model.data.data_prefix=\$({auto_blend_command})`. Existing `model.data.data_prefix`
                 could be None in cfg, so we overwrite it in this function.
 
@@ -613,7 +613,7 @@ class Training(NeMoStage):
         For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
 
         :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
-        :return: path current stage's essential nemo scripts code 
+        :return: path current stage's essential nemo scripts code
         :rtype: Path
         """
         model_type_to_code_path = {
@@ -678,9 +678,9 @@ class FineTuning(NeMoStage):
         """
         Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
         For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
-        
+
         :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
-        :return: path current stage's essential nemo scripts code 
+        :return: path current stage's essential nemo scripts code
         :rtype: Path
         """
         if model_type == "gpt3":
@@ -718,9 +718,9 @@ class PromptLearning(NeMoStage):
         """
         Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
         For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
-        
+
         :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
-        :return: path current stage's essential nemo scripts code 
+        :return: path current stage's essential nemo scripts code
         :rtype: Path
         """
         model_type_to_code_path = {
@@ -741,9 +741,9 @@ class AdapterLearning(PromptLearning):
         """
         Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
         For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
-        
+
         :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
-        :return: path current stage's essential nemo scripts code 
+        :return: path current stage's essential nemo scripts code
         :rtype: Path
         """
         model_type_to_code_path = {
@@ -763,9 +763,9 @@ class IA3Learning(PromptLearning):
         """
         Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
         For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
-        
+
         :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
-        :return: path current stage's essential nemo scripts code 
+        :return: path current stage's essential nemo scripts code
         :rtype: Path
         """
         model_type_to_code_path = {
@@ -945,9 +945,9 @@ class NeMoEvaluation(NeMoStage):
         """
         Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
         For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
-        
+
         :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
-        :return: path current stage's essential nemo scripts code 
+        :return: path current stage's essential nemo scripts code
         :rtype: Path
         """
         if model_type in ["gpt3", "prompt_gpt3"]:
