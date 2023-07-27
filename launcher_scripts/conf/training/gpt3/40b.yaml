@@ -143,7 +143,6 @@ model:
     overlap_grad_sync: True
     overlap_param_sync: true
     contiguous_grad_buffer: True
-    grad_sync_dtype: bf16
     lr: 1.1e-4
     weight_decay: 0.1 
     betas: 
