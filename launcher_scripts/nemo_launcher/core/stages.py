@@ -683,9 +683,9 @@ class FineTuning(NeMoStage):
         :return: path current stage's essential nemo scripts code 
         :rtype: Path
         """
-        if model_type == "gpt3":
-            raise NotImplementedError("Fine-tuning is not supported in NeMo Megatron GPT-3 models.")
+        
         model_type_to_code_path = {
+            "gpt3" : self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "mt5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
         }
