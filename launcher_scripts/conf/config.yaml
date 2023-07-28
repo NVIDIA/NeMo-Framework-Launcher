@@ -2,6 +2,7 @@ defaults:
   - _self_
   - cluster: bcm  # Leave it as bcm even if using bcp. It will be ignored for bcp.
   - data_preparation: gpt3/download_gpt3_pile
+  - quality_filtering: heuristic/english
   - training: gpt3/5b
   - conversion: gpt3/convert_gpt3
   - fine_tuning: null
@@ -57,6 +58,7 @@ numa_mapping:
 
 # Do not modify below, use the values above instead.
 data_preparation_config: ${hydra:runtime.choices.data_preparation}
+quality_filtering_config: ${hydra:runtime.choices.quality_filtering}
 training_config: ${hydra:runtime.choices.training}
 fine_tuning_config: ${hydra:runtime.choices.fine_tuning}
 prompt_learning_config: ${hydra:runtime.choices.prompt_learning}
