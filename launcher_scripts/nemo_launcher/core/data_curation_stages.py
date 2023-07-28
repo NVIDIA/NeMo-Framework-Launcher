@@ -120,7 +120,6 @@ class QualityFiltering(DataCurationStage):
     ) -> List[List[str]]:
 
         stage_cfg = self.stage_cfg
-        job_path = self.get_job_path()
 
         # Write out the filter configuration as a separate config file
         filter_cfg = Path(self.conf_folder, "heuristic_filter.yaml")
@@ -142,12 +141,10 @@ class QualityFiltering(DataCurationStage):
         }
 
         args = create_args_list(
-            replace_underscore=False,
+            replace_underscore=True,
             log_dir=self.log_folder,
-            res_dir=job_path.results_folder,
-            conf_dir=self.conf_folder,
-            input_dir=stage_cfg.get("input_dir"),
-            filter_config_file=f"{self.conf_folder}/{filter_cfg}",
+            input_data_dir=stage_cfg.get("input_dir"),
+            filter_config_file=f"{filter_cfg}",
             output_retained_document_dir=stage_cfg.get(
                 "output_retained_document_dir"),
             **optional_args,
