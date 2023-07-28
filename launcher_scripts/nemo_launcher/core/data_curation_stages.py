@@ -13,12 +13,24 @@ from nemo_launcher.core.launchers import AutoLauncher
 
 
 class DataCurationStage(NemoMegatronStage):
+    """
+    DataCurationStage is a base class for data curation stages.
+    It can hold multiple sub-stages. For example, preparing data from
+    Common Crawl requires download, extraction, deduplication and filtering.
+    They have dependencies on each other and will be launched one by one.
+    """
+
     def __init__(self, cfg):
         super().__init__(cfg)
         self.log_folder = Path()
         self.conf_folder = Path()
 
     def setup_folder_and_data(self):
+        """
+        Each job in the data curation pipeline creates a directory
+        for writing logs (log_folder), writing and reading intermediate
+        results (results_folder) and for reading configs (conf_folder)
+        """
         job_path = self.get_job_path()
         job_path.folder.mkdir(parents=True, exist_ok=True)
         # make the results dir
@@ -31,21 +43,18 @@ class DataCurationStage(NemoMegatronStage):
         self.conf_folder = Path(job_path.folder, 'config')
         self.conf_folder.mkdir(parents=True, exist_ok=True)
 
-    def _make_cluster_parameters(
-        self,
-        cluster: str,
-    ) -> Dict:
+    def _make_cluster_parameters(self, cluster: str) -> Dict:
         """
-      Make a cluster-specific parameters for jobs on different clusters.
-      Current clusters include bcm(slurm), bcp and interactive.
-      For example for bcm, it will return slurm parameters:
-          {'job_name': 'some_name', 'nodes': 2, 'ntasks_per_node': 8, ...}
+        Make a cluster-specific parameters for jobs on different clusters.
+        Current clusters include bcm(slurm), bcp and interactive.
+        For example for bcm, it will return slurm parameters:
+            {'job_name': 'some_name', 'nodes': 2, 'ntasks_per_node': 8, ...}
 
-      :param str cluster: i.e. `bcm`, `bcp`, `interactive`, etc.
-      :param Optional sub_stage: current sub_stage name
-      :return: a dictionary of cluster parameters, e.g. `ntasks_per_node`
-      :rtype: Dict
-      """
+        :param str cluster: i.e. `bcm`, `bcp`, `interactive`, etc.
+        :param Optional sub_stage: current sub_stage name
+        :return: a dictionary of cluster parameters, e.g. `ntasks_per_node`
+        :rtype: Dict
+        """
         cfg = self.cfg
         stage_cfg = self.stage_cfg
 
@@ -83,42 +92,53 @@ class DataCurationStage(NemoMegatronStage):
 
         return cluster_params
 
-    def run(self):
+    def run(self) -> str:
+        """
+        Run current stage including all of the substages, returns job id on slurm based system otherwise empty string
+
+        :return: job id on slurm based system otherwise empty string
+        :rtype: str
+        """
+        # Create the job folders
         self.setup_folder_and_data()
         job_path = self.get_job_path()
 
+        # Make cluster configuration parameters
         cluster_parameters = self._make_cluster_parameters(self.cluster)
         stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
             self.stage_cfg,
             job_path,
         )
 
+        # Build commands to launch on cluster
         command_groups = self.make_stage_command_groups(stage_cfg_path)
 
+        # Create the launcher for the cluster
         launcher = AutoLauncher(
             folder=self.get_job_path().folder,
             cluster=self.cluster,
             **cluster_parameters,
         )
 
+        # Launch the job on the cluster
         job_id = launcher.launch(command_groups)
 
         return job_id
 
 
 class QualityFiltering(DataCurationStage):
+    """ DataCurationStage for performing quality filtering on documents """
+
     def __init__(self, cfg):
         super().__init__(cfg)
 
     def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "quality_filtering"
         self.stage_cfg = cfg.get("quality_filtering")
 
-    def make_stage_command_groups(
-        self,
-        stage_cfg_path: Path,
-    ) -> List[List[str]]:
-
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
         stage_cfg = self.stage_cfg
 
         # Write out the filter configuration as a separate config file
@@ -127,6 +147,7 @@ class QualityFiltering(DataCurationStage):
 
         command_groups = [[]]
 
+        # If certain arguments are not specified, we remove them from the list
         optional_args = {
             "output_removed_document_dir":
             stage_cfg.get('output_removed_document_dir'),
@@ -140,6 +161,7 @@ class QualityFiltering(DataCurationStage):
             for arg in optional_args if optional_args[arg]
         }
 
+        # Create the list of arguments for the filter_documents command
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
