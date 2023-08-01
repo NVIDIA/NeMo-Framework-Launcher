@@ -4883,7 +4883,7 @@ SFT is the process of finetuning all of the model's parameters on supervised dat
 <a id="markdown-data-formatting" name="data-formatting"></a>
 To demonstrate how to format your SFT data, we'll take the Dolly dataset (https://github.com/databrickslabs/dolly) as an example, which consists of 15k instruction-context-response triples.
 
-First, to download the data, run `launcher_scripts/nemo_launcher/collections/dataprep_scripts/dolly_datapreep/download.py --path_to_save /path/to/save/data.jsonl`
+First, to download the data, run `launcher_scripts/nemo_launcher/collections/dataprep_scripts/dolly_dataprep/download.py --path_to_save /path/to/save/data.jsonl`
 
 The downloaded data `/path/to/save/data.jsonl` is formattated as a JSONL file with each line formatted as:
 
