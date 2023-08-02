@@ -3737,11 +3737,13 @@ Any other parameter can also be added to the command to modify its behavior.
 
 ### 5.12 LoRA Model and Generalized PEFT Framework
 <a id="markdown-peft-model" name="lora-peft-framework"></a>
-Many Parameter Efficient Fine-Tuning (PEFT) models have overlapping functionalities. In order to enhance NeMo's codebase, we have worked towards unifying the implementation of all supported PEFT methods, making it more streamlined. Furthermore, we have introduced the Low-rank Adapter PEFT model for GPT-style base models in NeMo.
+Many Parameter Efficient Fine-Tuning (PEFT) models have overlapping functionalities. In order to enhance NeMo's codebase, we have worked towards unifying the implementation of all supported PEFT methods, making it more streamlined. Furthermore, we have introduced the Low-rank Adapter PEFT model for GPT-style and mT5/T5-style base models in NeMo.
 
+
+#### 5.12.1 PEFT Training and Inference for GPT-style Models
 The new PEFT framework is built upon the SFT models and datasets, thereby inheriting all the dataset preparation requirements from SFT. For more details, please refer to the SFT section below.
 
-#### 5.12.1 PEFT Training and Inference
+##### 5.12.1.1 PEFT Training and Inference
 We offer a training and inference script in NeMo. Below is an example of how to use the training script. The `TRAIN_FILE`s (and `VALIDATION_FILE`s) follow the same format as SFT.
 
 Take note of the `model.peft.peft_scheme` argument. You can train a LoRA, P-tuning, Adapter, or IA3 model by setting this argument to the desired PEFT method.
@@ -3770,6 +3772,50 @@ inference.greedy=True \
 inference.outfile_path=<OUTPUT_FILE>
 ```
 Additionally, NeMo has a notebook which walks through the steps (which these scripts encapsulate) to train and run inference for PEFT models: https://github.com/NVIDIA/NeMo/blob/main/tutorials/nlp/lora.ipynb
+
+##### 5.12.2 PEFT Training and Inference for mT5/T5-style Models
+We offer training and inference scripts in NeMo for parameter efficient tuning of mT5/T5-style models. You can train a LoRA, P-tuning, Adapter, or IA3 model using its corresponding training and inference script. 
+
+##### 5.12.2.1 PEFT Training and Inference
+Below is an example of how to use the training scripts for adapter tuning. The `TRAIN_FILE`s (and `VALIDATION_FILE`s) follow the same format as SFT.
+
+```bash
+python /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py \
+    model.language_model_path=<BASE_T5_MODEL> \
+    model.data.train_ds=[<TRAIN_FILE1>,<TRAIN_FILE2>,...] \
+    model.data.validation_ds=[<VALIDATION_FILE1>, <VALIDATION_FILE2>,...]
+```
+
+At the end of tuning, a '.nemo' model is generated which contains the parameters for the PEFT model.
+Similarly, the PEFT framework has an inference script as well:
+
+```bash
+python /data/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_adapter_eval.py \
+    data.test_ds=[<TEST_FILE>] \
+    language_model_path=[BASE_T5_MODEL] \
+    adapter_model_file=[PEFT_MODEL] \
+    pred_file_path=<OUTPUT_FILE>
+```
+
+You can switch to IA3, P-tuning, or LoRA methods by using the same input arguments to a different script. Below is the table including filepaths for each PEFT method:
+
+| PEFT Method    | Filepath   | 
+| -------------- | ---------- | 
+| Adapter tuning |  ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py```   | 
+| IA3 tuning     |  ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_ia3_tuning.py```   | 
+| P-tuning       | ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_prompt_learning.py```    | 
+| LoRA tuning    | ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_lora_tuning.py```    | 
+
+Similarly, the inference script filepaths are provided below:
+
+| PEFT Method    | Filepath   | 
+| -------------- | ---------- | 
+| Adapter tuning |  ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_adapter_eval.py```   | 
+| IA3 tuning     |  ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_ia3_eval.py```   | 
+| P-tuning       | ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_prompt_learning_eval.py```    | 
+| LoRA tuning    | ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_lora_eval.py```    | 
+
+
 ### 5.13. Model Evaluation
 <a id="markdown-model-evaluation" name="model-evaluation"></a>
 
@@ -5821,6 +5867,9 @@ The table and chart below show the performance results.
 
 ## 8. Changelog
 <a id="markdown-changelog" name="changelog"></a>
+**NeMo Framework 23.07**
+* Add Low-Rank Adaptation (LoRA) Support for T5 and mT5
+* Add Batch Size Ramp-up Support for GPT
 
 **NeMo Framework 23.05**
 * Low-Rank Adaptation (LoRA) Support for GPT
@@ -5966,9 +6015,10 @@ The table and chart below show the performance results.
 <a id="markdown-known-issues" name="known-issues"></a>
 Fixes for the following issues will be released shortly:
 * The inference hyperparameter search is not available in this release for T5 and mT5.
-* Accuracy and performance measurement for GPT-3 is currently not supported. Please use the NeMo Megatron 22.05 inference container to use this feature.
+* Accuracy and performance measurement for GPT is currently not supported. Please use the NeMo Megatron 22.05 inference container to use this feature.
 * The fine-tuning SQuAD results for T5 are lower than expected.
-* There has been a slight regression in T5 performance and this will be addressed in an upcoming release.
 * Evaluation for GPT has been tested for PP <=2 and may have issues for PP >2. It is recommended to convert to TP only for Evaluation.
 * Transformer Engine (TE)-based GPT models are currently not supported for any Parameter Efficient Fine Tuning (PEFT) techniques - this will be added soon.
 * TE-based GPT Eval will take more memory than non-TE-based GPT Eval.
+* Iteration per second metric is incorrectly displayed on the Logs progress bar - this will be addressed in the next release. Instead, please use train step timing in Weights & Biases or TensorBoard.
+* Please note that Batch Size Ramp-up Support for GPT is currently working only with FusedAdam optimizer.
