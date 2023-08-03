@@ -4905,8 +4905,8 @@ To launch reward model training we first need to start with a pre-trained or fin
 ```bash
 cd /opt/nemo-rlhf \
 && export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
-&& python -u rlhf/reward_models/train_reward_model.py \
-    --config-path=rlhf/reward_models/conf \
+&& python -u examples/nlp/gpt/train_reward_model.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=training_rm \
     model.pretrained_checkpoint.restore_from_path='model.nemo' \
     "model.data.data_prefix={train: [${train_output_document}], validation: [${val_output_document}], test: [${test_output_document}]}"
@@ -4940,8 +4940,8 @@ To launch the Reward Model inference server in a Linux system, this command can 
 cd /opt/nemo-rlhf \
 && export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python rlhf/reward_models/serve_reward_model.py \
-    --config-path=/opt/nemo-rlhf/rlhf/reward_models/conf \
+&& python -u examples/nlp/gpt/serve_reward_model.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=inference_rm \
     gpt_rm_model_file=/path/to/model.nemo \
     port=5555
@@ -4958,8 +4958,8 @@ To launch the Initial Policy inference server in a Linux system, this command ca
 cd /opt/nemo-rlhf \
 && export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python rlhf/rlhf_nemo/serve_initial_policy.py \
-    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+&& python -u examples/nlp/gpt/serve_initial_policy.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=inference_initial_policy \
     gpt_model_file=/path/to/model.nemo \
     port=5556
@@ -4976,8 +4976,8 @@ The PPO Critic has to perform both training and inference. We designed the Criti
 cd /opt/nemo-rlhf \
 && export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python rlhf/rlhf_nemo/serve_ppo_critic.py \
-    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+&& python -u examples/nlp/gpt/serve_ppo_critic.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=gpt_ppo_critic \
     model.pretrained_checkpoint.restore_from_path=/path/to/trained_rm.nemo \
     port=5557
@@ -4993,8 +4993,8 @@ The PPO Actor training job contains the master HTTP controller that makes the HT
 cd /opt/nemo-rlhf \
 && export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python rlhf/rlhf_nemo/train_gpt_ppo_actor.py \
-    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+&& python -u examples/nlp/gpt/train_gpt_ppo_actor.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=gpt_ppo_actor \
     "model.data.data_prefix={train: [/path/to/train_data], validation: [/path/to/val_data], test: [/path/to/test_data]}" \
     model.pretrained_checkpoint.restore_from_path=/path/to/model.nemo
@@ -5019,7 +5019,7 @@ RM_MODEL=/path/to/reward_model.nemo
 ACTOR_MODEL=/path/to/sft_model.nemo
 
 DIR=/opt/nemo-rlhf
-CONTAINER="nvcr.io/ea-bignlp/nemofw-training:23.05-py3"
+CONTAINER="VERSION_CONTAINER"
 
 # START HETEROGENEUS JOB 0
 
@@ -5027,8 +5027,8 @@ read -r -d '' cmd_rm_inference <<EOF
 cd ${DIR} \
 && export PYTHONPATH="${DIR}:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python rlhf/reward_models/serve_reward_model.py \
-    --config-path=/opt/nemo-rlhf/rlhf/reward_models/conf \
+&& python -u examples/nlp/gpt/serve_reward_model.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=inference_rm \
     gpt_rm_model_file=${RM_MODEL} \
     port=${RM_PORT=5555}
@@ -5046,8 +5046,8 @@ read -r -d '' cmd_init_policy_inference <<EOF
 cd ${DIR} \
 && export PYTHONPATH="${DIR}:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python rlhf/rlhf_nemo/serve_initial_policy.py \
-    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+&& python -u examples/nlp/gpt/serve_initial_policy.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=inference_initial_policy \
     gpt_model_file=${ACTOR_MODEL} \
     port=${INIT_POLICY_PORT=5556}
@@ -5066,8 +5066,8 @@ read -r -d '' cmd_critic_inference <<EOF
 cd ${DIR} \
 && export PYTHONPATH="${DIR}:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python -u rlhf/rlhf_nemo/serve_ppo_critic.py \
-    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+&& python -u examples/nlp/gpt/serve_ppo_critic.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=gpt_ppo_critic \
     model.pretrained_checkpoint.restore_from_path=${RM_MODEL} \
     inference.port=${CRITIC_PORT=5557}
@@ -5094,8 +5094,8 @@ read -r -d '' cmd_ppo <<EOF
 cd ${DIR} \
 && export PYTHONPATH="${DIR}:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python -u rlhf/rlhf_nemo/train_gpt_ppo_actor.py \
-    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+&& python -u examples/nlp/gpt/train_gpt_ppo_actor.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=gpt_ppo_actor \
     trainer.num_nodes=8 \
     "model.data.data_prefix={train: [${TRAIN_DATA_PATH}], validation: [${VALID_DATA_PATH}], test: [${TEST_DATA_PATH}]}" \
