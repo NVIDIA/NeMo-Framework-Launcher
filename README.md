@@ -6,7 +6,6 @@ NeMo Framework.
 
 The most recent version of the README can be found at [https://ngc.nvidia.com/containers/ea-bignlp:nemofw-training](https://ngc.nvidia.com/containers/ea-bignlp:nemofw-training).
 
-## Table of contents
 - [1. Model Overview](#1-model-overview)
 - [2. Feature Matrix](#2-feature-matrix)
   * [2.1. GPT Models](#21-gpt-models)
@@ -143,7 +142,10 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.11.2.2. Slurm](#51122-slurm)
       - [5.11.2.3. Base Command Platform](#51123-base-command-platform)
   * [5.12 LoRA Model and Generalized PEFT Framework](#512-lora-model-and-generalized-peft-framework)
-    + [5.12.1 PEFT Training and Inference](#5121-peft-training-and-inference)
+    + [5.12.1 PEFT Training and Inference for GPT-style Models](#5121-peft-training-and-inference-for-gpt-style-models)
+      - [5.12.1.1 PEFT Training and Inference](#51211-peft-training-and-inference)
+      - [5.12.2 PEFT Training and Inference for mT5/T5-style Models](#5122-peft-training-and-inference-for-mt5-t5-style-models)
+      - [5.12.2.1 PEFT Training and Inference](#51221-peft-training-and-inference)
   * [5.13. Model Evaluation](#513-model-evaluation)
     + [5.13.1. GPT Evaluation](#5131-gpt-evaluation)
       - [5.13.1.1. Common](#51311-common)
