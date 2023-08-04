@@ -683,9 +683,9 @@ class FineTuning(NeMoStage):
         :return: path current stage's essential nemo scripts code 
         :rtype: Path
         """
-        if model_type == "gpt3":
-            raise NotImplementedError("Fine-tuning is not supported in NeMo Megatron GPT-3 models.")
+        
         model_type_to_code_path = {
+            "gpt3" : self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "mt5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
         }
@@ -920,7 +920,7 @@ class NeMoEvaluation(NeMoStage):
             calculation_command = " \\\n  ".join(calculation_command)
         elif choice_name == "squad":
             output_file_path_prefix = self.stage_cfg.model.data.validation_ds.get("output_file_path_prefix")
-            pred_file_path = output_file_path_prefix + "_validation_dataloader0_inputs_preds_labels.json"
+            pred_file_path = output_file_path_prefix + "_validation_dataloader0_inputs_preds_labels.jsonl"
             ground_truth_file_path = self.stage_cfg.model.data.validation_ds.get("ground_truth_file_path")
             code_path = (
                 self._launcher_scripts_path / "nemo_launcher/collections/metric_calculation/fine_tuning_metric_calc.py"
