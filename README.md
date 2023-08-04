@@ -117,7 +117,13 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.9.2.1. Common](#5921-common)
       - [5.9.2.2. Slurm](#5922-slurm)
       - [5.9.2.3. Base Command Platform](#5923-base-command-platform)
-    + [5.9.3. Fine-tuning on Custom Tasks](#593-fine-tuning-on-custom-tasks)
+    + [5.9.3. GPT Supervised Fine-tuning](#593-gpt-supervised-fine-tuning)
+      - [5.9.3.1. Common](#5931-common)
+      - [5.9.3.2. Slurm](#5932-slurm)
+      - [5.9.3.3. Base Command Platform](#5933-base-command-platform)
+    + [5.9.4. Fine-tuning on Custom Tasks](#594-fine-tuning-on-custom-tasks)
+      - [5.9.4.1. T5 and mT5](#5941-t5-and-mt5)
+      - [5.9.4.2. GPT](#5942-gpt)
   * [5.10. Model Prompt Learning](#510-model-prompt-learning)
     + [5.10.1. GPT Prompt Learning](#5101-gpt-prompt-learning)
       - [5.10.1.1. Common](#51011-common)
@@ -137,7 +143,10 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.11.2.2. Slurm](#51122-slurm)
       - [5.11.2.3. Base Command Platform](#51123-base-command-platform)
   * [5.12 LoRA Model and Generalized PEFT Framework](#512-lora-model-and-generalized-peft-framework)
-    + [5.12.1 PEFT Training and Inference](#5121-peft-training-and-inference)
+    + [5.12.1 PEFT Training and Inference for GPT-style Models](#5121-peft-training-and-inference-for-gpt-style-models)
+      - [5.12.1.1 PEFT Training and Inference](#51211-peft-training-and-inference)
+      - [5.12.2 PEFT Training and Inference for mT5/T5-style Models](#5122-peft-training-and-inference-for-mt5-t5-style-models)
+      - [5.12.2.1 PEFT Training and Inference](#51221-peft-training-and-inference)
   * [5.13. Model Evaluation](#513-model-evaluation)
     + [5.13.1. GPT Evaluation](#5131-gpt-evaluation)
       - [5.13.1.1. Common](#51311-common)
@@ -345,10 +354,11 @@ Figure 1: The GPT family architecture. The 5B variant includes 24 transformer la
 | Software                | Version          |
 |-------------------------|------------------|
 | NVIDIA Triton           | 2.24.0           |
-| FasterTransformer       | v5.3+c6e8f60     |
-| TransformerEngine       | v0.8+8e5f00f     |
+| FasterTransformer       | v5.3+f8e42aa     |
+| TransformerEngine       | v0.11+b172bad    |
+| MegatronCore            | 4f8e9ac          |
 | PyTorch                 | 2.1.0a0+fe05266  |
-| NeMo                    | 1.19.0+913e5e5   |
+| NeMo                    | 1.20.0+2baef81   |
 | PyTorch Lightning       | 1.9.4            |
 | Hydra                   | 1.2.0            |
 | CUDA                    | NVIDIA CUDA 12.1 |
@@ -1961,7 +1971,7 @@ launcher_scripts_path: ${auto_configurator_path}/../launcher_scripts
 fastertransformer_path: ${auto_configurator_path}/../FasterTransformer
 base_results_dir: ${auto_configurator_path}/results
 data_dir: ${launcher_scripts_path}/data
-training_container: nvcr.io/ea-bignlp/nemofw-training:23.05-py3
+training_container: nvcr.io/ea-bignlp/nemofw-training:23.07-py3
 container_mounts:
     - null
 wandb:  # Weights and Biases (W&B) logging.
@@ -2937,7 +2947,7 @@ Any other parameter can also be added to the command to modify its behavior.
 <a id="markdown-model-fine_tuning" name="model-fine_tuning"></a>
 
 We also provide an easy-to-use tool to help fine-tuning the trained checkpoints
-on SQuAD for T5 models and on XQuAD for mT5 models. Fine-tuning for GPT models is not supported.
+on SQuAD for T5 and GPT models, and on XQuAD for mT5 models.
 
 #### 5.9.1. T5 Fine-tuning
 <a id="markdown-t5-fine_tuning" name="t5-fine_tuning"></a>
@@ -3026,8 +3036,8 @@ fine_tuning.model.restore_from_path=/mount/results/t5_220m/convert_nemo/results/
 >> /results/finetune_t5_log.txt 2>&1
 ```
 
-The command above assumes you mounted the data workspace in /mount/data, and the results workspace in /mount/results. 
-The stdout and stderr outputs will also be redirected to the /results/finetune_t5_log.txt file, to be able to download the logs from NGC.
+The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
+The stdout and stderr outputs will also be redirected to the `/results/finetune_t5_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
 
@@ -3120,15 +3130,107 @@ The command above assumes you mounted the data workspace in /mount/data, and the
 The stdout and stderr outputs will also be redirected to the /results/finetune_mt5_log.txt file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
-#### 5.9.3. Fine-tuning on Custom Tasks
-<a id="markdown-fine-tuning-on-custom-tasks" name="fine-tuning-on-custom-tasks"></a>
-We also support fine-tuning on custom down-stream tasks in T5 and mT5. In order to benchmark on your own
-dataset, you are required to split the original dataset into two files, i.e. a txt file corresponding to the 
-source (context) data, and txt file corresponding to the target data. Each line of these two files forms a 
-fine-tuning sample.
+#### 5.9.3. GPT Supervised Fine-tuning
+<a id="markdown-gpt-supervised-fine_tuning" name="gpt-supervised-fine_tuning"></a>
 
-Custom fine-tuning configuration files can be found in `conf/fine_tuning/t5/custom_task.yaml` for T5 models
-and `conf/fine_tuning/mt5/custom_task.yaml` for mT5 models. The essential parameters are listed below. You need
+
+The configuration used for the supervised fine-tuning needs to be specified in the
+`conf/config.yaml` file, specifying the `fine_tuning` parameter, which specifies the
+file to use for fine-tuning purposes. The `fine_tuning` parameter must be included in `stages` 
+to run the fine-tuning pipeline. To fine-tune checkpoint on `squad` task, set
+`fine_tuning` parameter to `gpt3/squad`, which can be found in `conf/fine_tuning/gpt3/squad.yaml`. 
+The provided hyper parameters are only optimized for GPT 126M model on `squad` task.
+
+##### 5.9.3.1. Common
+<a id="markdown-common" name="common"></a>
+To specify the configuration for what tasks to run for fine_tuning, 
+use the `run.task_name` parameter. 
+And use all the `run` parameters to define the job specific config:
+```yaml
+run:
+    name: ${.task_name}_${.model_train_name}
+    time_limit: "04:00:00"
+    dependency: "singleton"
+    convert_name: convert_nemo
+    model_train_name: gpt3_126m
+    task_name: "squad"
+    results_dir: ${base_results_dir}/${fine_tuning.run.model_train_name}/${fine_tuning.run.task_name}
+```
+
+To specify which model checkpoint to load and its definition, use the `model` parameter:
+
+```yaml
+model:
+    restore_from_path: ${base_results_dir}/${fine_tuning.run.model_train_name}/${fine_tuning.run.convert_name}/megatron_gpt.nemo # Path to a trained GPT .nemo file
+    tensor_model_parallel_size: 1
+    pipeline_model_parallel_size: 1
+```
+
+##### 5.9.3.2. Slurm
+<a id="markdown-slurm" name="slurm"></a>
+
+Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
+
+```yaml
+partition: null
+account: null
+exclusive: True
+gpus_per_task: null
+gpus_per_node: 8
+mem: 0
+overcommit: False
+job_name_prefix: "nemo-megatron-"
+```
+
+**Example:**
+
+To run only the fine-tuning pipeline and not the data preparation, training, 
+conversion or inference pipelines set the `conf/config.yaml` file to:
+
+```yaml
+stages:
+  - fine_tuning
+```
+
+then run:
+```
+python3 main.py
+```
+
+##### 5.9.3.3. Base Command Platform
+<a id="markdown-base-command-platform" name="base-command-platform"></a>
+In order to run the fine-tuning script on Base Command Platform, set the
+`cluster_type` parameter in `conf/config.yaml` to `bcp`. This can also be overridden
+from the command line, using hydra. The evaluation script must be launched in a multi-node job.
+
+To run the fine-tuning pipeline to fine-tune a 126M GPT model converted checkpoint stored in 
+`/mount/results/gpt3_126m/convert_nemo`, run:
+```
+python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py fine_tuning=gpt3/squad stages=[fine_tuning] \
+ cluster_type=bcp \
+launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts data_dir=/mount/data base_results_dir=/mount/results \
+fine_tuning.run.model_train_name=gpt3_126m \
+fine_tuning.model.restore_from_path=/mount/results/gpt_sft/convert_nemo/results/megatron_gpt.nemo \
+>> /results/finetune_gpt3_log.txt 2>&1
+```
+
+The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
+The stdout and stderr outputs will also be redirected to the `/results/finetune_gpt3_log.txt` file, to be able to download the logs from NGC.
+Any other parameter can also be added to the command to modify its behavior.
+
+
+
+#### 5.9.4. Fine-tuning on Custom Tasks
+<a id="markdown-fine-tuning-on-custom-tasks" name="fine-tuning-on-custom-tasks"></a>
+We also support fine-tuning on custom down-stream tasks in T5, mT5 and GPT. 
+
+
+##### 5.9.4.1. T5 and mT5
+<a id="markdown-t5-and-mt5" name="t5-and-mt5"></a>
+In order to benchmark on your own dataset, you are required to split the original dataset into two files for T5 and mT5, i.e. a txt file corresponding to the 
+source (context) data, and txt file corresponding to the target data. Each line of these two files forms a fine-tuning sample.
+
+Custom fine-tuning configuration files can be found in `conf/fine_tuning/t5/custom_task.yaml` for T5 models and `conf/fine_tuning/mt5/custom_task.yaml` for mT5 models. The essential parameters are listed below. You need
 to specify the dataset paths and preferred benchmark metrics.
 ```yaml
   data:
@@ -3146,6 +3248,47 @@ to specify the dataset paths and preferred benchmark metrics.
 ```
 You can follow the instructions in T5 and mT5 fine-tuning sections to submit a custom task job.
 
+
+##### 5.9.4.2. GPT
+<a id="markdown-gpt" name="gpt"></a>
+To benchmark on your own dataset, you must supply the original data in a .jsonl format. This means providing a .jsonl file that contains the fine-tuning samples, where each sample comprises an `input` (which is represented by both context and query) and an `output` (the target answer). Each line in the file should constitute one fine-tuning sample.
+
+```
+{
+  "input": "Which NFL team represented the AFC at Super Bowl 50? Super_Bowl_50 Paragraph: Super Bowl 50 was an American football game to determine the champion of the National Football League (NFL) for the 2015 season. The American Football Conference (AFC) champion Denver Broncos defeated the National Football Conference (NFC) champion Carolina Panthers 24\u201310 to earn their third Super Bowl title. The game was played on February 7, 2016, at Levi's Stadium in the San Francisco Bay Area at Santa Clara, California. As this was the 50th Super Bowl, the league emphasized the \"golden anniversary\" with various gold-themed initiatives, as well as temporarily suspending the tradition of naming each Super Bowl game with Roman numerals (under which the game would have been known as \"Super Bowl L\"), so that the logo could prominently feature the Arabic numerals 50.",
+  "output": "Denver Broncos"
+  ...
+  }
+```
+
+Custom supervised fine-tuning configuration files can be found in `conf/fine_tuning/gpt3/custom_task.yaml` for GPT models. The essential parameters are listed below. You need to specify the dataset paths, preferred benchmark metrics and sampling probabilities from each training dataset when `strategy='random'`.
+
+```yaml
+  data:
+    train_ds:
+      # Example of how to specify paths to multiple datasets
+      # file_names: 
+      #   - /path/to/squad.jsonl
+      #   - /path/to/mnli.jsonl
+      #   - /path/to/boolq.jsonl
+      # Example of how each dataset is formatted
+      # {'input': 'John von Neumann\nVon Neumann made fundamental contributions .... Q: What did the math of artificial viscosity do?', 'output': 'smoothed the shock transition without sacrificing basic physics'}
+      file_names: ??? # Path to a list of JSONL files corresponding to the source data.
+      # Example of how to specify concat_sampling_probabilities
+      # concat_sampling_probabilities:
+      #   - 0.5
+      #   - 0.25
+      #   - 0.25
+      concat_sampling_probabilities: ??? # When providing a list of datasets, this arg defines the sampling probabilities from each dataset when strategy='random'
+
+    validation_ds:
+      file_names: ??? # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
+      metric:
+        name: "loss" # Name of the evaluation metric to use. Options: ['exact_string_match', 'loss']
+        average: null # Average the metric over the dataset. Options: ['macro', 'micro']. Works only for 'F1', 'accuracy' etc. Refer to torchmetrics for metrics where this is supported.
+        num_classes: null
+```
+You can follow the instructions in GPT supervised fine-tuning sections to submit a custom task job.
 
 
 ### 5.10. Model Prompt Learning
@@ -3597,11 +3740,13 @@ Any other parameter can also be added to the command to modify its behavior.
 
 ### 5.12 LoRA Model and Generalized PEFT Framework
 <a id="markdown-peft-model" name="lora-peft-framework"></a>
-Many Parameter Efficient Fine-Tuning (PEFT) models have overlapping functionalities. In order to enhance NeMo's codebase, we have worked towards unifying the implementation of all supported PEFT methods, making it more streamlined. Furthermore, we have introduced the Low-rank Adapter PEFT model for GPT-style base models in NeMo.
+Many Parameter Efficient Fine-Tuning (PEFT) models have overlapping functionalities. In order to enhance NeMo's codebase, we have worked towards unifying the implementation of all supported PEFT methods, making it more streamlined. Furthermore, we have introduced the Low-rank Adapter PEFT model for GPT-style and mT5/T5-style base models in NeMo.
 
+
+#### 5.12.1 PEFT Training and Inference for GPT-style Models
 The new PEFT framework is built upon the SFT models and datasets, thereby inheriting all the dataset preparation requirements from SFT. For more details, please refer to the SFT section below.
 
-#### 5.12.1 PEFT Training and Inference
+##### 5.12.1.1 PEFT Training and Inference
 We offer a training and inference script in NeMo. Below is an example of how to use the training script. The `TRAIN_FILE`s (and `VALIDATION_FILE`s) follow the same format as SFT.
 
 Take note of the `model.peft.peft_scheme` argument. You can train a LoRA, P-tuning, Adapter, or IA3 model by setting this argument to the desired PEFT method.
@@ -3630,6 +3775,50 @@ inference.greedy=True \
 inference.outfile_path=<OUTPUT_FILE>
 ```
 Additionally, NeMo has a notebook which walks through the steps (which these scripts encapsulate) to train and run inference for PEFT models: https://github.com/NVIDIA/NeMo/blob/main/tutorials/nlp/lora.ipynb
+
+##### 5.12.2 PEFT Training and Inference for mT5/T5-style Models
+We offer training and inference scripts in NeMo for parameter efficient tuning of mT5/T5-style models. You can train a LoRA, P-tuning, Adapter, or IA3 model using its corresponding training and inference script. 
+
+##### 5.12.2.1 PEFT Training and Inference
+Below is an example of how to use the training scripts for adapter tuning. The `TRAIN_FILE`s (and `VALIDATION_FILE`s) follow the same format as SFT.
+
+```bash
+python /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py \
+    model.language_model_path=<BASE_T5_MODEL> \
+    model.data.train_ds=[<TRAIN_FILE1>,<TRAIN_FILE2>,...] \
+    model.data.validation_ds=[<VALIDATION_FILE1>, <VALIDATION_FILE2>,...]
+```
+
+At the end of tuning, a '.nemo' model is generated which contains the parameters for the PEFT model.
+Similarly, the PEFT framework has an inference script as well:
+
+```bash
+python /data/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_adapter_eval.py \
+    data.test_ds=[<TEST_FILE>] \
+    language_model_path=[BASE_T5_MODEL] \
+    adapter_model_file=[PEFT_MODEL] \
+    pred_file_path=<OUTPUT_FILE>
+```
+
+You can switch to IA3, P-tuning, or LoRA methods by using the same input arguments to a different script. Below is the table including filepaths for each PEFT method:
+
+| PEFT Method    | Filepath   | 
+| -------------- | ---------- | 
+| Adapter tuning |  ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py```   | 
+| IA3 tuning     |  ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_ia3_tuning.py```   | 
+| P-tuning       | ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_prompt_learning.py```    | 
+| LoRA tuning    | ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_lora_tuning.py```    | 
+
+Similarly, the inference script filepaths are provided below:
+
+| PEFT Method    | Filepath   | 
+| -------------- | ---------- | 
+| Adapter tuning |  ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_adapter_eval.py```   | 
+| IA3 tuning     |  ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_ia3_eval.py```   | 
+| P-tuning       | ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_prompt_learning_eval.py```    | 
+| LoRA tuning    | ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_lora_eval.py```    | 
+
+
 ### 5.13. Model Evaluation
 <a id="markdown-model-evaluation" name="model-evaluation"></a>
 
@@ -4744,7 +4933,7 @@ SFT is the process of finetuning all of the model's parameters on supervised dat
 <a id="markdown-data-formatting" name="data-formatting"></a>
 To demonstrate how to format your SFT data, we'll take the Dolly dataset (https://github.com/databrickslabs/dolly) as an example, which consists of 15k instruction-context-response triples.
 
-First, to download the data, run `launcher_scripts/nemo_launcher/collections/dataprep_scripts/dolly_datapreep/download.py --path_to_save /path/to/save/data.jsonl`
+First, to download the data, run `launcher_scripts/nemo_launcher/collections/dataprep_scripts/dolly_dataprep/download.py --path_to_save /path/to/save/data.jsonl`
 
 The downloaded data `/path/to/save/data.jsonl` is formattated as a JSONL file with each line formatted as:
 
@@ -4905,8 +5094,8 @@ To launch reward model training we first need to start with a pre-trained or fin
 ```bash
 cd /opt/nemo-rlhf \
 && export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
-&& python -u rlhf/reward_models/train_reward_model.py \
-    --config-path=rlhf/reward_models/conf \
+&& python -u examples/nlp/gpt/train_reward_model.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=training_rm \
     model.pretrained_checkpoint.restore_from_path='model.nemo' \
     "model.data.data_prefix={train: [${train_output_document}], validation: [${val_output_document}], test: [${test_output_document}]}"
@@ -4940,8 +5129,8 @@ To launch the Reward Model inference server in a Linux system, this command can 
 cd /opt/nemo-rlhf \
 && export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python rlhf/reward_models/serve_reward_model.py \
-    --config-path=/opt/nemo-rlhf/rlhf/reward_models/conf \
+&& python -u examples/nlp/gpt/serve_reward_model.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=inference_rm \
     gpt_rm_model_file=/path/to/model.nemo \
     port=5555
@@ -4958,8 +5147,8 @@ To launch the Initial Policy inference server in a Linux system, this command ca
 cd /opt/nemo-rlhf \
 && export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python rlhf/rlhf_nemo/serve_initial_policy.py \
-    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+&& python -u examples/nlp/gpt/serve_initial_policy.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=inference_initial_policy \
     gpt_model_file=/path/to/model.nemo \
     port=5556
@@ -4976,8 +5165,8 @@ The PPO Critic has to perform both training and inference. We designed the Criti
 cd /opt/nemo-rlhf \
 && export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python rlhf/rlhf_nemo/serve_ppo_critic.py \
-    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+&& python -u examples/nlp/gpt/serve_ppo_critic.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=gpt_ppo_critic \
     model.pretrained_checkpoint.restore_from_path=/path/to/trained_rm.nemo \
     port=5557
@@ -4993,8 +5182,8 @@ The PPO Actor training job contains the master HTTP controller that makes the HT
 cd /opt/nemo-rlhf \
 && export PYTHONPATH="/opt/nemo-rlhf:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python rlhf/rlhf_nemo/train_gpt_ppo_actor.py \
-    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+&& python -u examples/nlp/gpt/train_gpt_ppo_actor.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=gpt_ppo_actor \
     "model.data.data_prefix={train: [/path/to/train_data], validation: [/path/to/val_data], test: [/path/to/test_data]}" \
     model.pretrained_checkpoint.restore_from_path=/path/to/model.nemo
@@ -5019,7 +5208,7 @@ RM_MODEL=/path/to/reward_model.nemo
 ACTOR_MODEL=/path/to/sft_model.nemo
 
 DIR=/opt/nemo-rlhf
-CONTAINER="nvcr.io/ea-bignlp/nemofw-training:23.05-py3"
+CONTAINER="nvcr.io/ea-bignlp/nemofw-training:23.07-py3"
 
 # START HETEROGENEUS JOB 0
 
@@ -5027,8 +5216,8 @@ read -r -d '' cmd_rm_inference <<EOF
 cd ${DIR} \
 && export PYTHONPATH="${DIR}:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python rlhf/reward_models/serve_reward_model.py \
-    --config-path=/opt/nemo-rlhf/rlhf/reward_models/conf \
+&& python -u examples/nlp/gpt/serve_reward_model.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=inference_rm \
     gpt_rm_model_file=${RM_MODEL} \
     port=${RM_PORT=5555}
@@ -5046,8 +5235,8 @@ read -r -d '' cmd_init_policy_inference <<EOF
 cd ${DIR} \
 && export PYTHONPATH="${DIR}:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python rlhf/rlhf_nemo/serve_initial_policy.py \
-    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+&& python -u examples/nlp/gpt/serve_initial_policy.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=inference_initial_policy \
     gpt_model_file=${ACTOR_MODEL} \
     port=${INIT_POLICY_PORT=5556}
@@ -5066,8 +5255,8 @@ read -r -d '' cmd_critic_inference <<EOF
 cd ${DIR} \
 && export PYTHONPATH="${DIR}:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python -u rlhf/rlhf_nemo/serve_ppo_critic.py \
-    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+&& python -u examples/nlp/gpt/serve_ppo_critic.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=gpt_ppo_critic \
     model.pretrained_checkpoint.restore_from_path=${RM_MODEL} \
     inference.port=${CRITIC_PORT=5557}
@@ -5094,8 +5283,8 @@ read -r -d '' cmd_ppo <<EOF
 cd ${DIR} \
 && export PYTHONPATH="${DIR}:${PYTHONPATH}" \
 && export HYDRA_FULL_ERROR=1 \
-&& python -u rlhf/rlhf_nemo/train_gpt_ppo_actor.py \
-    --config-path=/opt/nemo-rlhf/rlhf/rlhf_nemo/conf \
+&& python -u examples/nlp/gpt/train_gpt_ppo_actor.py \
+    --config-path=examples/nlp/gpt/conf/ \
     --config-name=gpt_ppo_actor \
     trainer.num_nodes=8 \
     "model.data.data_prefix={train: [${TRAIN_DATA_PATH}], validation: [${VALID_DATA_PATH}], test: [${TEST_DATA_PATH}]}" \
@@ -5681,6 +5870,9 @@ The table and chart below show the performance results.
 
 ## 8. Changelog
 <a id="markdown-changelog" name="changelog"></a>
+**NeMo Framework 23.07**
+* Add Low-Rank Adaptation (LoRA) Support for T5 and mT5
+* Add Batch Size Ramp-up Support for GPT
 
 **NeMo Framework 23.05**
 * Low-Rank Adaptation (LoRA) Support for GPT
@@ -5826,9 +6018,10 @@ The table and chart below show the performance results.
 <a id="markdown-known-issues" name="known-issues"></a>
 Fixes for the following issues will be released shortly:
 * The inference hyperparameter search is not available in this release for T5 and mT5.
-* Accuracy and performance measurement for GPT-3 is currently not supported. Please use the NeMo Megatron 22.05 inference container to use this feature.
+* Accuracy and performance measurement for GPT is currently not supported. Please use the NeMo Megatron 22.05 inference container to use this feature.
 * The fine-tuning SQuAD results for T5 are lower than expected.
-* There has been a slight regression in T5 performance and this will be addressed in an upcoming release.
 * Evaluation for GPT has been tested for PP <=2 and may have issues for PP >2. It is recommended to convert to TP only for Evaluation.
 * Transformer Engine (TE)-based GPT models are currently not supported for any Parameter Efficient Fine Tuning (PEFT) techniques - this will be added soon.
 * TE-based GPT Eval will take more memory than non-TE-based GPT Eval.
+* Iteration per second metric is incorrectly displayed on the Logs progress bar - this will be addressed in the next release. Instead, please use train step timing in Weights & Biases or TensorBoard.
+* Please note that Batch Size Ramp-up Support for GPT is currently working only with FusedAdam optimizer.
