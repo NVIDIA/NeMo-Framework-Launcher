@@ -691,6 +691,45 @@ class FineTuning(NeMoStage):
         }
         return model_type_to_code_path[model_type]
 
+class PEFT(NeMoStage):
+    """Stage class of PEFT with NeMo scripts"""
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "peft"
+        self.stage_cfg = cfg.get("peft")
+
+    def setup_folder_and_data(self) -> None:
+        """Setup job/data folders and fine-tuning/prompt-learning dataset"""
+        # Setup folders
+        super().setup_folder_and_data()
+
+        # Prepare prompt learning dataset
+        data_dir = self.cfg.get("data_dir")
+        task_name = self.stage_cfg.run.get("task_name")
+
+        # Prepare dataset for squad
+        if task_name in ["squad", "xquad"]:
+            prepare_squad_for_fine_tuning(data_dir=os.path.join(data_dir, "squad_data"))
+
+
+    def _get_nemo_code_path(self, model_type: str) -> Path:
+        """
+        Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
+        For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
+        
+        :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
+        :return: path current stage's essential nemo scripts code 
+        :rtype: Path
+        """
+        if model_type == "t5":
+            raise NotImplementedError("PEFT is not supported in NeMo Megatron t5 models.")
+        if model_type == "mt5":
+            raise NotImplementedError("PEFT is not supported in NeMo Megatron mt5 models.")
+        model_type_to_code_path = {
+            "gpt3": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+        }
+        return model_type_to_code_path[model_type]
 
 class PromptLearning(NeMoStage):
     """Stage class of prompt-learning with NeMo scripts"""
