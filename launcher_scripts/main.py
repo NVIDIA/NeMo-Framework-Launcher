@@ -24,6 +24,7 @@ from nemo_launcher.core.stages import (
     Conversion,
     EvalHarnessEvaluation,
     FineTuning,
+    PEFT,
     IA3Learning,
     NeMoEvaluation,
     PromptLearning,
@@ -37,6 +38,7 @@ omegaconf.OmegaConf.register_new_resolver("divide_floor", lambda x, y: int(math.
 STR2STAGECLASS = {
     "training": Training,
     "fine_tuning": FineTuning,
+    "peft": PEFT,
     "prompt_learning": PromptLearning,
     "adapter_learning": AdapterLearning,
     "ia3_learning": IA3Learning,
