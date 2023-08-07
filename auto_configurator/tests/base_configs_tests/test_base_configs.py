@@ -18,7 +18,7 @@ class TestBaseConfigs:
           precision: bf16
           logger: False
           enable_checkpointing: False
-          replace_sampler_ddp: False
+          use_distributed_sampler: False
           max_epochs: null
           max_steps: 600000
           max_time: "00:23:30:00"
@@ -196,7 +196,7 @@ class TestBaseConfigs:
           precision: bf16
           logger: False # logger provided by exp_manager
           enable_checkpointing: False
-          replace_sampler_ddp: False
+          use_distributed_sampler: False
           max_epochs: null
           max_steps: 1000000 # consumed_samples = global_step * global_batch_size
           max_time: "06:23:30:00"
@@ -421,7 +421,7 @@ class TestBaseConfigs:
           precision: bf16
           logger: False # logger provided by exp_manager
           enable_checkpointing: False
-          replace_sampler_ddp: False
+          use_distributed_sampler: False
           max_epochs: null
           max_steps: 1000000 # consumed_samples = global_step * global_batch_size
           max_time: "06:23:30:00"
@@ -642,7 +642,7 @@ class TestBaseConfigs:
           precision: bf16
           logger: False # logger provided by exp_manager
           enable_checkpointing: False
-          replace_sampler_ddp: False
+          use_distributed_sampler: False
           max_epochs: -1 # PTL default. In practice we don't usually train for more than 1 epoch.
           max_steps: 100000 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
           max_time: "00:23:30:00"
