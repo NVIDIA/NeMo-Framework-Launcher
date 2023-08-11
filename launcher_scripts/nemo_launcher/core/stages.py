@@ -601,7 +601,7 @@ class Training(NeMoStage):
             hydra_override += [f"model.data.data_prefix=\$({auto_blend_command})"]
         if self.stage_cfg.model.get("ub_tp_comm_overlap", False):
             ub_cfg_name = self._get_ub_cfg_override()
-            hydra_override += [f"'tp_overlap@model.ub_tp_comm_overlap_cfg={ub_cfg_name}'"]
+            hydra_override += [f"'+tp_overlap@model.ub_tp_comm_overlap_cfg={ub_cfg_name}'"]
         if self.stage_cfg.model.get("gc_interval", 0) > 1:
             gc_interval = min(self.stage_cfg.model.get("gc_interval"), self.cfg.training.trainer.get("val_check_interval"))
             hydra_override += [f"model.gc_interval={gc_interval}"]
