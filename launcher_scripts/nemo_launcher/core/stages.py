@@ -632,7 +632,7 @@ class Training(NeMoStage):
         hidden_size = self.stage_cfg.model.get("hidden_size")
         mb_size = self.stage_cfg.model.get("micro_batch_size")
         seqlen = self.stage_cfg.model.get("encoder_seq_length")
-        cfg_name =  f"ub_cfg_${{gpu_name:}}_h{hidden_size}_tp{tp_size}_mbs{mb_size}_seqlen{seqlen}"
+        cfg_name =  f"ub_cfg_\\${{gpu_name:}}_h{hidden_size}_tp{tp_size}_mbs{mb_size}_seqlen{seqlen}"
         return cfg_name
 
 
