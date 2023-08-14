@@ -25,13 +25,13 @@ trainer:
   gradient_clip_val: 1.0
 
 exp_manager:
-  explicit_log_dir: null
+  explicit_log_dir: ${peft.run.results_dir}/results
   exp_dir: null
   name: ${peft.name}
   create_wandb_logger: False
   wandb_logger_kwargs:
-    project: null
-    name: null
+    project: nemo_gpt3_${peft.run.task_name}
+    name: ${peft.run.name}
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
   create_checkpoint_callback: True
@@ -87,7 +87,7 @@ model:
   ffn_dropout: 0.0
 
   peft:
-    peft_scheme: "adapter"  # can be either adapter,ia3, or ptuning
+    peft_scheme: "adapter"  # can be either adapter, ia3, lora, or ptuning
     restore_from_path: null
     
     # Used for adapter peft training
