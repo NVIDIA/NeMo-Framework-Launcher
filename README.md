@@ -146,7 +146,8 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
     + [5.12.1 PEFT Training and Inference for GPT-style Models](#5121-peft-training-and-inference-for-gpt-style-models)
       - [5.12.1.1 PEFT Training and Inference](#51211-peft-training-and-inference)
       + [5.12.1.2 PEFT Training with NeMo Megatron Launcher](#51212-peft-training-with-nemo-megatron-launcher)
-        - [5.12.1.2.1 Base Command Platform](#512121-base-command-platform)
+        - [5.12.1.2.1 Slurm](#512121-slurm)
+        - [5.12.1.2.2 Base Command Platform](#512122-base-command-platform)
       - [5.12.2 PEFT Training and Inference for mT5/T5-style Models](#5122-peft-training-and-inference-for-mt5-t5-style-models)
       - [5.12.2.1 PEFT Training and Inference](#51221-peft-training-and-inference)
     + [5.12.1 PEFT Training and Inference for GPT-style Models](#5121-peft-training-and-inference-for-gpt-style-models)
@@ -3786,7 +3787,44 @@ mix-n-match PEFT scheme like adapter_and_ptuning can be easily extended to do ia
 
 PTuning does not need to flexibility to insert prompt tokens anywhere in the input. This feature has been removed for simplicity.
 
-##### 5.12.1.2.1 Base Command Platform
+##### 5.12.1.2.1 Slurm
+<a id="markdown-slurm" name="slurm"></a>
+
+Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
+
+```yaml
+partition: null
+account: null
+exclusive: True
+gpus_per_task: null
+gpus_per_node: 8
+mem: 0
+overcommit: False
+job_name_prefix: "nemo-megatron-"
+```
+
+**Example:**
+
+To run only the evaluation pipeline and not the data preparation, training, 
+conversion or inference pipelines set the `conf/config.yaml` file to:
+
+```yaml
+stages:
+  - peft
+```
+
+then run:
+```
+python3 main.py \
+    peft=gpt3/squad \
+    stages=["peft"] \
+    peft.model.peft.peft_scheme="ptuning" \
+    peft.model.megatron_amp_O2=False \
+    peft.model.restore_from_path=${LANGUAGE_MODEL_PATH}\
+    peft.exp_manager.exp_dir=${BASE_RESULTS_DIR}/${RUN_NAME}/ptuning \
+
+```
+##### 5.12.1.2.2 Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 In order to run the ptuning learning script on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp` or `interactive`. This can also be overridden
@@ -3849,7 +3887,7 @@ python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py \
         peft.exp_manager.checkpoint_callback_params.monitor=validation_loss
 ```
 
-The command above assumes you mounted the data workspace in `/mount/workspace/` (e.g. the example script uses databricks-dolly-15k dataset), and the results workspace in `/mount/results`. The command needs set different peft.exp_manager.exp_dir for different PEFT jobs.
+The command above assumes you mounted the data workspace in `/mount/workspace/` (e.g. the example script uses databricks-dolly-15k dataset), and the results workspace in `/results`. The command needs set different peft.exp_manager.exp_dir for different PEFT jobs.
 The stdout and stderr outputs will also be redirected to the `/results/nemo_launcher/ptuning_log`, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
