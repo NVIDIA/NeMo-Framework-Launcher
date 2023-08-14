@@ -145,7 +145,8 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
   * [5.12 LoRA Model and Generalized PEFT Framework](#512-lora-model-and-generalized-peft-framework)
     + [5.12.1 PEFT Training and Inference for GPT-style Models](#5121-peft-training-and-inference-for-gpt-style-models)
       - [5.12.1.1 PEFT Training and Inference](#51211-peft-training-and-inference)
-      - [5.12.1.2 PEFT Training with NeMo Megatron Launcher](#51212-peft-training-with-nemo-megatron-launcher)
+      + [5.12.1.2 PEFT Training with NeMo Megatron Launcher](#51212-peft-training-with-nemo-megatron-launcher)
+        - [5.12.1.2.1 Base Command Platform](#512121-base-command-platform)
       - [5.12.2 PEFT Training and Inference for mT5/T5-style Models](#5122-peft-training-and-inference-for-mt5-t5-style-models)
       - [5.12.2.1 PEFT Training and Inference](#51221-peft-training-and-inference)
     + [5.12.1 PEFT Training and Inference for GPT-style Models](#5121-peft-training-and-inference-for-gpt-style-models)
@@ -3784,6 +3785,72 @@ It is implemented via adapter_mixins framework with a unify style.
 mix-n-match PEFT scheme like adapter_and_ptuning can be easily extended to do ia3_and_ptuning or lora_and_ptuning
 
 PTuning does not need to flexibility to insert prompt tokens anywhere in the input. This feature has been removed for simplicity.
+
+##### 5.12.1.2.1 Base Command Platform
+<a id="markdown-base-command-platform" name="base-command-platform"></a>
+In order to run the ptuning learning script on Base Command Platform, set the
+`cluster_type` parameter in `conf/config.yaml` to `bcp` or `interactive`. This can also be overridden
+from the command line, using hydra. 
+
+```bash
+export HYDRA_FULL_ERROR=1
+export TORCH_CPP_LOG_LEVEL=INFO NCCL_DEBUG=INFO
+  
+TRAIN="[/mount/workspace/databricks-dolly-15k-train.jsonl]"
+VALID="[/mount/workspace/databricks-dolly-15k-val.jsonl]"
+VALID_NAMES="[peft-squad]"
+CONCAT_SAMPLING_PROBS="[1]"
+ 
+PEFT_SCHEME="ptuning"
+PEFT_EXP_DIR="/results/nemo_launcher/ptuning"
+LOG_DIR="/results/nemo_launcher/ptuning_log"
+ 
+TP_SIZE=2
+ 
+PP_SIZE=1
+ 
+python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py \
+        peft=gpt3/squad \
+        stages=[peft] \
+        cluster_type=interactive \
+        launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts \
+        peft.model.peft.peft_scheme=${PEFT_SCHEME} \
+        peft.trainer.precision=bf16 \
+        peft.trainer.max_steps=100 \
+        peft.trainer.devices=2 \
+        peft.trainer.val_check_interval=10 \
+        peft.model.megatron_amp_O2=False \
+        peft.model.restore_from_path=/mount/workspace/nemo_gpt1.3B_fp16.nemo \
+        peft.model.tensor_model_parallel_size=${TP_SIZE} \
+        peft.model.pipeline_model_parallel_size=${PP_SIZE} \
+        peft.model.optim.lr=5e-6 \
+        peft.model.answer_only_loss=True \
+        peft.model.data.train_ds.file_names=${TRAIN} \
+        peft.model.data.train_ds.micro_batch_size=1 \
+        peft.model.data.train_ds.global_batch_size=32 \
+        peft.model.data.train_ds.concat_sampling_probabilities=${CONCAT_SAMPLING_PROBS} \
+        peft.model.data.validation_ds.micro_batch_size=1 \
+        peft.model.data.validation_ds.global_batch_size=32 \
+        peft.model.data.validation_ds.file_names=${VALID} \
+        peft.model.data.validation_ds.names=${VALID_NAMES} \
+        peft.model.data.test_ds.micro_batch_size=1 \
+        peft.model.data.test_ds.global_batch_size=128 \
+        peft.model.data.train_ds.num_workers=0 \
+        peft.model.data.validation_ds.num_workers=0 \
+        peft.model.data.test_ds.num_workers=0 \
+        peft.model.data.validation_ds.metric.name=loss \
+        peft.model.data.test_ds.metric.name=loss \
+        peft.exp_manager.exp_dir=${PEFT_EXP_DIR} \
+        peft.exp_manager.explicit_log_dir=${LOG_DIR} \
+        peft.exp_manager.resume_if_exists=True \
+        peft.exp_manager.resume_ignore_no_checkpoint=True \
+        peft.exp_manager.create_checkpoint_callback=True \
+        peft.exp_manager.checkpoint_callback_params.monitor=validation_loss
+```
+
+The command above assumes you mounted the data workspace in `/mount/workspace/` (e.g. the example script uses databricks-dolly-15k dataset), and the results workspace in `/mount/results`. The command needs set different peft.exp_manager.exp_dir for different PEFT jobs.
+The stdout and stderr outputs will also be redirected to the `/results/nemo_launcher/ptuning_log`, to be able to download the logs from NGC.
+Any other parameter can also be added to the command to modify its behavior.
 
 ##### 5.12.2 PEFT Training and Inference for mT5/T5-style Models
 We offer training and inference scripts in NeMo for parameter efficient tuning of mT5/T5-style models. You can train a LoRA, P-tuning, Adapter, or IA3 model using its corresponding training and inference script. 
