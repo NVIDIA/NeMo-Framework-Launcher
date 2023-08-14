@@ -207,6 +207,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.16.2.6 PPO Hyper-parameters](#51626-ppo-hyper-parameters)
     + [5.16.3. Future Work](#5163-future-work)
   * [5.17 Curating pretraining datasets with the NeMo Data Curator](#517-curating-pretraining-datasets-with-the-nemo-data-curator)
+  * [5.18 Parameter-Efficient Fine-Tuning (PEFT) Framework with unified PEFT methods](#518-parameter-efficient-fine-tuning-(peft)-framework-with-unified-peft-methods)
 - [6. Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
   * [6.1. Run NVIDIA Triton Server with Generated Model Repository](#61-run-nvidia-triton-server-with-generated-model-repository)
 - [6.2. GPT Text Generation with Ensemble](#62-gpt-text-generation-with-ensemble)
