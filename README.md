@@ -145,8 +145,10 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
   * [5.12 LoRA Model and Generalized PEFT Framework](#512-lora-model-and-generalized-peft-framework)
     + [5.12.1 PEFT Training and Inference for GPT-style Models](#5121-peft-training-and-inference-for-gpt-style-models)
       - [5.12.1.1 PEFT Training and Inference](#51211-peft-training-and-inference)
+      - [5.12.1.2 PEFT Training with NeMo Megatron Launcher](#51212-peft-training-with-nemo-megatron-launcer)
       - [5.12.2 PEFT Training and Inference for mT5/T5-style Models](#5122-peft-training-and-inference-for-mt5-t5-style-models)
       - [5.12.2.1 PEFT Training and Inference](#51221-peft-training-and-inference)
+    + [5.12.1 PEFT Training and Inference for GPT-style Models](#5121-peft-training-and-inference-for-gpt-style-models)
   * [5.13. Model Evaluation](#513-model-evaluation)
     + [5.13.1. GPT Evaluation](#5131-gpt-evaluation)
       - [5.13.1.1. Common](#51311-common)
@@ -207,7 +209,6 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.16.2.6 PPO Hyper-parameters](#51626-ppo-hyper-parameters)
     + [5.16.3. Future Work](#5163-future-work)
   * [5.17 Curating pretraining datasets with the NeMo Data Curator](#517-curating-pretraining-datasets-with-the-nemo-data-curator)
-  * [5.18 Parameter-Efficient Fine-Tuning (PEFT) Framework with unified PEFT methods](#518-parameter-efficient-fine-tuning-(peft)-framework-with-unified-peft-methods)
 - [6. Deploying the NeMo Megatron Model](#6-deploying-the-nemo-megatron-model)
   * [6.1. Run NVIDIA Triton Server with Generated Model Repository](#61-run-nvidia-triton-server-with-generated-model-repository)
 - [6.2. GPT Text Generation with Ensemble](#62-gpt-text-generation-with-ensemble)
@@ -3776,6 +3777,13 @@ inference.greedy=True \
 inference.outfile_path=<OUTPUT_FILE>
 ```
 Additionally, NeMo has a notebook which walks through the steps (which these scripts encapsulate) to train and run inference for PEFT models: https://github.com/NVIDIA/NeMo/blob/main/tutorials/nlp/lora.ipynb
+
+##### 5.12.1.2 PEFT Training with NeMo Megatron Launcher
+PEFT stage could launch PEFT methods including PTuning, LoRA, Adapters and IA3 in a single stage, by setting different peft scheme.
+It is implemented via adapter_mixins framework with a unify style.
+mix-n-match PEFT scheme like adapter_and_ptuning can be easily extended to do ia3_and_ptuning or lora_and_ptuning
+
+PTuning does not need to flexibility to insert prompt tokens anywhere in the input. This feature has been removed for simplicity.
 
 ##### 5.12.2 PEFT Training and Inference for mT5/T5-style Models
 We offer training and inference scripts in NeMo for parameter efficient tuning of mT5/T5-style models. You can train a LoRA, P-tuning, Adapter, or IA3 model using its corresponding training and inference script. 
