@@ -145,7 +145,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
   * [5.12 LoRA Model and Generalized PEFT Framework](#512-lora-model-and-generalized-peft-framework)
     + [5.12.1 PEFT Training and Inference for GPT-style Models](#5121-peft-training-and-inference-for-gpt-style-models)
       - [5.12.1.1 PEFT Training and Inference](#51211-peft-training-and-inference)
-      - [5.12.1.2 PEFT Training with NeMo Megatron Launcher](#51212-peft-training-with-nemo-megatron-launcer)
+      - [5.12.1.2 PEFT Training with NeMo Megatron Launcher](#51212-peft-training-with-nemo-megatron-launcher)
       - [5.12.2 PEFT Training and Inference for mT5/T5-style Models](#5122-peft-training-and-inference-for-mt5-t5-style-models)
       - [5.12.2.1 PEFT Training and Inference](#51221-peft-training-and-inference)
     + [5.12.1 PEFT Training and Inference for GPT-style Models](#5121-peft-training-and-inference-for-gpt-style-models)
