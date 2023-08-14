@@ -3787,7 +3787,31 @@ mix-n-match PEFT scheme like adapter_and_ptuning can be easily extended to do ia
 
 PTuning does not need to flexibility to insert prompt tokens anywhere in the input. This feature has been removed for simplicity.
 
-##### 5.12.1.2.1 Slurm
+##### 5.12.1.2.1. Common
+<a id="markdown-common" name="common"></a>
+To specify the configuration for ptuning (LoRA, adapter or IA3 learning), 
+use all the `run` parameters to define the job specific config:
+```yaml
+run:
+  name: ${.task_name}_${.model_train_name}
+  time_limit: "04:00:00"
+  dependency: "singleton"
+  convert_name: convert_nemo
+  model_train_name: gpt3_1.3B
+  task_name: "squad"
+  results_dir: ${base_results_dir}/${.model_train_name}/ptuning_${.task_name}
+```
+
+To specify which language model checkpoint to load and its definition, use the `model` parameter:
+
+```yaml
+model:
+  language_model_path: ${base_results_dir}/${peft.run.model_train_name}/${peft.run.convert_name}/nemo_gpt1.3B_fp16.nemo
+  tensor_model_parallel_size: 2
+  pipeline_model_parallel_size: 1
+```
+
+##### 5.12.1.2.2 Slurm
 <a id="markdown-slurm" name="slurm"></a>
 
 Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
@@ -3824,7 +3848,7 @@ python3 main.py \
     peft.exp_manager.exp_dir=${BASE_RESULTS_DIR}/${RUN_NAME}/ptuning \
 
 ```
-##### 5.12.1.2.2 Base Command Platform
+##### 5.12.1.2.3 Base Command Platform
 <a id="markdown-base-command-platform" name="base-command-platform"></a>
 In order to run the ptuning learning script on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp` or `interactive`. This can also be overridden
