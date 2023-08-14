@@ -3792,6 +3792,7 @@ In order to run the ptuning learning script on Base Command Platform, set the
 `cluster_type` parameter in `conf/config.yaml` to `bcp` or `interactive`. This can also be overridden
 from the command line, using hydra. 
 
+To run the ptuning pipeline to nemo-megatron-gpt-1.3B model converted checkpoint, run:
 ```bash
 export HYDRA_FULL_ERROR=1
 export TORCH_CPP_LOG_LEVEL=INFO NCCL_DEBUG=INFO
