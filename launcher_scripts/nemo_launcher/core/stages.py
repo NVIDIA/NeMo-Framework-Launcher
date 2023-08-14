@@ -890,6 +890,74 @@ class PEFT(NeMoStage):
         if task_name in ["squad", "xquad"]:
             prepare_squad_for_fine_tuning(data_dir=os.path.join(data_dir, "squad_data"))
 
+    def _copy_k8s_helm_chart(self, template_root: str, job_path: JobPaths):
+        """
+        Copy the k8s Helm charts to the results directory.
+
+        :param str template_root: path to where the k8s template files are located
+        :param JobPaths job_path: JobPaths object
+        """
+        template_file = os.path.join(template_root, "peft.yaml")
+        chart_file = os.path.join(template_root, "Chart.yaml")
+        prompt_path = Path(job_path.folder / "k8s_template" / "templates" / "peft.yaml")
+        prompt_path.parent.mkdir(parents=True, exist_ok=True)
+        config_path = Path(job_path.folder / "k8s_template" / "config")
+        config_path.mkdir(parents=True, exist_ok=True)
+        chart_path = Path(job_path.folder / "k8s_template" / "Chart.yaml")
+        prompt_config_file = os.path.join(template_root, "peft-config.yaml")
+        prompt_config_path = Path(
+            job_path.folder / "k8s_template" / "templates" / "peft-config.yaml"
+        )
+        hydra_config_path = Path(job_path.folder / "k8s_template" / "config")
+
+        shutil.copy2(template_file, prompt_path)
+        shutil.copy2(chart_file, chart_path)
+        shutil.copy2(prompt_config_file, prompt_config_path)
+        shutil.copy2(job_path.config_file, hydra_config_path)
+
+    def _make_k8s_spec_file(
+        self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
+    ):
+        """
+        Create a spec file for a Kubernetes PEFT job.
+
+        The spec file is generated based on the parameters in the cluster and
+        PEFT config files.
+
+        :param str template_root: path to where the k8s template files are located
+        :param Dict cluster_parameters: settings specific to the cluster that is being used
+        :param JobPaths job_path: JobPaths object
+        """
+        with open(os.path.join(template_root, "values.yaml")) as value_file:
+            values_template = OmegaConf.load(value_file)
+
+        choice_model_type, _ = self.get_stage_config_choice()
+
+        values_template.image.trainingImage = cluster_parameters["container_image"]
+        values_template.image.pullSecret = cluster_parameters["pull_secret"]
+        values_template.image.gpuNum = self.stage_cfg.trainer.devices
+        values_template.image.nodes = self.stage_cfg.trainer.num_nodes
+        values_template.trainingConfig.shmSize = cluster_parameters["shm_size"]
+        values_template.trainingConfig.NFSServer = cluster_parameters["nfs_server"]
+        values_template.trainingConfig.NFSPath = cluster_parameters["nfs_path"]
+        values_template.trainingConfig.scriptPath = str(
+            self._get_nemo_code_path(choice_model_type)
+        )
+        values_template.trainingConfig.envVars = cluster_parameters["env_vars"]
+
+        if cluster_parameters["dns_policy"] is not None:
+            values_template.trainingConfig.dnsPolicy = cluster_parameters["dns_policy"]
+
+        if self.cfg.wandb_api_key_file is not None:
+            values_template.trainingConfig.wandbKey = self._add_wandb_key_to_chart()
+
+        k8s_template_path = job_path.folder
+        k8s_template_file = Path(k8s_template_path / "k8s_template" / "values.yaml")
+        k8s_template_file.parent.mkdir(parents=True, exist_ok=True)
+
+        conf = OmegaConf.create(values_template)
+        OmegaConf.save(conf, k8s_template_file)
+
     def _get_nemo_code_path(self, model_type: str) -> Path:
         """
         Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.

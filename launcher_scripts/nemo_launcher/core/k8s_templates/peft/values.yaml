@@ -1,0 +1,32 @@
+image:
+  trainingImage: cfg.container
+  pullPolicy: IfNotPresent
+
+  # Insert the name of your container registry pull secret #
+  pullSecret: nvcr.io
+
+  # Insert number of GPUs and nodes #
+  gpuNum: 1
+  nodes: training.trainer.num_nodes
+
+trainingConfig:
+  # Specify the amount of shared memory to attach to the Pods #
+  shmSize: 512Gi
+
+  # Insert the address for the NFS server if using NFS for model storage #
+  NFSServer: <Insert NFS server address>
+
+  # Insert the path to save data on the NFS server #
+  NFSPath: <Insert NFS server path>
+
+  # Specify the WandB API key if using WandB for logging #
+  wandbKey: "nil"
+
+  # Specify the path to the pre-training script #
+  scriptPath: <Insert path to pre-training script>
+
+  # Insert the dnsPolicy #
+  dnsPolicy: "nil"
+
+  # Specify the environment variables to set in the container #
+  envVars: "nil"
