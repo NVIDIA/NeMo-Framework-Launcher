@@ -365,13 +365,13 @@ actor:
 
     rlhf:
       reward_model:
-        ip: ${oc.env:HETJOB_HOST0,localhost}
+        ip: ${oc.env:HETJOB0_HOST,localhost}
         port: 5565
       critic:
-        ip: ${oc.env:HETJOB_HOST2,localhost}
+        ip: ${oc.env:HETJOB2_HOST,localhost}
         port: 5567
       initial_policy:
-        ip: ${oc.env:HETJOB_HOST1,localhost}
+        ip: ${oc.env:HETJOB1_HOST,localhost}
         port: 5566
       ppo:
         entropy_penalty: 0.01
