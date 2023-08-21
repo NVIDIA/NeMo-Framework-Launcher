@@ -190,7 +190,7 @@ critic_server:
     fp16_lm_cross_entropy: False # Move the cross entropy unreduced loss calculation for lm head to fp16
 
     # Megatron O2-style half-precision
-    megatron_amp_O2: True # Enable O2-level automatic mixed precision using master parameters
+    megatron_amp_O2: False # Enable O2-level automatic mixed precision using master parameters
     grad_allreduce_chunk_size_mb: 125
 
     ## Transformer Engine
@@ -394,6 +394,7 @@ actor:
       add_BOS: False
       all_probs: False
       compute_logprob: False
+      end_strings: ["<|endoftext|>", "<extra_id_1>"]
 
     tokenizer:
       library: 'sentencepiece'
