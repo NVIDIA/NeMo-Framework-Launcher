@@ -1,0 +1,14 @@
+run:
+  name: 'get-cc-urls'
+  results_dir: ${common_crawl.run.results_dir}/${.name}
+  time_limit: "00:20:00"
+  dependency: "singleton"
+  nodes: 1
+  partition: cpu_m2
+  cpus_per_node: 48
+
+cc_index_prefix: https://index.commoncrawl.org 
+cc_data_domain_prefix: https://data.commoncrawl.org
+output_warc_url_file: ${common_crawl.get_common_crawl_urls.run.results_dir}/cc_warc_urls.txt
+starting_snapshot: 2023-14
+ending_snapshot: 2023-14

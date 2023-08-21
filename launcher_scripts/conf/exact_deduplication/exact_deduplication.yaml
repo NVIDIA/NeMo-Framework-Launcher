@@ -1,0 +1,13 @@
+run:
+  name: 'exact_deduplication'
+  results_dir: ${base_results_dir}/${.name}
+
+# NOTE: compute_document_hashes and form_duplicate_groups must
+#       be run within a "start_redis_cluster" and "shutdown_redis_cluster"
+defaults:
+  # - add_document_ids: add_id
+  - start_redis_cluster: start_redis_cluster
+  - compute_document_hashes: hash_documents
+  - form_duplicate_groups: form_duplicate_groups
+  - shutdown_redis_cluster: shutdown_redis_cluster
+    #- remove_duplicate_documents: remove_duplicates

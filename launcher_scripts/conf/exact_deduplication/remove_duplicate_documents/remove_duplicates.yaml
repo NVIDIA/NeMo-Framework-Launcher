@@ -1,0 +1,24 @@
+run:
+  name: 'cc-download-extract'
+  results_dir: ${common_crawl.run.results_dir}/${.name}
+  time_limit: "1-00:00:00"
+  dependency: "singleton"
+  nodes: 1
+  partition: cpu_long_m2
+  cpus_per_node: 48
+
+
+builder_config:
+  download_module: ndc.download.commoncrawl.CommonCrawlWARCDownloader
+  download_params:
+    aws: True
+  iterator_module: ndc.download.commoncrawl.CommonCrawlWARCIterator
+  iterator_params: {}
+  extract_module: ndc.download.commoncrawl.CommonCrawlWARCExtractor
+  extract_params: {}
+
+input_url_file: ${common_crawl.get_common_crawl_urls.run.results_dir}/cc_warc_urls.txt
+output_json_dir: ${data_dir}/cc/json
+max_queue_size: 1000
+download_processes_per_node: 1
+extract_processes_per_node: 48

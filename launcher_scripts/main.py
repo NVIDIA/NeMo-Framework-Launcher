@@ -18,7 +18,7 @@ import sys
 import hydra
 import omegaconf
 from nemo_launcher.core.data_stages import CustomDataPreparation, MC4DataPreparation, PileDataPreparation
-from nemo_launcher.core.data_curation_stages import QualityFiltering
+from nemo_launcher.core.data_curation_stages import QualityFiltering, CommonCrawl, ExactDeduplication
 from nemo_launcher.core.export_stages import Export
 from nemo_launcher.core.stages import (
     AdapterLearning,
@@ -55,6 +55,8 @@ STR2STAGECLASS = {
         CustomDataPreparation: ["generic"],
     },
     "quality_filtering": QualityFiltering,
+    "common_crawl": CommonCrawl,
+    "exact_deduplication": ExactDeduplication,
 }
 
 

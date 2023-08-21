@@ -1,0 +1,11 @@
+run:
+  name: 'add-id'
+  results_dir: ${exact_deduplication.run.results_dir}/${.name}
+  time_limit: "01:00:00"
+  dependency: "singleton"
+  nodes: 5
+  partition: cpu_m2
+  cpus_per_node: 48
+
+
+input_data_dir: ${data_dir}/json

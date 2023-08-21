@@ -1,0 +1,7 @@
+run:
+  name: 'download-extract-cc'
+  results_dir: ${base_results_dir}/${.name}
+
+defaults:
+  - get_common_crawl_urls: get_common_crawl_urls
+  - download_and_extract: download_extract_warc
