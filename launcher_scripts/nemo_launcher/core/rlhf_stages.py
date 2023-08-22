@@ -180,6 +180,12 @@ class RLHFPPO(NeMoStage):
                 f"--config-path={stage_cfg_path.parents[0]}",
                 f"--config-name={stage_cfg_path.name}",
             ]
+            if i == 3:
+                nemo_cammnd += [
+                    "actor.model.rlhf.reward_model.ip=${HETJOB0_HOST}",
+                    "actor.model.rlhf.initial_policy.ip=${HETJOB1_HOST}",
+                    "actor.model.rlhf.critic.ip=${HETJOB2_HOST}",
+                ]
             nemo_call_string = " \\\n  ".join(nemo_cammnd)
             core_command += [
                 self._make_api_log_command_prefix(results_dir=self.get_job_path().results_folder),
