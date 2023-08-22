@@ -531,10 +531,7 @@ class ShutdownRedisCluster(NemoMegatronStage):
 
     # TODO: Just run the job from bash!
     def run(self) -> str:
-
-        # Get the results dir from start redis cluster
-        # run that script
-        subprocess.run()
+      pass
 
 
 class ExactDeduplication(NemoMegatronStage):
@@ -564,7 +561,6 @@ class ExactDeduplication(NemoMegatronStage):
         # Create the job folders
         self.setup_folder_and_data()
 
-        breakpoint()
         job_id = ""
         for sub_stage_name in self.stage_cfg.keys():
             if sub_stage_name != 'run':
