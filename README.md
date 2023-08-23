@@ -5417,7 +5417,7 @@ This ensures that the Critic can process the Actor's requests as efficiently as 
 
 All the model parameters can be controlled the same way as in other NeMo training jobs. However, we also provide full control of the behavior of PPO during training, with a section in the Actor config yaml file inside `model.rlhf`. These are the available hyper-parameters:
 
-- `rlhf.{reward_model,critic,initial_policy}`: Provide the ip address and the port where the Reward Model, PPO Critic and Initial Policy will be running, to enable communication with them.
+- `rlhf.{reward_model,critic,initial_policy}.{ip,port}`: Provide the ip address and the port where the Reward Model, PPO Critic and Initial Policy will be running, to enable communication with them.
 - `rlhf.ppo.entropy_bonus`: Weight of the entropy term in the PPO loss.
 - `rlhf.ppo.inital_pollicy_kl_penalty`: Weight of the KL Divergence w.r.t. the Initial Policy in the PPO loss.
 - `rlhf.ppo.use_absolute_kl`: Whether or not to use the absolute value of the KL Divergence w.r.t. the Initial Policy.
