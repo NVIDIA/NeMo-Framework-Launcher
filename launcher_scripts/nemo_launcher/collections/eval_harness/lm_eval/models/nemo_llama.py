@@ -120,7 +120,7 @@ class NeMo_LLAMALM_TP_PP(LM):
             return -len(toks), tuple(toks)
 
         reord = utils.Reorderer(requests, _collate)
-        request_ds = RequestDataset(reord.get_reordered(), self.model.tokenizer)
+        request_ds = RequestDataset(reord.get_reordered(), self.model.tokenizer, self.max_length)
         request_dl = DataLoader(request_ds, collate_fn=pad_collate, batch_size=self.batch_size, shuffle=False)
 
         def logits_to_results(batch, response):
@@ -171,6 +171,7 @@ class NeMo_LLAMALM_TP_PP(LM):
                 greedy=True,
                 repetition_penalty=1.0,
                 min_tokens_to_generate=0,
+                compute_logprob=True,
             )
             response = get_computeprob_response(self.tokenizer, response, inputs)
 
