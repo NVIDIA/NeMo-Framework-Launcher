@@ -4,22 +4,23 @@ run:
   time_limit: "0-04:00:00"
   dependency: "singleton"
 trainer:
-  num_nodes: 4
+  num_nodes: 2
   devices: 8
   accelerator: gpu
   precision: bf16
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
-  replace_sampler_ddp: False
+  use_distributed_sampler: False
   max_epochs: null
   max_steps: 300000 # consumed_samples = global_step * global_batch_size
   max_time: "05:23:30:00" # days:hours:minutes:seconds
   log_every_n_steps: 10
   val_check_interval: 2000
-  limit_val_batches: 50
+  limit_val_batches: 32
   limit_test_batches: 50
   accumulate_grad_batches: 1
   gradient_clip_val: 1.0
+  num_sanity_val_steps: 0
 exp_manager:
   explicit_log_dir: ${training.run.results_dir}/results
   exp_dir: null
@@ -45,8 +46,9 @@ exp_manager:
     buffer_size: 5
 
 model:
+  mcore_gpt: true
   micro_batch_size: 2
-  global_batch_size: 2048
+  global_batch_size: 128
   rampup_batch_size: null
   tensor_model_parallel_size: 2
   pipeline_model_parallel_size: 1
@@ -117,7 +119,7 @@ model:
 
   ## Transformer Engine
   # fp8 training is currently not supported in the improved models
-  transformer_engine: False
+  transformer_engine: True
   fp8: False # enables fp8 in TransformerLayer forward
   fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
   fp8_hybrid: False # sets fp8_format = recipe.Format.HYBRID
@@ -127,7 +129,7 @@ model:
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   use_emha: False
   ub_tp_comm_overlap: False
-  use_flash_attention: false
+  use_flash_attention: True
   optim:
     name: distributed_fused_adam
     lr: 1e-4
@@ -154,68 +156,68 @@ model:
     eod_mask_loss: false
     index_mapping_dir: null
     data_prefix:
-    - .5
+    - .0333
     - ${data_dir}/my-llama_00_text_document
-    - .5
+    - .0333
     - ${data_dir}/my-llama_01_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_00_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_01_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_02_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_03_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_04_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_05_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_06_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_07_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_08_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_09_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_10_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_11_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_12_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_13_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_14_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_15_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_16_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_17_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_18_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_19_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_20_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_21_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_22_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_23_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_24_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_25_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_26_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_27_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_28_text_document
-            #      - .0334
-            #      - ${data_dir}/my-gpt3_29_text_document
+    - .0333
+    - ${data_dir}/my-llama_00_text_document
+    - .0333
+    - ${data_dir}/my-llama_01_text_document
+    - .0333
+    - ${data_dir}/my-llama_02_text_document
+    - .0333
+    - ${data_dir}/my-llama_03_text_document
+    - .0333
+    - ${data_dir}/my-llama_04_text_document
+    - .0333
+    - ${data_dir}/my-llama_05_text_document
+    - .0333
+    - ${data_dir}/my-llama_06_text_document
+    - .0333
+    - ${data_dir}/my-llama_07_text_document
+    - .0333
+    - ${data_dir}/my-llama_08_text_document
+    - .0333
+    - ${data_dir}/my-llama_09_text_document
+    - .0333
+    - ${data_dir}/my-llama_10_text_document
+    - .0333
+    - ${data_dir}/my-llama_11_text_document
+    - .0333
+    - ${data_dir}/my-llama_12_text_document
+    - .0333
+    - ${data_dir}/my-llama_13_text_document
+    - .0333
+    - ${data_dir}/my-llama_14_text_document
+    - .0333
+    - ${data_dir}/my-llama_15_text_document
+    - .0333
+    - ${data_dir}/my-llama_16_text_document
+    - .0333
+    - ${data_dir}/my-llama_17_text_document
+    - .0333
+    - ${data_dir}/my-llama_18_text_document
+    - .0333
+    - ${data_dir}/my-llama_19_text_document
+    - .0333
+    - ${data_dir}/my-llama_20_text_document
+    - .0333
+    - ${data_dir}/my-llama_21_text_document
+    - .0333
+    - ${data_dir}/my-llama_22_text_document
+    - .0333
+    - ${data_dir}/my-llama_23_text_document
+    - .0333
+    - ${data_dir}/my-llama_24_text_document
+    - .0333
+    - ${data_dir}/my-llama_25_text_document
+    - .0333
+    - ${data_dir}/my-llama_26_text_document
+    - .0333
+    - ${data_dir}/my-llama_27_text_document
+    - .0333
+    - ${data_dir}/my-llama_28_text_document
+    - .0334
+    - ${data_dir}/my-llama_29_text_document
 

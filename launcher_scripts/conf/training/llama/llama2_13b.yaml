@@ -1,10 +1,10 @@
 run:
-  name: llama_65b
+  name: llama2_13b
   results_dir: ${base_results_dir}/${.name}
   time_limit: 0-01:00:00
   dependency: singleton
 trainer:
-  num_nodes: 16
+  num_nodes: 4
   devices: 8
   accelerator: gpu
   precision: bf16
@@ -13,7 +13,7 @@ trainer:
   use_distributed_sampler: false
   max_epochs: null
   max_steps: 300000
-  max_time: '19:23:30:00'
+  max_time: '5:23:30:00'
   log_every_n_steps: 10
   val_check_interval: 2000
   limit_val_batches: 32
@@ -27,9 +27,9 @@ exp_manager:
   name: megatron_llama
   create_wandb_logger: true
   wandb_logger_kwargs:
-    project: nemo_llama
+    project: nemo_llama_pretrain
     name: ${training.run.name}
-  resume_if_exists: true
+  resume_if_exists: false
   resume_ignore_no_checkpoint: true
   create_checkpoint_callback: True
   checkpoint_callback_params:
@@ -37,28 +37,29 @@ exp_manager:
     save_top_k: 10
     mode: min
     always_save_nemo: false
-    save_nemo_on_train_end: false
+    save_nemo_on_train_end: true
     filename: megatron_llama--{val_loss:.2f}-{step}-{consumed_samples}
-    model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
+    model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size},
+      ${training.model.pipeline_model_parallel_size}}
   log_step_timing: true
   step_timing_kwargs:
     sync_cuda: true
     buffer_size: 5
 model:
   mcore_gpt: true
-  micro_batch_size: 1
-  global_batch_size: 2048
+  micro_batch_size: 2
+  global_batch_size: 128
   rampup_batch_size: null
   tensor_model_parallel_size: 4
-  pipeline_model_parallel_size: 8
-  virtual_pipeline_model_parallel_size: 10
-  encoder_seq_length: 2048
-  max_position_embeddings: 2048
-  num_layers: 80
-  hidden_size: 8192
-  ffn_hidden_size: 22016
-  num_attention_heads: 64
-  init_method_std: 0.008944
+  pipeline_model_parallel_size: 1
+  virtual_pipeline_model_parallel_size: null
+  encoder_seq_length: 4096
+  max_position_embeddings: 4096
+  num_layers: 40
+  hidden_size: 5120
+  ffn_hidden_size: 13824
+  num_attention_heads: 40
+  init_method_std: 0.01
   use_scaled_init_method: true
   hidden_dropout: 0.0
   attention_dropout: 0.0
@@ -112,9 +113,9 @@ model:
   activations_checkpoint_granularity: selective
   activations_checkpoint_method: block
   activations_checkpoint_num_layers: 0
-  num_micro_batches_with_partial_activation_checkpoints: 80
+  num_micro_batches_with_partial_activation_checkpoints: 0
   activations_checkpoint_layers_per_pipeline: 0
-  sequence_parallel: false
+  sequence_parallel: true
   transformer_engine: true
   fp8: false
   fp8_e4m3: false
@@ -125,7 +126,7 @@ model:
   fp8_amax_compute_algo: most_recent
   use_emha: false
   ub_tp_comm_overlap: false
-  use_flash_attention: false
+  use_flash_attention: true
   optim:
     name: distributed_fused_adam
     lr: 0.0001
@@ -143,7 +144,7 @@ model:
   data:
     data_impl: mmap
     splits_string: 99990,8,2
-    seq_length: 2048
+    seq_length: 4096
     skip_warmup: true
     num_workers: 2
     dataloader_type: single
