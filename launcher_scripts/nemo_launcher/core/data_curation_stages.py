@@ -1,5 +1,6 @@
 import copy
 import shlex
+import subprocess
 import omegaconf
 from typing import Dict, List
 from pathlib import Path
@@ -350,6 +351,8 @@ class AddId(DataCurationStage):
         self.stage_name = "add_id"
         if self.super_stage_name is not None:
             self.stage_cfg = cfg[self.super_stage_name].get("add_document_ids")
+        else:
+            self.stage_cfg = cfg.get("add_document_ids")
 
     def make_stage_command_groups(self,
                                   stage_cfg_path: Path) -> List[List[str]]:
@@ -376,15 +379,20 @@ class AddId(DataCurationStage):
 
 
 class StartRedisCluster(NemoMegatronStage):
-    def __init__(self, cfg):
+    def __init__(self, cfg, super_stage_name=None):
+        self.super_stage_name = super_stage_name
         super().__init__(cfg)
         self.log_folder = Path()
         self.conf_folder = Path()
 
-    def setup_stage_vars(self, cfg, super_stage_name):
+    def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "start_redis_cluster"
-        self.stage_cfg = cfg[super_stage_name].get("start_redis_cluster")
+        if self.super_stage_name is not None:
+            self.stage_cfg = cfg[self.super_stage_name].get(
+                "start_redis_cluster")
+        else:
+            self.stage_cfg = cfg.get("start_redis_cluster")
 
     def _make_cluster_parameters(
         self,
@@ -441,17 +449,17 @@ class StartRedisCluster(NemoMegatronStage):
 
         # Get the path to redis cluster script
         # preface it with bash
-        start_redis_cluster_script = Path().join(
+        start_redis_cluster_script = str(Path().joinpath(
             self.cfg['launcher_scripts_path'],
             'nemo_launcher',
             'collections'
             'datacuration_scripts/start_redis_cluster.sh',
-        )
+        ))
         cmd = [
             'bash',
             f'{start_redis_cluster_script}',
             '$SLURM_JOB_NUM_NODES',
-            self.get_job_path().results_folder,
+            str(self.get_job_path().results_folder),
         ]
         cluster_parameters['setup'] = [shlex.join(cmd)]
 
@@ -467,15 +475,18 @@ class StartRedisCluster(NemoMegatronStage):
 
 
 class HashDocuments(DataCurationStage):
-    def __init__(self, cfg):
+    def __init__(self, cfg, super_stage_name=None):
+        self.super_stage_name = super_stage_name
         super().__init__(cfg)
 
-    def setup_stage_vars(self, cfg, super_stage_name=None):
+    def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
-        self.stage_name = "compute_document_hashes"
-        if super_stage_name is not None:
-            self.stage_cfg = cfg[super_stage_name].get(
+        self.stage_name = "hash_documents"
+        if self.super_stage_name is not None:
+            self.stage_cfg = cfg[self.super_stage_name].get(
                 "compute_document_hashes")
+        else:
+            self.stage_cfg = cfg.get("compute_document_hashes")
 
     def make_stage_command_groups(self,
                                   stage_cfg_path: Path) -> List[List[str]]:
@@ -524,14 +535,202 @@ class HashDocuments(DataCurationStage):
 
 
 class ShutdownRedisCluster(NemoMegatronStage):
-    def __init__(self, cfg):
+    def __init__(self, cfg, super_stage_name=None):
+        self.super_stage_name = super_stage_name
         super().__init__(cfg)
         self.log_folder = Path()
         self.conf_folder = Path()
 
-    # TODO: Just run the job from bash!
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "shutdown_redis_cluster"
+        if self.super_stage_name is not None:
+            self.stage_cfg = cfg[self.super_stage_name].get(
+                "shutdown_redis_cluster")
+        else:
+            self.stage_cfg = cfg.get("shutdown_redis_cluster")
+
+    def _make_cluster_parameters(
+        self,
+        cluster: str,
+    ) -> Dict:
+        """
+            Make a cluster-specific parameters for jobs on different clusters.
+            Current clusters include bcm(slurm), bcp and interactive.
+            For example for bcm, it will return slurm parameters:
+                {'job_name': 'some_name', 'nodes': 2, 'ntasks_per_node': 8, ...}
+
+            :param str cluster: i.e. `bcm`, `bcp`, `interactive`, etc.
+            :param Optional sub_stage: current sub_stage name
+            :return: a dictionary of cluster parameters, e.g. `ntasks_per_node`
+            :rtype: Dict
+            """
+        cfg = self.cfg
+        stage_cfg = self.stage_cfg
+
+        run_cfg = stage_cfg.get("run")
+        job_name = run_cfg.get("name")
+        time_limit = run_cfg.get("time_limit")
+        nodes = run_cfg.get('nodes')
+        # Allow for updating the partition as we might run
+        # on CPU only nodes
+        partition = run_cfg.get('partition')
+
+        shared_parameters = {
+            "job_name": job_name,
+            "time": time_limit,
+        }
+        if cluster == "bcm":
+            cluster_cfg = cfg.get("cluster")
+            slurm_cfg = {**copy.deepcopy(cluster_cfg)}
+            job_name_prefix = slurm_cfg.pop("job_name_prefix")
+            cluster_params = {
+                **slurm_cfg,
+            }
+            cluster_params.update({
+                **shared_parameters,
+            })
+            cluster_params[
+                "job_name"] = job_name_prefix + cluster_params["job_name"]
+            cluster_params['nodes'] = nodes
+            cluster_params['partition'] = partition
+
+        return cluster_params
+
+    # Call scancel from the command line. No need to go to SLURM/BCP
     def run(self) -> str:
-      pass
+        # Create the log and res dir
+        self.setup_folder_and_data()
+
+        shutdown_redis_cluster_script = str(
+            Path().joinpath(
+                self.cfg['launcher_scripts_path'], 'nemo_launcher',
+                'collections',
+                'datacuration_scripts/shutdown_redis_cluster.sh'), )
+        if self.cfg['debug']:
+            print(f'scancel {shutdown_redis_cluster_script}')
+        else:
+            subprocess.run(['scancel', shutdown_redis_cluster_script])
+
+
+class GroupDuplicates(DataCurationStage):
+    def __init__(self, cfg, super_stage_name=None):
+        self.super_stage_name = super_stage_name
+        super().__init__(cfg)
+
+    def setup_stage_vars(self, cfg, super_stage_name=None):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "form_duplicate_groups"
+        if self.super_stage_name is not None:
+            self.stage_cfg = cfg[self.super_stage_name].get(
+                "form_duplicate_groups")
+        else:
+            self.stage_cfg = cfg.get("form_duplicate_groups")
+
+    def make_stage_command_groups(self,
+                                  stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        # Write out the filter configuration as a separate config file
+        command_groups = [[]]
+
+        # If certain arguments are not specified, we remove them from the list
+        optional_args = {
+            "cc_news":
+            stage_cfg.get('cc_news'),
+            "cc_snapshot_index_file":
+            Path().joinpath(
+                self.get_job_path().results_folder,
+                "collinfo.json",
+            ),
+        }
+
+        # Remove any arguments that are not specified
+        optional_args = {
+            arg: optional_args[arg]
+            for arg in optional_args if optional_args[arg]
+        }
+
+        # Create the list of arguments for the command
+        args = create_args_list(
+            replace_underscore=True,
+            log_file=Path().joinpath(self.log_folder, "get_cc_urls.log"),
+            cc_index_prefix=stage_cfg.get("cc_index_prefix"),
+            cc_data_domain_prefix=stage_cfg.get("cc_data_domain_prefix"),
+            output_warc_url_file=stage_cfg.get("output_warc_url_file"),
+            starting_snapshot=stage_cfg.get("starting_snapshot"),
+            ending_snapshot=stage_cfg.get("ending_snapshot"),
+            **optional_args,
+        )
+
+        core_command = ["get_common_crawl_urls", *args]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class RemoveDuplicates(DataCurationStage):
+    def __init__(self, cfg, super_stage_name=None):
+        self.super_stage_name = super_stage_name
+        super().__init__(cfg)
+
+    def setup_stage_vars(self, cfg, super_stage_name=None):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "remove_duplicates"
+        if self.super_stage_name is not None:
+            self.stage_cfg = cfg[self.super_stage_name].get(
+                "remove_duplicate_documents", )
+        else:
+            self.stage_cfg = cfg.get("remove_duplicate_documents")
+
+    def make_stage_command_groups(self,
+                                  stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        # Write out the filter configuration as a separate config file
+        command_groups = [[]]
+
+        # If certain arguments are not specified, we remove them from the list
+        optional_args = {
+            "cc_news":
+            stage_cfg.get('cc_news'),
+            "cc_snapshot_index_file":
+            Path().joinpath(
+                self.get_job_path().results_folder,
+                "collinfo.json",
+            ),
+        }
+
+        # Remove any arguments that are not specified
+        optional_args = {
+            arg: optional_args[arg]
+            for arg in optional_args if optional_args[arg]
+        }
+
+        # Create the list of arguments for the command
+        args = create_args_list(
+            replace_underscore=True,
+            log_file=Path().joinpath(self.log_folder, "get_cc_urls.log"),
+            cc_index_prefix=stage_cfg.get("cc_index_prefix"),
+            cc_data_domain_prefix=stage_cfg.get("cc_data_domain_prefix"),
+            output_warc_url_file=stage_cfg.get("output_warc_url_file"),
+            starting_snapshot=stage_cfg.get("starting_snapshot"),
+            ending_snapshot=stage_cfg.get("ending_snapshot"),
+            **optional_args,
+        )
+
+        core_command = ["get_common_crawl_urls", *args]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
 
 
 class ExactDeduplication(NemoMegatronStage):
@@ -543,6 +742,9 @@ class ExactDeduplication(NemoMegatronStage):
             'add_document_ids': AddId,
             'start_redis_cluster': StartRedisCluster,
             'compute_document_hashes': HashDocuments,
+            'form_duplicate_groups': GroupDuplicates,
+            'shutdown_redis_cluster': ShutdownRedisCluster,
+            'remove_duplicate_documents': RemoveDuplicates,
         }
 
     def setup_stage_vars(self, cfg):
@@ -566,6 +768,7 @@ class ExactDeduplication(NemoMegatronStage):
             if sub_stage_name != 'run':
                 sub_stage_class = self.STR2SUBSTAGECLASS[sub_stage_name]
                 # Create the sub-stage
+                print(sub_stage_class)
                 sub_stage = sub_stage_class(
                     self.cfg,
                     super_stage_name=self.stage_name,
