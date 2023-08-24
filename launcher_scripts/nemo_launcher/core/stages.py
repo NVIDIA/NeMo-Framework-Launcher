@@ -382,7 +382,7 @@ class NemoMegatronStage:
 
     @property
     def _nemo_code_path(self) -> Path:
-        return Path(self.cfg.get("nemo_dir", "/opt/NeMo"))
+        return Path("/opt/NeMo")
 
     @property
     def _data_dir(self) -> Path:
@@ -675,6 +675,7 @@ class FineTuning(NeMoStage):
         :return: path current stage's essential nemo scripts code 
         :rtype: Path
         """
+
         model_type_to_code_path = {
             "gpt3" : self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
@@ -966,7 +967,6 @@ class EvalHarnessEvaluation(NemoMegatronStage):
     def __init__(self, cfg):
         super().__init__(cfg)
         choice_model_type, choice_name = self.get_stage_config_choice()
-        #self.prompt_evaluation = choice_model_type == "prompt_gpt3"
         self.prompt_evaluation = True if "prompt" in choice_model_type else False
 
     def setup_stage_vars(self, cfg):

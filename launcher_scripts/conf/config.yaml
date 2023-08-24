@@ -31,15 +31,14 @@ stages:
   #- export
 
 cluster_type: bcm  # bcm or bcp. If bcm, it must match - cluster above.
-launcher_scripts_path: /lustre/fsw/devtech/hpc-devtech/hongbinl/nemo_megatron/scripts/support_llama/NeMo-Megatron-Launcher/launcher_scripts  # Path to NeMo Megatron Launch scripts, should ends with /launcher_scripts
+launcher_scripts_path: ???  # Path to NeMo Megatron Launch scripts, should ends with /launcher_scripts
 data_dir: ${launcher_scripts_path}/data  # Location to store and read the data.
-nemo_dir: /lustre/fsw/devtech/hpc-devtech/hongbinl/nemo_megatron/nemo_repo/internal/NeMo
 base_results_dir: ${launcher_scripts_path}/results  # Location to store the results, checkpoints and logs.
 container_mounts: # List of additional paths to mount to container. They will be mounted to same path.
   - null
 container: nvcr.io/ea-bignlp/nemofw-training:23.07-py3
 
-wandb_api_key_file: /lustre/fsw/devtech/hpc-devtech/hongbinl/nemo_megatron/NeMo-Megatron-Launcher/wandb_api_key  # File where the w&B api key is stored. Key must be on the first line.
+wandb_api_key_file: null  # File where the w&B api key is stored. Key must be on the first line.
 
 env_vars:
   NCCL_TOPO_FILE: null # Should be a path to an XML file describing the topology

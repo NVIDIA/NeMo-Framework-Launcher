@@ -17,7 +17,6 @@ def main(cfg):
     model_size = settings_cfg.model_size_in_b
     output_top_n = settings_cfg.output_top_n
     nodes = settings_cfg.num_nodes
-    #nodes = cfg.get("nodes")
 
     training_logs = os.path.join(settings_cfg.get("logs"), "training_logs")
     candidate_configs = os.path.join(settings_cfg.get("logs"), "candidate_configs")
@@ -139,9 +138,9 @@ def main(cfg):
                 ea.Reload()
                 try:
                     timing_list = ea.Scalars("train_step_timing")
-                    #if len(timing_list) <= 6:
-                    #    continue
-                    timing_list = [x.value for x in timing_list[0:]]
+                    if len(timing_list) <= 6:
+                        continue
+                    timing_list = [x.value for x in timing_list[5:]]
                     avg_global_step_time = round(sum(timing_list) / len(timing_list), 4)
                     samples_per_s = round(gbs / avg_global_step_time, 2)
                     m_tflops, m_tflops_gpu = calculate_tflops(
