@@ -3,26 +3,25 @@ run:
   time_limit: "01:00:00"
   dependency: "singleton"
   convert_name: convert_nemo
-  model_train_name: llama_7b
+  model_train_name: llama2_7b
   convert_dir: ${base_results_dir}/${prompt_learning.run.model_train_name}/${prompt_learning.run.convert_name}
   task_name: "squad"
   results_dir: ${base_results_dir}/${.model_train_name}/prompt_learning_${.task_name}
 
 trainer:
   devices: 8
-  num_nodes: 1
+  num_nodes: 4
   accelerator: gpu
   precision: bf16
   logger: False
   enable_checkpointing: False
-  replace_sampler_ddp: False
+  use_distributed_sampler: False
   max_epochs: 4
   max_steps: -1
   log_every_n_steps: 10
   val_check_interval: 200
   accumulate_grad_batches: 1
   gradient_clip_val: 1.0
-  resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
 
 exp_manager:
   explicit_log_dir: ${prompt_learning.run.results_dir}/results
@@ -32,7 +31,7 @@ exp_manager:
   wandb_logger_kwargs:
     project: nemo_llama_prompt
     name: ${prompt_learning.run.name}
-  resume_if_exists: True
+  resume_if_exists: False
   resume_ignore_no_checkpoint: True
   create_checkpoint_callback: True
   checkpoint_callback_params:
@@ -46,14 +45,14 @@ exp_manager:
 
 model:
   seed: 1234
-  nemo_path: ${prompt_learning.run.results_dir}/results/megatron_gpt_prompt.nemo # the place to save prompt learning nemo checkpoint
+  nemo_path: ${prompt_learning.run.results_dir}/results/megatron_llama_prompt.nemo # the place to save prompt learning nemo checkpoint
   virtual_prompt_style: 'p-tuning' # One of 'p-tuning', 'prompt-tuning', or 'inference'. We recommend 'p-tuning' over 'prompt-tuning'.
   tensor_model_parallel_size: 2
   pipeline_model_parallel_size: 1
   model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
-  encoder_seq_length: 2048
-  global_batch_size: 64
-  micro_batch_size: 8
+  encoder_seq_length: 4096
+  global_batch_size: 8
+  micro_batch_size: 1
 
   restore_path: null # used to restore from a prompt tuned checkpoint and add new tasks
   language_model_path: ${prompt_learning.run.convert_dir}/results/megatron_llama.nemo # Restore lanugage model from pre-trained .nemo checkpoint
@@ -64,6 +63,9 @@ model:
   # Makes tensor parallelism more memory efficient for LLMs (20B+) by parallelizing layer norms and dropout sequentially
   # See Reducing Activation Recomputation in Large Transformer Models: https://arxiv.org/abs/2205.05198 for more details.
   sequence_parallel: False
+  activations_checkpoint_granularity: selective
+  activations_checkpoint_num_layers: 1
+  activations_checkpoint_method: block
 
   task_templates: # task_templates for all existing_tasks and new_tasks are required.
   - taskname: "squad" # The task name
