@@ -601,8 +601,8 @@ class Training(NeMoStage):
             )
             hydra_override += [f"model.data.data_prefix=\$({auto_blend_command})"]
         if self.stage_cfg.model.get("ub_tp_comm_overlap", False):
-            get_ub_cfg_file_command = self._get_ub_cfg_file()
-            hydra_override += [f"+model.ub_tp_comm_overlap_cfg=\$({get_ub_cfg_file_command})"]
+            ub_cfg_name = self._get_ub_cfg_override()
+            hydra_override += [f"'+tp_overlap@model.ub_tp_comm_overlap_cfg={ub_cfg_name}'"]
         if self.stage_cfg.model.get("gc_interval", 0) > 1:
             gc_interval = min(self.stage_cfg.model.get("gc_interval"), self.cfg.training.trainer.get("val_check_interval"))
             hydra_override += [f"model.gc_interval={gc_interval}"]
@@ -626,7 +626,7 @@ class Training(NeMoStage):
         }
         return model_type_to_code_path[model_type]
 
-    def _get_ub_cfg_file(self) -> str:
+    def _get_ub_cfg_override(self) -> str:
         """
         Spawn the script to search UB configuration file
         """
@@ -634,18 +634,8 @@ class Training(NeMoStage):
         hidden_size = self.stage_cfg.model.get("hidden_size")
         mb_size = self.stage_cfg.model.get("micro_batch_size")
         seqlen = self.stage_cfg.model.get("encoder_seq_length")
-        ub_cfg_path = os.path.join(self._launcher_scripts_path, "launcher_scripts/conf/training/gpt3/ub-confs")
-
-        get_ub_cfg_file_command = (
-            f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/conditional_cfgs.py'} "
-            f"name=get_ub_cfg_file "
-            f"ub_cfg_path={ub_cfg_path} "
-            f"tp_size={tp_size} "
-            f"hidden_size={hidden_size} "
-            f"mb_size={mb_size} "
-            f"seqlen={seqlen}"
-        )
-        return get_ub_cfg_file_command
+        cfg_name =  f"ub_cfg_\\${{gpu_name:}}_h{hidden_size}_tp{tp_size}_mbs{mb_size}_seqlen{seqlen}"
+        return cfg_name
 
 
 class FineTuning(NeMoStage):
@@ -685,9 +675,8 @@ class FineTuning(NeMoStage):
         :return: path current stage's essential nemo scripts code 
         :rtype: Path
         """
-        if model_type == "gpt3" or model_type == "llama":
-            raise NotImplementedError("Fine-tuning is not supported in NeMo Megatron GPT-3 models.")
         model_type_to_code_path = {
+            "gpt3" : self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "mt5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
         }
@@ -925,7 +914,7 @@ class NeMoEvaluation(NeMoStage):
             calculation_command = " \\\n  ".join(calculation_command)
         elif choice_name == "squad":
             output_file_path_prefix = self.stage_cfg.model.data.validation_ds.get("output_file_path_prefix")
-            pred_file_path = output_file_path_prefix + "_validation_dataloader0_inputs_preds_labels.json"
+            pred_file_path = output_file_path_prefix + "_validation_dataloader0_inputs_preds_labels.jsonl"
             ground_truth_file_path = self.stage_cfg.model.data.validation_ds.get("ground_truth_file_path")
             code_path = (
                 self._launcher_scripts_path / "nemo_launcher/collections/metric_calculation/fine_tuning_metric_calc.py"

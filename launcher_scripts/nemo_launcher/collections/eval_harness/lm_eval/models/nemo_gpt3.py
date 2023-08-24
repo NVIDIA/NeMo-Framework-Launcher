@@ -307,6 +307,7 @@ class NeMo_GPT3LM_TP_PP(LM):
                 top_k=0,
                 top_p=0.9,
                 greedy=True,
+                compute_logprob=True,
                 repetition_penalty=1.0,
                 min_tokens_to_generate=0,
             )
