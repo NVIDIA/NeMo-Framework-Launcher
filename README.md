@@ -19,7 +19,6 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
     + [4.1.1. Common](#411-common)
     + [4.1.2. OCI](#412-oci)
     + [4.1.3. AWS](#413-aws)
-    + [4.1.4. Kubernetes](#414-k8s)
   * [4.2. Cluster Validation](#42-cluster-validation)
     + [4.2.1. Validation Script Usage](#421-validation-script-usage)
     + [4.2.2 Running tests manually](#422-running-tests-manually)
@@ -33,14 +32,12 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
     + [5.1.1. Prepare Environment](#511-prepare-environment)
       - [5.1.1.1. Slurm](#5111-slurm)
       - [5.1.1.2. Base Command Platform](#5112-base-command-platform)
-      - [5.1.1.3. Kubernetes](#5113-kubernetes)
-      - [5.1.1.4. General Configuration](#5114-general-configuration)
+      - [5.1.1.3. General Configuration](#5113-general-configuration)
     + [5.1.2. Data Preparation](#512-data-preparation)
       - [5.1.2.1. Data Preparation for GPT Models](#5121-data-preparation-for-gpt-models)
         * [5.1.2.1.1. Slurm](#51211-slurm)
         * [5.1.2.1.2. Base Command Platform](#51212-base-command-platform)
-        * [5.1.2.1.3. Kubernetes](#51213-kubernetes)
-        * [5.1.2.1.4. Common](#51214-common)
+        * [5.1.2.1.3. Common](#51213-common)
       - [5.1.2.2. Data Preparation for T5 Models](#5122-data-preparation-for-t5-models)
         * [5.1.2.2.1. Slurm](#51221-slurm)
         * [5.1.2.2.2. Base Command Platform](#51222-base-command-platform)
@@ -88,7 +85,6 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
     + [5.6.1. GPT Training](#561-gpt-training)
       - [5.6.1.1. Slurm](#5611-slurm)
       - [5.6.1.2. Base Command Platform](#5612-base-command-platform)
-      - [5.6.1.3. Kubernetes](#5613-base-command-platform)
     + [5.6.2. T5 Training](#562-t5-training)
       - [5.6.2.1. Slurm](#5621-slurm)
       - [5.6.2.2. Base Command Platform](#5622-base-command-platform)
@@ -104,7 +100,6 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.8.1.1. Common](#5811-common)
       - [5.8.1.2. Slurm](#5812-slurm)
       - [5.8.1.3. Base Command Platform](#5813-base-command-platform)
-      - [5.8.1.4. Kubernetes](#5814-kubernetes)
     + [5.8.2. T5 Conversion](#582-t5-conversion)
       - [5.8.2.1. Common](#5821-common)
       - [5.8.2.2. Slurm](#5822-slurm)
@@ -157,8 +152,7 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
       - [5.13.1.1. Common](#51311-common)
       - [5.13.1.2. Slurm](#51312-slurm)
       - [5.13.1.3. Base Command Platform](#51313-base-command-platform)
-      - [5.13.1.4. Kubernetes](#51314-kubernetes)
-      - [5.13.1.5 Interleaved Pipeline Parallelism](#51314-interleaved-pipeline-parallelism)
+      - [5.13.1.4 Interleaved Pipeline Parallelism](#51314-interleaved-pipeline-parallelism)
     + [5.13.2. T5 Evaluation](#5132-t5-evaluation)
       - [5.13.2.1. Common](#51321-common)
       - [5.13.2.2. Slurm](#51322-slurm)
@@ -377,11 +371,6 @@ Figure 1: The GPT family architecture. The 5B variant includes 24 transformer la
 | HPC-X                   | 2.13             |
 | Base Command Manager    | 1.0.0            |
 | DeepOps                 | 21.06            |
-| Kubernetes              | 1.27.4           |
-| Helm                    | 3.12.1           |
-| GPU Operator            | 23.3.2           |
-| Network Operator        | 23.1.0           |
-| KubeFlow Operator       | 1.6.0            |
 
 ## 4. Cloud Service Providers
 <a id="markdown-cloud-service-providers" name="cloud-service-providers"></a>
@@ -430,23 +419,6 @@ On the scheduler node:
 - Set the container path in `launcher_scripts/conf/config.yaml` to the new Enroot image:
 ```
 container: /path/to/nemo_megatron_launcher/nemo_megatron_training.sqsh
-```
-
-#### 4.1.4. Kubernetes
-<a id="markdown-k8s" name="k8s"></a>
-Data preparation and training GPT models is currently supported on vanilla kubernetes (k8s) clusters.
-The launcher scripts will generate a Helm chart for each task based on the config files and launch the job using the chart.
-
-The following is required for running jobs on Kubernetes:
-  * One or more DGX A100s/H100s as worker nodes
-  * An NFS filesystem where the data and launcher scripts will be stored which is accessible on all worker and controller nodes
-  * A head/controller node which has access to the worker nodes and can run `kubectl` and `helm` to launch jobs and can install Python dependencies
-  * Recent versions of the GPU, Network, and KubeFlow Operators installed
-
-A secret key needs to be configured to allow kubernetes to pull from the private registry. For example, if pulling the container directly
-from NGC, a secret needs to be created to authenticate with the private NGC registry, such as the following:
-```
-kubectl create secret docker-registry ngc-registry --docker-server=nvcr.io --docker-username=\$oauthtoken --docker-password=<NGC KEY HERE>
 ```
 
 ### 4.2. Cluster Validation
@@ -632,22 +604,7 @@ creating these workspaces (e.g. `nemo_megatron_data_ws` and `nemo_megatron_resul
 the Base Command Platform User Guide for how to create and work with Base 
 Command Platform workspaces.
 
-##### 5.1.1.3. Kubernetes
-<a id="markdown-kubernetes" name="kubernetes"></a>
-
-The launcher scripts need to be downloaded to the NFS filesystem that is
-connected to the worker nodes. This can either be copied at
-`/opt/NeMo-Megatron-Launcher` from inside the training container or by cloning
-this repository.
-
-Install the NeMo Framework scripts dependencies on the head node/controller of
-the cluster where jobs will be launched:
-
-```
-pip install -r requirements.txt
-```
-
-##### 5.1.1.4. General Configuration
+##### 5.1.1.3. General Configuration
 <a id="markdown-general-configuration" name="general-configuration"></a>
 
 The first parameter that must be set is the `launcher_scripts_path` parameter inside the
@@ -895,36 +852,8 @@ The command above assumes you want to prepare the entire dataset (files 0-29), a
 workspace in `/mount/data`, and the results workspace in `/mount/results`. Stdout and stderr are redirected to the `/results/data_gpt3_log.txt` file, so it can be downloaded from NGC. 
 Any other parameter can also be added to the command to modify its behavior.
 
-###### 5.1.2.1.3. Kubernetes
-<a id="markdown-51213-kubernetes" name="51213-kubernetes"></a>
-
-To run data preparation on a kubernetes cluster, set both the `cluster` and
-`cluster_type` parameters to `k8s` in `conf/config.yaml`. Additionally, set the
-`launcher_scripts_path` parameter to the location where the launcher scripts
-are located on the NFS filesystem. This must be the same path on all nodes in
-the cluster. Ensure the `stages` parameter is set to `data_preparation` and
-`data_preparation` in the `defaults` section points to the intended data
-preparation script.
-
-The `conf/config/k8s.yaml` file also needs to be updated with the
-kubernetes container registry secret if created earlier (`pull_secret`), the
-`shm_size` to determine how much local memory to put in each pod, and the NFS
-server and path to where the launcher scripts are saved. These can all be
-overridden from the command line using hydra as well.
-
-Once all of the config files are updated, the data preparation can be launched
-from the controller node with:
-
-```
-python main.py
-```
-
-This will generate and launch a job via Helm in the default namespace which
-can be viewed with `helm show` or `kubectl get pods`. The logs can be followed
-with `kubectl logs <pod-name>`.
-
-###### 5.1.2.1.4. Common
-<a id="markdown-51214-common" name="51214-common"></a>
+###### 5.1.2.1.3. Common
+<a id="markdown-41213-common" name="41213-common"></a>
 
 Set the configuration for the data preparation job for GPT models in the YAML file:
 ```yaml
@@ -2533,89 +2462,6 @@ Select the cluster related configuration following the NGC documentation.
 Then, use the `python3 main.py` command to launch the job and override the 
 desired parameters from the training job parameters.
 
-##### 5.6.1.3. Kubernetes
-<a id="markdown-kuberetes" name="kubernetes"></a>
-
-Set configuration for your Kubernetes cluster in the `conf/cluster/k8s.yaml` file:
-
-```yaml
-pull_secret: null
-shm_size: 512Gi
-nfs_server: null
-nfs_path: null
-ib_resource_name: "nvidia.com/hostdev"
-ib_count: "8"
-```
-
-The settings are as follows:
-  * `pull_secret`: The name of the sercret key created with `kubectl` that will
-  be used to authenticate with private registries for pulling the training
-  container.
-  * `shm_size`: The amount of shared memory to include in the Pods. It is
-  recommended to use a large value here.
-  * `nfs_server`: The IP address or hostname of the NFS server that the worker
-  nodes will read and write data to/from.
-  * `nfs_path`: The absolute path on the NFS server that should be mounted
-  inside the Pods.
-  * `ib_resource_name`: The name of the IB interconnect to attach to Pods for
-  multi-node training. This is the name that Kubernetes assigns to the NICs as
-  allocatable resources.
-  * `ib_count`: The number of IB interconnects to include per node in each pod.
-  This will likely equal the total number of active/usable compute NICs per
-  node.
-
-And set the training job specific parameters in the `conf/training/(model_type)/(model_size).yaml` file, 
-using the run section:
-```yaml
-run:
-    name: gpt3_126m
-    results_dir: ${base_results_dir}/${.name}
-    time_limit: "1-12:00:00"
-    dependency: "singleton"
-```
-
-To run only the training pipeline and not the data preparation, evaluation or
-inference pipelines, set the `conf/config.yaml` file to:
-
-```yaml
-stages:
-  - training
-```
-
-Also set the `cluster` and `cluster_type` values to `k8s` in the
-`conf/config.yaml` file.
-
-And then run:
-```
-python3 main.py
-```
-
-Once the launcher is run, it will display the path to the Helm chart that was
-generated based on the updated config files. The Helm chart will be located in
-the job results directory by default. The chart will be run automatically and
-Pods will be started by Kubernetes once resources become available. The status
-of the Helm chart can be checked with:
-
-```
-$ helm list
-NAME           	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART                        	APP VERSION
-gpt-7b-improved	default  	1       	2023-07-17 14:10:11.794541205 -0700 PDT	deployed	nemo-framework-training-1.0.0	1.0
-```
-
-Once allocated, this will spin up N pods for N number of nodes requested. To
-view training progress follow the log of the first pod, typically named
-`nlp-training-worker-0`.
-
-Once a job is finished, it will be marked as complete via Helm and can be
-uninstalled with (note - replace `<job-name>` with the name of the Helm chart
-as shown in the previous example):
-
-```
-$ helm uninstall <job-name>
-```
-
-The uninstallation will not affect the completed job - it will only mark the
-resources as free for Kubernetes to use them for future tasks.
 
 #### 5.6.2. T5 Training
 <a id="markdown-t5-training" name="t5-training"></a>
@@ -2902,22 +2748,6 @@ conversion.model.checkpoint_folder=/mount/results/gpt3_126m/results/checkpoints 
 The command above assumes you mounted the data workspace in `/mount/data`, and the results workspace in `/mount/results`. 
 The stdout and stderr outputs will also be redirected to the `/results/convert_gpt3_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
-
-##### 5.8.1.4. Kubernetes
-<a id="markdown-kubernetes" name="kubernetes"></a>
-To convert a model to the `.nemo` format on a Kubernetes cluster, set both the
-`cluster` and `cluster_type` parameters to `k8s` in `conf/config.yaml`. Update
-the `conf/conversion/gpt3/convert_gpt3.yaml` config file to point to the model
-you would like to convert.
-
-Once the configs are ready, run:
-
-```
-python3 main.py
-```
-
-This will launch a Helm chart that will spawn a job that runs on one of the
-compute nodes to convert the requested model to the `.nemo` format.
 
 #### 5.8.2. T5 Conversion
 <a id="markdown-t5-conversion" name="t5-conversion"></a>
@@ -4098,22 +3928,7 @@ The command above assumes you mounted the data workspace in `/mount/data`, and t
 The stdout and stderr outputs will also be redirected to the `/results/eval_gpt3_log.txt` file, to be able to download the logs from NGC.
 Any other parameter can also be added to the command to modify its behavior.
 
-##### 5.13.1.4. Kubernetes
-<a id="markdown-kubernetes" name="kubernetes"></a>
-To evaluate base models on Kubernetes clusters, set the `cluster` and
-`cluster_type` parameters to `k8s` in `conf/config.yaml`. Update either the
-`conf/evaluation/gpt3/evaluate_all.yaml` or `conf/evaluation/gpt3/evaluate_lambada.yaml`
-file based on your cluster and desired evaluation tasks. Once the configurations
-are updated, launch an evaluation job with:
-
-```
-python3 main.py
-```
-
-This will launch a Helm chart based on the evaluation configurations which will
-download all task files and run evaluation against the specified model.
-
-##### 5.13.1.5 Interleaved Pipeline Parallelism
+##### 5.13.1.4 Interleaved Pipeline Parallelism
 <a id="markdown-interleaved-pipeline-parallelism" name="interleaved-pipeline-parallelism"></a>
 If your model was trained with interleaved pipeline parallelism, then the model must converted to a non-interleaved model.
 In order to check if your model used interleaved, inspect the training config and verify that
