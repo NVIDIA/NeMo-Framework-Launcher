@@ -5,6 +5,7 @@ defaults:
   - training: clip/vit_B_32
   - conversion: null
   - fine_tuning: null
+  - peft: null
   - evaluation: clip/imagenet_zeroshot
   - fw_inference: null
   - export: clip/export_clip
@@ -58,6 +59,7 @@ fine_tuning_config: ${hydra:runtime.choices.fine_tuning}
 prompt_learning_config: ${hydra:runtime.choices.prompt_learning}
 adapter_learning_config: ${hydra:runtime.choices.adapter_learning}
 ia3_learning_config: ${hydra:runtime.choices.ia3_learning}
+peft_config: ${hydra:runtime.choices.peft}
 evaluation_config: ${hydra:runtime.choices.evaluation}
 conversion_config: ${hydra:runtime.choices.conversion}
 export_config: ${hydra:runtime.choices.export}
