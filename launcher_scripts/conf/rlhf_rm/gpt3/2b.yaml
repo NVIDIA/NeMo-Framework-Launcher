@@ -29,13 +29,13 @@ exp_manager:
   exp_dir: null
   name: megatron_gpt
   max_time_per_run: "00:03:45:00"
-  create_wandb_logger: True
+  create_wandb_logger: False
   wandb_logger_kwargs:
     project: nemo_rlhf_launcher_runs
     name: 2b_rm
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
-  create_checkpoint_callback: True
+  create_checkpoint_callback: False
   checkpoint_callback_params:
     monitor: val_loss
     save_top_k: 10
@@ -112,12 +112,12 @@ model:
   tokenizer:
     library: 'sentencepiece'
     type: null
-    model: "/lustre/fsw/joc/big_nlp/nemo_gpt3/rlhf/data/sp_model/sp_tokenizer_256k.model"
+    model: nemo:2053796188904e679f7e2754a2a1f280_mt_nlg_plus_multilingual_ja_zh_the_stack_frac_015_256k.model
     delimiter: null
     vocab_file: null
     merge_file: null
     sentencepiece_legacy: false
-    tokenizer_model: "/lustre/fsw/joc/big_nlp/nemo_gpt3/rlhf/data/sp_model/sp_tokenizer_256k.model"
+    tokenizer_model: nemo:2053796188904e679f7e2754a2a1f280_mt_nlg_plus_multilingual_ja_zh_the_stack_frac_015_256k.model
 
   # precision
   native_amp_init_scale: 4294967296 # 2 ** 32
