@@ -14,10 +14,11 @@ trainer:
   max_steps: 1250000 # precedence over max_epochs
   logger: False  # Provided by exp_manager 
   precision: bf16 # Should be set to 16 for O1 and O2 to enable the AMP.
+  replace_sampler_ddp: False
+  limit_val_batches: 0
   use_distributed_sampler: False
   accelerator: gpu
   log_every_n_steps: 5  # Interval of logging.
-  resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
   num_sanity_val_steps: 10 # number of steps to perform validation steps for sanity check the validation process before starting the training, setting to 0 disables it
   enable_checkpointing: False # Provided by exp_manager
   accumulate_grad_batches: 1 # do not modify, grad acc is automatic for training megatron models
@@ -59,6 +60,7 @@ model:
   global_batch_size: 4096 # will use more micro batches to reach global batch size
   inductor: False
   inductor_cudagraphs: False
+  channels_last: True
   
   unet_type: sr
   unet:
@@ -68,7 +70,7 @@ model:
     channel_mult: [ 1, 2, 4, 8, 8 ]
     num_attn_heads: 8
     per_head_channels: 64
-    attention_type: fused
+    attention_type: stacked
     atnn_enabled_at: [ 0, 0, 0, 1, 1 ]
     feature_pooling_type: attention
     stride: 2
@@ -87,6 +89,7 @@ model:
   resume_from_checkpoint: null # manually set the checkpoint file to load from
   apex_transformer_log_level: 30 # Python logging level displays logs with severity greater than or equal to this
   gradient_as_bucket_view: True # PyTorch DDP argument. Allocate gradients in a contiguous bucket to save memory (less fragmentation and buffer memory)
+  ddp_overlap: True
 
   noise_cond_aug: True
   preconditioning_type: EDM

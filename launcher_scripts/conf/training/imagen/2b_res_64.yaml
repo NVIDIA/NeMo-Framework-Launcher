@@ -9,15 +9,15 @@ allow_tf32: True
  
 trainer:
   devices: 8 # number of GPUs (0 for CPU), or list of the GPUs to use e.g. [0, 1]
-  num_nodes: 16
+  num_nodes: 8
   max_epochs: -1
   max_steps: 2500000 # precedence over max_epochs
   logger: False  # Provided by exp_manager
   use_distributed_sampler: False 
   precision: bf16 # Should be set to 16 for O1 and O2 to enable the AMP.
   accelerator: gpu
+  limit_val_batches: 0
   log_every_n_steps: 5  # Interval of logging.
-  resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
   num_sanity_val_steps: 10 # number of steps to perform validation steps for sanity check the validation process before starting the training, setting to 0 disables it
   enable_checkpointing: False # Provided by exp_manager
   accumulate_grad_batches: 1 # do not modify, grad acc is automatic for training megatron models
@@ -56,11 +56,12 @@ model:
   precision: ${training.trainer.precision}
   # specify micro_batch_size, global_batch_size, and model parallelism
   # gradient accumulation will be done automatically based on data_parallel_size
-  micro_batch_size: 16 # limited by GPU memory
+  micro_batch_size: 32 # limited by GPU memory
   global_batch_size: 2048 # will use more micro batches to reach global batch size
   inductor: False
   inductor_cudagraphs: False
   unet_type: base
+  channels_last: True
   unet:
     embed_dim: 512
     image_size: 64
@@ -69,7 +70,7 @@ model:
     channel_mult: [ 1, 2, 3, 4 ]
     num_attn_heads: 4
     per_head_channels: 64
-    cond_dim: 512
+    cond_dim: 2048
     attention_type: fused
     feature_pooling_type: attention
     learned_sinu_pos_emb_dim: 0
@@ -89,6 +90,7 @@ model:
   resume_from_checkpoint: null # manually set the checkpoint file to load from
   apex_transformer_log_level: 30 # Python logging level displays logs with severity greater than or equal to this
   gradient_as_bucket_view: True # PyTorch DDP argument. Allocate gradients in a contiguous bucket to save memory (less fragmentation and buffer memory)
+  ddp_overlap: True # True for using PyTorch default DDP overlap. False for using Megatron's default configuration for async grad allreduce
 
   preconditioning_type: EDM
   preconditioning:

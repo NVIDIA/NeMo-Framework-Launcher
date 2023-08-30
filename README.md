@@ -1514,8 +1514,8 @@ SR1024 model:
 \**Our multimodal dataset is originated from Common Crawl with custom filtering and contains 670M image-caption pairs.*
 | Model         | Resolution | Unet model size   (M) | Text conditioning   model | Batch size per   GPU | Accumulated   Global Batch size | Precision | AMP Level | Effective Dataset Size | Dataset Filtering  | Total Training   Samples Seen |
 |---------------|------------|-----------------------|---------------------------|----------------------|---------------------------------|-----------|-----------|------------------------|--------------------|-------------------------------|
-| 500m_res_64   | 64         | 524                   | "t5-11b"                  | 64                   | 4096                            | BF16      | O1        | 676M                   | None               | 5.12B                         |
-| 2b_res_64     | 64         | 2100                  | "t5-11b"                  | 16                   | 2048                            | BF16      | O1        | 676M                   | None               | 5.12B                         |
+| 500m_res_64   | 64         | 524                   | "t5-11b"                  | 128                   | 4096                            | BF16      | O1        | 676M                   | None               | 5.12B                         |
+| 2b_res_64     | 64         | 2100                  | "t5-11b"                  | 32                   | 2048                            | BF16      | O1        | 676M                   | None               | 5.12B                         |
 | 600m_res_256  | 256        | 646                   | "t5-11b"                  | 64                   | 4096                            | BF16      | O1        | 544M                   | Resolution >= 256  | 1.23B                         |
 | 400m_res_256  | 256        | 429                   | "t5-11b"                  | 16                   | 2048                            | BF16      | O1        | 544M                   | Resolution >= 256  | 1.23B                         |
 | 600m_res_1024 | 1024       | 427                   | "t5-11b"                  | 64                   | 4096                            | BF16      | O1        | 39.5M                  | Resolution >= 1024 | 1.23B                         |
@@ -1563,7 +1563,6 @@ Please note that the scripts provided by NVIDIA are optional to use, and they ma
 
 6.There is no guarantee that training Imagen for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the late stages of convergence.
 
-7.It is possible to increase the micro batch size for `500m_res_64` up to 112 and `2b_res_64` to 20, which can further optimize model throughput. We will investigate this in our future release
 
 ### 6.4. Checkpoint Conversion
 
@@ -2917,23 +2916,22 @@ The tables and charts below show the performance results.
 
 - NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for Imagen Base 2B model)
 
-|                         |                                  |        |        |        | Nodes   |         |
-|-------------------------|----------------------------------|--------|--------|--------|---------|---------|
-|                         |                                  | 1      | 2      | 4      | 8       | 16      |
-| ImagenBase (2B, Res=64) | Samples per Second               | 172.04 | 316.44 | 628.22 | 1250.31 | 2470.45 |
-|                         | Perfect Linear Scaling (Samples) | 172.04 | 344.08 | 688.16 | 1376.32 | 2752.64 |
-|                         | Speedup                          | 1x     | 1.84x  | 3.65x  | 7.27x   | 14.36x  |
-
+|                          |                                  |        |               |               | Nodes         |              |
+|--------------------------|----------------------------------|--------|---------------|---------------|---------------|--------------|
+|                          |                                  | 1      | 2             | 4             | 8             | 16           |
+| ImagenBase (2B, Res=64)  | Samples per Second               | 495.52 |        964.16 |       1922.88 |       3748.48 |      7484.16 |
+|                          | Perfect Linear Scaling (Samples) | 495.52 |        991.04 |       1982.08 |       3964.16 |      7928.32 |
+|                          | Speedup                          |     1x | 1.95x(97.29%) | 3.88x(97.01%) | 7.56x(94.56%) | 15.1x(94.4%) |
 <img src="img/ImagenBase (2B, Res=64) NeMo Megatron Throughput (A100).svg"/>
 
 - NVIDIA DGX SuperPODs (64 x 8 x A100 80GB for Imagen Base 500M model)
 
-|                         |                                  |        |         |         | Nodes   |          |
-|-------------------------|----------------------------------|--------|---------|---------|---------|----------|
-|                         |                                  |      1 |       2 |       4 |       8 |       16 |
-|                         | Samples per Second               | 645.65 | 1216.15 | 2412.25 | 4870.39 |  9737.31 |
-| ImagenBase (500M, Res=64) | Perfect Linear Scaling (Samples) | 645.65 | 1291.30 | 2582.60 | 5165.20 | 10330.39 |
-|                         | Speedup                          | 1x     | 1.88x   | 3.74x   | 7.54x   | 15.08x   |
+|                           |                                  |        |         |         | Nodes   |          |
+|---------------------------|----------------------------------|--------|---------|---------|---------|----------|
+|                           |                                  | 1      | 2       | 4       | 8       | 16       |
+| ImagenBase (500m, Res=64) | Samples per Second               | 902.69 | 1773.35 | 3473.26 | 6692.86 | 13145.11 |
+|                           | Perfect Linear Scaling (Samples) | 902.69 | 1805.38 | 3610.77 | 7221.54 | 14443.08 |
+|                           | Speedup                          |     1x |   1.96x |   3.85x |   7.41x |   14.56x |
 
 <img src="img/ImagenBase (500M, Res=64) NeMo Megatron Throughput (A100).svg"/>
 
