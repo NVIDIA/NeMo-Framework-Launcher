@@ -189,4 +189,10 @@ model:
     reset_attention_mask: False # Reset attention mask after end-of-document token
     eod_mask_loss: False # Mask loss for the end of document tokens
     index_mapping_dir: null # path to save index mapping .npy files, by default will save in the same location as data_prefix
-    data_prefix: null
+    data_prefix:
+      train:
+        - ${data_dir}/extra_id_prefix_sp_4096/anthropic_hh_train
+      validation:
+        - ${data_dir}/extra_id_prefix_sp_4096/anthropic_hh_val
+      test:
+        - ${data_dir}/extra_id_prefix_sp_4096/anthropic_hh_val
