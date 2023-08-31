@@ -1,7 +1,7 @@
 run:
   name: rlhf_rm_2b
   results_dir: ${base_results_dir}/${.name}
-  time_limit: "4-00:00:00"
+  time_limit: "04:00:00"
   dependency: "singleton"
 
 name: rlhf_2b_rm
@@ -112,12 +112,12 @@ model:
   tokenizer:
     library: 'sentencepiece'
     type: null
-    model: nemo:2053796188904e679f7e2754a2a1f280_mt_nlg_plus_multilingual_ja_zh_the_stack_frac_015_256k.model
+    model: null
     delimiter: null
     vocab_file: null
     merge_file: null
     sentencepiece_legacy: false
-    tokenizer_model: nemo:2053796188904e679f7e2754a2a1f280_mt_nlg_plus_multilingual_ja_zh_the_stack_frac_015_256k.model
+    tokenizer_model: null
 
   # precision
   native_amp_init_scale: 4294967296 # 2 ** 32
@@ -127,7 +127,7 @@ model:
   fp16_lm_cross_entropy: False # Move the cross entropy unreduced loss calculation for lm head to fp16
 
   # Megatron O2-style half-precision
-  megatron_amp_O2: True # Enable O2-level automatic mixed precision using master parameters
+  megatron_amp_O2: False # Enable O2-level automatic mixed precision using master parameters
   grad_allreduce_chunk_size_mb: 125
 
   ## Transformer Engine
@@ -189,10 +189,4 @@ model:
     reset_attention_mask: False # Reset attention mask after end-of-document token
     eod_mask_loss: False # Mask loss for the end of document tokens
     index_mapping_dir: null # path to save index mapping .npy files, by default will save in the same location as data_prefix
-    data_prefix:
-      train:
-        - ${data_dir}/extra_id_prefix_sp_4096/anthropic_hh_train
-      validation:
-        - ${data_dir}/extra_id_prefix_sp_4096/anthropic_hh_val
-      test:
-        - ${data_dir}/extra_id_prefix_sp_4096/anthropic_hh_val
+    data_prefix: null
