@@ -389,6 +389,10 @@ class NemoMegatronStage:
         return Path(self.cfg.get("data_dir"))
 
     @property
+    def _rlhf_code_path(self) -> Path:
+        return Path("/opt/nemo-rlhf")
+
+    @property
     def _cuda_visible_devices(self) -> str:
         ntasks_per_node = self.stage_cfg.run.get("ntasks_per_node")
         if ntasks_per_node is None:
