@@ -172,6 +172,7 @@ class NeMo_LLAMALM_TP_PP(LM):
                 repetition_penalty=1.0,
                 min_tokens_to_generate=0,
                 compute_logprob=True,
+                end_strings=['</s>'],
             )
             response = get_computeprob_response(self.tokenizer, response, inputs)
 
