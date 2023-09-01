@@ -25,7 +25,7 @@ trainer:
 
 
 exp_manager:
-  explicit_log_dir: ./rm_results
+  explicit_log_dir: ${rlhf_rm.run.results_dir}/results
   exp_dir: null
   name: megatron_gpt
   max_time_per_run: "00:03:45:00"
