@@ -21,6 +21,7 @@ trainer:
   gradient_clip_val: 1.0
   benchmark: False
   enable_model_summary: True
+  limit_val_batches: 0
 
 exp_manager:
   explicit_log_dir: ${training.run.results_dir}/results
