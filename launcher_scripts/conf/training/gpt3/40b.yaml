@@ -63,6 +63,7 @@ model:
   num_attention_heads: 64
   init_method_std: 0.007  # Standard deviation of the zero mean normal distribution used for weight initialization.')
   hidden_dropout: 0.1  # Dropout probability for hidden state transformer.
+  attention_dropout: 0.1
   kv_channels: null  # Projection weights dimension in multi-head attention. Set to hidden_size // num_attention_heads if null
   apply_query_key_layer_scaling: True # scale Q * K^T by 1 / layer-number.
   layernorm_epsilon: 1e-5
@@ -88,6 +89,10 @@ model:
 
   ## Sequence Parallelism
   sequence_parallel: True
+
+  overlap_p2p_comm: False # Overlap p2p communication with computes. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
+  batch_p2p_comm: True # Batch consecutive inter-peer send/recv operations. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
+  num_query_groups: null # Number of query groups for group query attention. If None, normal attention is used.
 
   tokenizer:
     library: 'megatron'
@@ -119,6 +124,7 @@ model:
   fp8_interval: 1 # scaling update interval
   fp8_amax_history_len: 1024 # Number of steps for which amax history is recorded per tensor
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
+  fp8_wgrad: True
   use_emha: False
   ub_tp_comm_overlap: True
 
