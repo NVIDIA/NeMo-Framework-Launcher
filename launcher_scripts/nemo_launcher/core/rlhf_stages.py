@@ -46,6 +46,7 @@ class RLHFRewardModel(NeMoStage):
         """
         model_type_to_code_path = {
             "gpt3": self._rlhf_code_path / "examples/nlp/gpt/train_reward_model.py",
+            "llama2": self._rlhf_code_path / "examples/nlp/gpt/train_reward_model.py",
         }
         return model_type_to_code_path[model_type]
 
