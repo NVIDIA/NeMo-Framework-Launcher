@@ -24,6 +24,7 @@ from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import Meg
 from nemo.collections.nlp.modules.common.megatron.megatron_init import fake_initialize_model_parallel
 from nemo.collections.nlp.modules.common.text_generation_utils import generate, get_computeprob_response
 from nemo.collections.nlp.parts.nlp_overrides import NLPDDPStrategy, NLPSaveRestoreConnector
+from nemo.collections.common.tokenizers.sentencepiece_tokenizer import SentencePieceTokenizer
 from nemo.utils import logging
 from nemo.utils.app_state import AppState
 from nemo.utils.get_rank import is_global_rank_zero
@@ -48,6 +49,9 @@ class RequestDataset(Dataset):
         context, continuation = self.requests[index]
         context_enc = self.tokenizer.text_to_ids(context) if isinstance(context, str) else context
         continuation_enc = self.tokenizer.text_to_ids(continuation) if isinstance(continuation, str) else continuation
+        if isinstance(self.tokenizer, SentencePieceTokenizer):
+            continuation_enc = continuation_enc[1:]
+
         # sanity check
         assert len(context_enc) > 0
         assert len(continuation_enc) > 0
@@ -167,6 +171,7 @@ class NeMo_GPT3LM_TP_PP(LM):
         self.model.eval()
 
         self.max_length = self.model.cfg.get("max_position_embeddings")
+        self.pad_id = self.tokenizer.pad_id
         self.eos_id = self.tokenizer.eos_id
 
         self.truncate = truncate
