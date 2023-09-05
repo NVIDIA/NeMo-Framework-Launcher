@@ -65,6 +65,7 @@ class DataCurationStage(NemoMegatronStage):
         # Allow for updating the partition as we might run
         # on CPU only nodes
         partition = run_cfg.get('partition')
+        dependency = run_cfg.get('dependency')
 
         container_image = cfg.get("container")
         container_mounts = self._make_container_mounts_string()
@@ -89,6 +90,7 @@ class DataCurationStage(NemoMegatronStage):
                 "job_name"] = job_name_prefix + cluster_params["job_name"]
             cluster_params['nodes'] = nodes
             cluster_params['partition'] = partition
+            cluster_params['dependency'] = dependency
 
         return cluster_params
 
