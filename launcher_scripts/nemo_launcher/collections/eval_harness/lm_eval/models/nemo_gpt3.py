@@ -35,11 +35,11 @@ from torch.utils.data.dataloader import default_collate
 
 
 class RequestDataset(Dataset):
-    def __init__(self, requests, tokenizer) -> None:
+    def __init__(self, requests, tokenizer, max_length=2048) -> None:
         super().__init__()
         self.requests = requests
         self.tokenizer = tokenizer
-        self.max_length = 2048
+        self.max_length = max_length
 
     def __len__(self):
         return len(self.requests)
@@ -167,12 +167,7 @@ class NeMo_GPT3LM_TP_PP(LM):
         self.model.eval()
 
         self.max_length = self.model.cfg.get("max_position_embeddings")
-        assert self.tokenizer.text_to_ids("hello\n\nhello") == [
-            31373,
-            198,
-            198,
-            31373,
-        ], "Tokenizer text_to_ids is not working as expected."
+        self.eos_id = self.tokenizer.eos_id
 
         self.truncate = truncate
         self.batch_size = batch_size
@@ -202,7 +197,8 @@ class NeMo_GPT3LM_TP_PP(LM):
     """
 
     def _loglikelihood(self, requests):
-        def pad_collate(batch, eos_id=50256):
+        def pad_collate(batch):
+            eos_id = self.eos_id
             tokens = [item[0] for item in batch]
             conti_lens = [item[1] for item in batch]
             lens = [len(token) - 1 for token in tokens]  # fake delete last token by reducing input len
@@ -241,7 +237,7 @@ class NeMo_GPT3LM_TP_PP(LM):
             return -len(toks), tuple(toks)
 
         reord = utils.Reorderer(requests, _collate)
-        request_ds = RequestDataset(reord.get_reordered(), self.model.tokenizer)
+        request_ds = RequestDataset(reord.get_reordered(), self.model.tokenizer, self.max_length)
         request_dl = DataLoader(request_ds, collate_fn=pad_collate, batch_size=self.batch_size, shuffle=False)
 
         def logits_to_results(batch, response):
@@ -314,7 +310,7 @@ class NeMo_GPT3LM_TP_PP(LM):
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
                         token_list=self.tokenizer.text_to_ids(string),
-                        prefix_token=50256,
+                        prefix_token=self.eos_id,
                         max_seq_len=self.max_length,
                         context_len=1,
                     ),
