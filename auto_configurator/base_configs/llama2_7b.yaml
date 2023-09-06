@@ -4,7 +4,7 @@ run:
   time_limit: "0-01:00:00"
   dependency: "singleton"
 trainer:
-  num_nodes: 2
+  num_nodes: 1
   devices: 8
   accelerator: gpu
   precision: bf16
@@ -48,9 +48,9 @@ exp_manager:
 model:
   mcore_gpt: true
   micro_batch_size: 2
-  global_batch_size: 64
+  global_batch_size: 128
   rampup_batch_size: null
-  tensor_model_parallel_size: 2
+  tensor_model_parallel_size: 1
   pipeline_model_parallel_size: 1
   virtual_pipeline_model_parallel_size: null
   encoder_seq_length: 4096
@@ -110,12 +110,12 @@ model:
   apex_transformer_log_level: 30
   gradient_as_bucket_view: true
   sync_batch_comm: false
-  activations_checkpoint_granularity: selective
+  activations_checkpoint_granularity: null
   activations_checkpoint_method: block
   activations_checkpoint_num_layers: 0
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
-  sequence_parallel: true # does not support sequence parallel
+  sequence_parallel: false # does not support sequence parallel
 
   ## Transformer Engine
   # fp8 training is currently not supported in the improved models
@@ -156,68 +156,64 @@ model:
     eod_mask_loss: false
     index_mapping_dir: null
     data_prefix:
-    - .5
+    - .0333
     - ${data_dir}/my-llama_00_text_document
-    - .5
+    - .0333
     - ${data_dir}/my-llama_01_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_00_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_01_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_02_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_03_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_04_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_05_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_06_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_07_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_08_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_09_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_10_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_11_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_12_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_13_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_14_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_15_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_16_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_17_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_18_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_19_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_20_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_21_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_22_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_23_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_24_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_25_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_26_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_27_text_document
-            #      - .0333
-            #      - ${data_dir}/my-gpt3_28_text_document
-            #      - .0334
-            #      - ${data_dir}/my-gpt3_29_text_document
+    - .0333
+    - ${data_dir}/my-llama_02_text_document
+    - .0333
+    - ${data_dir}/my-llama_03_text_document
+    - .0333
+    - ${data_dir}/my-llama_04_text_document
+    - .0333
+    - ${data_dir}/my-llama_05_text_document
+    - .0333
+    - ${data_dir}/my-llama_06_text_document
+    - .0333
+    - ${data_dir}/my-llama_07_text_document
+    - .0333
+    - ${data_dir}/my-llama_08_text_document
+    - .0333
+    - ${data_dir}/my-llama_09_text_document
+    - .0333
+    - ${data_dir}/my-llama_10_text_document
+    - .0333
+    - ${data_dir}/my-llama_11_text_document
+    - .0333
+    - ${data_dir}/my-llama_12_text_document
+    - .0333
+    - ${data_dir}/my-llama_13_text_document
+    - .0333
+    - ${data_dir}/my-llama_14_text_document
+    - .0333
+    - ${data_dir}/my-llama_15_text_document
+    - .0333
+    - ${data_dir}/my-llama_16_text_document
+    - .0333
+    - ${data_dir}/my-llama_17_text_document
+    - .0333
+    - ${data_dir}/my-llama_18_text_document
+    - .0333
+    - ${data_dir}/my-llama_19_text_document
+    - .0333
+    - ${data_dir}/my-llama_20_text_document
+    - .0333
+    - ${data_dir}/my-llama_21_text_document
+    - .0333
+    - ${data_dir}/my-llama_22_text_document
+    - .0333
+    - ${data_dir}/my-llama_23_text_document
+    - .0333
+    - ${data_dir}/my-llama_24_text_document
+    - .0333
+    - ${data_dir}/my-llama_25_text_document
+    - .0333
+    - ${data_dir}/my-llama_26_text_document
+    - .0333
+    - ${data_dir}/my-llama_27_text_document
+    - .0333
+    - ${data_dir}/my-llama_28_text_document
+    - .0334
+    - ${data_dir}/my-llama_29_text_document
 

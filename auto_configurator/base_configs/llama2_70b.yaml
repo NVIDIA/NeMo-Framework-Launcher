@@ -20,7 +20,6 @@ trainer:
   limit_test_batches: 50
   accumulate_grad_batches: 1
   gradient_clip_val: 1.0
-  num_sanity_val_steps: 0
 exp_manager:
   explicit_log_dir: ${training.run.results_dir}/results
   exp_dir: null
@@ -37,7 +36,7 @@ exp_manager:
     save_top_k: 10
     mode: min
     always_save_nemo: false
-    save_nemo_on_train_end: true
+    save_nemo_on_train_end: false
     filename: megatron_llama--{val_loss:.2f}-{step}-{consumed_samples}
     model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
   log_step_timing: true
@@ -110,9 +109,9 @@ model:
   apex_transformer_log_level: 30
   gradient_as_bucket_view: true
   sync_batch_comm: false
-  activations_checkpoint_granularity: selective
+  activations_checkpoint_granularity: null
   activations_checkpoint_method: block
-  activations_checkpoint_num_layers: 1
+  activations_checkpoint_num_layers: 0
   num_micro_batches_with_partial_activation_checkpoints: 0
   activations_checkpoint_layers_per_pipeline: 0
   sequence_parallel: true
@@ -158,10 +157,6 @@ model:
     eod_mask_loss: false
     index_mapping_dir: null
     data_prefix:
-    - .0333
-    - ${data_dir}/my-llama_00_text_document
-    - .0333
-    - ${data_dir}/my-llama_01_text_document
     - .0333
     - ${data_dir}/my-llama_00_text_document
     - .0333
