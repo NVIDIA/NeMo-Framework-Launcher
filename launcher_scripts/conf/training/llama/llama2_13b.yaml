@@ -135,6 +135,8 @@ model:
     - 0.95
     bucket_cap_mb: 125
     overlap_grad_sync: true
+    overlap_param_sync: true
+    contiguous_grad_buffer: true    
     sched:
       name: CosineAnnealing
       warmup_steps: 107
@@ -152,10 +154,6 @@ model:
     eod_mask_loss: false
     index_mapping_dir: null
     data_prefix:
-    - .0333
-    - ${data_dir}/my-llama_00_text_document
-    - .0333
-    - ${data_dir}/my-llama_01_text_document
     - .0333
     - ${data_dir}/my-llama_00_text_document
     - .0333
