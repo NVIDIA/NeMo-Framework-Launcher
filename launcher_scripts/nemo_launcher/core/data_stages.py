@@ -435,6 +435,7 @@ class CustomDataPreparation(DataStage):
 
         # Setup preprocess data
         data_cfg = self.stage_cfg
+        run_cfg = data_cfg.get('run')
         raw_dataset_files = data_cfg.get("raw_dataset_files")
         preprocess_worker_mapping = data_cfg.get("preprocess_worker_mapping")
         if data_cfg.get("preprocess_data", False):
@@ -444,6 +445,8 @@ class CustomDataPreparation(DataStage):
             sorted_files = sorted(raw_dataset_files, key=lambda x: os.stat(x).st_size)
             file_sizes = [os.stat(x).st_size for x in sorted_files]
 
+            nodes = run_cfg.get("node_array_size")
+            workers_per_node = run_cfg.get("workers_per_node")
             avail_workers = nodes * workers_per_node
             distributed_files = [[] for _ in range(avail_workers)]
             distributed_size = [0] * avail_workers
@@ -514,6 +517,8 @@ class CustomDataPreparation(DataStage):
     def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
         """Make a command of the specified sub-stage"""
         data_cfg = self.stage_cfg
+        run_cfg = data_cfg.get('run')
+
         if sub_stage == "train_tokenizer":
             bpe_save_dir = Path(data_cfg.get("bpe_save_dir"))
             bpe_save_dir.mkdir(parents=True, exist_ok=True)
@@ -524,7 +529,7 @@ class CustomDataPreparation(DataStage):
             assert sub_stage == "preprocess", f"Unknown substage {sub_stage}"
             code_path = (
                 self._launcher_scripts_path
-                / "nemo_launchernemo_launcher/collections/dataprep_scripts/custom_dataprep/preprocess.py"
+                / "nemo_launcher/collections/dataprep_scripts/custom_dataprep/preprocess.py"
             )
             args = create_args_list(
                 output_path=data_cfg.get("preprocessed_dir"),
@@ -539,6 +544,10 @@ class CustomDataPreparation(DataStage):
                 workers=run_cfg.get("cpus_per_node") // run_cfg.get("workers_per_node"),
             )
 
-        sub_stage_command = [f"python3 -u {code_path}", *args]
-        sub_stage_command = " \\\n  ".join(sub_stage_command)
+        if sub_stage == "train_tokenizer":
+            sub_stage_command = [code_path, *args]
+            sub_stage_command = " \\\n  ".join(sub_stage_command)
+        else:
+            sub_stage_command = [f"python3 -u {code_path}", *args]
+            sub_stage_command = " \\\n  ".join(sub_stage_command)
         return [sub_stage_command]
