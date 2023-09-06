@@ -18,12 +18,14 @@ import sys
 import hydra
 import omegaconf
 from nemo_launcher.core.data_stages import CustomDataPreparation, MC4DataPreparation, PileDataPreparation
+from nemo_launcher.core.data_curation_stages import QualityFiltering
 from nemo_launcher.core.export_stages import Export
 from nemo_launcher.core.stages import (
     AdapterLearning,
     Conversion,
     EvalHarnessEvaluation,
     FineTuning,
+    PEFT,
     IA3Learning,
     NeMoEvaluation,
     PromptLearning,
@@ -38,6 +40,7 @@ omegaconf.OmegaConf.register_new_resolver("divide_floor", lambda x, y: int(math.
 STR2STAGECLASS = {
     "training": Training,
     "fine_tuning": FineTuning,
+    "peft": PEFT,
     "prompt_learning": PromptLearning,
     "adapter_learning": AdapterLearning,
     "ia3_learning": IA3Learning,
@@ -54,6 +57,7 @@ STR2STAGECLASS = {
     },
     "rlhf_rm": RLHFRewardModel,
     "rlhf_ppo": RLHFPPO,
+    "quality_filtering": QualityFiltering,
 }
 
 

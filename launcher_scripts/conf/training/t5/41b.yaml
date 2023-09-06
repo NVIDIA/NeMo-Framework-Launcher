@@ -14,7 +14,7 @@ trainer:
   precision: bf16
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
-  replace_sampler_ddp: False
+  use_distributed_sampler: False
   max_epochs: null
   max_steps: 1066667 # consumed_samples = global_step * global_batch_size
   max_time: "99:23:30:00"

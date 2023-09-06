@@ -1,15 +1,16 @@
 defaults:
   - _self_
   - cluster: bcm  # Leave it as bcm even if using bcp. It will be ignored for bcp.
-  - data_preparation: llama/download_llama_pile
-  - training: llama/7b
-  - conversion: llama/convert_llama
+  - data_preparation: gpt3/download_gpt3_pile
+  - quality_filtering: heuristic/english
+  - training: gpt3/5b
+  - conversion: gpt3/convert_gpt3
   - fine_tuning: null
-  - prompt_learning: llama/squad
-  - adapter_learning: llama/squad
-  - ia3_learning: llama/squad
-    #- evaluation: llama/evaluate_all
-  - evaluation: prompt_llama/squad
+  - peft: null
+  - prompt_learning: null
+  - adapter_learning: null
+  - ia3_learning: null
+  - evaluation: gpt3/evaluate_all
   - export: gpt3/export_gpt3
   - rlhf_rm: gpt3/2b_rm
   - rlhf_ppo: gpt3/2b_ppo
@@ -50,7 +51,7 @@ env_vars:
   NCCL_DEBUG: null # Logging level for NCCL. Set to "INFO" for debug information
   NCCL_PROTO: null # Protocol NCCL will use. Set to "simple" for AWS
   TRANSFORMERS_OFFLINE: 1
-  NCCL_AVOID_RECORD_STREAMS: 1
+  TORCH_NCCL_AVOID_RECORD_STREAMS: 1
 
 # GPU Mapping
 numa_mapping:
@@ -64,8 +65,10 @@ numa_mapping:
 
 # Do not modify below, use the values above instead.
 data_preparation_config: ${hydra:runtime.choices.data_preparation}
+quality_filtering_config: ${hydra:runtime.choices.quality_filtering}
 training_config: ${hydra:runtime.choices.training}
 fine_tuning_config: ${hydra:runtime.choices.fine_tuning}
+peft_config: ${hydra:runtime.choices.peft}
 prompt_learning_config: ${hydra:runtime.choices.prompt_learning}
 adapter_learning_config: ${hydra:runtime.choices.adapter_learning}
 ia3_learning_config: ${hydra:runtime.choices.ia3_learning}

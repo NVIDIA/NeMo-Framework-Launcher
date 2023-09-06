@@ -145,8 +145,13 @@ The most recent version of the README can be found at [https://ngc.nvidia.com/co
   * [5.12 LoRA Model and Generalized PEFT Framework](#512-lora-model-and-generalized-peft-framework)
     + [5.12.1 PEFT Training and Inference for GPT-style Models](#5121-peft-training-and-inference-for-gpt-style-models)
       - [5.12.1.1 PEFT Training and Inference](#51211-peft-training-and-inference)
+      + [5.12.1.2 PEFT Training with NeMo Megatron Launcher](#51212-peft-training-with-nemo-megatron-launcher)
+        - [5.12.1.2.1 Common](#512121-common)
+        - [5.12.1.2.2 Slurm](#512122-slurm)
+        - [5.12.1.2.3 Base Command Platform](#512123-base-command-platform)
       - [5.12.2 PEFT Training and Inference for mT5/T5-style Models](#5122-peft-training-and-inference-for-mt5-t5-style-models)
       - [5.12.2.1 PEFT Training and Inference](#51221-peft-training-and-inference)
+    + [5.12.1 PEFT Training and Inference for GPT-style Models](#5121-peft-training-and-inference-for-gpt-style-models)
   * [5.13. Model Evaluation](#513-model-evaluation)
     + [5.13.1. GPT Evaluation](#5131-gpt-evaluation)
       - [5.13.1.1. Common](#51311-common)
@@ -3777,6 +3782,141 @@ inference.outfile_path=<OUTPUT_FILE>
 ```
 Additionally, NeMo has a notebook which walks through the steps (which these scripts encapsulate) to train and run inference for PEFT models: https://github.com/NVIDIA/NeMo/blob/main/tutorials/nlp/lora.ipynb
 
+##### 5.12.1.2 PEFT Training with NeMo Megatron Launcher
+PEFT stage could launch PEFT methods including PTuning, LoRA, Adapters and IA3 in a single stage, by setting different peft scheme.
+It is implemented via adapter_mixins framework with a unify style.
+mix-n-match PEFT scheme like adapter_and_ptuning can be easily extended to do ia3_and_ptuning or lora_and_ptuning
+
+PTuning does not need to flexibility to insert prompt tokens anywhere in the input. This feature has been removed for simplicity.
+
+##### 5.12.1.2.1. Common
+<a id="markdown-common" name="common"></a>
+To specify the configuration for ptuning (LoRA, adapter or IA3 learning), 
+use all the `run` parameters to define the job specific config:
+```yaml
+run:
+  name: ${.task_name}_${.model_train_name}
+  time_limit: "04:00:00"
+  dependency: "singleton"
+  convert_name: convert_nemo
+  model_train_name: gpt3_1.3B
+  task_name: "squad"
+  results_dir: ${base_results_dir}/${.model_train_name}/ptuning_${.task_name}
+```
+
+To specify which language model checkpoint to load and its definition, use the `model` parameter:
+
+```yaml
+model:
+  language_model_path: ${base_results_dir}/${peft.run.model_train_name}/${peft.run.convert_name}/nemo_gpt1.3B_fp16.nemo
+  tensor_model_parallel_size: 2
+  pipeline_model_parallel_size: 1
+```
+
+##### 5.12.1.2.2 Slurm
+<a id="markdown-slurm" name="slurm"></a>
+
+Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
+
+```yaml
+partition: null
+account: null
+exclusive: True
+gpus_per_task: null
+gpus_per_node: 8
+mem: 0
+overcommit: False
+job_name_prefix: "nemo-megatron-"
+```
+
+**Example:**
+
+To run only the evaluation pipeline and not the data preparation, training, 
+conversion or inference pipelines set the `conf/config.yaml` file to:
+
+```yaml
+stages:
+  - peft
+```
+
+then run:
+```
+python3 main.py \
+    peft=gpt3/squad \
+    stages=["peft"] \
+    peft.model.peft.peft_scheme="ptuning" \
+    peft.model.megatron_amp_O2=False \
+    peft.model.restore_from_path=${LANGUAGE_MODEL_PATH}\
+    peft.exp_manager.exp_dir=${BASE_RESULTS_DIR}/${RUN_NAME}/ptuning \
+
+```
+##### 5.12.1.2.3 Base Command Platform
+<a id="markdown-base-command-platform" name="base-command-platform"></a>
+In order to run the ptuning learning script on Base Command Platform, set the
+`cluster_type` parameter in `conf/config.yaml` to `bcp` or `interactive`. This can also be overridden
+from the command line, using hydra. 
+
+To run the ptuning pipeline to nemo-megatron-gpt-1.3B model converted checkpoint, run:
+```bash
+export HYDRA_FULL_ERROR=1
+export TORCH_CPP_LOG_LEVEL=INFO NCCL_DEBUG=INFO
+  
+TRAIN="[/mount/workspace/databricks-dolly-15k-train.jsonl]"
+VALID="[/mount/workspace/databricks-dolly-15k-val.jsonl]"
+VALID_NAMES="[peft-squad]"
+CONCAT_SAMPLING_PROBS="[1]"
+ 
+PEFT_SCHEME="ptuning"
+PEFT_EXP_DIR="/results/nemo_launcher/ptuning"
+LOG_DIR="/results/nemo_launcher/ptuning_log"
+ 
+TP_SIZE=2
+ 
+PP_SIZE=1
+ 
+python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/main.py \
+        peft=gpt3/squad \
+        stages=[peft] \
+        cluster_type=interactive \
+        launcher_scripts_path=/opt/NeMo-Megatron-Launcher/launcher_scripts \
+        peft.model.peft.peft_scheme=${PEFT_SCHEME} \
+        peft.trainer.precision=bf16 \
+        peft.trainer.max_steps=100 \
+        peft.trainer.devices=2 \
+        peft.trainer.val_check_interval=10 \
+        peft.model.megatron_amp_O2=False \
+        peft.model.restore_from_path=/mount/workspace/nemo_gpt1.3B_fp16.nemo \
+        peft.model.tensor_model_parallel_size=${TP_SIZE} \
+        peft.model.pipeline_model_parallel_size=${PP_SIZE} \
+        peft.model.optim.lr=5e-6 \
+        peft.model.answer_only_loss=True \
+        peft.model.data.train_ds.file_names=${TRAIN} \
+        peft.model.data.train_ds.micro_batch_size=1 \
+        peft.model.data.train_ds.global_batch_size=32 \
+        peft.model.data.train_ds.concat_sampling_probabilities=${CONCAT_SAMPLING_PROBS} \
+        peft.model.data.validation_ds.micro_batch_size=1 \
+        peft.model.data.validation_ds.global_batch_size=32 \
+        peft.model.data.validation_ds.file_names=${VALID} \
+        peft.model.data.validation_ds.names=${VALID_NAMES} \
+        peft.model.data.test_ds.micro_batch_size=1 \
+        peft.model.data.test_ds.global_batch_size=128 \
+        peft.model.data.train_ds.num_workers=0 \
+        peft.model.data.validation_ds.num_workers=0 \
+        peft.model.data.test_ds.num_workers=0 \
+        peft.model.data.validation_ds.metric.name=loss \
+        peft.model.data.test_ds.metric.name=loss \
+        peft.exp_manager.exp_dir=${PEFT_EXP_DIR} \
+        peft.exp_manager.explicit_log_dir=${LOG_DIR} \
+        peft.exp_manager.resume_if_exists=True \
+        peft.exp_manager.resume_ignore_no_checkpoint=True \
+        peft.exp_manager.create_checkpoint_callback=True \
+        peft.exp_manager.checkpoint_callback_params.monitor=validation_loss
+```
+
+The command above assumes you mounted the data workspace in `/mount/workspace/` (e.g. the example script uses databricks-dolly-15k dataset), and the results workspace in `/results`. The command needs set different peft.exp_manager.exp_dir for different PEFT jobs.
+The stdout and stderr outputs will also be redirected to the `/results/nemo_launcher/ptuning_log`, to be able to download the logs from NGC.
+Any other parameter can also be added to the command to modify its behavior.
+
 ##### 5.12.2 PEFT Training and Inference for mT5/T5-style Models
 We offer training and inference scripts in NeMo for parameter efficient tuning of mT5/T5-style models. You can train a LoRA, P-tuning, Adapter, or IA3 model using its corresponding training and inference script. 
 
@@ -5458,6 +5598,8 @@ Currently, within the NeMo Data Curator, we support the following data-curation 
    - Fuzzy deduplication. Our implementation of fuzzy deduplication builds off of the following existing libraries:
      - For computing MinHash signatures we use a modified version of the MinHasher class provided in [pyLSH](https://github.com/mattilyra/LSH)
      - For the locality sensitive hashing, we extended the Redis-based implementation found in [datasketch](https://github.com/ekzhu/datasketch) beyond a single Redis server to a Redis Cluster. This enables this module to efficiently deduplicate large datasets that do not fit in memory of a single node (e.g., several TB of text)
+ - Multilingual downstream-task decontamination
+    -  Our implementation follows the approach of [OpenAI GPT3](https://arxiv.org/pdf/2005.14165.pdf) and [Microsoft Turing NLG 530B](https://arxiv.org/abs/2201.11990)
 
 The modules are implemented in a scalable manner using [Message Passing Interface (MPI) for Python (mpi4py)](https://mpi4py.readthedocs.io/en/stable/) and we use [Dask](https://dask.org) for creating balanced input jsonl files. With the scalable modules within the NeMo Data Curator, we have been have been able to fully process a [Common Crawl Snapshot](https://commoncrawl.org/2020/12/nov-dec-2020-crawl-archive-now-available/) (consisting of 60 TB of compressed WARC files) in approximately two days using 30 CPU nodes (with hardware similar to the `c5.24xlarge` [Amazon AWS C5 instance](https://aws.amazon.com/ec2/instance-types/c5/)). Please note that the core functions used within the NeMo Data Curator (e.g., html extraction, text cleaning, heuristic filtering, etc.) have not been fully optimized. The main goal of the NeMo Data Curator is to provide users the capability to apply these functions to their large datasets using many compute nodes.
 

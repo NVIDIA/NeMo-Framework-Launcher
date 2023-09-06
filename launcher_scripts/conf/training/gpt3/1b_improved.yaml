@@ -15,7 +15,7 @@ trainer:
   precision: bf16
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
-  replace_sampler_ddp: False
+  use_distributed_sampler: False
   max_epochs: null
   max_steps: 300000 # consumed_samples = global_step * global_batch_size
   max_time: "02:23:30:00" # days:hours:minutes:seconds
@@ -70,7 +70,8 @@ model:
   ffn_dropout: 0.0
   kv_channels: null
   apply_query_key_layer_scaling: true
-  normalization: layernorm1p
+  normalization: LayerNorm
+  layernorm_zero_centered_gamma: True
   layernorm_epsilon: 1.0e-05
   do_layer_norm_weight_decay: false
   make_vocab_size_divisible_by: 128
@@ -120,6 +121,10 @@ model:
   activations_checkpoint_layers_per_pipeline: null
   sequence_parallel: false # does not support sequence parallel
 
+  overlap_p2p_comm: False # Overlap p2p communication with computes. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
+  batch_p2p_comm: True # Batch consecutive inter-peer send/recv operations. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
+  num_query_groups: null # Number of query groups for group query attention. If None, normal attention is used.
+
   ## Transformer Engine
   # fp8 training is currently not supported in the improved models
   transformer_engine: False
@@ -130,6 +135,7 @@ model:
   fp8_interval: 1 # scaling update interval
   fp8_amax_history_len: 1024 # Number of steps for which amax history is recorded per tensor
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
+  fp8_wgrad: True
   use_emha: False
   ub_tp_comm_overlap: False
 
