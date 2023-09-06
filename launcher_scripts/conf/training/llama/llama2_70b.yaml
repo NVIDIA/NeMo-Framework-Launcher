@@ -4,7 +4,7 @@ run:
   time_limit: 0-01:00:00
   dependency: singleton
 trainer:
-  num_nodes: 8
+  num_nodes: 128
   devices: 8
   accelerator: gpu
   precision: bf16
@@ -20,7 +20,6 @@ trainer:
   limit_test_batches: 50
   accumulate_grad_batches: 1
   gradient_clip_val: 1.0
-  num_sanity_val_steps: 0
 exp_manager:
   explicit_log_dir: ${training.run.results_dir}/results
   exp_dir: null
@@ -47,11 +46,11 @@ exp_manager:
 model:
   mcore_gpt: true
   micro_batch_size: 1
-  global_batch_size: 128
+  global_batch_size: 2048
   rampup_batch_size: null
   tensor_model_parallel_size: 4
   pipeline_model_parallel_size: 4
-  virtual_pipeline_model_parallel_size: null
+  virtual_pipeline_model_parallel_size: 20
   encoder_seq_length: 4096
   max_position_embeddings: 4096
   num_layers: 80
@@ -110,9 +109,9 @@ model:
   apex_transformer_log_level: 30
   gradient_as_bucket_view: true
   sync_batch_comm: false
-  activations_checkpoint_granularity: selective
+  activations_checkpoint_granularity: null
   activations_checkpoint_method: block
-  activations_checkpoint_num_layers: 1
+  activations_checkpoint_num_layers: 0
   num_micro_batches_with_partial_activation_checkpoints: 0
   activations_checkpoint_layers_per_pipeline: 0
   sequence_parallel: true
@@ -127,8 +126,8 @@ model:
   use_emha: false
   ub_tp_comm_overlap: false
   use_flash_attention: true
-  overlap_p2p_comm: false
-  batch_p2p_comm: true
+  overlap_p2p_comm: true
+  batch_p2p_comm: false
   gc_interval: 100
   optim:
     name: distributed_fused_adam
