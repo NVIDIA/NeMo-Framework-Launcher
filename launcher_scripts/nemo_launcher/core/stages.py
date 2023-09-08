@@ -725,6 +725,7 @@ class PEFT(NeMoStage):
             raise NotImplementedError("PEFT is not supported in NeMo Megatron mt5 models.")
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            "llama": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
         }
         return model_type_to_code_path[model_type]
 
