@@ -35,11 +35,11 @@ from torch.utils.data.dataloader import default_collate
 
 
 class RequestDataset(Dataset):
-    def __init__(self, requests, tokenizer) -> None:
+    def __init__(self, requests, tokenizer, max_length) -> None:
         super().__init__()
         self.requests = requests
         self.tokenizer = tokenizer
-        self.max_length = 2048
+        self.max_length = max_length
 
     def __len__(self):
         return len(self.requests)
@@ -148,12 +148,29 @@ def DDP_initialize(model):
             logging.info(f'Setting up transformer engine modules for tensor parallelism.')
             if model.cfg.get('megatron_amp_O2', 'False'):
                 # when using O2 additional module key is added that casts the weights
-                for layer in model.model.module.language_model.encoder.layers:
-                    layer.set_tensor_parallel_group(parallel_state.get_tensor_model_parallel_group())
+                if model.cfg.get('mcore_gpt', False):
+                    for layer in model.model.module.decoder.layers:
+                        layer.set_tensor_parallel_group(parallel_state.get_tensor_model_parallel_group())
+                else:
+                    for layer in model.model.module.language_model.encoder.layers:
+                        layer.set_tensor_parallel_group(parallel_state.get_tensor_model_parallel_group())
 
             else:
-                for layer in model.model.language_model.encoder.layers:
-                    layer.set_tensor_parallel_group(parallel_state.get_tensor_model_parallel_group())
+                if model.cfg.get('mcore_gpt', False):
+                    for module in model.get_gpt_module_list():
+                        """Set TP group
+                        Copied from: https://github.com/NVIDIA/TransformerEngine/blob/main/transformer_engine/pytorch/transformer.py#L398
+                        """
+                        # Deep iterate but skip self to avoid infinite recursion.
+                        for index, child in enumerate(module.modules()):
+                            if index == 0:
+                                continue
+                            if hasattr(child, "set_tensor_parallel_group"):
+                                tp_group = parallel_state.get_tensor_model_parallel_group()
+                                child.set_tensor_parallel_group(tp_group)
+                else:
+                    for layer in model.model.language_model.encoder.layers:
+                        layer.set_tensor_parallel_group(parallel_state.get_tensor_model_parallel_group())
 
 
 class NeMo_GPT3LM_TP_PP(LM):
@@ -241,7 +258,7 @@ class NeMo_GPT3LM_TP_PP(LM):
             return -len(toks), tuple(toks)
 
         reord = utils.Reorderer(requests, _collate)
-        request_ds = RequestDataset(reord.get_reordered(), self.model.tokenizer)
+        request_ds = RequestDataset(reord.get_reordered(), self.model.tokenizer, self.max_length)
         request_dl = DataLoader(request_ds, collate_fn=pad_collate, batch_size=self.batch_size, shuffle=False)
 
         def logits_to_results(batch, response):

@@ -389,6 +389,10 @@ class NemoMegatronStage:
         return Path(self.cfg.get("data_dir"))
 
     @property
+    def _rlhf_code_path(self) -> Path:
+        return Path("/opt/nemo-rlhf")
+
+    @property
     def _cuda_visible_devices(self) -> str:
         ntasks_per_node = self.stage_cfg.run.get("ntasks_per_node")
         if ntasks_per_node is None:
@@ -424,9 +428,10 @@ class NemoMegatronStage:
     @property
     def _set_ln_sm_margin(self) -> str:
         """ Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel """
+        vpp = self.cfg.training.model.get("virtual_pipeline_model_parallel_size")
         if (self.cfg.training.model.get("overlap_p2p_comm", False) and
             self.cfg.training.model.get("pipeline_model_parallel_size") > 1 and
-            self.cfg.training.model.get("virtual_pipeline_model_parallel_size") > 1):
+            vpp is not None and vpp > 1):
             get_ln_sm_margin_command = (
                 f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/conditional_cfgs.py'} "
                 f"name=get_ln_sm_margin"
@@ -600,8 +605,8 @@ class Training(NeMoStage):
             )
             hydra_override += [f"model.data.data_prefix=\$({auto_blend_command})"]
         if self.stage_cfg.model.get("ub_tp_comm_overlap", False):
-            get_ub_cfg_file_command = self._get_ub_cfg_file()
-            hydra_override += [f"+model.ub_tp_comm_overlap_cfg=\$({get_ub_cfg_file_command})"]
+            ub_cfg_name = self._get_ub_cfg_override()
+            hydra_override += [f"'+tp_overlap@model.ub_tp_comm_overlap_cfg={ub_cfg_name}'"]
         if self.stage_cfg.model.get("gc_interval", 0) > 1:
             gc_interval = min(self.stage_cfg.model.get("gc_interval"), self.cfg.training.trainer.get("val_check_interval"))
             hydra_override += [f"model.gc_interval={gc_interval}"]
@@ -620,11 +625,12 @@ class Training(NeMoStage):
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_pretraining.py",
             "mt5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_pretraining.py",
             "gpt3": self._nemo_code_path / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "llama": self._nemo_code_path / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "bert": self._nemo_code_path / "examples/nlp/language_modeling/megatron_bert_pretraining.py",
         }
         return model_type_to_code_path[model_type]
 
-    def _get_ub_cfg_file(self) -> str:
+    def _get_ub_cfg_override(self) -> str:
         """
         Spawn the script to search UB configuration file
         """
@@ -632,18 +638,8 @@ class Training(NeMoStage):
         hidden_size = self.stage_cfg.model.get("hidden_size")
         mb_size = self.stage_cfg.model.get("micro_batch_size")
         seqlen = self.stage_cfg.model.get("encoder_seq_length")
-        ub_cfg_path = os.path.join(self._launcher_scripts_path, "launcher_scripts/conf/training/gpt3/ub-confs")
-
-        get_ub_cfg_file_command = (
-            f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/conditional_cfgs.py'} "
-            f"name=get_ub_cfg_file "
-            f"ub_cfg_path={ub_cfg_path} "
-            f"tp_size={tp_size} "
-            f"hidden_size={hidden_size} "
-            f"mb_size={mb_size} "
-            f"seqlen={seqlen}"
-        )
-        return get_ub_cfg_file_command
+        cfg_name =  f"ub_cfg_\\${{gpu_name:}}_h{hidden_size}_tp{tp_size}_mbs{mb_size}_seqlen{seqlen}"
+        return cfg_name
 
 
 class FineTuning(NeMoStage):
@@ -683,9 +679,10 @@ class FineTuning(NeMoStage):
         :return: path current stage's essential nemo scripts code
         :rtype: Path
         """
-        
+
         model_type_to_code_path = {
             "gpt3" : self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            "llama" : self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "mt5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
         }
@@ -728,6 +725,7 @@ class PEFT(NeMoStage):
             raise NotImplementedError("PEFT is not supported in NeMo Megatron mt5 models.")
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            "llama": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -764,6 +762,7 @@ class PromptLearning(NeMoStage):
         """
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
+            "llama": self._nemo_code_path / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
             "mt5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
         }
@@ -787,6 +786,7 @@ class AdapterLearning(PromptLearning):
         """
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
+            "llama": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py",
         }
         return model_type_to_code_path[model_type]
@@ -809,6 +809,7 @@ class IA3Learning(PromptLearning):
         """
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
+            "llama": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
             "t5": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_t5_ia3_tuning.py",
         }
         return model_type_to_code_path[model_type]
@@ -1011,7 +1012,7 @@ class EvalHarnessEvaluation(NemoMegatronStage):
     def __init__(self, cfg):
         super().__init__(cfg)
         choice_model_type, choice_name = self.get_stage_config_choice()
-        self.prompt_evaluation = choice_model_type == "prompt_gpt3"
+        self.prompt_evaluation = True if "prompt" in choice_model_type else False
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
@@ -1088,6 +1089,7 @@ class EvalHarnessEvaluation(NemoMegatronStage):
                 nemo_model=model_cfg.get("nemo_model"),
                 checkpoint_folder=model_cfg.get("checkpoint_folder"),
                 checkpoint_name=model_cfg.get("checkpoint_name"),
+                tokenizer_model=model_cfg.get("tokenizer_model"),
                 hparams_file=model_cfg.get("hparams_file"),
             )
 

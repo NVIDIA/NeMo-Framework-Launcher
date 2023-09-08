@@ -4,6 +4,7 @@
 #*.ipynb
 output
 result
+data
 *.pt
 tests/data/asr
 .DS_Store

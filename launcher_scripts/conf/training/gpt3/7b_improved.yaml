@@ -1,3 +1,7 @@
+hydra:
+  searchpath:
+    - file:///opt/NeMo/examples/nlp/language_modeling/conf
+
 run:
   name: gpt_7b_improved
   results_dir: ${base_results_dir}/${.name}

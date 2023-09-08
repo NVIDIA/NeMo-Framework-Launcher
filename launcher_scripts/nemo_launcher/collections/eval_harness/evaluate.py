@@ -85,7 +85,7 @@ def parse_args(parser_main):
     parser.add_argument("--model", required=True)
 
     parser.add_argument(
-        "--nemo_model", type=str, default=None, required=False, help="Pass path to model's .nemo file",
+        "--nemo_model", default=None, required=False, help="Pass path to model's .nemo file",
     )
     parser.add_argument(
         "--checkpoint_folder",
@@ -120,6 +120,7 @@ def parse_args(parser_main):
 
     parser.add_argument("--vocab_file", default=None)
     parser.add_argument("--merge_file", default=None)
+    parser.add_argument("--tokenizer_model", default=None)
 
     parser.add_argument(
         "--prompt_dataset_paths",
@@ -292,9 +293,10 @@ def main():
     pipeline_model_parallel_size = args.pipeline_model_parallel_size
     vocab_file = args.vocab_file
     merge_file = args.merge_file
+    tokenizer_model = args.tokenizer_model
 
     hparams_override_file = None
-    if args.nemo_model is None:  # Not loading from .nemo checkpoint
+    if args.nemo_model is None or args.nemo_model == "None":  # Not loading from .nemo checkpoint
         # Checkpoint search
         if checkpoint_name == "latest":
             checkpoints = os.path.join(checkpoint_folder, "*.ckpt")
@@ -322,6 +324,8 @@ def main():
                 conf.cfg.tokenizer.vocab_file = vocab_file
             if merge_file is not None:
                 conf.cfg.tokenizer.merge_file = merge_file
+            if tokenizer_model is not None:
+                conf.cfg.tokenizer.model = tokenizer_model
             if "activations_checkpoint_granularity" in conf.cfg:
                 conf.cfg.activations_checkpoint_granularity = None
             if "activations_checkpoint_method" in conf.cfg:

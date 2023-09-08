@@ -28,6 +28,8 @@ def main(cfg):
     data_dir = cfg.get("data_dir")
     rm_extracted = cfg.get("rm_extracted")
     tokenizer_type = cfg.get("tokenizer_type")
+    tokenizer_library = cfg.get("tokenizer_library")
+    tokenizer_model = cfg.get("tokenizer_model")
     assert data_dir is not None, "data_dir must be a valid path"
 
     # Vocab
@@ -67,6 +69,8 @@ def main(cfg):
             model_type = 'bert'
         elif 'gpt3' in data_config:
             model_type = 'gpt3'
+        elif 'llama' in data_config:
+            model_type = 'llama'
 
         output_prefix = os.path.join(data_dir, f"my-{model_type}_{file_number:02d}")
 
@@ -77,6 +81,8 @@ def main(cfg):
             f"--dataset-impl mmap "
             f"--tokenizer-library megatron "
             f"--tokenizer-type {tokenizer_type} "
+            f"--tokenizer-library {tokenizer_library} "
+            f"--tokenizer-model {tokenizer_model} "
             f"--workers $SLURM_CPUS_ON_NODE "
         )
 
@@ -119,6 +125,8 @@ def main(cfg):
                 model_type = 'bert'
             elif 'gpt3' in data_config:
                 model_type = 'gpt3'
+            elif 'llama' in data_config:
+                model_type = 'llama'
 
             output_prefix = os.path.join(data_dir, f"my-{model_type}_{file_number:02d}")
 
@@ -129,6 +137,8 @@ def main(cfg):
                 f"--dataset-impl mmap "
                 f"--tokenizer-library megatron "
                 f"--tokenizer-type {tokenizer_type} "
+                f"--tokenizer-library {tokenizer_library} "
+                f"--tokenizer-model {tokenizer_model} "
                 f"--workers {ncpus} "
             )
 
