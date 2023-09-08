@@ -16,11 +16,13 @@ import copy
 import os
 from pathlib import Path
 from typing import Dict, List, Optional
-
 import omegaconf
+import shutil
+
 from nemo_launcher.core.launchers import AutoLauncher
 from nemo_launcher.core.stages import NemoMegatronStage, clean_command_groups, create_args_list
 from nemo_launcher.utils.file_utils import download_single_file
+from nemo_launcher.utils.job_utils import JobPaths
 
 
 class DataStage(NemoMegatronStage):
@@ -55,7 +57,7 @@ class DataStage(NemoMegatronStage):
             job_path = self.get_job_path(sub_stage)
             job_path.folder.mkdir(parents=True, exist_ok=True)
 
-            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(self.stage_cfg, job_path)
+            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(self.stage_cfg, job_path, self.cfg)
             if job_id:
                 dependency = f"aftercorr:{job_id}"
                 self.stage_cfg["run"]["dependency"] = dependency
@@ -65,9 +67,24 @@ class DataStage(NemoMegatronStage):
 
             # Make command groups
             command_groups = self.make_stage_command_groups(stage_cfg_path, sub_stage)
+
+            # Prepare Helm chart for k8s
+            if self.cluster == 'k8s':
+                template_root = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'k8s_templates/data_preparation')
+                self._make_k8s_helm_chart(template_root, cluster_parameters, job_path, sub_stage)
+
             # Create launcher
             launcher = AutoLauncher(folder=job_path.folder, cluster=self.cluster, **cluster_parameters,)
-            job_id = launcher.launch(command_groups=command_groups)
+
+            if self.cluster == 'k8s':
+                # For k8s clusters, only launch on the final stage (preprocess) as
+                # the Helm chart contains all stages in a single chart.
+                if sub_stage == sub_stages[-1]:
+                    job_id = launcher.launch(command_groups=command_groups)
+                else:
+                    job_id = ''
+            else:
+                job_id = launcher.launch(command_groups=command_groups)
 
         return job_id
 
@@ -97,11 +114,11 @@ class DataStage(NemoMegatronStage):
     def _make_cluster_parameters(self, cluster: str, sub_stage: Optional = None,) -> Dict:
         """
         Make a cluster-specific parameters for jobs on different clusters.
-        Current clusters include bcm(slurm), bcp and interactive.
+        Current clusters include bcm(slurm), bcp, k8s, and interactive.
         For example for bcm, it will return slurm parameters:
             {'job_name': 'some_name', 'nodes': 2, 'ntasks_per_node': 8, ...}
 
-        :param str cluster: i.e. `bcm`, `bcp`, `interactive`, etc.
+        :param str cluster: i.e. `bcm`, `bcp`, `interactive`, `k8s`, etc.
         :param Optional sub_stage: current sub_stage name
         :return: a dictionary of cluster parameters, e.g. `ntasks_per_node`
         :rtype: Dict
@@ -142,10 +159,77 @@ class DataStage(NemoMegatronStage):
             cluster_parameters.update(
                 {**shared_parameters, **private_parameters,}
             )
+        elif cluster == "k8s":
+            cluster_cfg = cfg.get("cluster")
+            container_image = cfg.get("container")
+            k8s_cfg = {**copy.deepcopy(cluster_cfg)}
+
+            cluster_parameters = {**k8s_cfg}
+
+            cluster_parameters.update(
+                {
+                    **shared_parameters,
+                    **private_parameters,
+                    "container_image": container_image,}
+            )
         elif cluster == "interactive":
             raise ValueError("Data preparation is not supported in interactive mode.")
 
         return cluster_parameters
+
+    def _make_k8s_helm_chart(self, template_root: str, cluster_parameters: Dict, job_path: JobPaths, sub_stage: str):
+        """
+        Create a Helm chart for data preparation.
+        The Helm chart uses a base template which is extended with user-defined
+        cluster settings as specified in the config files. The generated Hydra
+        config file needs to be copied to the Helm chart as this will be used
+        for launching the job.
+
+        :param str template_root: the path to where the k8s template files are located.
+        :param dict cluster_parameters: additional parameters specific to the cluster config.
+        :param JobPaths job_path: the path to the job results directory.
+        :param str sub_stage: the current stage.
+        """
+        with open(os.path.join(template_root, 'values.yaml')) as value_file:
+            values_template = omegaconf.OmegaConf.load(value_file)
+
+        procs_per_node = self.stage_cfg.run.bcp_preproc_npernode if sub_stage == "preprocess" else 1
+        total_processes = procs_per_node * self.stage_cfg.run.node_array_size
+
+        # Update the Helm chart template with the user-specified settings
+        values_template.image.trainingImage = cluster_parameters['container_image']
+        values_template.image.pullSecret = cluster_parameters['pull_secret']
+        values_template.image.nodes = self.stage_cfg.run.node_array_size
+        values_template.dataPrepConfig.shmSize = cluster_parameters['shm_size']
+        values_template.dataPrepConfig.NFSServer = cluster_parameters['nfs_server']
+        values_template.dataPrepConfig.NFSPath = cluster_parameters['nfs_path']
+        values_template.dataPrepConfig.totalProcesses = total_processes
+        values_template.dataPrepConfig.procsPerNode = procs_per_node
+        values_template.dataPrepConfig.stage = sub_stage
+
+        k8s_template_path = job_path.folder
+        k8s_template_file = Path(k8s_template_path / 'k8s_template' / 'values.yaml')
+        k8s_template_file.parent.mkdir(parents=True, exist_ok=True)
+
+        conf = omegaconf.OmegaConf.create(values_template)
+        omegaconf.OmegaConf.save(conf, k8s_template_file)
+
+        # Copy the data prep spec files to the Helm chart
+        template_file = os.path.join(template_root, 'data-prep.yaml')
+        chart_file = os.path.join(template_root, 'Chart.yaml')
+        data_prep_path = Path(job_path.folder / 'k8s_template' / 'templates' / 'data-prep.yaml')
+        data_prep_path.parent.mkdir(parents=True, exist_ok=True)
+        config_path = Path(job_path.folder / 'k8s_template' / 'config')
+        config_path.mkdir(parents=True, exist_ok=True)
+        chart_path = Path(job_path.folder / 'k8s_template' / 'Chart.yaml')
+        data_prep_config_file = os.path.join(template_root, 'data-prep-config.yaml')
+        data_prep_config_path = Path(job_path.folder / 'k8s_template' / 'templates' / 'data-prep-config.yaml')
+        hydra_config_path = Path(job_path.folder / 'k8s_template' / 'config')
+
+        shutil.copy2(template_file, data_prep_path)
+        shutil.copy2(chart_file, chart_path)
+        shutil.copy2(data_prep_config_file, data_prep_config_path)
+        shutil.copy2(job_path.config_file, hydra_config_path)
 
 
 class PileDataPreparation(DataStage):

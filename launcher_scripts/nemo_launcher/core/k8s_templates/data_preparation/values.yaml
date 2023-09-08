@@ -1,0 +1,27 @@
+image:
+  trainingImage: cfg.container
+  pullPolicy: IfNotPresent
+
+  # Insert the name of your container registry pull secret #
+  pullSecret: nvcr.io
+
+  nodes: training.trainer.num_nodes
+
+dataPrepConfig:
+  # Specify the amount of shared memory to attach to the Pods #
+  shmSize: 512Gi
+
+  # Insert the address for the NFS server if using NFS for model storage #
+  NFSServer: <Insert NFS server address>
+
+  # Insert the path to save data on the NFS server #
+  NFSPath: <Insert NFS server path>
+
+  # Insert the total number of processes to spawn on the cluster #
+  totalProcesses: <Insert number of processes>
+
+  # Insert the number of processes to spawn per node #
+  procsPerNode: <Insert number of processes per node>
+
+  # Insert the data preparation stage, such as download, extract, or preprocess #
+  stage: <Insert the data prep stage>

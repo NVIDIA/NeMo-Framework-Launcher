@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evaluation-config
+data:
+  hparams.yaml: |-
+  {{ (.Files.Glob "config/hparams.yaml").AsConfig | indent 4 }}

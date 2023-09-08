@@ -68,6 +68,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libsndfile1 \
         sox \
         swig \
+        openssh-server \
         libb64-dev && \
     rm -rf /var/lib/apt/lists/*
 
@@ -178,6 +179,12 @@ RUN pip install --no-cache-dir wandb==0.15.3 \
 
 # Copy FasterTransformer
 COPY --from=ft_builder /workspace/FasterTransformer FasterTransformer
+
+# Setup SSH config to allow mpi-operator to communicate with containers in k8s
+RUN echo "    UserKnownHostsFile /dev/null" >> /etc/ssh/ssh_config && \
+    sed -i 's/#\(StrictModes \).*/\1no/g' /etc/ssh/sshd_config && \
+    sed -i 's/#   StrictHostKeyChecking ask/    StrictHostKeyChecking no/' /etc/ssh/ssh_config && \
+    mkdir -p /var/run/sshd
 
 # Examples
 WORKDIR /workspace
