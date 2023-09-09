@@ -54,7 +54,7 @@ def get_ag_overlap(cfg):
 
 
 if __name__ == "__main__":
-    elif sys.argv[1] == "name=get_ln_sm_margin":
+    if sys.argv[1] == "name=get_ln_sm_margin":
         get_ln_sm_margin()
     elif sys.argv[1] == "name=get_ag_overlap":
         get_ag_overlap()
