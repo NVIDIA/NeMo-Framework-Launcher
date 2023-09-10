@@ -5125,60 +5125,102 @@ It is important to ensure that the dialogue length is within the model's maximum
 #### 5.15.2 SFT Training
 <a id="markdown-sft-training" name="sft-training"></a>
 
-Once you have one or more dataset you would like to finetune on, you can run the finetuning script from NeMo as follows:
+Before running SFT training, configure the Slurm cluster in the `conf/cluster/bcm.yaml` file:
+
+```
+partition: null
+account: null
+exclusive: True
+gpus_per_task: null
+gpus_per_node: 8
+mem: 0
+overcommit: False
+job_name_prefix: "nemo-megatron-"
+```
+
+Once you have one or more dataset you would like to finetune on, you can run the fine-tuning on your own task using the NeMo Megatron Launcher in the following way:
 
 ```bash
-TRAIN="[/path/to/dataset_1.jsonl,/path/to/dataset_2.jsonl]"
+# ---- Set paths to necessary dirs ----
+DATA_DIR="/path/to/data/dir"
+MODEL_DIR="/path/to/nemo/model"
+RESULTS_DIR="/path/to/results/dir"
+CODE_DIR="/path/to/NeMo/dir"
+MEGATRON_LAUNCHER_DIR="/path/to/NeMo-Megatron-Launcher"
 
-VALID="[/path/to/validation_data.jsonl]"
+# ------ Set container and mounts ------
+CONTAINER="nvcr.io/link/to/docker-container"
+MOUNTS="[${CODE_DIR}:/opt/NeMo,\
+${DATA_DIR}:/data,\
+${MODEL_DIR}:/models,\
+${RESULTS_DIR}:/results"
 
-VALID_NAMES="[your-validation-dataset-name]"
-
+# ------ Set data configuration ------
+## Train dataset
+TRAIN="[/data/dataset_1.jsonl,/data/dataset_2.jsonl]"
 CONCAT_SAMPLING_PROBS="[0.3,0.7]"
 
-TP_SIZE=2
+## Validation dataset
+VALID="[/data/validation_data.jsonl]"
+VALID_NAMES="[your-validation-dataset-name]"
 
+# ---------- Set parallelism ----------
+TP_SIZE=2
 PP_SIZE=1
 
-python /opt/NeMo/examples/nlp/language_modeling/megatron_gpt_sft.py \
-  trainer.precision=bf16 \
-  trainer.max_steps=1000 \
-  trainer.devices=8 \
-  trainer.val_check_interval=200 \
-  model.megatron_amp_O2=True \
-  model.restore_from_path=/path/to/your/gpt.nemo \
-  model.tensor_model_parallel_size=${TP_SIZE} \
-  model.pipeline_model_parallel_size=${PP_SIZE} \
-  model.optim.lr=5e-6 \
-  model.answer_only_loss=True \
-  model.data.train_ds.micro_batch_size=1 \
-  model.data.train_ds.global_batch_size=128 \
-  model.data.train_ds.file_names=${TRAIN} \
-  model.data.train_ds.concat_sampling_probabilities=${CONCAT_SAMPLING_PROBS} \
-  model.data.validation_ds.micro_batch_size=1 \
-  model.data.validation_ds.global_batch_size=128 \
-  model.data.validation_ds.file_names=${VALID} \
-  model.data.validation_ds.names=${VALID_NAMES} \
-  model.data.test_ds.micro_batch_size=1 \
-  model.data.test_ds.global_batch_size=128 \
-  model.data.train_ds.num_workers=0 \
-  model.data.validation_ds.num_workers=0 \
-  model.data.test_ds.num_workers=0 \
-  model.data.validation_ds.metric.name=loss \
-  model.data.test_ds.metric.name=loss \
-  exp_manager.create_wandb_logger=True \
-  exp_manager.explicit_log_dir=/results \
-  exp_manager.resume_if_exists=True \
-  exp_manager.resume_ignore_no_checkpoint=True \
-  exp_manager.create_checkpoint_callback=True \
-  exp_manager.checkpoint_callback_params.monitor=validation_loss
+# ----------- WandB API key -----------
+WANDB_API_KEY_FILE="/path/to/wandb_key.txt"
+
+# -------------- Running --------------
+HYDRA_FULL_ERROR=1 &&
+cd ${MEGATRON_LAUNCHER_DIR}/launcher_scripts &&
+python3 main.py \
+launcher_scripts_path="${MEGATRON_LAUNCHER_DIR}/launcher_scripts/" \
+data_dir="${DATA_DIR}" \
+base_results_dir="${RESULTS_DIR}" \
+container="${CONTAINER}" \
+container_mounts="${MOUNTS}" \
+wandb_api_key_file="${WANDB_API_KEY_FILE}" \
+stages="[fine_tuning]" \
+fine_tuning="gpt3/custom_task" \
+fine_tuning.trainer.precision=bf16 \
+fine_tuning.trainer.max_steps=1000 \
+fine_tuning.trainer.devices=8 \
+fine_tuning.trainer.val_check_interval=200 \
+fine_tuning.model.megatron_amp_O2=True \
+fine_tuning.model.restore_from_path=/models/megatron_gpt_sft.nemo \
+fine_tuning.model.tensor_model_parallel_size=${TP_SIZE} \
+fine_tuning.model.pipeline_model_parallel_size=${PP_SIZE} \
+fine_tuning.model.optim.lr=5e-6 \
+fine_tuning.model.answer_only_loss=True \
+fine_tuning.model.data.train_ds.micro_batch_size=1 \
+fine_tuning.model.data.train_ds.global_batch_size=128 \
+fine_tuning.model.data.train_ds.file_names=${TRAIN} \
+fine_tuning.model.data.train_ds.concat_sampling_probabilities=${CONCAT_SAMPLING_PROBS} \
+fine_tuning.model.data.validation_ds.micro_batch_size=1 \
+fine_tuning.model.data.validation_ds.global_batch_size=128 \
+fine_tuning.model.data.validation_ds.file_names=${VALID} \
+fine_tuning.model.data.validation_ds.names=${VALID_NAMES} \
+fine_tuning.model.data.test_ds.micro_batch_size=1 \
+fine_tuning.model.data.test_ds.global_batch_size=128 \
+fine_tuning.model.data.train_ds.num_workers=0 \
+fine_tuning.model.data.validation_ds.num_workers=0 \
+fine_tuning.model.data.test_ds.num_workers=0 \
+fine_tuning.model.data.validation_ds.metric.name=loss \
+fine_tuning.model.data.test_ds.metric.name=loss \
+fine_tuning.exp_manager.create_wandb_logger=True \
+fine_tuning.exp_manager.explicit_log_dir=/results \
+fine_tuning.exp_manager.resume_if_exists=True \
+fine_tuning.exp_manager.resume_ignore_no_checkpoint=True \
+fine_tuning.exp_manager.create_checkpoint_callback=True \
+fine_tuning.exp_manager.checkpoint_callback_params.monitor=validation_loss
 ```
 
 The `${TP_SIZE}` and `${PP_SIZE}` above should correspond to the Tensor and Pipeline model parallel sizes the `/path/to/your/gpt.nemo` model was saved with.
 
 For finetuning dialogue dataset, we just need to add one extra configuration line to indicate the dataset type is dialogue.  
 ```bash
-  model.data.chat=True
+  fine_tuning.model.data.chat=True
 ```
 
 ### 5.16. Reinforcement Learning from Human Feedback
