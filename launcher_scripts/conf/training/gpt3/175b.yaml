@@ -133,7 +133,7 @@ model:
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   fp8_wgrad: True
   use_emha: False
-  ub_tp_comm_overlap: True
+  ub_tp_comm_overlap: False
 
   # miscellaneous
   seed: 1234
