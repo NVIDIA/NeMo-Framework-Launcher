@@ -3782,11 +3782,11 @@ inference.outfile_path=<OUTPUT_FILE>
 Additionally, NeMo has a notebook which walks through the steps (which these scripts encapsulate) to train and run inference for PEFT models: https://github.com/NVIDIA/NeMo/blob/main/tutorials/nlp/lora.ipynb
 
 ##### 5.12.1.2 PEFT Training with NeMo Megatron Launcher
-PEFT stage could launch PEFT methods including PTuning, LoRA, Adapters and IA3 in a single stage, by setting different peft scheme.
-It is implemented via adapter_mixins framework with a unify style.
-mix-n-match PEFT scheme like adapter_and_ptuning can be easily extended to do ia3_and_ptuning or lora_and_ptuning
+PEFT training with PTuning, LoRA, Adapters and IA3 can be launched in a single stage by setting the `peft_scheme` field in the config.
+The unified framework is implemented via adapter mixins.
+Combination PEFT schemes like adapter_and_ptuning can be easily extended to do ia3_and_ptuning or lora_and_ptuning
 
-PTuning does not need to flexibility to insert prompt tokens anywhere in the input. This feature has been removed for simplicity.
+PTuning does not need the flexibility to insert prompt tokens anywhere in the input. This feature has been removed for simplicity.
 
 ##### 5.12.1.2.1. Common
 <a id="markdown-common" name="common"></a>
@@ -3808,7 +3808,7 @@ To specify which language model checkpoint to load and its definition, use the `
 ```yaml
 model:
   language_model_path: ${base_results_dir}/${peft.run.model_train_name}/${peft.run.convert_name}/nemo_gpt1.3B_fp16.nemo
-  tensor_model_parallel_size: 2
+  tensor_model_parallel_size: 1
   pipeline_model_parallel_size: 1
 ```
 
@@ -3917,47 +3917,110 @@ The stdout and stderr outputs will also be redirected to the `/results/nemo_laun
 Any other parameter can also be added to the command to modify its behavior.
 
 ##### 5.12.2 PEFT Training and Inference for mT5/T5-style Models
-We offer training and inference scripts in NeMo for parameter efficient tuning of mT5/T5-style models. You can train a LoRA, P-tuning, Adapter, or IA3 model using its corresponding training and inference script. 
+We offer a training and inference script in NeMo for parameter efficient tuning of mT5/T5-style models. You can train a LoRA, P-tuning, Adapter, or IA3 model using a unified training script and inference script for all PEFT methods, similar to GPT-style models. 
 
 ##### 5.12.2.1 PEFT Training and Inference
 Below is an example of how to use the training scripts for adapter tuning. The `TRAIN_FILE`s (and `VALIDATION_FILE`s) follow the same format as SFT.
 
 ```bash
-python /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py \
-    model.language_model_path=<BASE_T5_MODEL> \
-    model.data.train_ds=[<TRAIN_FILE1>,<TRAIN_FILE2>,...] \
-    model.data.validation_ds=[<VALIDATION_FILE1>, <VALIDATION_FILE2>,...]
+python3 /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_peft_tuning.py \
+  model.restore_from_path=<BASE_T5_MODEL> \ 
+  model.data.train_ds.num_workers=0 \
+  model.data.validation_ds.num_workers=0 \
+  model.data.train_ds.file_names=[<TRAIN_FILE1>,<TRAIN_FILE2>,...] \ 
+  model.data.train_ds.concat_sampling_probabilities=[0.3,0.2,..] \ # should sum to 1 and be of the same length as number of training files
+  model.data.validation_ds.file_names=[<VALIDATION_FILE1>, <VALIDATION_FILE2>,...] \ 
+  model.data.train_ds.prompt_template='{input} Answer: {output}' \
+  model.peft.peft_scheme='lora'  # can be replaced with 'adapter', 'ptuning' or 'ia3'
+  model.answer_only_loss=True 
 ```
-
-At the end of tuning, a '.nemo' model is generated which contains the parameters for the PEFT model.
-Similarly, the PEFT framework has an inference script as well:
-
+At the end of training a '.nemo' model is generated which contains the parameters for the PEFT model.
+Similarly, the PEFT framework has a single inference script as well:
 ```bash
-python /data/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_adapter_eval.py \
-    data.test_ds=[<TEST_FILE>] \
-    language_model_path=[BASE_T5_MODEL] \
-    adapter_model_file=[PEFT_MODEL] \
-    pred_file_path=<OUTPUT_FILE>
+python3 /opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_peft_eval.py \
+model.restore_from_path=<BASE_T5_MODEL> \
+model.peft.restore_from_path=<PEFT_MODEL> \
+model.data.test_ds.file_names=[<TEST_FILE>] \
+model.data.test_ds.names=['my_test_set'] \
+model.data.test_ds.tokens_to_generate=30 \
+inference.greedy=True \
+inference.outfile_path=<OUTPUT_FILE>
 ```
 
-You can switch to IA3, P-tuning, or LoRA methods by using the same input arguments to a different script. Below is the table including filepaths for each PEFT method:
+##### 5.12.2.2 PEFT Training with NeMo Megatron Launcher
+Similar to GPT, different PEFT methods with T5- and mT5-style models can also be launched in a single stage.
 
-| PEFT Method    | Filepath   | 
-| -------------- | ---------- | 
-| Adapter tuning |  ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py```   | 
-| IA3 tuning     |  ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_ia3_tuning.py```   | 
-| P-tuning       | ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_prompt_learning.py```    | 
-| LoRA tuning    | ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_lora_tuning.py```    | 
+##### 5.12.1.2.1. Common
+<a id="markdown-common" name="common"></a>
+To specify the configuration for ptuning (LoRA, adapter or IA3 learning), 
+use all the `run` parameters to define the job specific config:
+```yaml
+run:
+  name: ${.task_name}_${.model_train_name}
+  time_limit: "04:00:00"
+  dependency: "singleton"
+  convert_name: convert_nemo
+  model_train_name: t5
+  task_name: "squad"
+  results_dir: ${base_results_dir}/${.model_train_name}/ptuning_${.task_name}
+```
 
-Similarly, the inference script filepaths are provided below:
+To specify which language model checkpoint to load and its definition, use the `model` parameter:
 
-| PEFT Method    | Filepath   | 
-| -------------- | ---------- | 
-| Adapter tuning |  ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_adapter_eval.py```   | 
-| IA3 tuning     |  ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_ia3_eval.py```   | 
-| P-tuning       | ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_prompt_learning_eval.py```    | 
-| LoRA tuning    | ```/opt/NeMo/examples/nlp/language_modeling/tuning/megatron_t5_lora_eval.py```    | 
+```yaml
+model:
+  language_model_path: ${base_results_dir}/${peft.run.model_train_name}/${peft.run.convert_name}/megatron_t5.nemo
+  tensor_model_parallel_size: 1
+  pipeline_model_parallel_size: 1
+```
 
+##### 5.12.1.2.2 Slurm
+<a id="markdown-slurm" name="slurm"></a>
+
+Set configuration for a Slurm cluster in the `conf/cluster/bcm.yaml` file:
+
+```yaml
+partition: null
+account: null
+exclusive: True
+gpus_per_task: null
+gpus_per_node: 8
+mem: 0
+overcommit: False
+job_name_prefix: "nemo-megatron-"
+```
+
+**Example:**
+
+To run only the evaluation pipeline and not the data preparation, training, 
+conversion or inference pipelines set the `conf/config.yaml` file to:
+
+```yaml
+stages:
+  - peft
+```
+
+then run:
+```
+python3 main.py \
+    peft=t5/squad \
+    stages=["peft"] \
+    peft.model.peft.peft_scheme="ptuning" \
+    peft.model.megatron_amp_O2=False \
+    peft.model.restore_from_path=${LANGUAGE_MODEL_PATH}\
+    peft.exp_manager.exp_dir=${BASE_RESULTS_DIR}/${RUN_NAME}/ptuning \
+
+```
+##### 5.12.1.2.3 Base Command Platform
+<a id="markdown-base-command-platform" name="base-command-platform"></a>
+In order to run the ptuning learning script on Base Command Platform, set the
+`cluster_type` parameter in `conf/config.yaml` to `bcp` or `interactive`. This can also be overridden
+from the command line, using hydra. 
+
+To run the ptuning pipeline to nemo-megatron-gpt-1.3B model converted checkpoint, run:
+```bash
+TODO
+```
 
 ### 5.13. Model Evaluation
 <a id="markdown-model-evaluation" name="model-evaluation"></a>
