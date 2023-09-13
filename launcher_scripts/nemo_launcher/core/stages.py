@@ -722,12 +722,12 @@ class PEFT(NeMoStage):
         :return: path current stage's essential nemo scripts code 
         :rtype: Path
         """
-        if model_type == "t5":
-            raise NotImplementedError("PEFT is not supported in NeMo Megatron t5 models.")
+        
         if model_type == "mt5":
             raise NotImplementedError("PEFT is not supported in NeMo Megatron mt5 models.")
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            "t5": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_t5_peft_tuning.py",
         }
         return model_type_to_code_path[model_type]
 
