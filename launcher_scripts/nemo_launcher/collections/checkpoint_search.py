@@ -50,14 +50,14 @@ def checkpoint_search(cfg):
     tensor_model_parallel_size = cfg.tensor_model_parallel_size
     pipeline_model_parallel_size = cfg.pipeline_model_parallel_size
 
-    if checkpoint_name == "latest":
+    dist_ckpt = False
+    # Every distributed checkpoint saves a 'common.pt' file
+    for result in glob.glob(os.path.join(checkpoint_folder, "*")):
+        if os.path.exists(os.path.join(result, 'common.pt')):
+            dist_ckpt = True
+            break
 
-        dist_ckpt = False
-        # Every distributed checkpoint saves a 'common.pt' file
-        for result in glob.glob(os.path.join(checkpoint_folder, "*")):
-            if os.path.exists(os.path.join(result, 'common.pt')):
-                dist_ckpt = True
-                break
+    if checkpoint_name == "latest":
 
         if dist_ckpt:
             checkpoint_list = [f for f in glob.glob(os.path.join(checkpoint_folder, "*")) if os.path.isdir(f)]
