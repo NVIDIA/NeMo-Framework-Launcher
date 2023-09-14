@@ -23,6 +23,7 @@ PP_SIZE=1
 NUM_NODES=1
 BUILD_IMAGE_NAME_SBATCH="nvcr.io/nvidian/bignlp-train:23.08-nemofw-nightly"
 BASE_RESULTS_DIR="/home/pagaray/code/NeMo-Megatron-Launcher-results"
+MAX_STEPS=100
 
 #TODO : Can add additional parameters (key value pairs from gitlab-ci.yaml file)
 HYDRA_FULL_ERROR=1 NEMO_LAUNCHER_CI=1 python3 main.py \
