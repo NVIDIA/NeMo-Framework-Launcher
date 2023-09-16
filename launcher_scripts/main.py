@@ -30,6 +30,7 @@ from nemo_launcher.core.stages import (
     NeMoEvaluation,
     PromptLearning,
     Training,
+    Inference,
 )
 from nemo_launcher.core.rlhf_stages import RLHFRewardModel, RLHFPPO
 
@@ -39,6 +40,7 @@ omegaconf.OmegaConf.register_new_resolver("divide_floor", lambda x, y: int(math.
 
 STR2STAGECLASS = {
     "training": Training,
+    "inference": Inference,
     "fine_tuning": FineTuning,
     "peft": PEFT,
     "prompt_learning": PromptLearning,
