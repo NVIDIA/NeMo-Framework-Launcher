@@ -59,7 +59,7 @@ def get_args(argv):
     )
     
     parser.add_argument( 
-        "--config_path", 
+        "--config-path", 
         type=str, 
         help="Hydra config file path from Launcher script"
     )
