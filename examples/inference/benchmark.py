@@ -273,11 +273,11 @@ def get_args(argv):
     
     args = parser.parse_args()
     
-    if not args.args:  # args priority is higher than yaml
-        opt = vars(args)
-        args = yaml.load(open(config_yaml_file), Loader=yaml.FullLoader)
-        opt.update(args)
-        args = opt
+    #if not args.args:  # args priority is higher than yaml
+    opt = vars(args)
+    args = yaml.load(open(config_yaml_file), Loader=yaml.FullLoader)
+    opt.update(args)
+    args = opt
         
     return args
 
