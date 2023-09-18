@@ -10,6 +10,7 @@ run:
   task_name: "squad"
   results_dir: ${base_results_dir}/${.model_train_name}/inference_${.task_name}
 
+nodes: 1
 nemo_checkpoint: null
 model_type: gptnext
 num_gpus: 1
