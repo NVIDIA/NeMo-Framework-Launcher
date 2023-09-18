@@ -256,15 +256,15 @@ def get_args(argv):
         help='Prompt embedding table len'
     )
     
-    argv = parser.parse_args(args)
+    args = parser.parse_args(argv)
     
     if not args.args:  # args priority is higher than yaml
         opt = vars(args)
-        argv = yaml.load(open(config_yaml_file), Loader=yaml.FullLoader)
-        opt.update(argv)
-        argv = opt
+        args = yaml.load(open(config_yaml_file), Loader=yaml.FullLoader)
+        opt.update(args)
+        args = opt
         
-    return argv
+    return args
 
 
 def nemo_deploy(args):
