@@ -11,8 +11,8 @@ run:
   results_dir: ${base_results_dir}/${.model_train_name}/inference_${.task_name}
 
 trainer:
-  devices: ${divide_ceil:${model.model_parallel_size}, ${.num_nodes}}
-  num_nodes: ${divide_ceil:${model.model_parallel_size}, 8}
+  devices: ${divide_ceil:${inference.model.model_parallel_size}, ${.num_nodes}}
+  num_nodes: ${divide_ceil:${inference.model.model_parallel_size}, 8}
   accelerator: gpu
   precision: bf16
   logger: False # logger provided by exp_manager
