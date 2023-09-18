@@ -10,15 +10,6 @@ run:
   task_name: "squad"
   results_dir: ${base_results_dir}/${.model_train_name}/inference_${.task_name}
 
-run:
-  name: eval_${.task_name}_${.model_train_name}
-  time_limit: "04:00:00"
-  dependency: "singleton"
-  model_train_name: gpt3_5b
-  task_name: "squad"
-  ia3_learning_dir: ${base_results_dir}/${.model_train_name}/ia3_learning_squad # assume prompt learning was on squad task
-  results_dir: ${base_results_dir}/${.model_train_name}/ia3_learning_${.task_name}_eval
-
 trainer:
   devices: ${divide_ceil:${evaluation.model_parallel_size}, ${.num_nodes}}
   num_nodes: ${divide_ceil:${evaluation.model_parallel_size}, 8}
