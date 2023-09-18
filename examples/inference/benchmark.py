@@ -79,18 +79,6 @@ def get_args(argv):
         description=f"Deploy nemo models to Triton and benchmark the models",
     )
     
-    parser.add_argument( 
-        "--config-path", 
-        type=str, 
-        help="Hydra config file path from Launcher script"
-    )
-
-    parser.add_argument(
-        "--config-name", 
-        type=str, 
-        help="Hydra config name from Launcher script"
-    )
-    
     parser.add_argument(
         "-nc", 
         "--nemo_checkpoint", 
