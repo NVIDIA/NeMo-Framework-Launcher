@@ -32,6 +32,7 @@ import statistics
 import hydra
 from omegaconf import DictConfig
 from omegaconf import OmegaConf, open_dict
+from nemo.core.config import hydra_runner
 
 '''
 Example command:
