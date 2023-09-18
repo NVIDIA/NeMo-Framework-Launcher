@@ -72,7 +72,7 @@ def get_args_hydra(argv):
     args = parser.parse_args(argv)
     return args  
     
-#@hydra_runner(config_path="../../launcher_scripts/conf", config_name="inference")
+@hydra_runner(config_path="../../launcher_scripts/conf", config_name="inference")
 def get_args(argv):
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -409,7 +409,8 @@ def send_queries(args):
 
 if __name__ == '__main__':
     args_hydra = get_args_hydra(sys.argv[1:])
-
+    args = get_args(sys.argv[3:])
+    
     loglevel = logging.INFO
     logging.setLevel(loglevel)
     logging.info("Logging level set to {}".format(loglevel))
