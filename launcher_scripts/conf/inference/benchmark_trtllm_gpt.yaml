@@ -1,1 +1,7 @@
+nemo_checkpoint: null
+model_type: gptnext
+num_gpus: 1
+max_input_len: 250
+max_batch_size: 10
+num_runs: 50
 
