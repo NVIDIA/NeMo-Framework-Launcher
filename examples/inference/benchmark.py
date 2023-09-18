@@ -80,7 +80,7 @@ def get_args(argv):
     config_path = argv.config_path
     config_name = argv.config_name
 
-    config_yaml_file = config_path + config_name
+    config_yaml_file = config_path + "/" + config_name
     
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
