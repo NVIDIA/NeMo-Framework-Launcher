@@ -52,7 +52,7 @@ except ImportError:
     from contextlib import suppress as nullcontext
 
 @hydra_runner(config_path="../../launcher_scripts/conf", config_name="inference")
-def get_args(cfg,argv):
+def get_args(argv,cfg):
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description=f"Deploy nemo models to Triton and benchmark the models",
