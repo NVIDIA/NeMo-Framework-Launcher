@@ -1,0 +1,73 @@
+image:
+  trainingImage: cfg.container
+  pullPolicy: IfNotPresent
+
+  # Insert the name of your container registry pull secret #
+  pullSecret: nvcr.io
+
+  # Insert number of GPUs #
+  gpuNum: 1
+
+trainingConfig:
+  # Specify the amount of shared memory to attach to the Pods #
+  shmSize: 512Gi
+
+  # Insert the address for the NFS server if using NFS for model storage #
+  NFSServer: <Insert NFS server address>
+
+  # Insert the path to save data on the NFS server #
+  NFSPath: <Insert NFS server path>
+
+  # Insert the path to the vocab file #
+  vocabPath: <Insert absolute path to vocab.json file>
+
+  # Insert the path to the merges file #
+  mergesPath: <Insert absolute path to merges.txt file>
+
+  # Insert the path to the results directory #
+  resultsDirectory: <Insert absolute path to the conversion directory>
+
+  # Insert the path to the training directory #
+  trainingDirectory: <Insert the absolute path to the training directory>
+
+  # Insert the path to the launcher_scripts directory #
+  launcherScriptsPath: <Insert the absolute path to the launcher_scripts directory>
+
+  # Insert the TP size #
+  tensorParallelism: <Insert TP size>
+
+  # Insert the PP size #
+  pipelineParallelism: <Insert PP size>
+
+  # Insert evaluation task name #
+  name: <Insert name of evaluation task>
+
+  # Insert name of model to evaluate #
+  model: <Insert name of model to evaluate>
+
+  # Insert which tasks to evaluate #
+  tasks: <Insert tasks to evaluate>
+
+  # Insert path to store downloaded eval data #
+  cacheDir: <Insert path to cache eval data>
+
+  # Insert path to save evaluation results #
+  outputPath: <Insert path to save eval results>
+
+  # Insert batch size for evaluation #
+  batchSize: <Insert batch size>
+
+  # Insert evaluation precision #
+  precision: <Insert precision>
+
+  # Specify the path to the .nemo model if used #
+  nemoModel: <Insert path to .nemo file or "null">
+
+  # Insert path the the training checkpoint directory #
+  checkpointFolder: <Insert path to checkpoint directory>
+
+  # Insert name of checkpoint or "latest" #
+  checkpointName: <Insert checkpoint name>
+
+  # Insert path to the hparams file from the training job #
+  hparamsFile: <Insert path to hparams.yaml file>

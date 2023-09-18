@@ -1,0 +1,40 @@
+image:
+  trainingImage: cfg.container
+  pullPolicy: IfNotPresent
+
+  # Insert the name of your container registry pull secret #
+  pullSecret: nvcr.io
+
+  # Insert number of GPUs #
+  gpuNum: <Insert number of GPUs>
+
+trainingConfig:
+  # Specify the amount of shared memory to attach to the Pods #
+  shmSize: 512Gi
+
+  # Insert the address for the NFS server if using NFS for model storage #
+  NFSServer: <Insert NFS server address>
+
+  # Insert the path to save data on the NFS server #
+  NFSPath: <Insert NFS server path>
+
+  # Insert the path to the vocab file #
+  vocabPath: <Insert absolute path to vocab.json file>
+
+  # Insert the path to the merges file #
+  mergesPath: <Insert absolute path to merges.txt file>
+
+  # Insert the path to the results directory #
+  resultsDirectory: <Insert absolute path to the conversion directory>
+
+  # Insert the path to the training directory #
+  trainingDirectory: <Insert the absolute path to the training directory>
+
+  # Insert the path to the launcher_scripts directory #
+  launcherScriptsPath: <Insert the absolute path to the launcher_scripts directory>
+
+  # Insert the TP size #
+  tensorParallelism: <Insert TP size>
+
+  # Insert the PP size #
+  pipelineParallelism: <Insert PP size>

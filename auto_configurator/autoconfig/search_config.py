@@ -20,7 +20,7 @@ from autoconfig.base_config import calculate_model_size, generate_base_config
 from autoconfig.inference_sweep import search_inference_config
 from autoconfig.training_config import search_training_config
 
-SUPPORTED_MODELS = ["gpt3", "t5", "mt5", "bert"]
+SUPPORTED_MODELS = ["gpt3", "t5", "mt5", "bert", "llama"]
 
 
 def search_config(cfg: omegaconf.dictconfig.DictConfig, hydra_args: Optional[str] = None):

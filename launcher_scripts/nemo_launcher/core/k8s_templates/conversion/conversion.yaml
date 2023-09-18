@@ -1,0 +1,48 @@
+{{ $config := .Values.trainingConfig }}
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nlp-conversion
+  labels:
+    app: nlp-conversion
+spec:
+  template:
+    spec:
+      containers:
+      - name: nlp-conversion
+        image: {{ .Values.image.trainingImage }}
+        env:
+          - name: NCCL_AVOID_RECORD_STREAMS
+            value: "1"
+        command: ["/bin/bash", "-c"]
+        args:
+          - 'export CKPT_NAME=$(python3 {{ $config.launcherScriptsPath }}/nemo_launcher/collections/checkpoint_search.py checkpoint_folder={{ $config.trainingDirectory }}/results/checkpoints checkpoint_name=latest tensor_model_parallel_size=1 pipeline_model_parallel_size=1) &&
+          echo ${CKPT_NAME} &&
+          python3 {{ $config.launcherScriptsPath }}/nemo_launcher/collections/hparams_override.py hparams_file={{ $config.trainingDirectory }}/results/hparams.yaml output_path={{ $config.resultsDirectory }}/results vocab_file={{ $config.vocabPath }} merge_file={{ $config.mergesPath }} tokenizer_model=None &&
+          python3 /opt/NeMo/examples/nlp/language_modeling/megatron_ckpt_to_nemo.py --gpus_per_node=1 --model_type=gpt --checkpoint_folder={{ $config.trainingDirectory }}/results/checkpoints --checkpoint_name=${CKPT_NAME} --hparams_file={{ $config.resultsDirectory }}/results/hparams_override.yaml --nemo_file_path={{ $config.resultsDirectory }}/megatron_gpt.nemo --tensor_model_parallel_size={{ $config.tensorParallelism }} --pipeline_model_parallel_size={{ $config.pipelineParallelism }}'
+        imagePullPolicy: Always
+        resources:
+          requests:
+            nvidia.com/gpu: {{ .Values.image.gpuNum }}
+          limits:
+            nvidia.com/gpu: {{ .Values.image.gpuNum }}
+        volumeMounts:
+        - mountPath: {{ $config.NFSPath }}
+          name: workspace
+        - mountPath: /dev/shm
+          name: dshm
+      restartPolicy: Never
+      imagePullSecrets:
+      - name: {{ .Values.image.pullSecret }}
+
+      volumes:
+      - name: workspace
+        nfs:
+          server: {{ $config.NFSServer }}
+          path: {{ $config.NFSPath }}
+
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: {{ $config.shmSize }}

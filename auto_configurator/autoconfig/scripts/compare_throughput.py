@@ -16,7 +16,7 @@ def main(cfg):
     settings_cfg = cfg.search_config.train_settings
     model_size = settings_cfg.model_size_in_b
     output_top_n = settings_cfg.output_top_n
-    nodes = cfg.get("nodes")
+    nodes = settings_cfg.num_nodes
 
     training_logs = os.path.join(settings_cfg.get("logs"), "training_logs")
     candidate_configs = os.path.join(settings_cfg.get("logs"), "candidate_configs")
@@ -77,11 +77,11 @@ def main(cfg):
         model_name = candidate_cfg.get("run").get("name").split("_")[0]
         gbs = model_cfg.get("global_batch_size")
         enc_seq_len = (
-            model_cfg.get("encoder_seq_length") if model_name in ("gpt3", "bert") else model_cfg.get("seq_length")
+            model_cfg.get("encoder_seq_length") if model_name in ("gpt3", "bert", "llama") else model_cfg.get("seq_length")
         )
         dec_seq_len = data_cfg.get("seq_length_dec")
 
-        if model_name in ("gpt3", "bert"):
+        if model_name in ("gpt3", "bert", "llama"):
             hs = model_cfg.get("hidden_size")
             ffn_hs = None
             layers = model_cfg.get("num_layers")
@@ -184,14 +184,14 @@ def main(cfg):
                 finally:
                     continue
 
-    result.sort(key=lambda x: x[14])
+    result.sort(key=lambda x: x[15])
     print(f"Top {min(output_top_n, len(result))} configs sorted from fastest to slowest:")
     for i, res in enumerate(result):
         print(f"Config #{i+1}: {res[-1]} with {res[14]:.4f}s per global step.")
         if i + 1 == output_top_n:
             break
 
-    top_config = f"{model_name}_{model_size}b_{nodes}nodes_tp_{result[0][2]}_pp_{result[0][3]}_mbs_{result[0][4]}_act_ckpt_{result[0][5]}_num_mbs_act_{result[0][6]}_act_per_pipe_{result[0][7]}"
+    top_config = f"{model_name}_{model_size}b_{nodes}nodes_tp_{result[0][3]}_pp_{result[0][4]}_mbs_{result[0][5]}_act_ckpt_{result[0][6]}_num_mbs_act_{result[0][7]}_act_per_pipe_{result[0][8]}"
     print("\n==================================================")
     print(f"Optimal config: {top_config} with {result[0][14]:.4f}s per global step.")
     print(f"Saving config to {final_result_logs}/optimal_config_{model_size}b_{nodes}nodes.yaml.")
@@ -223,7 +223,7 @@ def calculate_tflops(
     Bert Formula: 
         Model FLOPs = 72BLsh^2 * ( 1 + (s/6h) + (v/12hL))
     """
-    if model_name == "gpt3":
+    if model_name in ["gpt3", "llama"]:
         # Model FLOPS calculation
         model_flops = (
             (24 * gbs * enc_seq_len * hs * hs + 4 * gbs * enc_seq_len * enc_seq_len * hs) * (3 * layers)

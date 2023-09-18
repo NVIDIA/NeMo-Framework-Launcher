@@ -31,7 +31,7 @@ def get_ln_sm_margin(cfg):
     """
     global cuda_capability
     if cuda_capability == 9:
-        print(4)
+        print(8)
     else:
         print(0)
 
@@ -54,7 +54,7 @@ def get_ag_overlap(cfg):
 
 
 if __name__ == "__main__":
-    elif sys.argv[1] == "name=get_ln_sm_margin":
+    if sys.argv[1] == "name=get_ln_sm_margin":
         get_ln_sm_margin()
     elif sys.argv[1] == "name=get_ag_overlap":
         get_ag_overlap()

@@ -35,7 +35,7 @@ def main(cfg):
         url = f"{pile_url_train}{file_number:02d}.jsonl.zst"
         output_file = f"{file_number:02d}.jsonl.zst"
         downloaded_path = utils.download_single_file(url, data_dir, output_file)
-    if cfg.get("cluster_type") == "bcp":
+    if cfg.get("cluster_type") in ["bcp", "k8s"]:
         file_numbers = cfg["file_numbers"]
         # Downloading the files
         files_list = utils.convert_file_numbers(file_numbers)

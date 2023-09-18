@@ -35,7 +35,7 @@ def main(cfg) -> None:
         downloaded_path = os.path.join(data_dir, f"{file_number:02d}.jsonl.zst")
         output_file = f"{file_number:02d}.jsonl"
         utils.extract_single_zst_file(downloaded_path, data_dir, output_file, rm_downloaded)
-    elif cfg.get("cluster_type") == "bcp":
+    elif cfg.get("cluster_type") in ["bcp", "k8s"]:
         file_numbers = cfg.get("file_numbers")
         # Downloading the files
         files_list = utils.convert_file_numbers(file_numbers)

@@ -14,7 +14,7 @@ trainer:
   precision: bf16
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
-  replace_sampler_ddp: False
+  use_distributed_sampler: False
   max_epochs: -1 # PTL default. In practice we don't usually train for more than 1 epoch.
   max_steps: 860000 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
   max_time: "81:23:30:00"
@@ -97,11 +97,11 @@ model:
   onnx_safe: False # Use work-arounds for known problems with Torch ONNX exporter.
   gradient_as_bucket_view: True # PyTorch DDP argument. Allocate gradients in a contiguous bucket to save memory (less fragmentation and buffer memory)
 
-  activations_checkpoint_granularity: selective
-  activations_checkpoint_method: block
-  activations_checkpoint_layers_per_pipeline: 1
-  num_micro_batches_with_partial_activation_checkpoints: 96
-  activations_checkpoint_num_layers: 0
+  activations_checkpoint_granularity: null
+  activations_checkpoint_method: null
+  activations_checkpoint_layers_per_pipeline: null
+  num_micro_batches_with_partial_activation_checkpoints: null
+  activations_checkpoint_num_layers: null
 
   sequence_parallel: True 
 

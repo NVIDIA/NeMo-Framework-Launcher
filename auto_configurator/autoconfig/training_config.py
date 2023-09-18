@@ -69,12 +69,12 @@ def generate_grid_search_configs(
     act_layers = train_cfg.get("act_ckpt_layers")
 
     # 2 * num_layers is needed because of encoder/decoder architecture.
-    multiplier = 1 if model_name in ["gpt3", "bert"] else 2
+    multiplier = 1 if model_name in ["gpt3", "bert", "llama"] else 2
 
     seq_length = base_cfg["model"]["data"]["seq_length"]
     num_layers = (
         base_cfg["model"]["num_layers"]
-        if model_name in ["gpt3", "bert"]
+        if model_name in ["gpt3", "bert", "llama"]
         else base_cfg["model"]["encoder"]["num_layers"]
     )
 
@@ -96,7 +96,7 @@ def generate_grid_search_configs(
             for mbs in mbs_list:
                 num_gpus = base_cfg["trainer"]["num_nodes"] * base_cfg["trainer"]["devices"]
                 gbs = base_cfg["model"]["global_batch_size"]
-                if model_name in ["gpt3", "bert"]:
+                if model_name in ["gpt3", "bert", "llama"]:
                     att_heads = base_cfg["model"]["num_attention_heads"]
                     num_layers = base_cfg["model"]["num_layers"]
                 else:
@@ -175,7 +175,7 @@ def _set_activations_checkpoint_params(tp, pp, num_layers, act_method, multiplie
     min_layers_per_pipe = 0
     max_layers_per_pipe = num_layers
     interval_layers_per_pipe = act_multiple
-    if model_name in ["gpt3", "bert"] and pp > 2:  # Interleaved pipeline scheduling.
+    if model_name in ["gpt3", "bert", "llama"] and pp > 2:  # Interleaved pipeline scheduling.
         virtual_pipelines = num_layers // pp  # TODO: verify that this is the best value.
         act_multiple = 1
         max_micro_b = pp * (virtual_pipelines - 1) + (pp - 1) * 2 + 1
@@ -190,7 +190,7 @@ def _set_activations_checkpoint_params(tp, pp, num_layers, act_method, multiplie
         else:
             act_ckpt_layers = range(0, multiplier * num_layers // pp // virtual_pipelines + 1, act_multiple)
 
-        if pp > 1 and model_name in ["gpt3", "bert"]:
+        if pp > 1 and model_name in ["gpt3", "bert", "llama"]:
             # Num micro batches with partial act ckpt
             num_micro_batches_partial_act_ckpt = list(range(min_micro_b, max_micro_b + 1, interval_micro_b))
             if num_micro_batches_partial_act_ckpt[0] == 0:
@@ -304,6 +304,12 @@ def _tp_pp_mbs_grid_gpt3_80gb(model_size_in_b: float, valid_pp: List[int], seq_l
             mbs = [1, 2]
             min_model_parallel = 8
             max_model_parallel = 32
+        elif model_size_in_b <= 95:
+            tp = [4, 8]
+            pp = [x for x in valid_pp if 1 <= x <= 8]
+            mbs = [1, 2]
+            min_model_parallel = 8
+            max_model_parallel = 64
     elif seq_length == 8192:
         if model_size_in_b <= 1.0:
             tp = [1, 2]
@@ -738,13 +744,13 @@ def _calculate_tp_pp_mbs_grid(
     mbs_sizes = train_cfg.get("micro_batch_sizes")
     gpu_memory_gb = train_cfg.get("gpu_memory_gb")
 
-    multiplier = 1 if model_name in ["gpt3", "bert"] else 2
-    init_pp = [] if model_name == "gpt3" else [1]
+    multiplier = 1 if model_name in ["gpt3", "bert", "llama"] else 2
+    init_pp = [] if model_name in ["gpt3", "llama"] else [1]
     valid_pp = init_pp + [
         multiplier * x for x in range(1, num_layers + 1) if num_layers % x == 0
     ]  # Only divisors of num_layers are possible.
 
-    if model_name == "gpt3":
+    if model_name in ["gpt3", "llama"]:
         if gpu_memory_gb == 80:
             tp, pp, mbs, min_model_parallel, max_model_parallel = _tp_pp_mbs_grid_gpt3_80gb(
                 model_size_in_b=model_size_in_b, valid_pp=valid_pp, seq_length=seq_length
