@@ -30,6 +30,18 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 import statistics
 
+
+'''
+Example command:
+
+For GPT
+python scripts/deploy/benchmark.py -nc /opt/checkpoints/GPT-843M-base/GPT-843M-base-1.nemo -mt gptnext -ng 1 -mil 250 -mbs 10 -nr 50
+
+For LLAMA2
+python scripts/deploy/benchmark.py -nc /opt/checkpoints/LLAMA2-70B-base/LLAMA2-70B-base-1.nemo -mt llama -ng 1 -mil 250 -mbs 10 -nr 50
+
+'''
+
 try:
     from contextlib import nullcontext
 except ImportError:
