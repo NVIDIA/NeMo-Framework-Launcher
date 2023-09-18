@@ -33,6 +33,9 @@ import hydra
 from omegaconf import DictConfig
 from omegaconf import OmegaConf, open_dict
 from nemo.core.config import hydra_runner
+from hydra._internal.utils import _run_hydra, get_args_parser
+from hydra.core.config_store import ConfigStore
+from hydra.types import TaskFunction
 
 '''
 Example command:
