@@ -766,7 +766,7 @@ class Inference(NeMoStage):
         """
 
         model_type_to_code_path = {
-            "benchmark" : ,
+            "benchmark" : self._launcher_scripts_path / '../examples/inference/benchmark.py',
         }
         return model_type_to_code_path[model_type]
         
