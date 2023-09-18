@@ -29,7 +29,7 @@ import numpy as np
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 import statistics
-
+from omegaconf import OmegaConf, open_dict
 
 '''
 Example command:
@@ -48,7 +48,7 @@ except ImportError:
     # handle python < 3.7
     from contextlib import suppress as nullcontext
 
-
+@hydra_runner(config_path="../../launcher_scripts/conf", config_name="inference")
 def get_args(argv):
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
