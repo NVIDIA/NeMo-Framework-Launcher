@@ -11,8 +11,8 @@ run:
   results_dir: ${base_results_dir}/${.model_train_name}/inference_${.task_name}
 
 trainer:
-  devices: ${divide_ceil:${model_parallel_size}, ${.num_nodes}}
-  num_nodes: ${divide_ceil:${model_parallel_size}, 8}
+  devices: ${divide_ceil:${model.model_parallel_size}, ${.num_nodes}}
+  num_nodes: ${divide_ceil:${model.model_parallel_size}, 8}
   accelerator: gpu
   precision: bf16
   logger: False # logger provided by exp_manager
@@ -32,10 +32,17 @@ inference:
   min_tokens_to_generate: 0  # The minimum length of the sequence to be generated.
   compute_logprob: False  # a flag used to compute logprob of all the input text, a very special case of running inference, default False
 
-tensor_model_parallel_size: 1
-pipeline_model_parallel_size: 1
-pipeline_model_parallel_split_rank: ${divide_floor:${.pipeline_model_parallel_size}, 2} # used for encoder and decoder model
-model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
+model:
+  seed: 1234
+  tensor_model_parallel_size: 1 # intra-layer model parallelism
+  pipeline_model_parallel_size: 1 # inter-layer model parallelism
+  megatron_amp_O2: False
+  ## Sequence Parallelism
+  # Makes tensor parallelism more memory efficient for LLMs (20B+) by parallelizing layer norms and dropout sequentially
+  # See Reducing Activation Recomputation in Large Transformer Models: https://arxiv.org/abs/2205.05198 for more details.
+  sequence_parallel: False
+  model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
+
 
 nemo_checkpoint: null
 model_type: gptnext
