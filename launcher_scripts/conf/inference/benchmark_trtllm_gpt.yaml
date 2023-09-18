@@ -1,4 +1,4 @@
-name: megatron_inference_benchmark-${inference.run.peft_model_train_name}
+name: megatron_inference_benchmark-${inference.run.model_train_name}
 
 run:
   name: ${.task_name}_${.model_train_name}
