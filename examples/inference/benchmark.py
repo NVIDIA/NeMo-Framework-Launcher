@@ -270,7 +270,7 @@ def get_args(argv):
         help='Prompt embedding table len'
     )
     
-    args = parser.parse_args(argv)
+    args = parser.parse_args()
     
     if not args.args:  # args priority is higher than yaml
         opt = vars(args)
