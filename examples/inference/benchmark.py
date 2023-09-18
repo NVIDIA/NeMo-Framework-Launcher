@@ -86,6 +86,20 @@ def get_args(argv):
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description=f"Deploy nemo models to Triton and benchmark the models",
     )
+
+    parser.add_argument( 
+        "--config-path", 
+        type=str, 
+        required=False,
+        help="Hydra config file path from Launcher script"
+    )
+
+    parser.add_argument(
+        "--config-name", 
+        type=str, 
+        required=False,
+        help="Hydra config name from Launcher script"
+    )
     
     parser.add_argument(
         "-nc", 
