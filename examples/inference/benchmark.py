@@ -51,6 +51,27 @@ except ImportError:
     # handle python < 3.7
     from contextlib import suppress as nullcontext
 
+def get_args_hydra(argv):
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description=f"Deploy nemo models to Triton and benchmark the models",
+    )
+    
+    parser.add_argument( 
+        "--config-path", 
+        type=str, 
+        help="Hydra config file path from Launcher script"
+    )
+
+    parser.add_argument(
+        "--config-name", 
+        type=str, 
+        help="Hydra config name from Launcher script"
+    )
+    
+    args = parser.parse_args(argv)
+    return args  
+    
 #@hydra_runner(config_path="../../launcher_scripts/conf", config_name="inference")
 def get_args(argv):
     parser = argparse.ArgumentParser(
@@ -399,7 +420,7 @@ def send_queries(args):
 
 
 if __name__ == '__main__':
-    args = get_args(sys.argv[1:])
+    args_hydra = get_args_hydra(sys.argv[1:])
 
     loglevel = logging.INFO
     logging.setLevel(loglevel)
