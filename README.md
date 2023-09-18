@@ -357,26 +357,25 @@ Figure 1: The GPT family architecture. The 5B variant includes 24 transformer la
 ### 3.1. Support Matrix
 <a id="markdown-support-matrix" name="support-matrix"></a>
 
-| Software                | Version          |
-|-------------------------|------------------|
-| NVIDIA Triton           | 2.24.0           |
-| FasterTransformer       | v5.3+f8e42aa     |
-| TransformerEngine       | v0.11+b172bad    |
-| MegatronCore            | 4f8e9ac          |
-| PyTorch                 | 2.1.0a0+fe05266  |
-| NeMo                    | 1.20.0+2baef81   |
-| PyTorch Lightning       | 1.9.4            |
-| Hydra                   | 1.2.0            |
-| CUDA                    | NVIDIA CUDA 12.1 |
-| cuBLAS                  | 12.1.3.1         |
-| cuDNN                   | 8.9.0.131        |
-| NCCL                    | 2.17.1           |
-| Container OS            | Ubuntu 20.04     |
-| rdma-core               | 36.0             |
-| GDRcopy                 | 2.3              |
-| HPC-X                   | 2.13             |
-| Base Command Manager    | 1.0.0            |
-| DeepOps                 | 21.06            |
+| Software                | Version              |
+|-------------------------|----------------------|
+| NVIDIA Triton           | 2.37.0.9383150       |
+| TransformerEngine       | 0.13.0.dev0+a03f8bc  |
+| MegatronCore            | 0.3.0+ab0336a        |
+| PyTorch                 | 2.1.0a0+29c30b1      |
+| NeMo                    | 1.21.0+b850d14       |
+| PyTorch Lightning       | 2.0.7                |
+| Hydra                   | 1.2.0                |
+| CUDA                    | NVIDIA CUDA 12.2     |
+| cuBLAS                  | 12.2.5.1             |
+| cuDNN                   | 8.9.4.25             |
+| NCCL                    | 2.18.3               |
+| Container OS            | Ubuntu 22.04         |
+| rdma-core               | 39.0                 |
+| GDRcopy                 | 2.3                  |
+| HPC-X                   | 2.15                 |
+| Base Command Manager    | 1.0.0                |
+| DeepOps                 | 21.06                |
 
 ## 4. Cloud Service Providers
 <a id="markdown-cloud-service-providers" name="cloud-service-providers"></a>
