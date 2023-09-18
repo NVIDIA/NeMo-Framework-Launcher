@@ -656,6 +656,7 @@ class IA3Learning(PromptLearning):
         }
         return model_type_to_code_path[model_type]
 
+
 class PEFT(NeMoStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
@@ -675,6 +676,7 @@ class PEFT(NeMoStage):
             "neva": self._nemo_code_path / "examples/multimodal/mllm/neva/neva_peft.py",
         }
         return model_type_to_code_path[model_type]
+
 
 class FWInference(NeMoStage):
     def setup_stage_vars(self, cfg):

@@ -26,6 +26,7 @@ from nemo_launcher.core.data_stages import (
 )
 from nemo_launcher.core.export_stages import Export
 from nemo_launcher.core.stages import (
+    PEFT,
     AdapterLearning,
     Conversion,
     DiffusionModelEvaluation,
@@ -34,7 +35,6 @@ from nemo_launcher.core.stages import (
     FineTuning,
     FWInference,
     IA3Learning,
-    PEFT,
     NeMoEvaluation,
     PromptLearning,
     Training,

@@ -1,19 +1,20 @@
 run:
-  name: neva_8b
-  results_dir: ${base_results_dir}/${.name}
+  name: neva_llama2_7b_chat_fine_tuning
   time_limit: "1-00:00:00"
   dependency: "singleton"
+  model_train_name: neva_llama2_7b_chat
+  results_dir: ${base_results_dir}/${.model_train_name}/${.name}
 
 trainer:
   devices: 8
-  num_nodes: 2
+  num_nodes: 4
   accelerator: gpu
   precision: bf16
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
   use_distributed_sampler: False
   max_epochs: -1 # PTL default. In practice, max_steps will be reached first.
-  max_steps: 4650 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
+  max_steps: 4600 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
   log_every_n_steps: 10
   val_check_interval: 100
   check_val_every_n_epoch: null
@@ -25,7 +26,7 @@ trainer:
   enable_model_summary: False # default PTL callback for this does not support model parallelism, instead we log manually
 
 exp_manager:
-  explicit_log_dir: ${training.run.results_dir}/results
+  explicit_log_dir: ${fine_tuning.run.results_dir}/results
   exp_dir: null
   name: nemo_neva
   create_wandb_logger: False
@@ -34,7 +35,7 @@ exp_manager:
     name: null
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
-  resume_from_checkpoint: ${training.model.resume_from_checkpoint}
+  resume_from_checkpoint: ${fine_tuning.model.resume_from_checkpoint}
   create_checkpoint_callback: True
   checkpoint_callback_params:
     monitor: val_loss
@@ -43,7 +44,7 @@ exp_manager:
     always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
     save_nemo_on_train_end: True # not recommended when training large models on clusters with short time limits
     filename: 'megatron_clip--{val_loss:.2f}-{step}-{consumed_samples}'
-    model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
+    model_parallel_size: ${multiply:${fine_tuning.model.tensor_model_parallel_size}, ${fine_tuning.model.pipeline_model_parallel_size}}
   ema:
     enable: False
     decay: 0.9999
@@ -52,27 +53,27 @@ exp_manager:
     cpu_offload: False
 
 model:
-  precision: ${training.trainer.precision}
+  precision: ${fine_tuning.trainer.precision}
 
   # specify micro_batch_size, global_batch_size, and model parallelism
   # gradient accumulation will be done automatically based on data_parallel_size
 
   # Batch size guideline for different types of dataset
-  micro_batch_size: 8 # limited by GPU memory
-  global_batch_size: 128 # will use more micro batches to reach global batch size
+  micro_batch_size: 4 # limited by GPU memory
+  global_batch_size: 32 # will use more micro batches to reach global batch size
 
   tensor_model_parallel_size: 4 # intra-layer model parallelism
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
   virtual_pipeline_model_parallel_size: null # interleaved pipeline
 
-  restore_from_pretrained: null # used in fine-tuning
+  restore_from_pretrained: ${base_results_dir}/${fine_tuning.run.model_train_name}/results/checkpoints/nemo_neva.nemo # used in fine-tuning
 
   # Multimodal configs
   mm_cfg:
     llm:
       from_pretrained: null # path to nemo checkpoint
-      freeze: True
-      model_type: nvgpt # `nvgpt` or `llama_2` supported
+      freeze: False
+      model_type: llama_2 # `nvgpt` or `llama_2` supported
     vision_encoder:
       from_pretrained: "" # path or name
       from_hf: True
@@ -95,7 +96,7 @@ model:
   position_embedding_type: rope
   num_layers: 32
   hidden_size: 4096
-  ffn_hidden_size: 10880 # Transformer FFN hidden size. Usually 4 * hidden_size.
+  ffn_hidden_size: 11008 # Transformer FFN hidden size. Usually 4 * hidden_size.
   num_attention_heads: 32
   init_method_std: 0.014 # Standard deviation of the zero mean normal distribution used for weight initialization.')
   use_scaled_init_method: True # use scaled residuals initialization
@@ -103,7 +104,7 @@ model:
   attention_dropout: 0.
   kv_channels: null # Projection weights dimension in multi-head attention. Set to hidden_size // num_attention_heads if null
   apply_query_key_layer_scaling: True # scale Q * K^T by 1 / layer-number.
-  normalization: layernorm1p # Type of normalization layers
+  normalization: rmsnorm # Type of normalization layers
   layernorm_epsilon: 1e-5
   do_layer_norm_weight_decay: False # True means weight decay on all params
   pre_process: True # add embedding
@@ -202,13 +203,13 @@ model:
 
   optim:
     name: fused_adam
-    lr: 2e-3
+    lr: 2e-5
     weight_decay: 0.
     betas:
       - 0.9
       - 0.95
     sched:
       name: CosineAnnealing
-      warmup_steps: 140
+      warmup_steps: 200
       constant_steps: 0
-      min_lr: 2e-5
+      min_lr: 2e-7

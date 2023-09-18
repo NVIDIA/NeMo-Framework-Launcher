@@ -72,6 +72,7 @@ model:
     llm:
       from_pretrained: null # path to nemo checkpoint
       freeze: True
+      model_type: nvgpt # `nvgpt` or `llama_2` supported
     vision_encoder:
       from_pretrained: "" # path or name
       from_hf: True
@@ -160,6 +161,7 @@ model:
 
   # Megatron O2-style half-precision
   megatron_amp_O2: True # Enable O2-level automatic mixed precision using main parameters
+  async_grad_allreduce: False
   grad_allreduce_chunk_size_mb: 125
   grad_div_ar_fusion: True # Fuse grad division into torch.distributed.all_reduce
 
@@ -185,7 +187,8 @@ model:
     lazy_preprocess: True
     is_multimodal: True
     sep_image_conv_front: False
-    image_token_len: 0
+    conv_template: ${training.model.mm_cfg.llm.model_type}
+    image_token_len: 256 # placeholder, not used
     image_folder: null
     image_aspect_ratio: 'square'
 
