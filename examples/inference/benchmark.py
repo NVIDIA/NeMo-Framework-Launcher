@@ -75,8 +75,13 @@ def get_args_hydra(argv):
     args = parser.parse_args(argv)
     return args  
     
-@hydra_runner(config_path="../../launcher_scripts/conf", config_name="inference")
 def get_args(argv):
+
+    config_path = argv.config_path
+    config_name = argv.config_name
+
+    config_yaml_file = config_path + config_name
+    
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description=f"Deploy nemo models to Triton and benchmark the models",
@@ -250,8 +255,15 @@ def get_args(argv):
         required=False,
         help='Prompt embedding table len'
     )
-
+    
     args = parser.parse_args(argv)
+    
+    if not args.args:  # args priority is higher than yaml
+        opt = vars(args)
+        args = yaml.load(open(config_yaml_file), Loader=yaml.FullLoader)
+        opt.update(args)
+        args = opt
+        
     return args
 
 
@@ -412,7 +424,7 @@ def send_queries(args):
 
 if __name__ == '__main__':
     args_hydra = get_args_hydra(sys.argv[1:])
-    args = get_args(sys.argv[3:])
+    args = get_args(args_hydra)
     
     loglevel = logging.INFO
     logging.setLevel(loglevel)
