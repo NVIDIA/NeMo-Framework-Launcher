@@ -26,7 +26,7 @@ class TestConfig:
         base_results_dir: ${auto_configurator_path}/results
         data_dir: ${launcher_scripts_path}/data
 
-        training_container: nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.08.01
+        training_container: nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.08.02
         container_mounts:
           - null
         
