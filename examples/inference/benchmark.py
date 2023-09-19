@@ -440,6 +440,11 @@ def send_queries(args):
 if __name__ == '__main__':
     args_hydra = get_args_hydra(sys.argv[1:])
     args = get_args(args_hydra)
+
+    parser = argparse.ArgumentParser(description='An example script')
+    for key, value in args.items():
+        parser.add_argument(f'--{key}', default=value)
+    args = parser.parse_args()
     
     loglevel = logging.INFO
     logging.setLevel(loglevel)
