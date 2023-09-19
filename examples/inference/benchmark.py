@@ -279,7 +279,10 @@ def get_args(argv):
     argv = yaml.load(open(config_yaml_file), Loader=yaml.FullLoader)
 
     for key, value in argv.items():
+        print(key)
+        print(value)
         args.key = value
+        print(args.key)
     
     return args
 
