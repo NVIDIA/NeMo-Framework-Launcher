@@ -283,7 +283,7 @@ def get_args(argv):
         print(value)
         args.key = value
         print(args.key)
-    
+        print(args)
     return args
 
 
