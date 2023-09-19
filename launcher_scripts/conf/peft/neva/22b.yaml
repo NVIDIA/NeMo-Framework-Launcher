@@ -188,7 +188,7 @@ model:
     lazy_preprocess: True
     is_multimodal: True
     sep_image_conv_front: False
-    conv_template: ${training.model.mm_cfg.llm.model_type}
+    conv_template: ${peft.model.mm_cfg.llm.model_type}
     image_token_len: 256 # placeholder, not used
     image_folder: null
     image_aspect_ratio: 'square'
