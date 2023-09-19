@@ -274,16 +274,18 @@ def get_args(argv):
     )
     
     args = parser.parse_args()
-    
-    #if not args.args:  # args priority is higher than yaml
-    argv = yaml.load(open(config_yaml_file), Loader=yaml.FullLoader)
 
-    for key, value in argv.items():
-        print(key)
-        print(value)
-        args.key = value
-        print(args.key)
-        print(args)
+    argtmp = vars(args)
+    #if not args.args:  # args priority is higher than yaml
+    argyaml = yaml.load(open(config_yaml_file), Loader=yaml.FullLoader)
+
+    for key, value in argyaml.items():
+        #print(key)
+        #print(value)
+        if key in argtmp.keys():
+            argtmp[key] = value
+        #print(args)
+        
     return args
 
 
