@@ -86,8 +86,23 @@ def get_args(argv):
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description=f"Deploy nemo models to Triton and benchmark the models",
+    )    
+    
+    parser.add_argument( 
+        "--config-path", 
+        type=str,
+        required=False,
+        help="Hydra config file path from Launcher script"
     )
 
+    parser.add_argument(
+        "--config-name", 
+        type=str,
+        required=False,
+        help="Hydra config name from Launcher script"
+    )
+
+    args = parser.parse_args()
     
     parser.add_argument(
         "-nc", 
@@ -262,10 +277,13 @@ def get_args(argv):
     
     #if not args.args:  # args priority is higher than yaml
     opt = vars(args)
-    args = yaml.load(open(config_yaml_file), Loader=yaml.FullLoader)
+    argv = yaml.load(open(config_yaml_file), Loader=yaml.FullLoader)
     opt.update(args)
-    args = opt
-        
+    argv = opt
+
+    for key, value in argv.items():
+        args.key = value
+    
     return args
 
 
@@ -427,11 +445,6 @@ def send_queries(args):
 if __name__ == '__main__':
     args_hydra = get_args_hydra(sys.argv[1:])
     args = get_args(args_hydra)
-
-    parser = argparse.ArgumentParser(description='An example script')
-    for key, value in args.items():
-        parser.add_argument(f'--{key}', default=value)
-    args = parser.parse_args()
     
     loglevel = logging.INFO
     logging.setLevel(loglevel)
