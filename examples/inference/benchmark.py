@@ -278,7 +278,7 @@ def get_args(argv):
     #if not args.args:  # args priority is higher than yaml
     opt = vars(args)
     argv = yaml.load(open(config_yaml_file), Loader=yaml.FullLoader)
-    opt.update(args)
+    opt.update(argv)
     argv = opt
 
     for key, value in argv.items():
