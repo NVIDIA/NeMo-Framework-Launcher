@@ -88,6 +88,7 @@ def get_args(argv):
         description=f"Deploy nemo models to Triton and benchmark the models",
     )
 
+    '''
     parser.add_argument( 
         "--config-path", 
         type=str, 
@@ -101,6 +102,7 @@ def get_args(argv):
         required=False,
         help="Hydra config name from Launcher script"
     )
+    '''
     
     parser.add_argument(
         "-nc", 
