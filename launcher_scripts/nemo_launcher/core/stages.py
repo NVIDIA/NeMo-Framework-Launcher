@@ -1155,6 +1155,9 @@ class NeMoEvaluation(NeMoStage):
             "adapter_t5": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_t5_adapter_eval.py",
             "adapter_gpt3": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_eval.py",
+            "peft_gpt3": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            "peft_t5": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_t5_peft_eval.py",
+            "peft_llama": self._nemo_code_path / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
         }
         return model_type_to_code_path[model_type]
 
