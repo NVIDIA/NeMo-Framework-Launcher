@@ -207,6 +207,9 @@ class DataStage(NemoMegatronStage):
         values_template.dataPrepConfig.procsPerNode = procs_per_node
         values_template.dataPrepConfig.stage = sub_stage
 
+        if cluster_parameters['dns_policy'] is not None:
+            values_template.dataPrepConfig.dnsPolicy = cluster_parameters['dns_policy']
+
         k8s_template_path = job_path.folder
         k8s_template_file = Path(k8s_template_path / 'k8s_template' / 'values.yaml')
         k8s_template_file.parent.mkdir(parents=True, exist_ok=True)

@@ -69,3 +69,7 @@ spec:
           - configMap:
               name: training-config
             name: training-config
+
+          {{ if ne $config.dnsPolicy "nil" }}
+          dnsPolicy: {{ $config.dnsPolicy }}
+          {{ end }}

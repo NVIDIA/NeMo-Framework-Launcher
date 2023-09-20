@@ -26,3 +26,6 @@ trainingConfig:
 
   # Specify the WandB API key if using WandB for logging #
   wandbKey: "nil"
+
+  # Insert the dnsPolicy #
+  dnsPolicy: "nil"

@@ -71,3 +71,6 @@ trainingConfig:
 
   # Insert path to the hparams file from the training job #
   hparamsFile: <Insert path to hparams.yaml file>
+
+  # Insert the dnsPolicy #
+  dnsPolicy: "nil"

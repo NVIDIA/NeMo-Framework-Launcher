@@ -38,3 +38,6 @@ trainingConfig:
 
   # Insert the PP size #
   pipelineParallelism: <Insert PP size>
+
+  # Insert the dnsPolicy #
+  dnsPolicy: "nil"

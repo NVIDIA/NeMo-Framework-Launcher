@@ -25,3 +25,6 @@ dataPrepConfig:
 
   # Insert the data preparation stage, such as download, extract, or preprocess #
   stage: <Insert the data prep stage>
+
+  # Insert the dnsPolicy #
+  dnsPolicy: "nil"
