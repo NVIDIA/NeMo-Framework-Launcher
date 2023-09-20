@@ -1,4 +1,4 @@
-name: megatron_gpt_peft_${model.peft.peft_scheme}_tuning
+name: megatron_gpt_peft_${peft_eval.model.peft.peft_scheme}_tuning
 
 run:
   name: eval_${.task_name}_${.model_train_name}
@@ -26,7 +26,7 @@ trainer:
 exp_manager:
   explicit_log_dir: null
   exp_dir: null
-  name: ${name}
+  name: ${peft_eval.name}
   create_wandb_logger: False
   wandb_logger_kwargs:
     project: null
@@ -35,12 +35,12 @@ exp_manager:
   resume_ignore_no_checkpoint: True
   create_checkpoint_callback: True
   checkpoint_callback_params:
-    monitor: validation_${model.data.test_ds.metric.name}
+    monitor: validation_${peft_eval.model.data.test_ds.metric.name}
     save_top_k: 1
     mode: max
     save_nemo_on_train_end: True
-    filename: '${name}--{${exp_manager.checkpoint_callback_params.monitor}:.3f}-{step}-{consumed_samples}'
-    model_parallel_size: ${model.tensor_model_parallel_size}
+    filename: '${peft_eval.name}--{${peft_eval.exp_manager.checkpoint_callback_params.monitor}:.3f}-{step}-{consumed_samples}'
+    model_parallel_size: ${peft_eval.model.tensor_model_parallel_size}
     always_save_nemo: True
     save_best_model: False
 
