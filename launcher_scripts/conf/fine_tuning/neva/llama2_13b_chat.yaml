@@ -94,10 +94,10 @@ model:
   encoder_seq_length: 4096
   max_position_embeddings: ${.encoder_seq_length}
   position_embedding_type: rope
-  num_layers: 32
-  hidden_size: 4096
-  ffn_hidden_size: 10880 # Transformer FFN hidden size. Usually 4 * hidden_size.
-  num_attention_heads: 32
+  num_layers: 40
+  hidden_size: 5120
+  ffn_hidden_size: 13824 # Transformer FFN hidden size. Usually 4 * hidden_size.
+  num_attention_heads: 40
   init_method_std: 0.014 # Standard deviation of the zero mean normal distribution used for weight initialization.')
   use_scaled_init_method: True # use scaled residuals initialization
   hidden_dropout: 0. # Dropout probability for hidden state transformer.
