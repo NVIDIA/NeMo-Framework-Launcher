@@ -25,16 +25,16 @@ debug: False
 
 stages:
   #- data_preparation
-  #- training
-  - conversion
+  - training
+  #- conversion
   #- prompt_learning
   #- adapter_learning
   #- ia3_learning
   #- evaluation
   #- export
 
-cluster_type: bcm  # bcm, bcp, or k8s. If bcm or k8s, it must match - cluster above.
-launcher_scripts_path: ???  # Path to NeMo Megatron Launch scripts, should ends with /launcher_scripts
+cluster_type: interactive  # bcm, bcp, or k8s. If bcm or k8s, it must match - cluster above.
+launcher_scripts_path: /home/pagaray/code/NeMo-Megatron-Launcher/launcher_scripts  # Path to NeMo Megatron Launch scripts, should ends with /launcher_scripts
 data_dir: ${launcher_scripts_path}/data  # Location to store and read the data.
 base_results_dir: ${launcher_scripts_path}/results  # Location to store the results, checkpoints and logs.
 container_mounts: # List of additional paths to mount to container. They will be mounted to same path.

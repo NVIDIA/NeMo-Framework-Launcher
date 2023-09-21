@@ -1,3 +1,4 @@
+MAX_STEPS=100
 
 params=()
 if [[ $MAX_STEPS -le 100 ]]; then # If greater than hundred we use defaults set in the training config file.
@@ -11,8 +12,8 @@ fi
 if [[ ! -z $LOCAL_NEMO_PATH ]]; then
   params+=("container_mounts=[${LOCAL_NEMO_PATH}:/opt/bignlp/NeMo]")
 fi
-DATA_DIR=/lustre/fsw/joc/big_nlp/gpt3/prepare_dataset/the_pile/train
-DATA_PREFIX=[1.0,/lustre/fsw/joc/big_nlp/gpt3/prepare_dataset/the_pile/train/my-gpt3_00_text_document]
+DATA_DIR=/home/pagaray/code/NeMo-Megatron-Launcher/data
+DATA_PREFIX=[1.0,/home/pagaray/code/NeMo-Megatron-Launcher/data/my-gpt3_00_text_document]
 
 set -o xtrace
 
@@ -22,8 +23,7 @@ TP_SIZE=1
 PP_SIZE=1
 NUM_NODES=1
 BUILD_IMAGE_NAME_SBATCH="nvcr.io/nvidian/bignlp-train:23.08-nemofw-nightly"
-BASE_RESULTS_DIR="/home/pagaray/code/NeMo-Megatron-Launcher-results"
-MAX_STEPS=100
+BASE_RESULTS_DIR="/home/pagaray/code/NeMo-Megatron-Launcher/launcher_scripts/results"
 
 #TODO : Can add additional parameters (key value pairs from gitlab-ci.yaml file)
 HYDRA_FULL_ERROR=1 NEMO_LAUNCHER_CI=1 python3 main.py \
