@@ -137,7 +137,7 @@ def main(cfg):
                 ea = event_accumulator.EventAccumulator(event_file)
                 ea.Reload()
                 try:
-                    timing_list = ea.Scalars("train_step_timing")
+                    timing_list = ea.Scalars("train_step_timing in s")
                     if len(timing_list) <= 6:
                         continue
                     timing_list = [x.value for x in timing_list[5:]]
