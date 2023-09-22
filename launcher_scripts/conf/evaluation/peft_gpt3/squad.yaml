@@ -1,4 +1,4 @@
-name: megatron_gpt_peft_${peft_eval.model.peft.peft_scheme}_tuning
+name: megatron_gpt_peft_${evaluation.model.peft.peft_scheme}_tuning
 
 run:
   name: eval_${.task_name}_${.model_train_name}
@@ -6,7 +6,7 @@ run:
   dependency: "singleton"
   model_train_name: gpt3
   task_name: "squad"
-  ia3_learning_dir: ${base_results_dir}/${.model_train_name}/peft_eval_squad # assume peft tuning was on squad task
+  ia3_learning_dir: ${base_results_dir}/${.model_train_name}/evaluation_squad # assume peft tuning was on squad task
   results_dir: ${base_results_dir}/${.model_train_name}/peft_${.task_name}_eval
   
 trainer:
@@ -26,7 +26,7 @@ trainer:
 exp_manager:
   explicit_log_dir: null
   exp_dir: null
-  name: ${peft_eval.name}
+  name: ${evaluation.name}
   create_wandb_logger: False
   wandb_logger_kwargs:
     project: null
@@ -35,12 +35,12 @@ exp_manager:
   resume_ignore_no_checkpoint: True
   create_checkpoint_callback: True
   checkpoint_callback_params:
-    monitor: validation_${peft_eval.model.data.test_ds.metric.name}
+    monitor: validation_${evaluation.model.data.test_ds.metric.name}
     save_top_k: 1
     mode: max
     save_nemo_on_train_end: True
-    filename: '${peft_eval.name}--{${peft_eval.exp_manager.checkpoint_callback_params.monitor}:.3f}-{step}-{consumed_samples}'
-    model_parallel_size: ${peft_eval.model.tensor_model_parallel_size}
+    filename: '${evaluation.name}--{${evaluation.exp_manager.checkpoint_callback_params.monitor}:.3f}-{step}-{consumed_samples}'
+    model_parallel_size: ${evaluation.model.tensor_model_parallel_size}
     always_save_nemo: True
     save_best_model: False
 
@@ -224,3 +224,4 @@ chatbot_config:
   assistant: Assistant
   system: "A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human's questions.\n\n"
   
+
