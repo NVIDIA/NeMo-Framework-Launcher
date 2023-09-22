@@ -157,6 +157,9 @@ inference:
   outfile_path: output.txt
   compute_attention_mask: True
 
+pred_file_path: ${evaluation.run.results_dir}/results/predictions.txt # Path will model predictions will be written
+ground_truth_file_path: null
+
 # server-related configs
 server: False  # whether launch the API server
 port: 5555 # the port number for the inference server
