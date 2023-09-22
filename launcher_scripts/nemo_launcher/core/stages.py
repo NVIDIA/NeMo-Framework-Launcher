@@ -1111,6 +1111,18 @@ class NeMoEvaluation(NeMoStage):
                 args += create_args_list(split_string=f"'{split_string}'")
             calculation_command = [f"python3 {code_path}", *args]
             calculation_command = " \\\n  ".join(calculation_command)
+        elif any([choice_model_type.startswith(type) for type in ["peft"]]):
+            pred_file_path = self.stage_cfg.get("pred_file_path")
+            ground_truth_file_path = self.stage_cfg.get("ground_truth_file_path")
+            code_path = (
+                self._launcher_scripts_path / "nemo_launcher/collections/metric_calculation/peft_metric_calc.py"
+            )
+            args = create_args_list(pred=pred_file_path, ground_truth=ground_truth_file_path,)
+            split_string = self.stage_cfg.get("split_string", None)
+            if split_string:
+                args += create_args_list(split_string=f"'{split_string}'")
+            calculation_command = [f"python3 {code_path}", *args]
+            calculation_command = " \\\n  ".join(calculation_command)
         elif choice_name == "squad":
             output_file_path_prefix = self.stage_cfg.model.data.validation_ds.get("output_file_path_prefix")
             pred_file_path = output_file_path_prefix + "_validation_dataloader0_inputs_preds_labels.jsonl"
