@@ -45,7 +45,7 @@ exp_manager:
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
   ema:
-    enable: False
+    enable: True
     decay: 0.9999
     validate_original_weights: False
     every_n_steps: 1
