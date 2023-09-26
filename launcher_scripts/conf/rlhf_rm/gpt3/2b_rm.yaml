@@ -112,12 +112,12 @@ model:
   tokenizer:
     library: 'sentencepiece'
     type: null
-    model: "/lustre/fsw/joc/big_nlp/nemo_gpt3/rlhf/data/sp_model/sp_tokenizer_256k.model"
+    model: ???  # path to the tokenizer `.model` file (may be extracted from the .nemo)
     delimiter: null
     vocab_file: null
     merge_file: null
     sentencepiece_legacy: false
-    tokenizer_model: "/lustre/fsw/joc/big_nlp/nemo_gpt3/rlhf/data/sp_model/sp_tokenizer_256k.model"
+    tokenizer_model: ${.model}
 
   # precision
   native_amp_init_scale: 4294967296 # 2 ** 32
@@ -158,7 +158,7 @@ model:
     gen_shape: False # Generate model and kernel details including input shapes
 
   pretrained_checkpoint:
-    restore_from_path: null
+    restore_from_path: ???  # path to pre-trained model used as starting point
     checkpoint_dir: null
     checkpoint_name: null
 
