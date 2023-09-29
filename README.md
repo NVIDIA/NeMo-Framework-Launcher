@@ -21,12 +21,14 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
     - [2.5. DreamBooth](#25-dreambooth)
     - [2.6. ControlNet](#26-controlnet)
     - [2.7. Imagen](#27-imagen)
+    - [2.8. NSFW](#28-nsfw)
   - [3. Feature Matrix](#3-feature-matrix)
     - [3.1. ViT Models](#31-vit-models)
     - [3.2. CLIP Models](#32-clip-models)
     - [3.3. Stable Diffusion](#33-stable-diffusion)
     - [3.4. InstructPix2Pix / DreamBooth / ControlNet Models](#34-instructpix2pix--dreambooth--controlnet-models)
     - [3.5 Imagen Models](#35-imagen-models)
+    - [3.6 NSFW Models](#36-nsfw-models)
   - [4. Setup Details](#4-setup-details)
   - [5. Cloud Service Providers](#5-cloud-service-providers)
     - [5.1. Cluster Bring-Up](#51-cluster-bring-up)
@@ -69,6 +71,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
         - [6.2.4.1. Download and Setup](#6241-download-and-setup)
         - [6.2.4.2. Preprocess Images and Captions](#6242-preprocess-images-and-captions)
       - [6.2.5. ControlNet](#625-controlnet)
+      - [6.2.6. NSFW](#626-nsfw)
     - [6.3. Model Training](#63-model-training)
       - [6.3.1. Vision Transformer Training](#631-vision-transformer-training)
       - [6.3.2. CLIP Training](#632-clip-training)
@@ -77,6 +80,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [6.3.5. DreamBooth Training](#635-dreambooth-training)
       - [6.3.6. ControlNet Training](#636-controlnet-training)
       - [6.3.7. Imagen Training](#637-imagen-training)
+      - [6.3.8. NSFW](#638-nsfw-training)
     - [6.4. Checkpoint Conversion](#64-checkpoint-conversion)
     - [6.5. Model Fine-tuning](#65-model-fine-tuning)
       - [6.5.1. Vision Transformer Fine-tuning](#651-vision-transformer-fine-tuning)
@@ -93,6 +97,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [6.7.5. DreamBooth Inference (in NeMo Framework)](#675-dreambooth-inference-in-nemo-framework)
       - [6.7.6. ControlNet Inference (in NeMo Framework)](#676-controlnet-inference-in-nemo-framework)
       - [6.7.7. Imagen Inference (in NeMo Framework)](#677-imagen-inference-in-nemo-framework)
+      - [6.7.8. NSFW Inference (in NeMo Framework)](#678-nsfw-inference-in-nemo-framework)
     - [6.8. Model Export](#68-model-export)
       - [6.8.1. Vision Transformer Export](#681-vision-transformer-export)
       - [6.8.2. CLIP Export](#682-clip-export)
@@ -101,6 +106,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [6.8.5. DreamBooth Export](#685-dreambooth-export)
       - [6.8.6. ControlNet Export](#686-controlnet-export)
       - [6.8.7. Imagen Export](#687-imagen-export)
+      - [6.8.8. NSFW Export](#688-nsfw-export)
     - [6.9. Convert Checkpoints from External Sources to Nemo](#69-convert-checkpoints-from-external-sources-to-nemo)
   - [7. Deploying the NeMo Multimodal Model](#7-deploying-the-nemo-multimodal-model)
     - [7.1. Setup](#71-setup)
@@ -111,6 +117,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [7.2.4. CLIP](#724-clip)
       - [7.2.5. ControlNet](#725-controlnet)
       - [7.2.6 Imagen](#726-imagen)
+      - [7.2.7 NSFW](#727-nsfw)
     - [7.3. Query NVIDIA Triton Inference Server](#73-query-nvidia-triton-inference-server)
       - [7.3.1. Stable Diffusion and DreamBooth](#731-stable-diffusion-and-dreambooth)
       - [7.3.2. InstructPix2Pix](#732-instructpix2pix)
@@ -143,6 +150,9 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [8.7.1. Training Accuracy Results](#871-training-accuracy-results)
       - [8.7.2. Training Performance Results](#872-training-performance-results)
       - [8.7.3. Inference Performance Results](#873-inference-performance-results)
+    - [8.8. NSFW Results](#88-nsfw-results)
+      - [8.8.1. Training Performance Results](#881-training-performance-results)
+      - [8.8.2. Inference Performance Results](#882-inference-performance-results)
   - [9. Known Issues](#9-known-issues)
 
 <!-- /TOC -->
@@ -275,6 +285,16 @@ NeMo Multimodal provides a training pipeline and example implementation for gene
 [Imagen](https://arxiv.org/abs/2205.11487) is a multi-stage text-to-image diffusion model that achieves an unprecedented level of photorealism and demonstrates deep language understanding. The model operates in several stages: given a text prompt, Imagen initially generates an image at a resolution of 64x64. It then employs diffusion models to upsample the generated image to higher resolutions of 256x256 and 1024x1024.
 
 NeMo Imagen offers a range of options to customize the training of the Imagen model. For the super-resolution (SR) model, we provide support for both the regular UNet and the efficient UNet architectures, as proposed in the original paper.
+
+### 2.8. NSFW
+
+NSFW Content filtering model offers vision based filtering solution to find explicit content. It's
+main usecase is to check outputs of the generative models like Stable Diffusion. Model combines
+zero-shot capabilities of pretrained CLIP with linear probing approach for fine tuning.
+
+During training, small classification layer is trained on top of frozen CLIP encoder, significantly
+imporving detection quality compared to just zero-shot classification.
+
 ## 3. Feature Matrix
 
 ### 3.1. ViT Models
@@ -389,6 +409,29 @@ NeMo Imagen offers a range of options to customize the training of the Imagen mo
 | NVfuser                  | No                                                       | N/A                                                                                                                                           |
 | Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
 | Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
+
+### 3.6. NSFW Models
+
+| Feature                  | Training                                                 | Inference                                                                                                                                     |
+|--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| Data parallelism         | Yes                                                      | N/A                                                                                                                                           |
+| Tensor parallelism       | N/A                                                      | N/A                                                                                                                                           |
+| Pipeline parallelism     | N/A                                                      | N/A                                                                                                                                           |
+| Sequence parallelism     | N/A                                                      | N/A                                                                                                                                           |
+| Activation checkpointing | Yes (Uniform or Block)                                   | No                                                                                                                                            |
+| FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                 |
+| AMP/FP16                 | Yes                                                      | Yes                                                                                                                                           |
+| AMP/BF16                 | Yes                                                      | Yes                                                                                                                                           |
+| BF16 O2                  | Yes                                                      | No                                                                                                                                            |
+| TransformerEngine/FP8    | No                                                       | No                                                                                                                                            |
+| Multi-GPU                | Yes                                                      | Yes                                                                                                                                           |
+| Multi-Node               | Yes                                                      | Yes                                                                                                                                           |
+| Inference deployment     | N/A                                                      | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton) |
+| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                      |
+| NVfuser                  | No                                                       | N/A                                                                                                                                           |
+| Distributed Optimizer    | N/A                                                      | N/A                                                                                                                                           |
+| TorchInductor            | No                                                       | N/A                                                                                                                                           |
+| Flash Attention          | No                                                       | N/A                                                                                                                                           |
 
 
 ## 4. Setup Details
@@ -1186,6 +1229,18 @@ contolnet0001.tar
 
 To utilize segmentation maps as conditioning input, the conditioning image can be obtained through a detector model, while text prompts can be derived from blip captioning. For further guidance on preparing your own dataset, you may find the documentation of [ControlNet](https://github.com/lllyasviel/ControlNet/blob/main/docs/train.md) helpful.
 
+### 6.2.6. NSFW
+
+_Note: It is the responsibility of each user to check the content
+of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
+Users should review any applicable links associated with the dataset before placing the data on their machine._
+
+NSFW works on top of simple directory based dataset. Dataset is expected to contain two directories
+`safe` and `nsfw`, each with a set of JPEG files inside, and a concept list file `concepts.txt` that describes
+concepts that should be focused on during detection. Exemplary concept list can be found in
+`data/nsfw/concepts.txt`
+Download custom dataset for using into finetuning and move downloaded data to directories corresponding to the desired class `${data_dir}/nsfw/safe` and `${data_dir}/nsfw/nsfw`
+
 
 ### 6.3. Model Training
 
@@ -1563,6 +1618,38 @@ Please note that the scripts provided by NVIDIA are optional to use, and they ma
 
 6.There is no guarantee that training Imagen for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the late stages of convergence.
 
+
+#### 6.3.8. NSFW
+
+NSFW Content filtering essentially performs linear probing on top of existing CLIP checkpoint. The
+recomended configuration can be found in the `conf/training/nsfw` which corresponds to CLIP L14 version.
+You can access and modify parameters to customize the hyperparameters according to your specific
+training requirements and base model needs.
+
+To enable the training stage with an NSFW model, configure the following configuration files:
+
+1. In the `defaults` section, update the `training` filed to point to the desired NSFW configuration
+   file. The only provided configuration for now is `nsfw_L_14.yaml`.
+   ```yaml
+   defaults:
+     - _self_
+     - cluster: bcm
+     - training: nsfw/nsfw_L_14
+   ...
+   ```
+
+2. In the `stages` field of `conf/config.yaml`, make sure the training stage is included. For
+   example,
+   ```yaml
+   stages:
+     - training
+     ...
+   ```
+
+**Remarks**:
+
+1. You should feed the trained CLIP checkpoint into NSFW training by specifying `training.model.restore_from_path` (or set `restore_from_path` field in the `model` section of `nsfw/nsfw_L_14.yaml`).
+The checkpoint can be sourced from either NeMo or converted from Hugging Face in the form of a `.nemo` file.
 
 ### 6.4. Checkpoint Conversion
 
@@ -2081,6 +2168,31 @@ To enable the inference stage with Imagen, configure the configuration files:
 
 We provide both DDPM and EDM sampler. We recommend for EDM training, at least 30 steps of inference is required; for DDPM training, at least 250 steps of inference is required.
 
+#### 6.7.8. NSFW Inference (in NeMo Framework)
+
+For NSFW models, the inference script generates images score for NSFW content. Values closer to 1
+are stron NSFW while -1 are strong safe.
+
+To enable inference stage with a NSFW model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `fw_inference` field to point to the
+   desired NSFW inference configuration file. For example,
+   if you want to use the `nsfw/nsfw.yaml` configuration, change the `fw_inference` field to `nsfw/nsfw`.
+   ```yaml
+    defaults:
+      - fw_inference: nsfw/nsfw
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `fw_inference` stage is included. For example,
+   ```yaml
+    stages:
+      - fw_inference
+      ...
+   ```
+3. Configure `image_path` field of `conf/fw_inference/nsfw/nsfw.yaml`.
+
+
+
 ### 6.8. Model Export
 
 In NeMo Multimodal, we provide scripts to perform export directly via NeMo framework to ONNX and NVIDIA
@@ -2316,6 +2428,37 @@ The first model is the UNet, and the second model is the T5 encoder. The script 
 1. To load a pretrained checkpoint for inference, set the `base_ckpt`, `sr256_ckpt`, `sr1024_ckpt` field in the `model.customized_model` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/export/imagen/export_imagen.yaml`. Make sure `model.target_resolution` is set to desired resolution.
 
+#### 6.8.8. NSFW Export
+
+To enable the export stage with a NSFW model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `export` field to point to the desired NSFW
+   configuration file. For example,
+   if you want to use the `nsfw/export_nsfw` configuration, change the `export` field
+   to `clip/export_nsfw`.
+   ```yaml
+    defaults:
+      - export: nsfw/export_nsfw
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `export` stage is included. For example,
+   ```yaml
+    stages:
+      - export
+      ...
+   ```
+3. Configure `infer.max_batch_size` of the `conf/export/nsfw/export_nsfw.yaml` file to set the max_batch_size to use for
+   the ONNX and
+   NVIDIA TensorRT model.
+4. Set the resolution of the model with `max_dim` in the `infer` field.   
+This will be used to generate the ONNX and NVIDIA TensorRT formats.
+
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/export/nsfw/export_nsfw.yaml`.
+
+
 
 ### 6.9. Convert Checkpoints from External Sources to Nemo
 
@@ -2413,6 +2556,10 @@ Copy the generated `plan` directory to the `deployment/server/controlnet/1/` dir
 
 For Imagen, copy the generated `plan` directory to the `deployment/server/imagen/1/`
 directory.
+
+#### 7.2.7. NSFW
+
+Move the generated `.plan` file to `deployment/server/nsfw_trt/1/model.plan`.
 
 ### 7.3. Query NVIDIA Triton Inference Server
 
@@ -2974,6 +3121,26 @@ Batch Size: Synonymous with `num_images_per_prompt`
 | Imagen Base64x64 500M   | 4          | EDM     | 30              | 2.72                 | 5.011               | 5.805                     | 1.84 \| 2.13          |
 | Imagen SR256x256 600M   | 4          | EDM     | 20              | 1.79                 | 3.181               | 3.549                     | 1.78 \| 1.98          |
 | Imagen SR1024x1024 600M | 4          | EDM     | 20              | 16.26                | 23.588              | 27.799                    | 1.45 \| 1.71          |
+
+### 8.8. NSFW Results
+
+#### 8.8.1. Training Performacne Results
+
+We measured the throughput of training NSFW model on a single DGX A100 node.
+The table below show the performance results.
+
+- NVIDIA DGX A100 (8 x A100 80GB for CLIP L/14 base model)
+
+| Model     | Metric                           | Nodes  |
+|-----------|----------------------------------|--------|
+|           |                                  | 1      |
+|NSFW L/14  | Samples per Second               |   1680 |
+
+
+#### 8.8.2. Inference Performance Results
+
+Because NSFW model is build on top of pretrained CLIP with small linear probing layer, inference
+performance is expected to match CLIP inference performance. See [CLIP Inference Performance Results](#823-inference-performance-results) for details.
 
 ## 9. Known Issues
 

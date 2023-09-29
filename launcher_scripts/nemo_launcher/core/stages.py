@@ -29,7 +29,15 @@ from omegaconf import OmegaConf
 
 __LANGUAGE_MODELS_LIST__ = ["gpt3", "t5", "mt5", "bert"]
 __VISION_MODELS_LIST__ = ["vit"]
-__MULTIMODAL_MODELS_LIST__ = ["clip", "stable_diffusion", "instruct_pix2pix", "dreambooth", "imagen", "controlnet"]
+__MULTIMODAL_MODELS_LIST__ = [
+    "clip",
+    "stable_diffusion",
+    "instruct_pix2pix",
+    "dreambooth",
+    "imagen",
+    "controlnet",
+    "nsfw",
+]
 
 
 class NemoMegatronStage:
@@ -125,7 +133,7 @@ class NemoMegatronStage:
         return [
             f"cd {self._nemo_code_path}",
             "git rev-parse HEAD",
-            f'export PYTHONPATH={self._nemo_code_path}:\${{PYTHONPATH}}',
+            f"export PYTHONPATH={self._nemo_code_path}:\${{PYTHONPATH}}",
         ]
 
     def _make_numa_mapping_command(self) -> List[str]:
@@ -449,7 +457,10 @@ class NeMoStage(NemoMegatronStage):
         if self.cluster != "bcm":
             env_vars["SLURM_NTASKS_PER_NODE"] = devices
         if self.cluster == "bcp":  # Set env prefix as env var on BCP
-            for env_var_str in [self._cuda_device_max_connections, self._cuda_visible_devices]:
+            for env_var_str in [
+                self._cuda_device_max_connections,
+                self._cuda_visible_devices,
+            ]:
                 if env_var_str:
                     var_name, var_val = env_var_str.split("=")
                     env_vars[var_name] = var_val
@@ -512,6 +523,7 @@ class Training(NeMoStage):
             "bert": self._nemo_code_path / "examples/nlp/language_modeling/megatron_bert_pretraining.py",
             "vit": self._nemo_code_path / "examples/vision/vision_transformer/megatron_vit_classification_pretrain.py",
             "clip": self._nemo_code_path / "examples/multimodal/foundation/clip/megatron_clip_pretrain.py",
+            "nsfw": self._nemo_code_path / "examples/multimodal/content_filtering/nsfw/megatron_nsfw_pretrain.py",
             "stable_diffusion": self._nemo_code_path / "examples/multimodal/generative/stable_diffusion/sd_train.py",
             "instruct_pix2pix": self._nemo_code_path
             / "examples/multimodal/generative/instruct_pix2pix/sd_finetune.py",
@@ -570,6 +582,7 @@ class FineTuning(NeMoStage):
             "mt5": self._nemo_code_path / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "vit": self._nemo_code_path / "examples/vision/vision_transformer/megatron_vit_classification_finetune.py",
             "neva": self._nemo_code_path / "examples/multimodal/mllm/neva/neva_finetune.py",
+            "nsfw": self._nemo_code_path / "examples/multimodal/content_filtering/nsfw/megatron_nsfw_pretrain.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -591,7 +604,7 @@ class PromptLearning(NeMoStage):
         data_dir = self.cfg.get("data_dir")
         task_name = self.stage_cfg.run.get("task_name")
         # Prepare squad dataset
-        if task_name == 'squad':
+        if task_name == "squad":
             prepare_squad_for_prompt_learning(
                 os.path.join(data_dir, "prompt_data"), self._launcher_scripts_path,
             )
@@ -696,6 +709,7 @@ class FWInference(NeMoStage):
         model_type_to_code_path = {
             "vit": self._nemo_code_path / "examples/vision/vision_transformer/megatron_vit_classification_infer.py",
             "clip": self._nemo_code_path / "examples/multimodal/foundation/clip/megatron_clip_infer.py",
+            "nsfw": self._nemo_code_path / "examples/multimodal/content_filtering/nsfw/megatron_nsfw_infer.py",
             "stable_diffusion": self._nemo_code_path / "examples/multimodal/generative/stable_diffusion/sd_infer.py",
             "instruct_pix2pix": self._nemo_code_path
             / "examples/multimodal/generative/instruct_pix2pix/sd_edit_cli.py",
@@ -883,8 +897,8 @@ class ExternalConversion(NemoMegatronStage):
 
 class NeMoEvaluation(NeMoStage):
     """
-        Stage class of gpt3/t5/mt5 evaluation with NeMo scripts
-        Including: fine-tuning eval, prompt-learning eval, adapter/ia3 learning eval
+    Stage class of gpt3/t5/mt5 evaluation with NeMo scripts
+    Including: fine-tuning eval, prompt-learning eval, adapter/ia3 learning eval
     """
 
     def setup_stage_vars(self, cfg):
@@ -1106,7 +1120,7 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             stage_to_code_path["generate"] = (
                 self._nemo_code_path / "examples/multimodal/generative/stable_diffusion/generate_fid_images.py"
             )
-        elif choice_model_type == 'imagen':
+        elif choice_model_type == "imagen":
             stage_to_code_path["generate"] = (
                 self._nemo_code_path / "examples/multimodal/generative/imagen/generate_fid_images.py"
             )
@@ -1349,10 +1363,10 @@ def create_args_list(hydra: bool = False, replace_underscore: bool = True, **kwa
                 # remove quotes around keys if the argument is a dict
                 # (https://hydra.cc/docs/advanced/override_grammar/basic/)
                 # For example, dict {"a":10, "b":20} will become string "'{a:10,b:20}'"
-                data = ','.join(f"{inner_key}:{inner_val}" for inner_key, inner_val in v.items())
+                data = ",".join(f"{inner_key}:{inner_val}" for inner_key, inner_val in v.items())
                 args.append(f"'{k}={{{data}}}'")
             elif isinstance(v, list) or isinstance(v, omegaconf.listconfig.ListConfig):
-                data = ','.join(v)
+                data = ",".join(v)
                 args.append(f"'{k}=[{data}]'")
             else:
                 args.append(f"{k}={v}")
