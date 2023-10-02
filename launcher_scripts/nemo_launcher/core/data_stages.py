@@ -530,8 +530,12 @@ class CustomDataPreparation(DataStage):
 
         # Setup preprocess data
         data_cfg = self.stage_cfg
+        run_cfg = data_cfg.get("run")
+        nodes = run_cfg.get("node_array_size", 1)
+        workers_per_node = run_cfg.get("workers_per_node", 1)
         raw_dataset_files = data_cfg.get("raw_dataset_files")
         preprocess_worker_mapping = data_cfg.get("preprocess_worker_mapping")
+
         if data_cfg.get("preprocess_data", False):
             if not isinstance(raw_dataset_files, omegaconf.listconfig.ListConfig):
                 raw_dataset_files = os.listdir(raw_dataset_files)
@@ -609,6 +613,8 @@ class CustomDataPreparation(DataStage):
     def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
         """Make a command of the specified sub-stage"""
         data_cfg = self.stage_cfg
+        run_cfg = data_cfg.get("run")
+
         if sub_stage == "train_tokenizer":
             bpe_save_dir = Path(data_cfg.get("bpe_save_dir"))
             bpe_save_dir.mkdir(parents=True, exist_ok=True)
@@ -619,7 +625,7 @@ class CustomDataPreparation(DataStage):
             assert sub_stage == "preprocess", f"Unknown substage {sub_stage}"
             code_path = (
                 self._launcher_scripts_path
-                / "nemo_launchernemo_launcher/collections/dataprep_scripts/custom_dataprep/preprocess.py"
+                / "nemo_launcher/collections/dataprep_scripts/custom_dataprep/preprocess.py"
             )
             args = create_args_list(
                 output_path=data_cfg.get("preprocessed_dir"),
@@ -629,7 +635,6 @@ class CustomDataPreparation(DataStage):
                 tokenizer_model=data_cfg.get("tokenizer_model"),
                 dataset_impl="mmap",
                 log_interval="2000",
-                preproc_folder="store_true",
                 apply_ftfy="store_true",
                 workers=run_cfg.get("cpus_per_node") // run_cfg.get("workers_per_node"),
             )
