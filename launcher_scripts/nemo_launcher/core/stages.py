@@ -716,6 +716,7 @@ class FWInference(NeMoStage):
             "dreambooth": self._nemo_code_path / "examples/multimodal/generative/dreambooth/dreambooth_infer.py",
             "imagen": self._nemo_code_path / "examples/multimodal/generative/imagen/imagen_infer.py",
             "controlnet": self._nemo_code_path / "examples/multimodal/generative/controlnet/controlnet_infer.py",
+            "neva": self._nemo_code_path / "examples/multimodal/mllm/neva/neva_evaluation.py",
         }
         return model_type_to_code_path[model_type]
 

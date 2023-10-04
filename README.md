@@ -22,13 +22,15 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
     - [2.6. ControlNet](#26-controlnet)
     - [2.7. Imagen](#27-imagen)
     - [2.8. NSFW](#28-nsfw)
+    - [2.9. NeVA](#29-neva)
   - [3. Feature Matrix](#3-feature-matrix)
     - [3.1. ViT Models](#31-vit-models)
     - [3.2. CLIP Models](#32-clip-models)
     - [3.3. Stable Diffusion](#33-stable-diffusion)
     - [3.4. InstructPix2Pix / DreamBooth / ControlNet Models](#34-instructpix2pix--dreambooth--controlnet-models)
-    - [3.5 Imagen Models](#35-imagen-models)
-    - [3.6 NSFW Models](#36-nsfw-models)
+    - [3.5. Imagen Models](#35-imagen-models)
+    - [3.6. NSFW Models](#36-nsfw-models)
+    - [3.7. NeVA Models](#37-neva-models)
   - [4. Setup Details](#4-setup-details)
   - [5. Cloud Service Providers](#5-cloud-service-providers)
     - [5.1. Cluster Bring-Up](#51-cluster-bring-up)
@@ -72,6 +74,10 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
         - [6.2.4.2. Preprocess Images and Captions](#6242-preprocess-images-and-captions)
       - [6.2.5. ControlNet](#625-controlnet)
       - [6.2.6. NSFW](#626-nsfw)
+      - [6.2.7. NeVA](#627-neva)
+        - [6.2.7.1. Prepare Training Dataset](#6271-prepare-training-dataset)
+        - [6.2.7.2 Prepare LLaMA-2 Chat Checkpoints](#6272-prepare-llama-2-chat-checkpoints)
+        - [6.2.7.3 Prepare Tokenizer](#6273-prepare-tokenizer)
     - [6.3. Model Training](#63-model-training)
       - [6.3.1. Vision Transformer Training](#631-vision-transformer-training)
       - [6.3.2. CLIP Training](#632-clip-training)
@@ -80,10 +86,12 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [6.3.5. DreamBooth Training](#635-dreambooth-training)
       - [6.3.6. ControlNet Training](#636-controlnet-training)
       - [6.3.7. Imagen Training](#637-imagen-training)
-      - [6.3.8. NSFW](#638-nsfw-training)
+      - [6.3.8. NeVA Training](#638-neva-training)
+      - [6.3.9. NSFW Training](#639-nsfw-training)
     - [6.4. Checkpoint Conversion](#64-checkpoint-conversion)
     - [6.5. Model Fine-tuning](#65-model-fine-tuning)
       - [6.5.1. Vision Transformer Fine-tuning](#651-vision-transformer-fine-tuning)
+      - [6.5.2. NeVA Fine-tuning](#652-neva-fine-tuning)
     - [6.6. Model Evaluation](#66-model-evaluation)
       - [6.6.1. Vision Transformer Evaluation](#661-vision-transformer-evaluation)
       - [6.6.2. CLIP Evaluation](#662-clip-evaluation)
@@ -97,7 +105,8 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [6.7.5. DreamBooth Inference (in NeMo Framework)](#675-dreambooth-inference-in-nemo-framework)
       - [6.7.6. ControlNet Inference (in NeMo Framework)](#676-controlnet-inference-in-nemo-framework)
       - [6.7.7. Imagen Inference (in NeMo Framework)](#677-imagen-inference-in-nemo-framework)
-      - [6.7.8. NSFW Inference (in NeMo Framework)](#678-nsfw-inference-in-nemo-framework)
+      - [6.7.8. NeVA Inference (in NeMo Framework)](#678-neva-inference-in-nemo-framework)
+      - [6.7.9. NSFW Inference (in NeMo Framework)](#679-nsfw-inference-in-nemo-framework)
     - [6.8. Model Export](#68-model-export)
       - [6.8.1. Vision Transformer Export](#681-vision-transformer-export)
       - [6.8.2. CLIP Export](#682-clip-export)
@@ -117,7 +126,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [7.2.4. CLIP](#724-clip)
       - [7.2.5. ControlNet](#725-controlnet)
       - [7.2.6 Imagen](#726-imagen)
-      - [7.2.7 NSFW](#727-nsfw)
+      - [7.2.7. NSFW](#727-nsfw)
     - [7.3. Query NVIDIA Triton Inference Server](#73-query-nvidia-triton-inference-server)
       - [7.3.1. Stable Diffusion and DreamBooth](#731-stable-diffusion-and-dreambooth)
       - [7.3.2. InstructPix2Pix](#732-instructpix2pix)
@@ -295,6 +304,11 @@ zero-shot capabilities of pretrained CLIP with linear probing approach for fine 
 During training, small classification layer is trained on top of frozen CLIP encoder, significantly
 imporving detection quality compared to just zero-shot classification.
 
+### 2.9. NeVA
+
+Originating from [LLaVA](https://github.com/haotian-liu/LLaVA/tree/main/llava) (Large Language and Vision Assistant), NeVA stands as a pioneering innovation in the NeMo Multimodal landscape. This model synergizes language-centric large models (such as NVGPT or Llama2) with a vision encoder, leveraging the power of machine-generated multimodal language-image instruction-following data. Where traditional language models focus exclusively on textual processing, NeVA ambitiously pursues an integrated approach to visual and linguistic comprehension.
+
+
 ## 3. Feature Matrix
 
 ### 3.1. ViT Models
@@ -318,7 +332,7 @@ imporving detection quality compared to just zero-shot classification.
 | NVfuser                  | No                                                       | N/A                                                                                                                                           |
 | Distributed Optimizer    | Yes                                                      | N/A                                                                                                                                           |
 | TorchInductor            | No                                                       | N/A                                                                                                                                           |
-| Flash Attention          | No                                                       | N/A                                                                                                                                           |
+| Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
 
 ### 3.2. CLIP Models
 
@@ -341,7 +355,7 @@ imporving detection quality compared to just zero-shot classification.
 | NVfuser                  | No                                                       | N/A                                                                                                                                           |
 | Distributed Optimizer    | Yes                                                      | N/A                                                                                                                                           |
 | TorchInductor            | No                                                       | N/A                                                                                                                                           |
-| Flash Attention          | No                                                       | N/A                                                                                                                                           |
+| Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
 
 ### 3.3. Stable Diffusion
 
@@ -389,7 +403,7 @@ imporving detection quality compared to just zero-shot classification.
 | Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
 | TorchInductor            | Yes                                                      | N/A                                                                                                                                           |
 | Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
-### 3.5 Imagen Models
+### 3.5. Imagen Models
 | Feature                  | Training                                                 | Inference                                                                                                                                     |
 |--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
 | Data parallelism         | Yes                                                      | N/A                                                                                                                                           |
@@ -432,6 +446,30 @@ imporving detection quality compared to just zero-shot classification.
 | Distributed Optimizer    | N/A                                                      | N/A                                                                                                                                           |
 | TorchInductor            | No                                                       | N/A                                                                                                                                           |
 | Flash Attention          | No                                                       | N/A                                                                                                                                           |
+
+
+### 3.7. NeVA Models
+
+| Feature                  | Training                                                 | Inference                                                                                                                                     |
+|--------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| Data parallelism         | Yes                                                      | N/A                                                                                                                                           |
+| Tensor parallelism       | Yes                                                      | Yes                                                                                                                                           |
+| Pipeline parallelism     | No                                                       | No                                                                                                                                            |
+| Sequence parallelism     | No                                                       | No                                                                                                                                            |
+| Activation checkpointing | Yes (Uniform or Block)                                   | No                                                                                                                                            |
+| FP32/TF32                | Yes                                                      | Yes (FP16 enabled by default)                                                                                                                 |
+| AMP/FP16                 | No                                                       | Yes                                                                                                                                           |
+| AMP/BF16                 | Yes                                                      | No                                                                                                                                            |
+| BF16 O2                  | Yes                                                      | No                                                                                                                                            |
+| TransformerEngine/FP8    | No                                                       | No                                                                                                                                            |
+| Multi-GPU                | Yes                                                      | Yes                                                                                                                                           |
+| Multi-Node               | Yes                                                      | Yes                                                                                                                                           |
+| Inference deployment     | N/A                                                      | [NVIDIA Triton supported](https://github.com/triton-inference-server/backend#where-can-i-find-all-the-backends-that-are-available-for-triton) |
+| SW stack support         | Slurm DeepOps/Base Command Manager/Base Command Platform | Slurm DeepOps/Base Command Manager/Base Command Platform                                                                                      |
+| NVfuser                  | No                                                       | N/A                                                                                                                                           |
+| Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
+| TorchInductor            | No                                                       | N/A                                                                                                                                           |
+| Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
 
 
 ## 4. Setup Details
@@ -1229,18 +1267,109 @@ contolnet0001.tar
 
 To utilize segmentation maps as conditioning input, the conditioning image can be obtained through a detector model, while text prompts can be derived from blip captioning. For further guidance on preparing your own dataset, you may find the documentation of [ControlNet](https://github.com/lllyasviel/ControlNet/blob/main/docs/train.md) helpful.
 
-### 6.2.6. NSFW
+#### 6.2.6. NSFW
 
-_Note: It is the responsibility of each user to check the content
-of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
-Users should review any applicable links associated with the dataset before placing the data on their machine._
+**Note:** Users are responsible for checking the content of the dataset, reviewing the applicable licenses, and determining its suitability for their intended use. Before downloading and placing the data on their machines, users should review any associated links with the dataset.
 
-NSFW works on top of simple directory based dataset. Dataset is expected to contain two directories
-`safe` and `nsfw`, each with a set of JPEG files inside, and a concept list file `concepts.txt` that describes
-concepts that should be focused on during detection. Exemplary concept list can be found in
-`data/nsfw/concepts.txt`
-Download custom dataset for using into finetuning and move downloaded data to directories corresponding to the desired class `${data_dir}/nsfw/safe` and `${data_dir}/nsfw/nsfw`
+The NSFW system operates on a simple directory-based dataset. This dataset should have two main directories: `safe` and `nsfw`. Each directory should contain JPEG files. Additionally, there should be a `concepts.txt` file that outlines the concepts to be emphasized during detection. An example of this concept list can be found at `data/nsfw/concepts.txt`.
 
+To use a custom dataset for fine-tuning:
+1. Download the dataset.
+2. Move the downloaded data to the appropriate directories, corresponding to the desired class: `${data_dir}/nsfw/safe` and `${data_dir}/nsfw/nsfw`.
+
+The directory structure should look like this:
+```
+├── concepts.txt
+├── train
+│   ├── nsfw  # Folder containing NSFW images
+│   └── safe  # Folder containing safe images
+└── val
+    ├── nsfw  # Folder containing NSFW images
+    └── safe  # Folder containing safe images
+```
+
+#### 6.2.7. NeVA
+
+**Note**: Users must validate the dataset's content, understand its licensing, and ascertain its fitness for their purposes. It's crucial to review all associated links before downloading and storing data on your machine.
+
+##### 6.2.7.1. Preparing the Training Dataset
+
+The NeVA model training involves two phases: pretraining and finetuning. Each phase requires a distinct dataset. 
+
+For pretraining, use the *LAION/CC/SBU BLIP-Caption Concept-balanced 558K* dataset. Obtain this dataset from [LLaVA's official GitHub repository](https://github.com/haotian-liu/LLaVA/blob/main/docs/Data.md). After downloading, extract the dataset to: 
+```
+${data_dir}/neva/datasets/LLaVA-Pretrain-LCS-558K/blip_laion_cc_sbu_558k.json
+```
+The image data can be downloaded from [HuggingFace](https://huggingface.co/datasets/liuhaotian/LLaVA-Pretrain/blob/main/images.zip). Extract these images to:
+```
+${data_dir}/neva/datasets/LLaVA-Pretrain-LCS-558K/images
+```
+
+For fine-tuning, use the *LLaVA-Instruct-150K* dataset. Obtain this dataset from [LLaVA's official GitHub repository](https://github.com/haotian-liu/LLaVA/blob/main/docs/Data.md).
+The prompts can be downloaded from [HuggingFace](https://huggingface.co/datasets/liuhaotian/LLaVA-Instruct-150K/tree/main).
+```
+${data_dir}/neva/datasets/LLaVA-Instruct-150K/
+```
+The image data can be downloaded from [COCO Dataset](https://cocodataset.org/#download). Extract these images to:
+```
+${data_dir}/neva/datasets/LLaVA-Instruct-150K/images
+```
+
+##### 6.2.7.2. Setting Up LLaMA-2 Chat Checkpoints
+
+We offer support for both the 7B and 13B chat models. Both versions can be downloaded from [LLaVA's official GitHub repository](https://github.com/haotian-liu/LLaVA/blob/main/docs/MODEL_ZOO.md). Once you've downloaded the appropriate HuggingFace checkpoint, you'll need to extract and save it to your disk to prepare for pretraining.
+
+Before initiating pretraining, convert the LLaMA-2 checkpoints to NeMo's format:
+
+1. Modify the default yaml file located at `/opt/NeMo/examples/nlp/language_modeling/conf/megatron_llama_config.yaml`. Set both `model.mcore_gpt` and `model.transformer_engine` to `False` prior to the checkpoint conversion.
+
+2. For the 7B chat model, execute the following conversion command:
+   ```bash
+   python /opt/NeMo/scripts/nlp_language_modeling/convert_hf_llama_to_nemo.py \
+     --in-file <PATH-TO-HF-CHECKPOINT> \
+     --out-file ${data_dir}/neva/checkpoints/llama-2-7b-chat.nemo 
+   ```
+   For the 13B chat model, alter the `--in-file` and `--out-file` path accordingly.
+
+3. Execute the command below to partition the checkpoint for tensor model parallel sizes of either 4 or 8. For optimal performance, use TP=4 for the 7B model and TP=8 for the 13B model. This ensures both pretraining and finetuning proceed without memory issues.
+
+  ```bash
+  # Instructions for the 7B model partitioning provided here. 
+  # Adjust parameters for the 13B model as needed.
+   python /opt/NeMo/examples/nlp/language_modeling/megatron_change_num_partitions.py \
+     --model_file=${data_dir}/neva/checkpoints/llama-2-7b-chat.nemo  \
+     --target_file=${data_dir}/neva/checkpoints/llama-2-7b-chat-tp4.nemo \
+     --tensor_model_parallel_size=1 \
+     --target_tensor_model_parallel_size=4 \
+     --pipeline_model_parallel_size=1 \
+     --target_pipeline_model_parallel_size=1 \
+     --tp_conversion_only
+     --model_class="nemo.collections.nlp.models.language_modeling.megatron_gpt_model.MegatronGPTModel" \
+     --tokenizer_model_path=<PATH-TO-HF-CHECKPOINT>/tokenizer.model
+   ```
+
+##### 6.2.7.3. Tokenizer Configuration
+
+Special tokens must be incorporated into the tokenizer for NeVA training. After downloading the 7B/13B model from Huggingface, ensure you also fetch the corresponding tokenizer model. Using the 7B-chat model as a reference:
+
+1. Download the [tokenizer.model](https://huggingface.co/liuhaotian/llava-llama-2-13b-chat-lightning-preview/blob/main/tokenizer.model) to:
+   ```
+   ${data_dir}/neva/tokenizers/tokenizer.model
+   ```
+
+2. Running the following script requires the NeMo dependency. For ease, run the script within the NeMo container.
+
+3. Use the command below to integrate special tokens into the tokenizer:
+
+   ```bash
+   cd /opt/sentencepiece/src/; protoc --python_out=/opt/NeMo/scripts/tokenizers/ sentencepiece_model.proto
+   python /opt/NeMo/scripts/tokenizers/add_special_tokens_to_sentencepiece.py \
+   --input_file ${data_dir}/neva/tokenizers/tokenizer.model \
+   --output_file ${data_dir}/neva/tokenizers/tokenizer_neva.model \
+   --is_userdefined \
+   --tokens "<extra_id_0>" "<extra_id_1>" "<extra_id_2>" "<extra_id_3>" \
+            "<extra_id_4>" "<extra_id_5>" "<extra_id_6>" "<extra_id_7>"
+   ```
 
 ### 6.3. Model Training
 
@@ -1618,8 +1747,45 @@ Please note that the scripts provided by NVIDIA are optional to use, and they ma
 
 6.There is no guarantee that training Imagen for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the late stages of convergence.
 
+#### 6.3.8. NeVA Training
 
-#### 6.3.8. NSFW
+We have curated 2 configurations with suggested hyperparameters specifically for the NVIDIA DGX SuperPOD, which is
+equipped with 8 NVIDIA A100 80GB GPUs. The configurations for the curated models can be found in the `conf/training/neva`
+directory. You can access and modify the parameters to adjust the hyperparameters for your specific training runs. By
+customizing these settings, you can tailor the model's performance and training efficiency to better suit your needs and
+requirements.
+
+| Language Model                  | Vision Encoder                                | Multimodal Connector Type | Tensor Model Parallel Size | Pipeline Model Parallel Size | Batch size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Total Training Samples Seen |
+|--------------------------------|------------------------------------------------|---------------------------|-----------------------------|------------------------------|--------------------|-------------------------------|----------|-----------|-----------------------------|
+| LLaMA-2-7B-Chat	 (frozen)         | CLIP-L-336px (frozen)     | Linear Layer (trainable)  | 4                           | 1                            | 32                 | 128                           | BF16     | O2        | 550K                        |
+| LLaMA-2-13B-Chat (frozen)        | CLIP-L-336px (frozen)     | Linear Layer (trainable)  | 8                           | 1                            | 32                 | 128                           | BF16     | O2        | 550K                        |
+
+Here's the revised text:
+
+To enable the training stage using a NeVA model, follow these configuration steps:
+
+1. Navigate to the `defaults` section in `conf/config.yaml`. Update the `training` field to reference the desired ViT configuration file. For instance, if you wish to utilize the `LLaMA-2-7B-Chat` (i.e., `llama2_7b_chat`) configuration, modify the `training` field to `neva/llama2_7b_chat`.
+   ```yaml
+   defaults:
+     - _self_
+     - cluster: bcm
+     - data_preparation: null
+     - training: neva/llama2_7b_chat
+     ...
+   ```
+
+2. Within the `stages` field of `conf/config.yaml`, ensure the training stage is listed.
+   ```yaml
+   stages:
+     - training
+     ...
+   ```
+
+**Remarks**:
+1. Prior to initiating your training, ensure you've readied all necessary datasets and checkpoints. Adhere to the guidelines provided in [Section 6.2.7.](#627-neva).
+2. Before starting the training, set the correct path for the dataset and checkpoints in `neva/llama2_{model_size}_chat.yaml`.
+
+#### 6.3.9. NSFW Training
 
 NSFW Content filtering essentially performs linear probing on top of existing CLIP checkpoint. The
 recomended configuration can be found in the `conf/training/nsfw` which corresponds to CLIP L14 version.
@@ -1746,6 +1912,44 @@ To enable the fine-tuning stage with a ViT model, configure the configuration fi
    ```
 
 **Remarks**: To load a pretrained checkpoint for fine-tuning, set the `restore_from_path` field in the `model` section
+to the path of the pretrained checkpoint in `.nemo` format. By default, this field links to the `.nemo` format
+checkpoint located in the training checkpoints folder.
+
+#### 6.5.2. NeVA Fine-tuning
+
+We have curated 2 configurations with suggested hyperparameters specifically for the NVIDIA DGX SuperPOD, which is
+equipped with 8 NVIDIA A100 80GB GPUs. The configurations for the curated models can be found in the `conf/fine_tuning/neva`
+directory. You can access and modify the parameters to adjust the hyperparameters for your specific training runs. By
+customizing these settings, you can tailor the model's performance and training efficiency to better suit your needs and
+requirements.
+
+| Language Model              | Vision Encoder                    | Multimodal Connector Type | Tensor Model Parallel Size | Pipeline Model Parallel Size | Batch size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Total Training Samples Seen |
+|-----------------------------|------------------------------------|---------------------------|-----------------------------|------------------------------|--------------------|-------------------------------|----------|-----------|-----------------------------|
+| LLaMA-2-7B-Chat (trainable) | CLIP-L-336px (frozen) | Linear Layer (trainable)  | 4                           | 1                            | 4                  | 32                            | BF16     | O2        | 150K                        |
+| LLaMA-2-13B-Chat (trainable) | CLIP-L-336px (frozen) | Linear Layer (trainable)  | 8                           | 1                            | 4                  | 32                            | BF16     | O2        | 150K                        |
+
+
+To enable the fine-tuning stage with a NeVA model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `fine_tuning` field to point to the desired ViT
+   configuration file. For example,
+   if you want to fine-tune a pretrained NeVA model based on `LLaMA-2-7B-Chat	`(i.e. `llama2_7b_chat`) configuration, 
+   change the `fine_tuning` field to `neva/llama2_7b_chat`.
+   ```yaml
+    defaults:
+      - fine_tuning: neva/llama2_7b_chat
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `fine_tuning` stage is included. For example,
+   ```yaml
+    stages:
+      - fine_tuning
+      ...
+   ```
+
+**Remarks**: 
+1. Prior to initiating your fine-tuning, ensure you've readied all necessary datasets and checkpoints. Adhere to the guidelines provided in [Section 6.2.7.](#627-neva).
+2. To load a pretrained checkpoint for fine-tuning, set the `restore_from_path` field in the `model` section
 to the path of the pretrained checkpoint in `.nemo` format. By default, this field links to the `.nemo` format
 checkpoint located in the training checkpoints folder.
 
@@ -2168,7 +2372,50 @@ To enable the inference stage with Imagen, configure the configuration files:
 
 We provide both DDPM and EDM sampler. We recommend for EDM training, at least 30 steps of inference is required; for DDPM training, at least 250 steps of inference is required.
 
-#### 6.7.8. NSFW Inference (in NeMo Framework)
+#### 6.7.8. NeVA Inference (in NeMo Framework)
+
+With NeVA models, the inference script generates responses to all the prompts provided in an input `.jsonl` file. Here's an example of what an input file might look like:
+
+```jsonl
+{"image": "001.jpg", "prompt": "What is the name of this famous sight in the photo?\n<image>", "category": "conv", "question_id": 0}
+{"image": "001.jpg", "prompt": "Describe this photo in detail.\n<image>", "category": "detail", "question_id": 1}
+{"image": "001.jpg", "prompt": "What are the possible reasons for the formation of this sight?\n<image>", "category": "complex", "question_id": 2}
+...
+```
+
+The crucial fields within each line are "image" and "prompt". The trained NeVA model will generate responses for each line, which can be viewed both on the console and in the output file.
+
+To facilitate inference with NeVA, follow these configuration steps:
+
+1. In the `defaults` section of `conf/config.yaml`, adjust the `fw_inference` field to reference your desired NeVA inference configuration file. For instance, to use the `neva/inference.yaml` configuration, modify the `inference` field to `neva/fw_inference`:
+   ```yaml
+   defaults:
+     - fw_inference: neva/inference
+     ...
+   ```
+
+2. In the `stages` section of `conf/config.yaml`, ensure the `fw_inference` stage is present:
+   ```yaml
+   stages:
+     - fw_inference
+     ...
+   ```
+
+3. Inside `conf/fw_inference/neva/inference.yaml`, configure the paths for `prompt_file`, `inference.images_base_path`, and `neva_model_file` to correctly point to the locations relevant to your inference task. The trained NeVA model should also be accurately referenced under `neva_model_file`.
+  ```yaml
+  inference:
+    images_base_path: /path/to/images_associate_with_prompt_file/
+  prompt_file: /path/to/input_jsonl_file.jsonl
+  neva_model_file: /path/to/trained_neva_checkpoint.nemo
+  ```
+
+**Remarks**:
+
+1. Ensure the value of `run.model_train_name` corresponds to the appropriate model size, either `neva_llama2_7b_chat` or `neva_llama2_13b_chat`.
+2. Ensure the tensor model parallel sizes are correctly assigned. By default, the 7B model uses `tensor_model_parallel_size=4`, while the 13B model uses `tensor_model_parallel_size=8`.
+
+
+#### 6.7.9. NSFW Inference (in NeMo Framework)
 
 For NSFW models, the inference script generates images score for NSFW content. Values closer to 1
 are stron NSFW while -1 are strong safe.
@@ -2190,7 +2437,6 @@ To enable inference stage with a NSFW model, configure the configuration files:
       ...
    ```
 3. Configure `image_path` field of `conf/fw_inference/nsfw/nsfw.yaml`.
-
 
 
 ### 6.8. Model Export
@@ -3124,7 +3370,7 @@ Batch Size: Synonymous with `num_images_per_prompt`
 
 ### 8.8. NSFW Results
 
-#### 8.8.1. Training Performacne Results
+#### 8.8.1. Training Performance Results
 
 We measured the throughput of training NSFW model on a single DGX A100 node.
 The table below show the performance results.
