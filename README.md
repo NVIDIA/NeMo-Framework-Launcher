@@ -1976,7 +1976,7 @@ launcher_scripts_path: ${auto_configurator_path}/../launcher_scripts
 fastertransformer_path: ${auto_configurator_path}/../FasterTransformer
 base_results_dir: ${auto_configurator_path}/results
 data_dir: ${launcher_scripts_path}/data
-training_container: nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.08.02
+training_container: nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.08.03
 container_mounts:
     - null
 wandb:  # Weights and Biases (W&B) logging.
@@ -5400,7 +5400,7 @@ VALID_DATA_PATH=/path/to/val_actor
 TEST_DATA_PATH=/path/to/test_actor
 
 NEMO_RLHF_DIR=/opt/nemo-rlhf
-CONTAINER="nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.08.02"
+CONTAINER="nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.08.03"
 
 mkdir -p $OUTPUT_DIR
 
