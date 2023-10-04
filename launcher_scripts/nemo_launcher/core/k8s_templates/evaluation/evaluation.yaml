@@ -53,3 +53,7 @@ spec:
       - configMap:
           name: evaluation-config
         name: evaluation-config
+
+      {{ if ne $config.dnsPolicy "nil" }}
+      dnsPolicy: {{ $config.dnsPolicy }}
+      {{ end }}

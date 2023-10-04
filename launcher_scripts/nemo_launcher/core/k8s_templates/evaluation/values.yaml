@@ -72,5 +72,5 @@ trainingConfig:
   # Insert path to the hparams file from the training job #
   hparamsFile: <Insert path to hparams.yaml file>
 
-  # Specify the environment variables to set in the container #
-  envVars: "nil"
+  # Insert the dnsPolicy #
+  dnsPolicy: "nil"

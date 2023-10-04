@@ -48,3 +48,6 @@ spec:
         emptyDir:
           medium: Memory
           sizeLimit: {{ $config.shmSize }}
+      {{ if ne $config.dnsPolicy "nil" }}
+      dnsPolicy: {{ $config.dnsPolicy }}
+      {{ end }}

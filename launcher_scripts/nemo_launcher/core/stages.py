@@ -640,6 +640,9 @@ class NeMoStage(NemoMegatronStage):
         values_template.trainingConfig.ibCount = cluster_parameters['ib_count']
         values_template.trainingConfig.envVars = cluster_parameters['env_vars']
 
+        if cluster_parameters['dns_policy'] is not None:
+            values_template.trainingConfig.dnsPolicy = cluster_parameters['dns_policy']
+
         if self.cfg.wandb_api_key_file is not None:
             values_template.trainingConfig.wandbKey = self._add_wandb_key_to_chart()
 
@@ -997,6 +1000,9 @@ class Conversion(NemoMegatronStage):
         values_template.trainingConfig.pipelineParallelism = self.cfg.conversion.model.pipeline_model_parallel_size
         values_template.trainingConfig.envVars = cluster_parameters['env_vars']
 
+        if cluster_parameters['dns_policy'] is not None:
+            values_template.trainingConfig.dnsPolicy = cluster_parameters['dns_policy']
+
         k8s_template_path = job_path.folder
         k8s_template_file = Path(k8s_template_path / 'k8s_template' / 'values.yaml')
         k8s_template_file.parent.mkdir(parents=True, exist_ok=True)
@@ -1234,6 +1240,9 @@ class EvalHarnessEvaluation(NemoMegatronStage):
         values_template.trainingConfig.hparamsFile = self.cfg.evaluation.model.hparams_file
         values_template.trainingConfig.tasks = self.cfg.evaluation.run.tasks
         values_template.trainingConfig.envVars = cluster_parameters['env_vars']
+
+        if cluster_parameters['dns_policy'] is not None:
+            values_template.trainingConfig.dnsPolicy = cluster_parameters['dns_policy']
 
         k8s_template_path = job_path.folder
         k8s_template_file = Path(k8s_template_path / 'k8s_template' / 'values.yaml')
