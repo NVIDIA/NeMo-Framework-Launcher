@@ -319,6 +319,7 @@ class NemoMegatronStage:
                 {
                     **shared_parameters,
                     "container_image": container_image,
+                    "env_vars": env_vars,
                 }
             )
 
@@ -637,6 +638,7 @@ class NeMoStage(NemoMegatronStage):
         values_template.trainingConfig.NFSPath = cluster_parameters['nfs_path']
         values_template.trainingConfig.ibResourceName = cluster_parameters['ib_resource_name']
         values_template.trainingConfig.ibCount = cluster_parameters['ib_count']
+        values_template.trainingConfig.envVars = cluster_parameters['env_vars']
 
         if self.cfg.wandb_api_key_file is not None:
             values_template.trainingConfig.wandbKey = self._add_wandb_key_to_chart()
@@ -663,7 +665,7 @@ class NeMoStage(NemoMegatronStage):
         devices = self.stage_cfg.trainer.get("devices", 1)
         if self.cluster != "bcm":
             env_vars["SLURM_NTASKS_PER_NODE"] = devices
-        if self.cluster == "bcp":  # Set env prefix as env var on BCP
+        if self.cluster in ["bcp", "k8s"]:  # Set env prefix as env var on BCP
             for env_var_str in [self._cuda_device_max_connections, self._cuda_visible_devices, self._set_ln_sm_margin, self._skip_ag_overlap,]:
                 if env_var_str:
                     var_name, var_val = env_var_str.split("=")
@@ -993,6 +995,7 @@ class Conversion(NemoMegatronStage):
         values_template.trainingConfig.launcherScriptsPath = self.cfg.launcher_scripts_path
         values_template.trainingConfig.tensorParallelism = self.cfg.conversion.model.tensor_model_parallel_size
         values_template.trainingConfig.pipelineParallelism = self.cfg.conversion.model.pipeline_model_parallel_size
+        values_template.trainingConfig.envVars = cluster_parameters['env_vars']
 
         k8s_template_path = job_path.folder
         k8s_template_file = Path(k8s_template_path / 'k8s_template' / 'values.yaml')
@@ -1230,6 +1233,7 @@ class EvalHarnessEvaluation(NemoMegatronStage):
         values_template.trainingConfig.checkpointName = self.cfg.evaluation.model.checkpoint_name
         values_template.trainingConfig.hparamsFile = self.cfg.evaluation.model.hparams_file
         values_template.trainingConfig.tasks = self.cfg.evaluation.run.tasks
+        values_template.trainingConfig.envVars = cluster_parameters['env_vars']
 
         k8s_template_path = job_path.folder
         k8s_template_file = Path(k8s_template_path / 'k8s_template' / 'values.yaml')
