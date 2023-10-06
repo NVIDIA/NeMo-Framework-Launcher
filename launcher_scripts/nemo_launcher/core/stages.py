@@ -37,6 +37,7 @@ __MULTIMODAL_MODELS_LIST__ = [
     "imagen",
     "controlnet",
     "nsfw",
+    "neva",
 ]
 
 
@@ -815,6 +816,8 @@ class Conversion(NemoMegatronStage):
             code_path = self._nemo_code_path / "examples/vision/convert_ckpt_to_nemo.py"
         elif choice_model_type in __MULTIMODAL_MODELS_LIST__:
             code_path = self._nemo_code_path / "examples/multimodal/convert_ckpt_to_nemo.py"
+        else:
+            raise ValueError(f"Model type: {choice_model_type} not recognized")
 
         args = create_args_list(
             replace_underscore=False,
