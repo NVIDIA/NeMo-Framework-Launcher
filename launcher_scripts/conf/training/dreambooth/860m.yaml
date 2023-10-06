@@ -10,7 +10,7 @@ trainer:
   devices: 1
   num_nodes: 1
   accelerator: gpu
-  precision: 16
+  precision: bf16-mixed
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
   use_distributed_sampler: False
@@ -39,6 +39,7 @@ exp_manager:
     every_n_train_steps: 200
     every_n_epochs: 0
     monitor: reduced_train_loss
+    save_on_train_epoch_end: False
     filename: 'dreambooth--{reduced_train_loss:.2f}-{step}-{consumed_samples}'
     always_save_nemo: False # saves nemo file during validation
     save_nemo_on_train_end: True # not recommended when training large models on clusters with short time limits
@@ -59,8 +60,8 @@ model:
   micro_batch_size: 2 # limited by GPU memory
   global_batch_size: 2 # will use more micro batches to reach global batch size
 
-  with_prior_preservation: True
-  pretrained_ckpt:
+  with_prior_preservation: False
+  use_cached_latents: True
   prior_loss_weight: 0.5
   train_text_encoder: False
   restore_from_path: /ckpts/nemo-v1-5-final-ema.nemo #This ckpt is only used to generate regularization images, so as for inference .nemo ckpt is needed
@@ -71,7 +72,7 @@ model:
   log_every_t: 200
   timesteps: 1000
   first_stage_key: images
-  cond_stage_key: captions # txt for cifar, caption for pbss
+  cond_stage_key: captions
   image_size: 64
   channels: 4
   cond_stage_trainable: false
@@ -99,8 +100,9 @@ model:
   cond_stage_forward:
   text_embedding_dropout_rate: 0.1
   fused_opt: True
-  inductor: False
+  inductor: True
   inductor_cudagraphs: False
+  channels_last: True
 
   unet_config:
     _target_: nemo.collections.multimodal.modules.stable_diffusion.diffusionmodules.openaimodel.UNetModel
@@ -207,11 +209,12 @@ model:
     instance_prompt: a photo of a sks dog
     regularization_dir: /datasets/nemo_dogs
     regularization_prompt: a photo of a dog
-    num_reg_images: 200
+    num_reg_images: 20
     num_images_per_prompt: 4
-    train_batch_size: 2
     resolution: 512
     center_crop: True
+    cached_instance_dir: #/datasets/instance_dir_cached
+    cached_reg_dir: #/datasets/nemo_dogs_cached
 
 ##The below infer config is to use inference script generating regularization images
 infer:
