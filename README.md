@@ -17,6 +17,9 @@ NeMo Framework includes the latest in large-scale training techniques including:
 - Mixed precision training
   * FP8
   * BF16
+- Distributed Checkpointing
+- Community Models
+  * LLAMA-2
 
 NeMo Framework model training scales to 1000's of GPUs and can be used for training LLMs on trillions of tokens.
 
@@ -54,8 +57,37 @@ See the [Feature Matrix](https://docs.nvidia.com/nemo-framework/user-guide/lates
 
 ## Installation
 
+The NeMo Framework Launcher should be installed on a head node or a local machine in a virtual python environment.
+
+```bash
+git clone https://github.com/NVIDIA/NeMo-Megatron-Launcher.git
+cd NeMo-Megatron-Launcher
+pip install -r requirements.txt
+```
+
 ## Usage
+
+The best way to get started with the NeMo Framework Launcher is go through 
+the [NeMo Framework Playbooks](https://docs.nvidia.com/nemo-framework/user-guide/latest/playbooks/index.html)
+
+After everything is configured in the `.yaml` files, the Launcher can be run with:
+
+```bash
+python main.py
+```
+
+Since the Launcher uses [Hydra](https://hydra.cc/docs/intro/), 
+any configuration can be overridden directly in the `.yaml` file or via the command line.
+See Hydra's [override grammar](https://hydra.cc/docs/advanced/override_grammar/basic/) for more information. 
 
 ## Contributing
 
+Contributions are welcome!
+
+To contribute to the NeMo Framework Launcher, simply create a pull request with the changes on GitHub.
+After the pull request is reviewed by a NeMo FW Developer, approved, and passes the unit and CI tests, 
+then it will be merged.
+
 ## License
+
+The NeMo Framework Launcher is licensed under the [Apache 2.0 License](https://github.com/NVIDIA/NeMo-Megatron-Launcher/blob/master/LICENSE)
