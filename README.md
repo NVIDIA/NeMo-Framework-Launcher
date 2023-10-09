@@ -3409,8 +3409,8 @@ painting is set against a backdrop of a mountainous landscape, which adds depth 
 overall composition of the painting is visually appealing and showcases the artist's skill in capturing the 
 essence of the subject.
 
-prompt_1: <image>Discuss the historical impact and the significance of this painting in the art world.
-response_1: The painting, featuring a woman with a smiling expression and a red background, is a portrait of Mona 
+prompt_2: <image>Discuss the historical impact and the significance of this painting in the art world.
+response_2: The painting, featuring a woman with a smiling expression and a red background, is a portrait of Mona 
 Lisa, created by the famous artist Leonardo da Vinci. Mona Lisa is widely considered one of the most iconic paintings 
 in the history of art, and it has had a significant impact on the art world. The painting's mysterious and enigmatic 
 smile has captivated viewers for centuries, and it has been the subject of numerous interpretations and artistic 
