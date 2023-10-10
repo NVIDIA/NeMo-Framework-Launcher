@@ -14,16 +14,16 @@
 
 FROM nvcr.io/ea-bignlp/nemofw-training:23.07-py3
 
+ARG NCCL_VERSION=2.18.5-1+cuda12.2
 ARG EFA_INSTALLER_VERSION=1.24.1
 ARG AWS_OFI_NCCL_VERSION=1.7.2-aws
 
-# UPGRADE NCCL to latest version
+# NCCL
 RUN cd /opt && \
     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
     dpkg -i cuda-keyring_1.0-1_all.deb && \
     apt update && \
-    apt install libnccl2 libnccl-dev
-
+    apt install libnccl2==${NCCL_VERSION} libnccl-dev==${NCCL_VERSION}
 
 # EFA
 RUN apt-get update && \
