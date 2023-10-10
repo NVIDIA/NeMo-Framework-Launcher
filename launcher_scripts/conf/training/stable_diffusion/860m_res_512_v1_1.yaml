@@ -123,7 +123,6 @@ model:
     use_checkpoint: False
     legacy: False
     use_flash_attention: True
-    enable_amp_o2_fp16: False
 
   first_stage_config:
     _target_: nemo.collections.multimodal.models.stable_diffusion.ldm.autoencoder.AutoencoderKL
@@ -178,9 +177,6 @@ model:
       name: WarmupHoldPolicy
       warmup_steps: 10000
       hold_steps: 10000000000000 # Incredibly large value to hold the lr as constant
-    capturable: True
-    master_weights: True
-    max_norm: ${trainer.gradient_clip_val}
 
   # Nsys profiling options
   nsys_profile:
