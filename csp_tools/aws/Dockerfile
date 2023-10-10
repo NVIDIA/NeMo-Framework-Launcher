@@ -12,10 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.08.03
+FROM nvcr.io/ea-bignlp/nemofw-training:23.07-py3
 
-ARG EFA_INSTALLER_VERSION=latest
-ARG AWS_OFI_NCCL_VERSION=1.4.0-aws
+ARG EFA_INSTALLER_VERSION=1.24.1
+ARG AWS_OFI_NCCL_VERSION=1.7.2-aws
+
+# UPGRADE NCCL to latest version
+RUN cd /opt && \
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
+    dpkg -i cuda-keyring_1.0-1_all.deb && \
+    apt update && \
+    apt install libnccl2 libnccl-dev
+
 
 # EFA
 RUN apt-get update && \
@@ -32,7 +40,9 @@ ENV LD_LIBRARY_PATH=/opt/amazon/efa/lib:$LD_LIBRARY_PATH
 ENV PATH=/opt/amazon/efa/bin:$PATH
 
 # NCCL EFA Plugin
-RUN mkdir -p /tmp && \
+RUN apt-get update && \
+    apt-get -y install libhwloc-dev && \
+    mkdir -p /tmp && \
     cd /tmp && \
     curl -LO https://github.com/aws/aws-ofi-nccl/archive/refs/tags/v${AWS_OFI_NCCL_VERSION}.tar.gz && \
     tar -xzf /tmp/v${AWS_OFI_NCCL_VERSION}.tar.gz && \
@@ -40,10 +50,11 @@ RUN mkdir -p /tmp && \
     mv aws-ofi-nccl-${AWS_OFI_NCCL_VERSION} aws-ofi-nccl && \
     cd /tmp/aws-ofi-nccl && \
     ./autogen.sh && \
-    ./configure --prefix=/opt/amazon/efa \
+    ./configure --prefix=/opt/aws-ofi-nccl \
         --with-libfabric=/opt/amazon/efa \
         --with-cuda=/usr/local/cuda \
-        --with-mpi=/usr/local/mpi && \
+        --enable-platform-aws \
+        --with-mpi=/opt/amazon/openmpi && \
     make -j$(nproc) install && \
     rm -rf /tmp/aws-ofi/nccl
 
@@ -52,12 +63,12 @@ RUN echo "/usr/local/lib"      >> /etc/ld.so.conf.d/local.conf && \
     echo "/opt/amazon/efa/lib" >> /etc/ld.so.conf.d/efa.conf &&  \
     ldconfig
 
-ENV OMPI_MCA_pml=^ucx                \
-    OMPI_MCA_btl=^openib,uct         \
-    NCCL_TOPO_FILE=/usr/local/share/aws-ofi-nccl/xml/p4d-24xl-topo.xml
+ENV OMPI_MCA_pml=^cm                \
+    OMPI_MCA_btl=tcp,self           \
+    OPAL_PREFIX=/opt/amazon/openmpi    
 
-ENV RDMAV_FORK_SAFE=1             \
-    FI_PROVIDER=efa               \
-    FI_EFA_USE_DEVICE_RDMA=1
+ENV FI_PROVIDER=efa
 
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+ENV LD_LIBRARY_PATH="/usr/local/lib:/opt/nccl/build/lib:/usr/local/cuda/lib64:/opt/amazon/efa/lib:/opt/amazon/openmpi/lib:/opt/aws-ofi-nccl/lib:${LD_LIBRARY_PATH}"
+
+ENV PATH="/usr/local/nvm/versions/node/v16.19.1/bin:/opt/amazon/efa/bin:/usr/local/lib/python3.8/dist-packages/torch_tensorrt/bin:/opt/amazon/openmpi/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ucx/bin:/opt/tensorrt/bin:/opt/s5cmd"
