@@ -23,13 +23,13 @@ trainer:
   enable_model_summary: False # default PTL callback for this does not support model parallelism, instead we log manually
 
 exp_manager:
-  explicit_log_dir: ${training.run.results_dir}/results
+  explicit_log_dir: ${fine_tuning.run.results_dir}/results
   exp_dir: null
   name: nemo_nsfw
   create_wandb_logger: False
   wandb_logger_kwargs:
     project: nemo_nsfw
-    name: ${training.run.name}
+    name: ${fine_tuning.run.name}
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
   create_checkpoint_callback: True
@@ -40,7 +40,7 @@ exp_manager:
     always_save_nemo: False # saves nemo file during validation
     save_nemo_on_train_end: True # not recommended when training large models on clusters with short time limits
     filename: 'nemo_nsfw--{val_loss:.2f}-{step}-{consumed_samples}'
-    model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
+    model_parallel_size: ${multiply:${fine_tuning.model.tensor_model_parallel_size}, ${fine_tuning.model.pipeline_model_parallel_size}}
   ema:
     enable: False
     decay: 0.9999
@@ -49,8 +49,8 @@ exp_manager:
     cpu_offload: False
 
 model:
-  save_path: ${training.run.results_dir}/${training.run.name}.nemo
-  precision: ${training.trainer.precision}
+  save_path: ${fine_tuning.run.results_dir}/${fine_tuning.run.name}.nemo
+  precision: ${fine_tuning.trainer.precision}
   # specify micro_batch_size, global_batch_size, and model parallelism
   # gradient accumulation will be done automatically based on data_parallel_size
   micro_batch_size: 128 # limited by GPU memory
@@ -71,7 +71,7 @@ model:
   gather_with_grad: True # enable full distributed gradient for feature gather, set this to False may cause convergence issue
 
   vision:
-    precision: ${training.trainer.precision}
+    precision: ${fine_tuning.trainer.precision}
     # vision configs
     patch_dim: 14
     img_h: 224
@@ -82,7 +82,7 @@ model:
     drop_patch_rate: 0.0
     drop_path_rate: 0.0
     global_average_pool: false
-    output_dim: ${training.model.output_dim}
+    output_dim: ${fine_tuning.model.output_dim}
     class_token_length: 1
     preprocess_layernorm: true
     encoder_seq_length: 196
@@ -124,9 +124,9 @@ model:
     activation: quick-gelu
 
   text:
-    precision: ${training.trainer.precision}
+    precision: ${fine_tuning.trainer.precision}
     # text configs
-    output_dim: ${training.model.output_dim}
+    output_dim: ${fine_tuning.model.output_dim}
 
     encoder_seq_length: 77
     max_position_embeddings: ${.encoder_seq_length}
