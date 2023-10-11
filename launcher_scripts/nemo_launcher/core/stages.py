@@ -531,6 +531,7 @@ class Training(NeMoStage):
             "imagen": self._nemo_code_path / "examples/multimodal/generative/imagen/imagen_training.py",
             "dreambooth": self._nemo_code_path / "examples/multimodal/generative/dreambooth/dreambooth.py",
             "controlnet": self._nemo_code_path / "examples/multimodal/generative/controlnet/controlnet_train.py",
+            "nerf": self._nemo_code_path / "examples/multimodal/generative/nerf/main.py",
             "neva": self._nemo_code_path / "examples/multimodal/mllm/neva/neva_pretrain.py",
         }
         return model_type_to_code_path[model_type]

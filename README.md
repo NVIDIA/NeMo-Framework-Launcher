@@ -20,6 +20,8 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
   * [2.7. Imagen](#27-imagen)
   * [2.8. NSFW](#28-nsfw)
   * [2.9. NeVA](#29-neva)
+  * [2.10. DreamFsuion](#210-dreamfusion)
+     + [2.10.1 DreamFusion-DMTet](#2101-dreamfusion-dmtet)
 - [3. Feature Matrix](#3-feature-matrix)
   * [3.1. ViT Models](#31-vit-models)
   * [3.2. CLIP Models](#32-clip-models)
@@ -28,6 +30,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
   * [3.5. Imagen Models](#35-imagen-models)
   * [3.6. NSFW Models](#36-nsfw-models)
   * [3.7. NeVA Models](#37-neva-models)
+  * [3.8. DreamFusion Models](#38-dreamfusion-models)
 - [4. Setup Details](#4-setup-details)
 - [5. Cloud Service Providers](#5-cloud-service-providers)
   * [5.1. Cluster Bring-Up](#51-cluster-bring-up)
@@ -75,6 +78,8 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
       - [6.2.7.1. Preparing the Training Dataset](#6271-preparing-the-training-dataset)
       - [6.2.7.2. Setting Up LLaMA-2 Chat Checkpoints](#6272-setting-up-llama-2-chat-checkpoints)
       - [6.2.7.3. Tokenizer Configuration](#6273-tokenizer-configuration)
+    + [6.2.8. DreamFusion](#628-dreamfusion)
+      - [6.2.8.1. DreamFusion-DMTet](#6281-dreamfusion-dmtet)
   * [6.3. Model Training](#63-model-training)
     + [6.3.1. Vision Transformer Training](#631-vision-transformer-training)
     + [6.3.2. CLIP Training](#632-clip-training)
@@ -84,6 +89,8 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
     + [6.3.6. ControlNet Training](#636-controlnet-training)
     + [6.3.7. Imagen Training](#637-imagen-training)
     + [6.3.8. NeVA Training](#638-neva-training)
+    + [6.3.9. DreamFusion Training](#639-dreamfusion-training)
+      - [6.3.9.1 DreamFusion-DMTet Training](#6391-dreamfusion-dmetet-training)
   * [6.4. Checkpoint Conversion](#64-checkpoint-conversion)
   * [6.5. Model Fine-tuning](#65-model-fine-tuning)
     + [6.5.1. Vision Transformer Fine-tuning](#651-vision-transformer-fine-tuning)
@@ -162,6 +169,9 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
   * [8.9. NeVA Results](#89-neva-results)
     + [8.9.1. Training Quality Results](#891-training-quality-results)
     + [8.2.2. Training Performance Results](#822-training-performance-results-1)
+  * [8.10. DreamFusion Results](#810-dreamfusion-results)
+    + [8.10.1. Training Quality Results](#8101-training-quality-results)
+    + [8.10.2. Training Performance Results](#8102-training-performance-results)
 - [9. Known Issues](#9-known-issues)
 
 <!-- /TOC -->
@@ -307,6 +317,47 @@ imporving detection quality compared to just zero-shot classification.
 ### 2.9. NeVA
 
 Originating from [LLaVA](https://github.com/haotian-liu/LLaVA/tree/main/llava) (Large Language and Vision Assistant), NeVA stands as a pioneering innovation in the NeMo Multimodal landscape. This model synergizes language-centric large models (such as NVGPT or Llama2) with a vision encoder, leveraging the power of machine-generated multimodal language-image instruction-following data. Where traditional language models focus exclusively on textual processing, NeVA ambitiously pursues an integrated approach to visual and linguistic comprehension.
+
+### 2.10. DreamFusion
+<img src="img/dreamfusion_model_overview.png"/>
+
+[DreamFusion](https://dreamfusion3d.github.io/) uses a pretrained text-to-image diffusion model to perform
+text-to-3D synthesis. The model uses a loss based on probability density distillation that enables the use of a 2D
+diffusion model as a prior for optimization of a parametric image generator.
+
+Using this loss in a DeepDream-like procedure, the model optimizes a randomly-initialized 3D model
+(a Neural Radiance Field, or NeRF) via gradient descent such that its 2D renderings from random angles achieve a low
+loss. The resulting 3D model of the given text can be viewed from any angle, relit by arbitrary illumination, or composited
+into any 3D environment. This approach requires no 3D training data and no modifications to the image diffusion model,
+demonstrating the effectiveness of pretrained image diffusion models as priors.
+
+**Remarks**
+* Notable differences from the paper:
+  * We use Stable Diffusion for the guidance model, while the paper uses Imagen.
+  * The nerf model is trained in latent space for the first 20,000 iterations, then on the RGB space for the remaineder of the training run.
+  * The NeRF and renderer implementations are different from the paper, we provide multiple backends for each.
+  * The training schedule, learning rates, optimizer and hyperparameters are also different from the paper.
+* This model is based on a number of research papers and open-source projects, including:
+  * [Stable-DreamFusion](https://github.com/ashawkey/stable-dreamfusion)
+  * [Latent-NeRF](https://github.com/eladrich/latent-nerf)
+  * [nvdiffrast](https://nvlabs.github.io/nvdiffrast/)
+  * [tiny-cudan-nn](https://github.com/NVlabs/tiny-cuda-nn)
+  * [torch-ngp](https://github.com/ashawkey/torch-ngp)
+  * [nerfacc](https://www.nerfacc.com/)
+
+#### 2.10.1. DreamFusion-DMTet
+
+NeRF (Neural Radiance Fields) models integrate geometry and appearance through volume rendering. As a result,
+using NeRF for 3D modeling can be less effective when it comes to capturing both the intricate details of a surface as well as
+its material and texture.
+
+DMTet finetunning disentangles the learning of geometry and appearance models, such that both a fine surface and a rich
+material/texture can be generated. To enable such a disentangled learning, a hybrid scene representation of
+[DMTet](https://nv-tlabs.github.io/DMTet/) is used.
+
+The DMTet model maintains a deformable tetrahedral grid that encodes a discretized signed distance function and a
+differentiable marching tetrahedra layer that converts the implicit signed distance representation to the explicit
+surface mesh representation.
 
 
 ## 3. Feature Matrix
@@ -470,6 +521,34 @@ Originating from [LLaVA](https://github.com/haotian-liu/LLaVA/tree/main/llava) (
 | Distributed Optimizer    | No                                                       | N/A                                                                                                                                           |
 | TorchInductor            | No                                                       | N/A                                                                                                                                           |
 | Flash Attention          | Yes                                                      | N/A                                                                                                                                           |
+
+### 3.8. DreamFusion Models
+
+| Feature                                | Training                                                    |
+|----------------------------------------|-------------------------------------------------------------|
+| Data parallelism                       | Yes                                                         |
+| Tensor parallelism                     | No                                                          |
+| Sequence parallelism                   | No                                                          |
+| Activation checkpointing               | Yes                                                         |
+| FP32/TF32                              | Yes                                                         |
+| AMP/BF16                               | Yes                                                         |
+| BF16 O2                                | No                                                          |
+| TransformerEngine/FP8                  | No                                                          |
+| Multi-GPU                              | Yes                                                         |
+| Multi-Node                             | No                                                          |
+| Inference deployment                   | N/A                                                         |
+| SW stack support                       | Slurm DeepOps/Base Command Manager/Base Command Platform    |
+| NVfuser                                | No                                                          |
+| Distributed Optimizer                  | No                                                          |
+| TorchInductor                          | Yes                                                         |
+| Flash Attention                        | Yes                                                         |
+| TorchNGP renderer                      | Yes                                                         |
+| NerfAcc renderer                       | Yes                                                         |
+| TCNN NeRF backend                      | Yes                                                         |
+| HuggingFace Stable Diffusion backend   | Yes                                                         |
+| NeMo Stable Diffusion backend          | Yes                                                         |
+| NeMo-TRT Stable Diffusion backend      | Yes                                                         |
+| GUI                                    | No                                                          |
 
 
 ## 4. Setup Details
@@ -1294,9 +1373,9 @@ The directory structure should look like this:
 
 ##### 6.2.7.1. Preparing the Training Dataset
 
-The NeVA model training involves two phases: pretraining and finetuning. Each phase requires a distinct dataset. 
+The NeVA model training involves two phases: pretraining and finetuning. Each phase requires a distinct dataset.
 
-For pretraining, use the *LAION/CC/SBU BLIP-Caption Concept-balanced 558K* dataset. Obtain this dataset from [LLaVA's official GitHub repository](https://github.com/haotian-liu/LLaVA/blob/main/docs/Data.md). After downloading, extract the dataset to: 
+For pretraining, use the *LAION/CC/SBU BLIP-Caption Concept-balanced 558K* dataset. Obtain this dataset from [LLaVA's official GitHub repository](https://github.com/haotian-liu/LLaVA/blob/main/docs/Data.md). After downloading, extract the dataset to:
 ```
 ${data_dir}/neva/datasets/LLaVA-Pretrain-LCS-558K/blip_laion_cc_sbu_558k.json
 ```
@@ -1327,14 +1406,14 @@ Before initiating pretraining, convert the LLaMA-2 checkpoints to NeMo's format:
    ```bash
    python /opt/NeMo/scripts/nlp_language_modeling/convert_hf_llama_to_nemo.py \
      --in-file <PATH-TO-HF-CHECKPOINT> \
-     --out-file ${data_dir}/neva/checkpoints/llama-2-7b-chat.nemo 
+     --out-file ${data_dir}/neva/checkpoints/llama-2-7b-chat.nemo
    ```
    For the 13B chat model, alter the `--in-file` and `--out-file` path accordingly.
 
 3. Execute the command below to partition the checkpoint for tensor model parallel sizes of either 4 or 8. For optimal performance, use TP=4 for the 7B model and TP=8 for the 13B model. This ensures both pretraining and finetuning proceed without memory issues.
 
   ```bash
-  # Instructions for the 7B model partitioning provided here. 
+  # Instructions for the 7B model partitioning provided here.
   # Adjust parameters for the 13B model as needed.
    python /opt/NeMo/examples/nlp/language_modeling/megatron_change_num_partitions.py \
      --model_file=${data_dir}/neva/checkpoints/llama-2-7b-chat.nemo  \
@@ -1370,6 +1449,33 @@ Special tokens must be incorporated into the tokenizer for NeVA training. After 
    --tokens "<extra_id_0>" "<extra_id_1>" "<extra_id_2>" "<extra_id_3>" \
             "<extra_id_4>" "<extra_id_5>" "<extra_id_6>" "<extra_id_7>"
    ```
+
+#### 6.2.8. DreamFusion
+
+_Note: It is the responsibility of each user to check the content
+of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
+Users should review any applicable links associated with the dataset before placing the data on their machine._
+
+DreamFusion relys on a pretrained 2D text-to-image diffusion model to perform text-to-3D synthesis, thereby
+eliminating the need for a training dataset. We support Stable Diffusion as the backend diffusion model,
+depending on your chosen backend implementation, it will be necessary to set up the model checkpoints.
+
+1. HuggingFace pipeline: the checkpoint will be automatically downloaded at runtime.
+2. NeMo pipeline: see [Section 6.8.3](#683-stable-diffusion-export) and [Section 6.9](#69-convert-checkpoints-from-external-sources-to-nemo)
+
+##### 6.2.8.1 DreamFusion-DMTet
+
+_Note: It is the responsibility of each user to check the content
+of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
+Users should review any applicable links associated with the dataset before placing the data on their machine._
+
+Similar to DreamFusion, DMTet relys on a pretrained 2D text-to-image diffusion model to perform text-to-3D synthesis
+and doesn't require an external database. However, the network requires three components:
+
+1. Diffusion model: see [Section 6.2.3](#623-dreamfusion) for the supported diffusion pipelines.
+2. A pretrained DreamFusion checkpoint, used to initalized the DMTet network see [Section 6.3.4](#634-dreamfusion-training)
+3. Initial tetrahedral grid: can be generated using [this](https://github.com/ahmadki/quartet) repo, or downloaded fomr NGC.
+
 
 ### 6.3. Model Training
 
@@ -1785,6 +1891,20 @@ To enable the training stage using a NeVA model, follow these configuration step
 1. Prior to initiating your training, ensure you've readied all necessary datasets and checkpoints. Adhere to the guidelines provided in [Section 6.2.7.](#627-neva).
 2. Before starting the training, set the correct path for the dataset and checkpoints in `neva/llama2_{model_size}_chat.yaml`.
 
+#### 6.3.9. DreamFusion Training
+
+DreamFusion trains a Neural Radiance Field (NeRF) using a 2D diffusion model as a prior. The recommended
+configuration can be found in the `conf/training/nerf/dreamfusion` directory. You can access and modify the parameters
+to customize the hyperparameters according to your specific training requirements.
+
+##### 6.3.9.1 DreamFusion-DMTet Training
+
+DreamFusion-DMTet fine tunes a DreamFusion checkpoint using a DMTet model. The recommended
+configuration can be found in the `conf/training/nerf/dreamfusion-dmtet` directory. You can access and modify the parameters
+to customize the hyperparameters according to your specific training requirements.
+You will need to provide a pretrained model using DreamFusion in the `model.resume_from_checkpoint` paramter, and the
+initial tetrahedral grid using the `model.renderer.quartet_fileresume_from_checkpoint` paramter.
+
 ### 6.4. Checkpoint Conversion
 
 We provide a convenient tool for converting checkpoints from the `.ckpt` format to the `.nemo` format. The `.nemo`
@@ -1901,7 +2021,7 @@ To enable the fine-tuning stage with a NeVA model, configure the configuration f
 
 1. In the `defaults` section of `conf/config.yaml`, update the `fine_tuning` field to point to the desired ViT
    configuration file. For example,
-   if you want to fine-tune a pretrained NeVA model based on `LLaMA-2-7B-Chat	`(i.e. `llama2_7b_chat`) configuration, 
+   if you want to fine-tune a pretrained NeVA model based on `LLaMA-2-7B-Chat	`(i.e. `llama2_7b_chat`) configuration,
    change the `fine_tuning` field to `neva/llama2_7b_chat`.
    ```yaml
     defaults:
@@ -1915,7 +2035,7 @@ To enable the fine-tuning stage with a NeVA model, configure the configuration f
       ...
    ```
 
-**Remarks**: 
+**Remarks**:
 1. Prior to initiating your fine-tuning, ensure you've readied all necessary datasets and checkpoints. Adhere to the guidelines provided in [Section 6.2.7.](#627-neva).
 2. To load a pretrained checkpoint for fine-tuning, set the `restore_from_path` field in the `model` section
 to the path of the pretrained checkpoint in `.nemo` format. By default, this field links to the `.nemo` format
@@ -2698,7 +2818,7 @@ To enable the export stage with a NSFW model, configure the configuration files:
 3. Configure `infer.max_batch_size` of the `conf/export/nsfw/export_nsfw.yaml` file to set the max_batch_size to use for
    the ONNX and
    NVIDIA TensorRT model.
-4. Set the resolution of the model with `max_dim` in the `infer` field.   
+4. Set the resolution of the model with `max_dim` in the `infer` field.
 This will be used to generate the ONNX and NVIDIA TensorRT formats.
 
 **Remarks**:
@@ -3402,23 +3522,23 @@ Here we show two responses generated by NeVA 13B model.
 
 ```
 prompt_1: <image>Describe this painting in detail.
-response_1: The painting is a portrait of a woman, likely Leonardo da Vinci's famous painting, \"Mona Lisa.\" 
-The woman is depicted with a smile on her face, which is a characteristic feature of the painting. The portrait 
-is painted in a realistic style, capturing the woman's facial expression and features in great detail. The 
-painting is set against a backdrop of a mountainous landscape, which adds depth and context to the scene. The 
-overall composition of the painting is visually appealing and showcases the artist's skill in capturing the 
+response_1: The painting is a portrait of a woman, likely Leonardo da Vinci's famous painting, \"Mona Lisa.\"
+The woman is depicted with a smile on her face, which is a characteristic feature of the painting. The portrait
+is painted in a realistic style, capturing the woman's facial expression and features in great detail. The
+painting is set against a backdrop of a mountainous landscape, which adds depth and context to the scene. The
+overall composition of the painting is visually appealing and showcases the artist's skill in capturing the
 essence of the subject.
 
 prompt_2: <image>Discuss the historical impact and the significance of this painting in the art world.
-response_2: The painting, featuring a woman with a smiling expression and a red background, is a portrait of Mona 
-Lisa, created by the famous artist Leonardo da Vinci. Mona Lisa is widely considered one of the most iconic paintings 
-in the history of art, and it has had a significant impact on the art world. The painting's mysterious and enigmatic 
-smile has captivated viewers for centuries, and it has been the subject of numerous interpretations and artistic 
-reinterpretations.\n\nThe painting's historical significance lies in its representation of the Renaissance period, 
-which marked a significant shift in artistic styles and techniques. The painting's intricate details, such as the 
-subtle smile and the sfumato technique used to create a soft, hazy effect, showcase the mastery of Leonardo da Vinci 
-and the artistic advancements of the time.\n\nMoreover, the painting's enduring popularity and influence have made 
-it a symbol of artistic excellence and a cultural icon. It has inspired countless artists, photographers, and 
+response_2: The painting, featuring a woman with a smiling expression and a red background, is a portrait of Mona
+Lisa, created by the famous artist Leonardo da Vinci. Mona Lisa is widely considered one of the most iconic paintings
+in the history of art, and it has had a significant impact on the art world. The painting's mysterious and enigmatic
+smile has captivated viewers for centuries, and it has been the subject of numerous interpretations and artistic
+reinterpretations.\n\nThe painting's historical significance lies in its representation of the Renaissance period,
+which marked a significant shift in artistic styles and techniques. The painting's intricate details, such as the
+subtle smile and the sfumato technique used to create a soft, hazy effect, showcase the mastery of Leonardo da Vinci
+and the artistic advancements of the time.\n\nMoreover, the painting's enduring popularity and influence have made
+it a symbol of artistic excellence and a cultural icon. It has inspired countless artists, photographers, and
 filmmakers, and continues to be a source of fascination and inspiration for people around the world.
 ```
 
@@ -3494,6 +3614,29 @@ The tables and charts below show the performance results.
 | NeVA Llama2 Chat 13B       | Fine-tuning | 4     | 32                | 4                | bf16 (O2) | 1.41                      | 2.68                      | 1.9         |
 
 <img src="img/NeVA%20Training%20Throughput%20Comparison.svg"/>
+
+### 8.10. DreamFusion Results
+
+#### 8.10.1. Training Performance Results
+
+We measured the end to end training time DreamFusions models on RTX-A6000-Ada and H100 cards, Using
+The following paramters:
+* Automated Mixed Precision (AMP) for FP16 computation.
+* The DreamFusion model was trained for 10,000 iterations, 2,000 iterations on the latent space and 8,000 iterations on the RGB space.
+* DreamFusion-DMTet was finetuned for 5,000 iterations.
+
+Please note that the code provide multiple backend for NeRF, stable diffusion and renderes that
+were not covered in this performance results.
+
+| Model                  | GPU Model           |Num GPUs   | Batch Size Per GPU   | NeRF backend   | Rendering backend | Stable Diffusion backend | Train time [sec]             |
+|------------------------|---------------------|-----------|----------------------|----------------|-------------------|--------------------------|------------------------------|
+| DreamFusion            | H100                | 1         | 1                    | TorchNGP       | TorchNGP          | NeMo                     | 1327 (*)                     |
+| DreamFusion            | RTX A6000           | 1         | 1                    | TorchNGP       | TorchNGP          | NeMo                     | 990                          |
+| DreamFusion-DMTet      | H100                | 1         | 1                    | TorchNGP       | TorchNGP          | NeMo                     | 699 (*)                      |
+| DreamFusion-DMTet      | RTX A6000           | 1         | 1                    | TorchNGP       | TorchNGP          | NeMo                     | 503                          |
+
+**(*) NOTE:** There is a performance bug with UNet attention layers that is affecting H100 performance. This issue will be solved in an upcoming release.
+
 
 ## 9. Known Issues
 
