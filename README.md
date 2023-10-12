@@ -123,6 +123,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
          - [6.8.6. ControlNet Export](#686-controlnet-export)
          - [6.8.7. Imagen Export](#687-imagen-export)
          - [6.8.8. NSFW Export](#688-nsfw-export)
+         - [6.8.9. NeVa Export](#689-neva-export)
       + [6.9. Convert Checkpoints from External Sources to Nemo](#69-convert-checkpoints-from-external-sources-to-nemo)
    * [7. Deploying the NeMo Multimodal Model](#7-deploying-the-nemo-multimodal-model)
       + [7.1. Setup](#71-setup)
@@ -134,11 +135,13 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
          - [7.2.5. ControlNet](#725-controlnet)
          - [7.2.6 Imagen](#726-imagen)
          - [7.2.7. NSFW](#727-nsfw)
+         - [7.2.8. NeVa](#728-neva)
       + [7.3. Query NVIDIA Triton Inference Server](#73-query-nvidia-triton-inference-server)
          - [7.3.1. Stable Diffusion and DreamBooth](#731-stable-diffusion-and-dreambooth)
          - [7.3.2. InstructPix2Pix](#732-instructpix2pix)
          - [7.3.3. ControlNet](#733-controlnet)
          - [7.3.4 Imagen](#734-imagen)
+         - [7.3.5 NeVa](#735-neva)
    * [8. Performance](#8-performance)
       + [8.1. Vision Transformer Results](#81-vision-transformer-results)
          - [8.1.1. Training Accuracy Results](#811-training-accuracy-results)
@@ -2822,6 +2825,34 @@ This will be used to generate the ONNX and NVIDIA TensorRT formats.
 1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/export/nsfw/export_nsfw.yaml`.
 
+#### 6.8.9. NeVa Export
+
+To enable the export stage with a NeVa model, configure the configuration files:
+
+1. In the `defaults` section of `conf/config.yaml`, update the `export` field to point to the desired NeVa
+   configuration file. For example,
+   if you want to use the `neva/export_neva` configuration, change the `export` field
+   to `neva/export_neva`.
+   ```yaml
+    defaults:
+      - export: neva/export_neva
+      ...
+   ```
+2. In the `stages` field of `conf/config.yaml`, make sure the `export` stage is included. For example,
+   ```yaml
+    stages:
+      - export
+      ...
+   ```
+3. Configure `infer.max_input_len` and `infer.max_output_len` of the `conf/export/neva/export_neva.yaml` file to set the max_input_len and max_output_len to use for
+   NVIDIA TensorRT-LLM model.
+
+**Remarks**:
+
+1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
+   of the pretrained checkpoint in `.nemo` format in `conf/export/neve/export_neva.yaml`.
+2. Only `max_batch_size: 1` is supported for now.
+
 
 
 ### 6.9. Convert Checkpoints from External Sources to Nemo
@@ -2925,6 +2956,10 @@ directory.
 
 Move the generated `.plan` file to `deployment/server/nsfw_trt/1/model.plan`.
 
+#### 7.2.8. NeVa
+
+Copy the generated `plan` directory to the `deployment/server/neva/1/` directory.
+
 ### 7.3. Query NVIDIA Triton Inference Server
 
 In a separate instance of the NeMo container, we can setup a client to query the server. In `deployment/client`, there
@@ -2954,6 +2989,14 @@ the path to the control image.
 At query time, the values, `seed`, `cfg` can be used as optional
 inputs. If these are not set, the defaults are the values set during export.
 The return is a single numpy array containing `num_images_per_prompt` images.
+
+#### 7.3.5 NeVa
+
+At query time, the values, `max_new_tokens`, `temperature`, `random_seed` can be used as optional
+inputs. If these are not set, the defaults are the values set during export.
+The return is a response from the model
+
+In the client example, make sure to set the prompt and the path to the input image.
 
 ## 8. Performance
 

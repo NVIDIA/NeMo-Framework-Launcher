@@ -89,6 +89,7 @@ class Export(NemoMegatronStage):
                 "vit": self._get_megatron_vit_conversion_cmds,
                 "controlnet": self._get_controlnet_conversion_cmds,
                 "imagen": self._get_imagen_conversion_cmds,
+                "neva": self._get_neva_conversion_cmds,
             },
         }[sub_stage][choice_model_type]
         return cmds_fn(self.cfg)
@@ -413,6 +414,21 @@ class Export(NemoMegatronStage):
             f"python -u {converter_path} \\\n"
             f" model.restore_from_path={model_cfg.restore_from_path}"
             f" trainer.precision={model_cfg.precision}"
+            f" {infer_args}"
+        )
+        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
+
+    def _get_neva_conversion_cmds(self, cfg):
+        """Generate export commands for controlnet models"""
+        model_cfg = cfg.export.model
+        infer_cfg = cfg.export.infer
+
+        converter_path = NEMO_PATH / "examples/multimodal/generative/mllm/neva_export.py"
+        infer_args = " \\\n".join([f"infer.{k}={v}" for k, v in infer_cfg.items()])
+        convert_cmd = (
+            f"python -u {converter_path} \\\n"
+            f" model.restore_from_path={model_cfg.restore_from_path}"
+            f" model.precision={model_cfg.precision}"
             f" {infer_args}"
         )
         return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
