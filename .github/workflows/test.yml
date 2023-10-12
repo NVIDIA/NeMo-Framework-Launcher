@@ -1,9 +1,6 @@
 name: unit_tests
 
 on:
-  push:
-    branches:
-      - 'dpykhtar/unit_tests'
   pull_request:
     branches:
       - 'dpykhtar/unit_tests'
