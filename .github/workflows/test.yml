@@ -12,9 +12,11 @@ jobs:
   unit_tests:
     runs-on: ubuntu-latest
     env:
-      working-directory: /../launcher_scripts
+      working-directory: ./launcher_scripts
 
     steps:
+      - name: checkout the repo
+        run: actions/checkout@v3
       - name: install pytest
         run: python -m pip install pytest
       - name: run unit tests
