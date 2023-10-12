@@ -1,6 +1,9 @@
-name: test
+name: unit_tests
 
 on:
+  push:
+    branches:
+      - 'dpykhtar/unit_tests'
   pull_request:
     branches:
       - 'dpykhtar/unit_tests'
@@ -10,5 +13,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Unit Tests
-        run: echo "running tests"
+      - name: Install Pytest
+        run: python -m pip install pytest
+      - name: Run Unit Tests
+        run: cd ../../launcher_scripts
+        run: pytest
