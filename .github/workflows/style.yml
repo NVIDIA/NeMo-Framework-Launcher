@@ -21,19 +21,3 @@ jobs:
       - name: code style check
         run: black . --check --verbose --diff
         working-directory: ${{env.working-directory}}
-
-  isort:
-    runs-on: ubuntu-latest
-    env:
-      working-directory: .
-
-    steps:
-      - name: checkout the repo
-        uses: actions/checkout@v3
-
-      - name: install dependencies
-        run: pip install --upgrade isort click==8.0.2
-
-      - name: import correctness check
-        run: isort . --check
-        working-directory: ${{env.working-directory}}

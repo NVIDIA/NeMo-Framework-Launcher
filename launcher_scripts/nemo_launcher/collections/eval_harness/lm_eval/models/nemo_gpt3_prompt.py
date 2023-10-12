@@ -19,8 +19,13 @@ from lm_eval.base import LM
 from nemo.collections.nlp.models.language_modeling.megatron_gpt_prompt_learning_model import (
     MegatronGPTPromptLearningModel,
 )
-from nemo.collections.nlp.modules.common.megatron.megatron_init import fake_initialize_model_parallel
-from nemo.collections.nlp.modules.common.text_generation_utils import generate, get_computeprob_response
+from nemo.collections.nlp.modules.common.megatron.megatron_init import (
+    fake_initialize_model_parallel,
+)
+from nemo.collections.nlp.modules.common.text_generation_utils import (
+    generate,
+    get_computeprob_response,
+)
 from nemo.collections.nlp.parts.nlp_overrides import NLPDDPStrategy
 from nemo.utils import logging
 from nemo.utils.app_state import AppState

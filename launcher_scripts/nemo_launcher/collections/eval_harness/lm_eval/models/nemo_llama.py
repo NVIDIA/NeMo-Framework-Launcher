@@ -19,10 +19,20 @@ import tqdm
 from lm_eval import utils
 from lm_eval.base import LM
 from megatron.core import parallel_state
-from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import MegatronGPTModel
-from nemo.collections.nlp.modules.common.megatron.megatron_init import fake_initialize_model_parallel
-from nemo.collections.nlp.modules.common.text_generation_utils import generate, get_computeprob_response
-from nemo.collections.nlp.parts.nlp_overrides import NLPDDPStrategy, NLPSaveRestoreConnector
+from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import (
+    MegatronGPTModel,
+)
+from nemo.collections.nlp.modules.common.megatron.megatron_init import (
+    fake_initialize_model_parallel,
+)
+from nemo.collections.nlp.modules.common.text_generation_utils import (
+    generate,
+    get_computeprob_response,
+)
+from nemo.collections.nlp.parts.nlp_overrides import (
+    NLPDDPStrategy,
+    NLPSaveRestoreConnector,
+)
 from nemo.utils import logging
 from nemo.utils.app_state import AppState
 from nemo.utils.get_rank import is_global_rank_zero

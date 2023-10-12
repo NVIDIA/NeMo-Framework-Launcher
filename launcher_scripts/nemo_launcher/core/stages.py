@@ -832,7 +832,10 @@ class FineTuning(NeMoStage):
             / "nemo_launcher/utils/data_utils/download_glue.py"
         )
         if download_glue_script_path.exists():
-            from nemo_launcher.utils.data_utils.download_glue import TASKS_LOWER, download_glue
+            from nemo_launcher.utils.data_utils.download_glue import (
+                TASKS_LOWER,
+                download_glue,
+            )
 
             if task_name in TASKS_LOWER:
                 download_glue(
