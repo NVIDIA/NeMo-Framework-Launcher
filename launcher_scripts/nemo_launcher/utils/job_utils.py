@@ -33,7 +33,7 @@ class JobPaths:
 
     @property
     def results_folder(self) -> Path:
-        return self._folder / 'results'
+        return self._folder / "results"
 
     @property
     def submission_file(self) -> Path:
@@ -94,19 +94,28 @@ class CommandFunction:
         Errors are provided with the internal stderr.
         """
         full_command = (
-            self.command + [str(x) for x in args] + [f"--{x}={y}" for x, y in kwargs.items()]
+            self.command
+            + [str(x) for x in args]
+            + [f"--{x}={y}" for x, y in kwargs.items()]
         )  # TODO bad parsing
         if self.verbose:
             print(f"The following command is sent: \"{' '.join(full_command)}\"")
         if self.ret_stdout:
             with subprocess.Popen(
-                full_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, cwd=self.cwd, env=self.env,
+                full_command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=False,
+                cwd=self.cwd,
+                env=self.env,
             ) as process:
                 stdout_buffer = io.StringIO()
                 stderr_buffer = io.StringIO()
 
                 try:
-                    copy_process_streams(process, stdout_buffer, stderr_buffer, self.verbose)
+                    copy_process_streams(
+                        process, stdout_buffer, stderr_buffer, self.verbose
+                    )
                 except Exception as e:
                     process.kill()
                     process.wait()
@@ -129,7 +138,12 @@ class CommandFunction:
 
 
 # pylint: disable=too-many-locals
-def copy_process_streams(process: subprocess.Popen, stdout: io.StringIO, stderr: io.StringIO, verbose: bool = False):
+def copy_process_streams(
+    process: subprocess.Popen,
+    stdout: io.StringIO,
+    stderr: io.StringIO,
+    verbose: bool = False,
+):
     """
     Reads the given process stdout/stderr and write them to StringIO objects.
     Make sure that there is no deadlock because of pipe congestion.

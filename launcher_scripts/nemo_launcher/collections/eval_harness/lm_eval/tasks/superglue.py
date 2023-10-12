@@ -43,7 +43,9 @@ class BoolQ(HFTask):
 
     def fewshot_description(self):
         # TODO: figure out actual description
-        return "Read the following passages and answer each question with a yes or a no."
+        return (
+            "Read the following passages and answer each question with a yes or a no."
+        )
 
     def doc_to_text(self, doc):
         return f"{doc['passage']}\nQuestion: {doc['question']}\nAnswer:"
@@ -104,7 +106,9 @@ class CommitmentBank(HFTask):
         )
 
     def doc_to_text(self, doc):
-        return "{}\nQuestion: {}. True, False or Neither?\nAnswer:".format(doc["premise"], doc["hypothesis"],)
+        return "{}\nQuestion: {}. True, False or Neither?\nAnswer:".format(
+            doc["premise"], doc["hypothesis"],
+        )
 
     def doc_to_target(self, doc):
         # True = entailment
@@ -130,7 +134,10 @@ class CommitmentBank(HFTask):
         return {
             "gold_choice": doc["label"],
             "model_output": results,
-            "question": doc["premise"] + "\nQuestion: " + doc["hypothesis"] + ". True, False or Neither?\nAnswer:",
+            "question": doc["premise"]
+            + "\nQuestion: "
+            + doc["hypothesis"]
+            + ". True, False or Neither?\nAnswer:",
         }
 
     def higher_is_better(self):
@@ -326,7 +333,8 @@ class ReCoRD(HFTask):
 
     def construct_requests(self, doc, ctx):
         requests = [
-            rf.loglikelihood(ctx, self.format_answer(query=doc["query"], entity=entity)) for entity in doc["entities"]
+            rf.loglikelihood(ctx, self.format_answer(query=doc["query"], entity=entity))
+            for entity in doc["entities"]
         ]
         return requests
 
@@ -339,8 +347,12 @@ class ReCoRD(HFTask):
 
         prediction = doc["entities"][max_idx]
         gold_label_set = doc["answers"]
-        f1 = metric_max_over_ground_truths(squad_metrics.compute_f1, prediction, gold_label_set)
-        em = metric_max_over_ground_truths(squad_metrics.compute_exact, prediction, gold_label_set)
+        f1 = metric_max_over_ground_truths(
+            squad_metrics.compute_f1, prediction, gold_label_set
+        )
+        em = metric_max_over_ground_truths(
+            squad_metrics.compute_exact, prediction, gold_label_set
+        )
 
         return {
             "f1": f1,
@@ -382,7 +394,9 @@ class WordsInContext(HFTask):
         return (
             "Sentence 1: {}\nSentence 2: {}\nQuestion: Is the word '{}' used in the same way in the"
             " two sentences above?\nAnswer:".format(
-                doc["sentence1"], doc["sentence2"], doc["sentence1"][doc["start1"] : doc["end1"]],
+                doc["sentence1"],
+                doc["sentence2"],
+                doc["sentence1"][doc["start1"] : doc["end1"]],
             )
         )
 
@@ -443,7 +457,9 @@ class SGWinogradSchemaChallenge(HFTask):
         if self.has_training_docs():
             if self._training_docs is None:
                 # GPT-3 Paper's format only uses positive examples for fewshot "training"
-                self._training_docs = [doc for doc in self.data["train"] if doc["label"]]
+                self._training_docs = [
+                    doc for doc in self.data["train"] if doc["label"]
+                ]
             return self._training_docs
 
     def fewshot_description(self):

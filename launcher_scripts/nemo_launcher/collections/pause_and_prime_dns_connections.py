@@ -45,7 +45,9 @@ def prime_dns_connections() -> None:
         except Exception:
             time.sleep(2)
         if time.time() > timeout:
-            print(f"{me} couldnt connect to {master_addr}:{master_port} timed out! (300s)")
+            print(
+                f"{me} couldnt connect to {master_addr}:{master_port} timed out! (300s)"
+            )
             sys.exit(110)
     print(f"SPDNS: {me} connected to {master_addr}:{master_port}")
     sock.close()

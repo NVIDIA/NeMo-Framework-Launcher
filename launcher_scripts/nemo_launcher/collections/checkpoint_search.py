@@ -18,7 +18,9 @@ import os
 import hydra
 
 
-def _inject_model_parallel_rank(filepath, tensor_model_parallel_size=1, pipeline_model_parallel_size=1):
+def _inject_model_parallel_rank(
+    filepath, tensor_model_parallel_size=1, pipeline_model_parallel_size=1
+):
     """
     Injects tensor/pipeline model parallel ranks into the filepath.
     Does nothing if not using model parallelism.
@@ -53,14 +55,18 @@ def checkpoint_search(cfg):
     dist_ckpt = False
     # Every distributed checkpoint saves a 'common.pt' file
     for result in glob.glob(os.path.join(checkpoint_folder, "*")):
-        if os.path.exists(os.path.join(result, 'common.pt')):
+        if os.path.exists(os.path.join(result, "common.pt")):
             dist_ckpt = True
             break
 
     if checkpoint_name == "latest":
 
         if dist_ckpt:
-            checkpoint_list = [f for f in glob.glob(os.path.join(checkpoint_folder, "*")) if os.path.isdir(f)]
+            checkpoint_list = [
+                f
+                for f in glob.glob(os.path.join(checkpoint_folder, "*"))
+                if os.path.isdir(f)
+            ]
         else:
             checkpoints = os.path.join(checkpoint_folder, "*.ckpt")
 
@@ -74,12 +80,18 @@ def checkpoint_search(cfg):
 
     checkpoint = os.path.join(checkpoint_folder, checkpoint_name)
     if not dist_ckpt:
-        checkpoint = _inject_model_parallel_rank(checkpoint, tensor_model_parallel_size, pipeline_model_parallel_size)
+        checkpoint = _inject_model_parallel_rank(
+            checkpoint, tensor_model_parallel_size, pipeline_model_parallel_size
+        )
     checkpoint_list = glob.glob(checkpoint)
     if len(checkpoint_list) > 1:
-        raise ValueError("Too many checkpoints fit the checkpoint name pattern in conversion config.")
+        raise ValueError(
+            "Too many checkpoints fit the checkpoint name pattern in conversion config."
+        )
     if len(checkpoint_list) == 0:
-        raise ValueError("No checkpoint found with the checkpoint name pattern in conversion config.")
+        raise ValueError(
+            "No checkpoint found with the checkpoint name pattern in conversion config."
+        )
     checkpoint_name = os.path.basename(checkpoint_list[0])
     print(checkpoint_name)
 
