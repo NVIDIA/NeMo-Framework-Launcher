@@ -19,13 +19,8 @@ from lm_eval.base import LM
 from nemo.collections.nlp.models.language_modeling.megatron_gpt_prompt_learning_model import (
     MegatronGPTPromptLearningModel,
 )
-from nemo.collections.nlp.modules.common.megatron.megatron_init import (
-    fake_initialize_model_parallel,
-)
-from nemo.collections.nlp.modules.common.text_generation_utils import (
-    generate,
-    get_computeprob_response,
-)
+from nemo.collections.nlp.modules.common.megatron.megatron_init import fake_initialize_model_parallel
+from nemo.collections.nlp.modules.common.text_generation_utils import generate, get_computeprob_response
 from nemo.collections.nlp.parts.nlp_overrides import NLPDDPStrategy
 from nemo.utils import logging
 from nemo.utils.app_state import AppState
@@ -35,11 +30,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
 
-from .nemo_gpt3_prompt import (
-    PromptRequestDataset,
-    setup_trainer_and_model,
-    DDP_initialize,
-)
+from .nemo_gpt3_prompt import DDP_initialize, PromptRequestDataset, setup_trainer_and_model
 
 
 class NeMo_LLAMA_PROMPTLM(LM):

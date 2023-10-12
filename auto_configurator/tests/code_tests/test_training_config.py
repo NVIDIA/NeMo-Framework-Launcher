@@ -1,9 +1,8 @@
 import os
 
+import autoconfig.training_config as tc
 import pytest
 from omegaconf import OmegaConf
-
-import autoconfig.training_config as tc
 
 
 class TestCalculateTpPpMbsGrid:

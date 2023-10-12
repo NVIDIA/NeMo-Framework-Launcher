@@ -1,10 +1,10 @@
-import os
 import json
-import zstandard as zstd
+import os
+
 import requests_mock
+import zstandard as zstd
 
 import launcher_scripts.nemo_launcher.utils.file_utils as utils
-
 
 FILE_NAME = "test_data.jsonl.zst"
 

@@ -13,34 +13,22 @@
 # limitations under the License.
 
 import os
-from omegaconf import OmegaConf, open_dict
 
 import torch
 import tqdm
-from megatron.core import parallel_state
 from lm_eval import utils
 from lm_eval.base import LM
-from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import (
-    MegatronGPTModel,
-)
-from nemo.collections.nlp.modules.common.megatron.megatron_init import (
-    fake_initialize_model_parallel,
-)
-from nemo.collections.nlp.modules.common.text_generation_utils import (
-    generate,
-    get_computeprob_response,
-)
-from nemo.collections.nlp.parts.nlp_overrides import (
-    NLPDDPStrategy,
-    NLPSaveRestoreConnector,
-)
-from nemo.collections.common.tokenizers.sentencepiece_tokenizer import (
-    SentencePieceTokenizer,
-)
+from megatron.core import parallel_state
+from nemo.collections.common.tokenizers.sentencepiece_tokenizer import SentencePieceTokenizer
+from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import MegatronGPTModel
+from nemo.collections.nlp.modules.common.megatron.megatron_init import fake_initialize_model_parallel
+from nemo.collections.nlp.modules.common.text_generation_utils import generate, get_computeprob_response
+from nemo.collections.nlp.parts.nlp_overrides import NLPDDPStrategy, NLPSaveRestoreConnector
 from nemo.utils import logging
 from nemo.utils.app_state import AppState
 from nemo.utils.get_rank import is_global_rank_zero
 from nemo.utils.model_utils import inject_model_parallel_rank
+from omegaconf import OmegaConf, open_dict
 from pytorch_lightning.trainer.trainer import Trainer
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Dataset

@@ -17,25 +17,21 @@ import sys
 
 import hydra
 import omegaconf
-from nemo_launcher.core.data_stages import (
-    CustomDataPreparation,
-    MC4DataPreparation,
-    PileDataPreparation,
-)
 from nemo_launcher.core.data_curation_stages import QualityFiltering
+from nemo_launcher.core.data_stages import CustomDataPreparation, MC4DataPreparation, PileDataPreparation
 from nemo_launcher.core.export_stages import Export
+from nemo_launcher.core.rlhf_stages import RLHFPPO, RLHFRewardModel
 from nemo_launcher.core.stages import (
+    PEFT,
     AdapterLearning,
     Conversion,
     EvalHarnessEvaluation,
     FineTuning,
-    PEFT,
     IA3Learning,
     NeMoEvaluation,
     PromptLearning,
     Training,
 )
-from nemo_launcher.core.rlhf_stages import RLHFRewardModel, RLHFPPO
 
 omegaconf.OmegaConf.register_new_resolver("multiply", lambda x, y: x * y, replace=True)
 omegaconf.OmegaConf.register_new_resolver(

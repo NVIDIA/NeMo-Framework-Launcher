@@ -21,13 +21,13 @@ import re
 import shlex
 import shutil
 import warnings
-from omegaconf import OmegaConf, DictConfig
-import yaml
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Set, Union
 
 import nemo_launcher.utils.job_utils as job_utils
+import yaml
 from nemo_launcher.core.logger import logger
+from omegaconf import DictConfig, OmegaConf
 
 NEMO_LAUNCHER_CI = os.getenv("NEMO_LAUNCHER_CI", "False").lower() in ("true", "t", "1")
 NEMO_LAUNCHER_DEBUG = os.getenv("NEMO_LAUNCHER_DEBUG", "False").lower() in (

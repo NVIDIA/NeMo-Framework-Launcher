@@ -1,9 +1,8 @@
 import os
 
+import autoconfig.utils as ut
 import pytest
 from omegaconf import OmegaConf
-
-import autoconfig.utils as ut
 
 
 class TestCalculateModelSize:

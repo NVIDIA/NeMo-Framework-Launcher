@@ -14,12 +14,13 @@
 
 import copy
 import functools
-import glob, os
-import logging
+import glob
 import json
+import logging
+import os
 import re
-from pathlib import Path
 import shutil
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import omegaconf
@@ -29,7 +30,7 @@ from nemo_launcher.utils.data_utils.prepare_squad import (
     prepare_squad_for_prompt_learning,
 )
 from nemo_launcher.utils.job_utils import JobPaths
-from omegaconf import OmegaConf, DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 
 class NemoMegatronStage:
@@ -831,10 +832,7 @@ class FineTuning(NeMoStage):
             / "nemo_launcher/utils/data_utils/download_glue.py"
         )
         if download_glue_script_path.exists():
-            from nemo_launcher.utils.data_utils.download_glue import (
-                TASKS_LOWER,
-                download_glue,
-            )
+            from nemo_launcher.utils.data_utils.download_glue import TASKS_LOWER, download_glue
 
             if task_name in TASKS_LOWER:
                 download_glue(

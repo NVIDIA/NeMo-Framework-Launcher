@@ -1,15 +1,11 @@
 import copy
 import shlex
-import omegaconf
-from typing import Dict, List
 from pathlib import Path
+from typing import Dict, List
 
-from nemo_launcher.core.stages import (
-    NemoMegatronStage,
-    create_args_list,
-    clean_command_groups,
-)
+import omegaconf
 from nemo_launcher.core.launchers import AutoLauncher
+from nemo_launcher.core.stages import NemoMegatronStage, clean_command_groups, create_args_list
 
 
 class DataCurationStage(NemoMegatronStage):

@@ -14,18 +14,19 @@
 
 import copy
 import functools
-import glob, os
-import logging
+import glob
 import json
+import logging
+import os
 import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import omegaconf
 from nemo_launcher.core.launchers import AutoLauncher
+from nemo_launcher.core.stages import NeMoStage, clean_command_groups
 from nemo_launcher.utils.job_utils import JobPaths
 from omegaconf import OmegaConf
-from nemo_launcher.core.stages import NeMoStage, clean_command_groups
 
 
 class RLHFRewardModel(NeMoStage):

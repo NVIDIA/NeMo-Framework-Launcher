@@ -14,17 +14,13 @@
 
 import copy
 import os
+import shutil
 from pathlib import Path
 from typing import Dict, List, Optional
-import omegaconf
-import shutil
 
+import omegaconf
 from nemo_launcher.core.launchers import AutoLauncher
-from nemo_launcher.core.stages import (
-    NemoMegatronStage,
-    clean_command_groups,
-    create_args_list,
-)
+from nemo_launcher.core.stages import NemoMegatronStage, clean_command_groups, create_args_list
 from nemo_launcher.utils.file_utils import download_single_file
 from nemo_launcher.utils.job_utils import JobPaths
 

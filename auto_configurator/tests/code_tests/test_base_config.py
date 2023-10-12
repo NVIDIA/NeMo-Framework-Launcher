@@ -1,9 +1,8 @@
 import os
 
+import autoconfig.base_config as bc
 import pytest
 from omegaconf import OmegaConf
-
-import autoconfig.base_config as bc
 
 
 class TestEstimateModelSize:

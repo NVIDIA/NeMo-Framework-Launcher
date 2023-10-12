@@ -19,8 +19,9 @@ python preprocess.py --input=<path/to/data/file>
 """
 
 import json
-import numpy as np
 from argparse import ArgumentParser
+
+import numpy as np
 
 
 def to_jsonl(path_to_data):

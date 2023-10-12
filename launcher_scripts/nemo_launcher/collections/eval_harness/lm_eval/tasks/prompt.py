@@ -14,9 +14,7 @@
 
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean, perplexity
-from nemo.collections.nlp.data.language_modeling.megatron.gpt_prompt_learning_dataset import (
-    GPTPromptLearningDataset,
-)
+from nemo.collections.nlp.data.language_modeling.megatron.gpt_prompt_learning_dataset import GPTPromptLearningDataset
 
 
 class Prompt(Task):
