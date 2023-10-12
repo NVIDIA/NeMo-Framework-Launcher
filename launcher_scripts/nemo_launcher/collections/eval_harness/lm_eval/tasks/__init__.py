@@ -71,4 +71,6 @@ def get_prompt_task(task_name):
 
 
 def get_prompt_task_dict(task_name_list, **kwargs):
-    return {task_name: get_prompt_task(task_name)(**kwargs) for task_name in task_name_list}
+    return {
+        task_name: get_prompt_task(task_name)(**kwargs) for task_name in task_name_list
+    }

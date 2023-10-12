@@ -21,7 +21,11 @@ import subprocess
 
 from autoconfig import utils
 
-NEMO_LAUNCHER_DEBUG = os.getenv("NEMO_LAUNCHER_DEBUG", "False").lower() in ("true", "t", "1")
+NEMO_LAUNCHER_DEBUG = os.getenv("NEMO_LAUNCHER_DEBUG", "False").lower() in (
+    "true",
+    "t",
+    "1",
+)
 
 
 def nodes_necessary(gpus_per_node, tp, pp):
@@ -46,7 +50,10 @@ def get_vocabulary_size(base_cfg, cfg):
             if divider > 1:
                 new_vocabulary_size = divider * (vocabulary_size // divider + 1)
                 if new_vocabulary_size != vocabulary_size:
-                    print(f"make_vocab_size_divisible_by set so vocabulary rounded " f"to {new_vocabulary_size}")
+                    print(
+                        f"make_vocab_size_divisible_by set so vocabulary rounded "
+                        f"to {new_vocabulary_size}"
+                    )
                     return new_vocabulary_size
                 else:
                     return vocabulary_size
@@ -79,7 +86,11 @@ def filter_configuration(base_cfg, cfg, tp, pp, gpus_per_node):
         return False
     elif pp == 1 or (pp > 1 and tp >= gpus_per_node):
         return nodes_necessary(gpus_per_node, tp, pp) > 0
-    print(f"FasterTransformer partial node configuration " f"TENSOR_PARALLEL={tp} " f"PIPELINE_PARALLEL={pp} ignored.")
+    print(
+        f"FasterTransformer partial node configuration "
+        f"TENSOR_PARALLEL={tp} "
+        f"PIPELINE_PARALLEL={pp} ignored."
+    )
     return False
 
 
@@ -89,7 +100,9 @@ def configure_fastertransformer(base_cfg, cfg, tp, pp, bs, destination):
         + cfg.search_config.inference_settings.benchmark.output_len
     )
     inter_size = base_cfg["model"]["hidden_size"] * 4
-    size_per_head = base_cfg["model"]["hidden_size"] // base_cfg["model"]["num_attention_heads"]
+    size_per_head = (
+        base_cfg["model"]["hidden_size"] // base_cfg["model"]["num_attention_heads"]
+    )
     vocabulary_size = get_vocabulary_size(base_cfg, cfg)
 
     command = [
@@ -131,7 +144,17 @@ def generate_start_ids(base_cfg, cfg, bs, destination):
         raise Exception("generate_start_ids.py failed")
 
 
-def generate_submission(base_cfg, cfg, job_name, nodes, tasks_per_node, ini, csv, submission_file, mounts_str):
+def generate_submission(
+    base_cfg,
+    cfg,
+    job_name,
+    nodes,
+    tasks_per_node,
+    ini,
+    csv,
+    submission_file,
+    mounts_str,
+):
     cluster_job_name = f"{cfg.cluster.job_name_prefix}{job_name}"
     gpus_per_task = cfg.cluster.gpus_per_task
     gpus_per_node = cfg.cluster.gpus_per_node
@@ -176,13 +199,16 @@ def generate_submission(base_cfg, cfg, job_name, nodes, tasks_per_node, ini, csv
 
 
 def submit_job(submission_file, results_dir):
-    if os.getenv('NEMO_LAUNCHER_CI'):
+    if os.getenv("NEMO_LAUNCHER_CI"):
         job_id = subprocess.check_output(
-            [f'sbatch {submission_file} | tee "{results_dir}/../launcher.log" '], shell=True
+            [f'sbatch {submission_file} | tee "{results_dir}/../launcher.log" '],
+            shell=True,
         )
     else:
         if not NEMO_LAUNCHER_DEBUG:
-            job_id = subprocess.check_output([f"sbatch --parsable {submission_file}"], shell=True)
+            job_id = subprocess.check_output(
+                [f"sbatch --parsable {submission_file}"], shell=True
+            )
         else:
             job_id = str(random.randint(10000, 99999)).encode("utf-8")
     dependency = job_id.decode("utf-8").split()[-1]
@@ -194,7 +220,9 @@ def search_inference_config(base_cfg, cfg):
     Main function to launch a inference sweep job, with the config given in cfg.
     """
     # Prepare global folders
-    inference_results_dir = os.path.join(cfg.search_config.inference_settings.run.results_dir, "inference")
+    inference_results_dir = os.path.join(
+        cfg.search_config.inference_settings.run.results_dir, "inference"
+    )
     os.makedirs(inference_results_dir, exist_ok=True)
 
     # Process container-mounts.
@@ -270,7 +298,7 @@ def search_inference_config(base_cfg, cfg):
     os.makedirs(results_dir, exist_ok=True)
     cfg_fields = ["TP", "PP", "BS"]
     configurations_file_name = os.path.join(results_dir, "inference_sweep_configs.csv")
-    with open(configurations_file_name, 'w') as configs_file:
+    with open(configurations_file_name, "w") as configs_file:
         cfg_writer = csv.writer(configs_file)
         cfg_writer.writerow(cfg_fields)
         cfg_writer.writerows(configurations)
@@ -281,9 +309,13 @@ def search_inference_config(base_cfg, cfg):
     summary_job_output = os.path.join(results_dir, f"log_final_summary_job_%j.out")
     summary_job_error = os.path.join(results_dir, f"log_final_summary_job_%j.err")
     summary_job_result = os.path.join(results_dir, "final_output.csv")
-    summary_name = f"{cfg.search_config.inference_settings.run.model_train_name}_summary"
+    summary_name = (
+        f"{cfg.search_config.inference_settings.run.model_train_name}_summary"
+    )
     summary_job_name = f"{cfg.cluster.job_name_prefix}{summary_name}_job"
-    summary_script_path = f"{cfg.auto_configurator_path}/autoconfig/inference_summary.py"
+    summary_script_path = (
+        f"{cfg.auto_configurator_path}/autoconfig/inference_summary.py"
+    )
 
     summary_command_elem = [
         f"python3 {summary_script_path}",

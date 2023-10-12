@@ -19,8 +19,13 @@ from lm_eval.base import LM
 from nemo.collections.nlp.models.language_modeling.megatron_gpt_prompt_learning_model import (
     MegatronGPTPromptLearningModel,
 )
-from nemo.collections.nlp.modules.common.megatron.megatron_init import fake_initialize_model_parallel
-from nemo.collections.nlp.modules.common.text_generation_utils import generate, get_computeprob_response
+from nemo.collections.nlp.modules.common.megatron.megatron_init import (
+    fake_initialize_model_parallel,
+)
+from nemo.collections.nlp.modules.common.text_generation_utils import (
+    generate,
+    get_computeprob_response,
+)
 from nemo.collections.nlp.parts.nlp_overrides import NLPDDPStrategy
 from nemo.utils import logging
 from nemo.utils.app_state import AppState
@@ -45,15 +50,25 @@ class PromptRequestDataset(Dataset):
 
     def __getitem__(self, index):
         context, continuation, task_id = self.requests[index]
-        context_enc = self.tokenizer.text_to_ids(context) if isinstance(context, str) else context
-        continuation_enc = self.tokenizer.text_to_ids(continuation) if isinstance(continuation, str) else continuation
+        context_enc = (
+            self.tokenizer.text_to_ids(context) if isinstance(context, str) else context
+        )
+        continuation_enc = (
+            self.tokenizer.text_to_ids(continuation)
+            if isinstance(continuation, str)
+            else continuation
+        )
         # sanity check
         assert len(context_enc) > 0, "encoder length should large than 0"
         assert len(continuation_enc) > 0, "target length should be large than 0"
-        assert len(continuation_enc) <= self.max_length, "target length cannot be large than max_length"
+        assert (
+            len(continuation_enc) <= self.max_length
+        ), "target length cannot be large than max_length"
 
         conti_len = len(continuation_enc)
-        inp_enc = torch.tensor((context_enc + continuation_enc)[-(self.max_length + 1) :])
+        inp_enc = torch.tensor(
+            (context_enc + continuation_enc)[-(self.max_length + 1) :]
+        )
         return inp_enc, conti_len, task_id
 
 
@@ -69,16 +84,24 @@ def setup_trainer_and_model(args):
     if args.precision in ["32", "16"]:
         args.precision = int(args.precision)
 
-    model_parallel_size = args.tensor_model_parallel_size * args.pipeline_model_parallel_size
+    model_parallel_size = (
+        args.tensor_model_parallel_size * args.pipeline_model_parallel_size
+    )
     num_nodes = max(model_parallel_size // 8, 1)
     num_gpus = min(model_parallel_size, 8)
     trainer = Trainer(
-        strategy=NLPDDPStrategy(), devices=num_gpus, num_nodes=num_nodes, precision=args.precision, accelerator='gpu'
+        strategy=NLPDDPStrategy(),
+        devices=num_gpus,
+        num_nodes=num_nodes,
+        precision=args.precision,
+        accelerator="gpu",
     )
 
     app_state = AppState()
     if args.tensor_model_parallel_size > 1 or args.pipeline_model_parallel_size > 1:
-        app_state.model_parallel_size = args.tensor_model_parallel_size * args.pipeline_model_parallel_size
+        app_state.model_parallel_size = (
+            args.tensor_model_parallel_size * args.pipeline_model_parallel_size
+        )
         (
             app_state.tensor_model_parallel_rank,
             app_state.pipeline_model_parallel_rank,
@@ -93,9 +116,13 @@ def setup_trainer_and_model(args):
 
     if args.nemo_model is not None:
         logging.info(f"**** Loading checkpoint from {args.nemo_model}")
-        model = MegatronGPTPromptLearningModel.restore_from(restore_path=args.nemo_model, trainer=trainer)
+        model = MegatronGPTPromptLearningModel.restore_from(
+            restore_path=args.nemo_model, trainer=trainer
+        )
     else:
-        raise NotImplementedError("Prompt models can only be loaded from .nemo checkpoints.")
+        raise NotImplementedError(
+            "Prompt models can only be loaded from .nemo checkpoints."
+        )
 
     model.freeze()
 
@@ -150,7 +177,9 @@ class NeMo_GPT3_PROMPTLM(LM):
     def _loglikelihood(self, requests):
         def pad_collate(batch, eos_id=50256):
             tokens, conti_lens, task_ids, *_ = map(list, zip(*batch))
-            lens = [len(token) - 1 for token in tokens]  # fake delete last token by reducing input len
+            lens = [
+                len(token) - 1 for token in tokens
+            ]  # fake delete last token by reducing input len
             max_len = max(lens)
 
             tokens_pad = pad_sequence(tokens, batch_first=False, padding_value=eos_id)
@@ -158,7 +187,9 @@ class NeMo_GPT3_PROMPTLM(LM):
             # tokens_pad = torch.cat((tokens_pad, torch.ones((1, len(tokens)), dtype=torch.int) * eos_id), 0)
 
             new_batch = []
-            for token, lenn, conti_len, task_id in zip(tokens_pad.T, lens, conti_lens, task_ids):
+            for token, lenn, conti_len, task_id in zip(
+                tokens_pad.T, lens, conti_lens, task_ids
+            ):
                 new_batch.append((token, max_len, task_id, lenn, conti_len))
 
             new_batch = default_collate(new_batch)
@@ -177,25 +208,36 @@ class NeMo_GPT3_PROMPTLM(LM):
 
         reord = utils.Reorderer(requests, _collate)
         request_ds = PromptRequestDataset(reord.get_reordered(), self.model.tokenizer)
-        request_dl = DataLoader(request_ds, collate_fn=pad_collate, batch_size=self.batch_size, shuffle=False)
+        request_dl = DataLoader(
+            request_ds,
+            collate_fn=pad_collate,
+            batch_size=self.batch_size,
+            shuffle=False,
+        )
 
         def logits_to_results(batch, response):
             input_token_ids_batch, _, _, lens, conti_lens = batch
             batch_size = len(lens)
-            assert len(response["token_ids"]) == batch_size, "Response's length not equal to batch size."
+            assert (
+                len(response["token_ids"]) == batch_size
+            ), "Response's length not equal to batch size."
 
             batch_res = []
             for index in range(batch_size):
                 inp_len = lens[index]
                 conti_len = conti_lens[index]
 
-                inp_token_ids = input_token_ids_batch[index].tolist()[: inp_len + 1]  # recover fake deleted token
+                inp_token_ids = input_token_ids_batch[index].tolist()[
+                    : inp_len + 1
+                ]  # recover fake deleted token
 
                 log_probs = response["full_logprob"][index][:inp_len]  # torch.tensor
                 log_probs = log_probs[-conti_len:]
 
                 greedy_tokens = log_probs.argmax(dim=-1)
-                greedy_tokens = self.tokenizer.ids_to_tokens(greedy_tokens.cpu().numpy().tolist())
+                greedy_tokens = self.tokenizer.ids_to_tokens(
+                    greedy_tokens.cpu().numpy().tolist()
+                )
 
                 conti_token_ids = inp_token_ids[-conti_len:]
                 conti_tokens = self.tokenizer.ids_to_tokens(conti_token_ids)
@@ -203,16 +245,25 @@ class NeMo_GPT3_PROMPTLM(LM):
                 max_equal = greedy_tokens == conti_tokens
                 log_probs = log_probs.cpu().to(torch.float32)
                 conti_enc = torch.tensor(self.tokenizer.tokens_to_ids(conti_tokens))
-                conti_probs = torch.gather(log_probs, 1, conti_enc.unsqueeze(-1)).squeeze(-1)
+                conti_probs = torch.gather(
+                    log_probs, 1, conti_enc.unsqueeze(-1)
+                ).squeeze(-1)
 
-                batch_res.append((float(conti_probs.sum()), bool(max_equal), greedy_tokens, conti_tokens))
+                batch_res.append(
+                    (
+                        float(conti_probs.sum()),
+                        bool(max_equal),
+                        greedy_tokens,
+                        conti_tokens,
+                    )
+                )
             return batch_res
 
         res = []
         for batch in tqdm.tqdm(request_dl):
             # inputs = (token_ids, conti_lens)
             inputs = (batch[0].cuda(), batch[1].cuda())
-            task_ids = torch.zeros((self.batch_size, 1), device='cuda')
+            task_ids = torch.zeros((self.batch_size, 1), device="cuda")
             response = generate(
                 model=self.model,
                 inputs=inputs,

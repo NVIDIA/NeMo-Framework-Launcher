@@ -31,10 +31,18 @@ import subprocess
 import time
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Preprocess custom dataset", allow_abbrev=False)
+    parser = argparse.ArgumentParser(
+        description="Preprocess custom dataset", allow_abbrev=False
+    )
 
-    parser.add_argument("--output-path", help="Path to store output bin files", required=True)
-    parser.add_argument("--worker-mapping-file", help="Decide which worker download which languages", required=True)
+    parser.add_argument(
+        "--output-path", help="Path to store output bin files", required=True
+    )
+    parser.add_argument(
+        "--worker-mapping-file",
+        help="Decide which worker download which languages",
+        required=True,
+    )
     parser.add_argument(
         "--workers-per-node",
         default=int(os.environ.get("SLURM_NTASKS_PER_NODE", 1)),
@@ -58,7 +66,9 @@ if __name__ == "__main__":
     data_files = []
     if task_id * workers_per_node + rank < len(mapping):
         data_files = mapping[task_id * workers_per_node + rank].strip().split(",")
-    print(f" ****** Task ID {task_id:02d} Rank {rank:02d} is preparing to preprocess {data_files}...")
+    print(
+        f" ****** Task ID {task_id:02d} Rank {rank:02d} is preparing to preprocess {data_files}..."
+    )
 
     os.makedirs(args.output_path, exist_ok=True)
     start_time = time.time()
@@ -69,9 +79,18 @@ if __name__ == "__main__":
     for split in data_files:
         if not split:  # Remove empty split
             continue
-        print(f" ****** Task ID {task_id:02d} Rank {rank:02d} starts to preprocess {os.path.basename(split)}...")
+        print(
+            f" ****** Task ID {task_id:02d} Rank {rank:02d} starts to preprocess {os.path.basename(split)}..."
+        )
         input_arg = ["--input", split]
-        output_arg = ["--output-prefix", os.path.join(args.output_path, os.path.basename(split))]
+        output_arg = [
+            "--output-prefix",
+            os.path.join(args.output_path, os.path.basename(split)),
+        ]
         subprocess.check_call(cmd + input_arg + output_arg + other_args)
-        print(f" ****** Task ID {task_id:02d} Rank {rank:02d} finished preprocessing {os.path.basename(split)}...")
-        print(f" ****** Task ID {task_id:02d} Rank {rank:02d} time elapsed {(time.time() - start_time) / 60:.2f} min.")
+        print(
+            f" ****** Task ID {task_id:02d} Rank {rank:02d} finished preprocessing {os.path.basename(split)}..."
+        )
+        print(
+            f" ****** Task ID {task_id:02d} Rank {rank:02d} time elapsed {(time.time() - start_time) / 60:.2f} min."
+        )

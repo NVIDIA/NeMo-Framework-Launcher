@@ -80,8 +80,8 @@ def general_detokenize(string):
     string = string.replace(" n't", "n't")
     string = string.replace(" )", ")")
     string = string.replace("( ", "(")
-    string = string.replace("\" ", "\"")
-    string = string.replace(" \"", "\"")
+    string = string.replace('" ', '"')
+    string = string.replace(' "', '"')
     string = re.sub(r" (['.,])", r"\1", string)
     return string
 
@@ -201,7 +201,9 @@ def load_config(args):
                 json_config = json.load(cnfg)
             config.update(json_config)
         except:
-            logging.critical("Failed to load configuration file. Check JSON syntax and verify that files exist")
+            logging.critical(
+                "Failed to load configuration file. Check JSON syntax and verify that files exist"
+            )
             traceback.print_exc()
             sys.exit(1)
 

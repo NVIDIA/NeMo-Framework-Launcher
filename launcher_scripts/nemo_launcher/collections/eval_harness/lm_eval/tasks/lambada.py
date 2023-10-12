@@ -32,7 +32,9 @@ class LAMBADA(Task):
         path = (
             self.cache_dir
             if self.cache_dir
-            else os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir, "data")
+            else os.path.join(
+                os.path.dirname(__file__), os.path.pardir, os.path.pardir, "data"
+            )
         )
         path = os.path.join(path, "lambada")
         sh("mkdir -p " + path)
@@ -46,7 +48,9 @@ class LAMBADA(Task):
                 )
         except:
             # fallback - for some reason best_download doesnt work all the time here
-            sh("wget https://openaipublic.blob.core.windows.net/gpt-2/data/lambada_test.jsonl -O data/lambada/lambada_test.jsonl")
+            sh(
+                "wget https://openaipublic.blob.core.windows.net/gpt-2/data/lambada_test.jsonl -O data/lambada/lambada_test.jsonl"
+            )
             sh(
                 'echo "4aa8d02cd17c719165fc8a7887fddd641f43fcafa4b1c806ca8abc31fabdb226  data/lambada/lambada_test.jsonl" | sha256sum --check'
             )
@@ -94,7 +98,9 @@ class LAMBADA(Task):
         return ""
 
     def construct_requests(self, doc, ctx):
-        ll, is_greedy, greedy_toks, cont_toks = rf.loglikelihood(ctx, self.doc_to_target(doc))
+        ll, is_greedy, greedy_toks, cont_toks = rf.loglikelihood(
+            ctx, self.doc_to_target(doc)
+        )
 
         return ll, is_greedy, greedy_toks, cont_toks
 

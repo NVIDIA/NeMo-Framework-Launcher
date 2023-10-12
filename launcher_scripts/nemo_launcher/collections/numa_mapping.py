@@ -55,7 +55,9 @@ def numa_mapping(local_rank, devices, numa_cfg):
 @hydra.main(config_path="conf", config_name="numa_mapping")
 def main(cfg):
     rank = int(os.environ.get("LOCAL_RANK"))
-    devices = int(os.environ.get("SLURM_NTASKS_PER_NODE"))  # TODO: Check BCP, interactive
+    devices = int(
+        os.environ.get("SLURM_NTASKS_PER_NODE")
+    )  # TODO: Check BCP, interactive
 
     numa_mapping(
         local_rank=rank, devices=devices, numa_cfg=cfg,
