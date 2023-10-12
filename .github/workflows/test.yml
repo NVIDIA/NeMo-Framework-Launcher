@@ -1,0 +1,14 @@
+name: test
+
+on:
+  pull_request:
+    branches:
+      - 'dpykhtar/unit_tests'
+
+jobs:
+  unit_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Unit Tests
+        run: echo "running tests"
