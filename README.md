@@ -2146,9 +2146,6 @@ To enable the evaluation stage with a CLIP model, configure the configuration fi
 1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/evaluation/clip/imagenet_zeroshot.yaml`. By default, this
    field links to the `.nemo` format checkpoint located in the CLIP trainning checkpoints folder.
-2. **Knonw issue**: In CLIP model evaluation, using `fp32` for inference with a trained model in `bf16` or `fp16` does
-   not produce expected results. We highly recommend users to use the same precision (i.e. `trainer.precision`) for
-   inference as was used during training.
 
 #### 6.6.3. Stable Diffusion Evaluation
 
@@ -2324,9 +2321,6 @@ To enable the inference stage with a CLIP model, configure the configuration fil
 1. To load a pretrained checkpoint for inference, set the `restore_from_path` field in the `model` section to the path
    of the pretrained checkpoint in `.nemo` format in `conf/fw_inference/clip/clip_similarity.yaml`. By default, this
    field links to the `.nemo` format checkpoint located in the CLIP training checkpoints folder.
-2. **Knonw issue**: In CLIP model inference, using `fp32` for inference with a trained model in `bf16` or `fp16` does
-   not produce expected results. We highly recommend users to use the same precision (i.e. `trainer.precision`) for
-   inference as was used during training.
 
 #### 6.7.3. Stable Diffusion Inference (in NeMo Framework)
 
