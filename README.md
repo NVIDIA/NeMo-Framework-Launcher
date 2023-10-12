@@ -1731,6 +1731,10 @@ To enable the training stage with a dreambooth model, make sure:
       - training
       ...
    ```
+   
+3.  we offer support for optimizing the training process in Dreambooth by using cached latents. This approach boosts training throughput by 75% while reduces GPU memory consumption. To activate this feature, simply append training.model.use_cached_latents=True to your launch command or modify the config file.
+
+When you specify the instance_dir but left cached_instance_dir null, and set use_cached_latents to True, the latent representations of your input images will be computed and locally stored at the path `{instance_dir}_cached` prior to training. This preprocessing may take a short moment. Once caching is complete, the training process will automatically continue with using these cached latents.
 
 **Remarks**:
 
