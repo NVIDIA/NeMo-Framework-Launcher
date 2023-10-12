@@ -16,4 +16,5 @@ jobs:
       - name: install pytest
         run: python -m pip install pytest
       - name: run unit tests
-        run: pytest launcher_scripts/
+        run: pytest
+        working-directory: ./launcher_scripts
