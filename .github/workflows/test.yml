@@ -13,8 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install Pytest
+      - name: install pytest
         run: python -m pip install pytest
-      - name: Run Unit Tests
+      - name: cd into tests directory
         run: cd ../../launcher_scripts
+      - name: run unit tests
         run: pytest
