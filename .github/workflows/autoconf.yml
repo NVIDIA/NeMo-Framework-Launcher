@@ -3,7 +3,7 @@ name: autoconf
 on:
   pull_request:
     branches:
-      - 'dpykhtar/unit_tests'
+      - 'master'
 
 jobs:
   unit_tests:
