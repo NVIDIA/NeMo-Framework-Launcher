@@ -185,7 +185,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
 
 **NeMo Multimodal 23.08**
 1. Added NeVA (LLaVA, multimodal LLM) with LLaMA2-chat (7B and 13B) backbone and with TRT-LLM support for inference
-2. Added DreamFusion (text-2-3D) with faster convergence and higher quality 3D assets than the original one
+2. Added DreamFusion-DMTet (text-2-3D) with faster convergence and higher quality 3D assets 
 3. Added NSFW content filtering, enabling users to find explicit content
 4. Added support for training DreamBooth with precached features, improving throughput by 75%
 5. Added flash attention v2 support for Stable diffusion and its derivatives
@@ -326,16 +326,16 @@ NeMo Imagen offers a range of options to customize the training of the Imagen mo
 
 ### 2.8. NSFW
 
-NSFW Content filtering model offers vision based filtering solution to find explicit content. It's
+NSFW Content filtering model offers vision based filtering solution to find explicit content. Its
 main usecase is to check outputs of the generative models like Stable Diffusion. Model combines
-zero-shot capabilities of pretrained CLIP with linear probing approach for fine tuning.
+zero-shot capabilities of pretrained CLIP with a linear probing approach for fine tuning.
 
-During training, small classification layer is trained on top of frozen CLIP encoder, significantly
-imporving detection quality compared to just zero-shot classification.
+During fine-tuning, a light classification layer is trained on top of the frozen CLIP encoder, significantly
+improving the quality of detecting NSFW Content compared to just zero-shot classification.
 
 ### 2.9. NeVA
 
-Originating from [LLaVA](https://github.com/haotian-liu/LLaVA/tree/main/llava) (Large Language and Vision Assistant), NeVA is a groundbreaking addition to the NeMo Multimodal ecosystem. This model seamlessly integrates language-centric large models (like NVGPT or Llama2) with a vision encoder, harnessing the capabilities of machine-generated multimodal language-image instruction-following data. Building on the foundation set by LLaVA, NeVA enhances its training using the NeMo LLM framework. As a result, we can take advantage of features like model parallelism, activation checkpointing, AMP O2, Flash Attention, and more. While traditional language models have been primarily focused on textual processing, NeVA boldly adopts a holistic approach, bridging visual and linguistic comprehension.
+Originating from [LLaVA](https://github.com/haotian-liu/LLaVA/tree/main/llava) (Large Language and Vision Assistant), NeVA is a groundbreaking addition to the NeMo Multimodal ecosystem. This model seamlessly integrates large language-centric models (like NVGPT or Llama2) with a vision encoder, and is trained with machine-generated multimodal language-image instruction-following data. Building on the foundation set by LLaVA, NeVA further enhances  training by leveraging features of the NeMo LLM framework such as model parallelism, activation checkpointing, AMP O2, Flash Attention, and more. While traditional language models have been primarily focused on textual processing, NeVA boldly adopts a holistic approach, bridging visual and linguistic comprehension.
 
 ### 2.10. DreamFusion
 <img src="img/dreamfusion_model_overview.png"/>
@@ -370,7 +370,7 @@ NeRF (Neural Radiance Fields) models integrate geometry and appearance through v
 using NeRF for 3D modeling can be less effective when it comes to capturing both the intricate details of a surface as well as
 its material and texture.
 
-DMTet finetunning disentangles the learning of geometry and appearance models, such that both a fine surface and a rich
+DMTet fine-tunning disentangles the learning of geometry and appearance models, such that both a fine surface and a rich
 material/texture can be generated. To enable such a disentangled learning, a hybrid scene representation of
 [DMTet](https://nv-tlabs.github.io/DMTet/) is used.
 
@@ -1475,7 +1475,7 @@ _Note: It is the responsibility of each user to check the content
 of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
 Users should review any applicable links associated with the dataset before placing the data on their machine._
 
-DreamFusion relys on a pretrained 2D text-to-image diffusion model to perform text-to-3D synthesis, thereby
+DreamFusion relies on a pretrained 2D text-to-image diffusion model to perform text-to-3D synthesis, thereby
 eliminating the need for a training dataset. We support Stable Diffusion as the backend diffusion model,
 depending on your chosen backend implementation, it will be necessary to set up the model checkpoints.
 
@@ -1488,12 +1488,12 @@ _Note: It is the responsibility of each user to check the content
 of the dataset, review the applicable licenses, and determine if it is suitable for their intended use.
 Users should review any applicable links associated with the dataset before placing the data on their machine._
 
-Similar to DreamFusion, DMTet relys on a pretrained 2D text-to-image diffusion model to perform text-to-3D synthesis
+Similar to DreamFusion, DMTet relies on a pretrained 2D text-to-image diffusion model to perform text-to-3D synthesis
 and doesn't require an external database. However, the network requires three components:
 
 1. Diffusion model: see [Section 6.2.3](#623-dreamfusion) for the supported diffusion pipelines.
-2. A pretrained DreamFusion checkpoint, used to initalized the DMTet network see [Section 6.3.4](#634-dreamfusion-training)
-3. Initial tetrahedral grid: can be generated using [this](https://github.com/ahmadki/quartet) repo, or downloaded fomr NGC.
+2. A pretrained DreamFusion checkpoint, used to initialize the DMTet network see [Section 6.3.4](#634-dreamfusion-training)
+3. Initial tetrahedral grid: can be generated using [this](https://github.com/ahmadki/quartet) repo, or downloaded from NGC.
 
 
 ### 6.3. Model Training
@@ -1618,7 +1618,7 @@ datasets recommended in the Huggingface model cards is straightforward with our 
 | SD v1.2     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | 218M                  | Resolution >= 512x512   | 1.23B                  |
 | SD v1.5     | 512        | 859                 | openai/clip-vit-large-patch14 | 32                 | 8192                          | FP16      | O1        | 218M                  | Resolution >= 512x512   | 1.32B                  |
 
-For SD v2.0 base, the text conditioning model is replaced with OpenCLIP-ViT/H. Training stages are similar to the original configuration, which contain pretraining with 256x256 resolution and follow by finetuing with 512x512 resolution. We can use the datasets recommended in the Huggingface model cards to reproduce the result of SD v2.0 base.
+For SD v2.0 base, the text conditioning model is replaced with OpenCLIP-ViT/H. Training stages are similar to the original configuration, which contain pretraining with 256x256 resolution and followed by finetuing with 512x512 resolution. We can use the datasets recommended in the Huggingface model cards to reproduce the result of SD v2.0 base.
 
 | Stage       | Resolution | Unet model size (M) | Text conditioning model       | Batch Size per GPU | Accumulated Global Batch Size | Precision | AMP Level | Effective Dataset size| Dataset Filtering       | Total Training Samples Seen  |
 |-------------|------------|---------------------|-------------------------------|--------------------|-------------------------------|-----------|-----------|-----------------------|-------------------------|------------------------|
@@ -1677,7 +1677,7 @@ The following are the pretrained checkpoints for SD v2.0
 In the latest update, we have introduced support for using the Clip encoder provided by NeMo. To learn how to convert weights to NeMo Clip checkpoints, please refer to [Section 6.9](#69-convert-checkpoints-from-external-sources-to-nemo) in the documentation.
 If you prefer to restore the previous behavior and use the HF Clip encoder, you can find instructions in the comments within the stable diffusion configuration files.
 
-Note: If you use NeMo Clip checkpoints as the Clip encoder, the Clip checkpoint need to be kept in the same path as specified in the configuration file when you load a stable diffusion checkpoint.
+Note: If you use NeMo Clip checkpoints as the Clip encoder, the Clip checkpoint needs to be kept in the same path as specified in the configuration file when you load a stable diffusion checkpoint.
 
 3.There is no guarantee that training Stable Diffusion for an extended period will necessarily result in improved FID/CLIP scores. To achieve best results, we suggest evaluating various checkpoints during the late stages of convergence.
 
@@ -1746,7 +1746,7 @@ To enable the training stage with a dreambooth model, make sure:
       ...
    ```
    
-3.  we offer support for optimizing the training process in Dreambooth by using cached latents. This approach boosts training throughput by 75% while reduces GPU memory consumption. To activate this feature, simply append training.model.use_cached_latents=True to your launch command or modify the config file.
+3.  we offer support for optimizing the training process in Dreambooth by using cached latents. This approach boosts training throughput by 75% while reducing GPU memory consumption. To activate this feature, simply append training.model.use_cached_latents=True to your launch command or modify the config file.
 
 When you specify the instance_dir but left cached_instance_dir null, and set use_cached_latents to True, the latent representations of your input images will be computed and locally stored at the path `{instance_dir}_cached` prior to training. This preprocessing may take a short moment. Once caching is complete, the training process will automatically continue with using these cached latents.
 
@@ -1818,7 +1818,7 @@ Base model:
 
 SR256 model:
  - sr256-600m: Training 600m params 256x256 EfficientUNet model as described in Imagen paper Appendix F.2
- - sr256-400m: Training 400m params 256x256 UNet model with similar configurattion as DeepFloyd IF-II-M
+ - sr256-400m: Training 400m params 256x256 UNet model with similar configuration as DeepFloyd IF-II-M
 
 SR1024 model:
  - sr1024-600m: Training 600m params 1024x1024 EfficientUNet model as described in Imagen paper Appendix F.3
@@ -1837,7 +1837,7 @@ To enable the training stage with Imagen, make sure:
 
 1. In the `defaults` section, update the `training` field to point to the desired Imagen configuration file.
    For example,
-   if you want to start training base64 500m model from scratch, change the training field to `imagen/500m_res_64.yaml`.
+   if you want to start training the base64 500m model from scratch, change the training field to `imagen/500m_res_64.yaml`.
    ```yaml
     defaults:
       - _self_
@@ -1856,7 +1856,7 @@ To enable the training stage with Imagen, make sure:
 
 **Remark**:
 
-1.There is no dependency in training models of different resolutions. Ideally, it is possible to train all models (64x64, 256x256, 1024x1024) simultaneously and independently, given sufficient computing resources.
+1.There is no training dependency between the base and super resolution models. That is, one can  train all models (64x64, 256x256, 1024x1024) simultaneously and independently, given sufficient computing resources.
 
 2.We recommend preprocessing the training dataset with pre-cached embeddings. Imagen typically uses T5 embeddings, and T5 encoders are large in size. Loading them during training can significantly reduce training throughput. We observed a significant drop in batch size and throughput when using the online-encoding option.
 
@@ -1925,8 +1925,8 @@ to customize the hyperparameters according to your specific training requirement
 DreamFusion-DMTet fine tunes a DreamFusion checkpoint using a DMTet model. The recommended
 configuration can be found in the `conf/training/nerf/dreamfusion-dmtet` directory. You can access and modify the parameters
 to customize the hyperparameters according to your specific training requirements.
-You will need to provide a pretrained model using DreamFusion in the `model.resume_from_checkpoint` paramter, and the
-initial tetrahedral grid using the `model.renderer.quartet_fileresume_from_checkpoint` paramter.
+You will need to provide a pretrained model using DreamFusion in the `model.resume_from_checkpoint` parameter, and the
+initial tetrahedral grid using the `model.renderer.quartet_fileresume_from_checkpoint` parameter.
 
 ### 6.4. Checkpoint Conversion
 
@@ -2068,7 +2068,7 @@ checkpoint located in the training checkpoints folder.
 #### 6.3.9. NSFW Fine-tuning
 
 NSFW Content filtering essentially performs linear probing on top of existing CLIP checkpoint. The
-recommended configuration can be found in the `conf/fine_tuning/nsfw` which corresponds to CLIP L14 version.
+recommended configuration can be found in the `conf/fine_tuning/nsfw` which corresponds to CLIP L-14 version.
 You can access and modify parameters to customize the hyperparameters according to your specific
 training requirements and base model needs.
 
@@ -2556,8 +2556,8 @@ To facilitate inference with NeVA, follow these configuration steps:
 
 #### 6.7.9. NSFW Inference (in NeMo Framework)
 
-For NSFW models, the inference script generates images score for NSFW content. Values closer to 1
-are stron NSFW while -1 are strong safe.
+For NSFW models, the inference script generates image scores for NSFW content. Values closer to 1
+are strong NSFW while -1 are strong safe.
 
 To enable inference stage with a NSFW model, configure the configuration files:
 
@@ -3541,8 +3541,8 @@ Batch Size: Synonymous with `num_images_per_prompt`
 
 #### 8.8.1. Training Performance Results
 
-We measured the throughput of training NSFW model on a single DGX A100 node.
-The table below show the performance results.
+We measured the training throughput of the  NSFW model on a single DGX A100 node.
+The table below shows the performance results.
 
 - NVIDIA DGX A100 (8 x A100 80GB for CLIP L/14 base model)
 
@@ -3554,7 +3554,7 @@ The table below show the performance results.
 
 #### 8.8.2. Inference Performance Results
 
-Because NSFW model is build on top of pretrained CLIP with small linear probing layer, inference
+Because NSFW model is built on top of pretrained CLIP with small linear probing layer, inference
 performance is expected to match CLIP inference performance. See [CLIP Inference Performance Results](#823-inference-performance-results) for details.
 
 ### 8.9. NeVA Results
@@ -3666,14 +3666,14 @@ The tables and charts below show the performance results.
 
 #### 8.10.1. Training Performance Results
 
-We measured the end to end training time DreamFusions models on RTX-A6000-Ada and H100 cards, Using
-The following paramters:
+We measured the end to end training time of DreamFusions models on RTX-A6000-Ada and H100 cards, Using
+The following parameters:
 * Automated Mixed Precision (AMP) for FP16 computation.
 * The DreamFusion model was trained for 10,000 iterations, 2,000 iterations on the latent space and 8,000 iterations on the RGB space.
 * DreamFusion-DMTet was finetuned for 5,000 iterations.
 
-Please note that the code provide multiple backend for NeRF, stable diffusion and renderes that
-were not covered in this performance results.
+Please note that the code provides multiple backend for NeRF, stable diffusion and renderers that
+were not covered in this table.
 
 | Model                  | GPU Model           |Num GPUs   | Batch Size Per GPU   | NeRF backend   | Rendering backend | Stable Diffusion backend | Train time [sec]             |
 |------------------------|---------------------|-----------|----------------------|----------------|-------------------|--------------------------|------------------------------|
