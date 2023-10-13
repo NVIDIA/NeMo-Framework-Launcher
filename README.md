@@ -3231,16 +3231,16 @@ We are comparing the out-of-box performance on DGX H100 machines with the same c
 This comparison is an apple-to-apple assessment, ensuring that we evaluate the relative performance of the two machine
 types under equivalent conditions and configurations.
 
-The tables and charts below show the performance results for SD v1.
+The tables and charts below show the performance results for SD v2.
 
 - NVIDIA DGX SuperPODs (64 x 8 x A100 80GB for Stable Diffusion Res=512 model)
 
 |                          |                                  |        |        |        | Nodes   |         |         |          |
 |--------------------------|----------------------------------|--------|--------|--------|---------|---------| --------| ---------|
 |                          |                                  | 1      | 2      | 4      | 8       | 16      | 32      | 64       |
-|                          | Samples per Second               | 221.59 | 435.22 | 868.21 | 1682.43 | 3237.60 | 6448.60 | 12683.95 |
-| Stable Diffusion Res=512 | Perfect Linear Scaling (Samples) | 221.59 | 443.18 | 886.36 | 1772.73 | 3545.46 | 7090.92 | 14181.84 |
-|                          | Speedup                          | 1x     | 1.96x  | 3.92x  | 7.59x   | 14.61x  | 29.1x   | 57.24x   |
+|                          | Samples per Second               | 268.31 | 540.14 | 1081.31| 2138.23 | 4208.80 | 8144.76 | 15917.61 |
+| Stable Diffusion Res=512 | Perfect Linear Scaling (Samples) | 268.31 | 536.63 | 1073.26| 2146.53 | 4293.05 | 8586.10 | 17172.20 |
+|                          | Speedup                          | 1x     | 2.01x  | 4.03x  | 7.97x   | 15.69x  | 30.36x  | 59.32x   |
 
 <img src="img/Stable Diffusion (Res=512) NeMo Megatron Throughput (A100).svg"/>
 
@@ -3249,9 +3249,9 @@ The tables and charts below show the performance results for SD v1.
 |                          |                                  |        |         |         | Nodes   |         |         |          |
 |--------------------------|----------------------------------|--------|---------|---------|---------|---------| --------| ---------|
 |                          |                                  | 1      | 2       | 4       | 8       | 16      | 32      | 64       |
-|                          | Samples per Second               | 505.42 | 970.41  | 1888.39 | 3564.35 | 6920.54 | 12666.60| 23474.56 |
-| Stable Diffusion Res=512 | Perfect Linear Scaling (Samples) | 505.42 | 1010.84 | 2021.67 | 4043.35 | 8086.69 | 16173.39| 14181.84 |
-|                          | Speedup                          | 1x     | 1.92x   | 3.74x   | 7.05x   | 13.69x  | 25.06x  | 46.45x   |
+|                          | Samples per Second               | 511.90 | 997.86  | 2019.72 | 3856.87 | 7177.15 | 13326.83| 25952.80 |
+| Stable Diffusion Res=512 | Perfect Linear Scaling (Samples) | 511.90 | 1023.80 | 2047.59 | 4095.18 | 8190.36 | 16380.72| 32761.45 |
+|                          | Speedup                          | 1x     | 1.95x   | 3.95x   | 7.53x   | 14.02x  | 26.03x  | 50.7x    |
 
 <img src="img/Stable Diffusion (Res=512) NeMo Megatron Throughput (H100).svg"/>
 
@@ -3259,20 +3259,9 @@ The tables and charts below show the performance results for SD v1.
 
 | Model                      | Nodes | Global Batch | Micro Batch | Precision | Global Batch/Sec (A100) | Global Batch/Sec (H100) | Speedup (x) |
 |----------------------------|-------|--------------|-------------|-----------|------------------|------------------|-------------|
-| Stable Diffusion (Res=256) | 4     | 4096         | 128         | amp fp16  | 0.962            | 1.892            | 2.0         |
-| Stable Diffusion (Res=512) | 4     | 1024         | 32          | amp fp16  | 0.849            | 1.840            | 2.2         |
+| Stable Diffusion (Res=512) | 4     | 1024         | 32          | amp fp16  | 1.056            | 1.972            | 1.9         |
 
 <img src="img/Stable Diffusion Training Throughput Comparison.svg"/>
-
-The following is SD v2.0 result
-- NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for Stable Diffusion Res=512 model)
-
-|                          |                                  |        |        |        | Nodes   |         |
-|--------------------------|----------------------------------|--------|--------|--------|---------|---------|
-|                          |                                  | 1      | 2      | 4      | 8       | 16      |
-|                          | Samples per Second               | 197.68 | 391.39 | 775.02 | 1511.43 | 2844.44 |
-| Stable Diffusion Res=512 | Perfect Linear Scaling (Samples) | 197.68 | 395.36 | 790.92 | 1581.44 | 3162.88 |
-|                          | Speedup                          | 1x     | 1.98x  | 3.92x  | 7.65x   | 14.39x  |
 
 
 #### 8.3.3. Inference Performance Results
