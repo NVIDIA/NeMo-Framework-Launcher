@@ -183,12 +183,21 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
 
 ## 1. Release Notes
 
+**NeMo Multimodal 23.08**
+1. Added support for the following
+
+| Model/ Method                               | Training | Fine-Tuning | Evaulation | In-framework Inference| Export (to TensorRT and ONNX) | Triton deployment |
+|:--------------------------------------------|:--------:|:-----------:|:----------:|    :---:     |:-----------------------------:|          :---: |
+| **NeVA (LlaVA)**                            | &check;  |  &check;    |     _      |&check;|            &check;            |&check;|
+| **NSFW Classfication Tool (Based on CLIP)** |    _     |   &check;   |     _      |&check;|             _                 |_    |
+| **DreamFusion**                             | &check;  |      _      |     _      | _     |               _               | _     |
+
 **NeMo Multimodal 23.05**
 
 1. Added support for distributed optimizer in ViT and CLIP models, enhancing memory
    efficiency when utilizing more nodes with higher data parallel values.
 2. Improved Stable Diffusion training performance by adding support to NHWC format and optimized Group Normalization.
-3. Added support fot the following
+3. Added support for the following
 
 | Model/ Method | Training | Fine-Tuning | Evaulation | In-framework Inference| Export (to TensorRT and ONNX) | Triton deployment |
 | :---        | :----:   |    :---: |    :----:  |    :---:     |    :----:   |          :---: |
@@ -3049,37 +3058,37 @@ The tables and charts below show the performance results.
 
 - NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for ViT g/14 model)
 
-|          |                                  |        |         |         | Nodes   |          |
-|----------|----------------------------------|--------|---------|---------|---------|----------|
-|          |                                  | 1      | 2       | 4       | 8       | 16       |
-|          | Samples per Second               |   720 |   1386 |   2830 |   5599 |  10934 |
-| ViT g/14 | Perfect Linear Scaling (Samples) |   720 |   1440 |   2880 |   5761 |  11522 |
-|          | Speedup                          |    1x |  1.92x |  3.93x |  7.77x | 15.18x |
+|          |                                  |       |         |         | Nodes   |        |
+|----------|----------------------------------|-------|---------|---------|---------|--------|
+|          |                                  | 1     | 2       | 4       | 8       | 16     |
+|          | Samples per Second               |     693 |    1347 |    2642 |    5454 |   10644 |
+| ViT g/14 | Perfect Linear Scaling (Samples) |     693 |    1386 |    2773 |    5546 |   11092 |
+|          | Speedup                          |      1x |    1.94x|    3.81x|    7.87x|   15.35x|
 
-<img src="img/ViT g_14 NeMo Megatron Throughput (A100) (2305).svg"/>
+<img src="img/ViT%20g_14%20NeMo%20Throughput%20(A100)%20(2308).svg"/>
 
 - NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for ViT g/14 model)
 
-|          |                                  |      |       |       | Nodes |        |
-|----------|----------------------------------|------|-------|-------|-------|--------|
-|          |                                  | 1    | 2     | 4     | 8     | 16     |
-|          | Samples per Second               |   1449 |   2850 |   5795 |  11247 |  22825 |
-| ViT g/14 | Perfect Linear Scaling (Samples) |   1449 |   2898 |   5795 |  11590 |  23181 |
-|          | Speedup                          |     1x |  1.97x |     4x |  7.76x | 15.75x |
+|          |                                  |     |       |       | Nodes |        |
+|----------|----------------------------------|-----|-------|-------|-------|--------|
+|          |                                  | 1   | 2     | 4     | 8     | 16     |
+|          | Samples per Second               |    1428 |    2846 |    5737 |   11222 |   21561 |
+| ViT g/14 | Perfect Linear Scaling (Samples) |    1428 |    2856 |    5713 |   11425 |   22851 |
+|          | Speedup                          |      1x |    1.99x|    4.02x|    7.86x|    15.1x|
 
-<img src="img/ViT g_14 NeMo Megatron Throughput (H100) (2305).svg"/>
+<img src="img/ViT%20g_14%20NeMo%20Megatron%20Throughput%20(H100)%20(2308).svg"/>
 
 - DGX A100 vs. DGX H100: A Comparative Analysis of Vision Transformer Training
 
 | Model       | Nodes | Global Batch Size | Micro Batch Size | Precision | Global Batch / Sec (A100) | Global Batch / Sec (H100) | Speedup (x) |
 |-------------|-------|-------------------|------------------|-----------|---------------------------|---------------------------|-------------|
-| ViT B/16    | 2     | 4096              | 256              | bf16 (O2) |                      3.06 |                      5.11 |         1.7 |
-| ViT L/16    | 2     | 4096              | 256              | bf16 (O2) |                      1.33 |                      2.76 |         2.1 |
-| ViT H/14    | 4     | 4096              | 128              | bf16 (O2) |                      1.07 |                      2.23 |         2.1 |
-| ViT g/14    | 4     | 4096              | 64               | bf16 (O2) |                      0.70 |                      1.40 |         2.0 |
-| ViT bigG/14 | 4     | 4096              | 32               | bf16 (O2) |                      0.43 |                      0.91 |         2.1 |
+| ViT B/16    |     2 |              4096 |              256 |  bf16 (O2)|                   2.54    |                  5.10    |          2.2|
+| ViT L/16    |     2 |              4096 |              256 |  bf16 (O2)|                   1.25    |                  2.71    |          2.1|
+| ViT H/14    |     4 |              4096 |              128 |  bf16 (O2)|                   1.06    |                  2.19    |          2.1|
+| ViT g/14    |     4 |              4096 |               64 |  bf16 (O2)|                   0.71    |                  1.42    |          2.2|
+| ViT bigG/14 |     4 |              4096 |               32 |  bf16 (O2)|                   0.43    |                  0.89    |          2.1|
 
-<img src="img/Vision Transformer Training Throughput Comparison (2305).svg"/>
+<img src="img/Vision Transformer Training Throughput Comparison (2308).svg"/>
 
 #### 8.1.3. Inference Performance Results
 
@@ -3136,32 +3145,32 @@ The tables and charts below show the performance results.
 |           |                                  |        |         |         | Nodes   |         |
 |-----------|----------------------------------|--------|---------|---------|---------|---------|
 |           |                                  | 1      | 2       | 4       | 8       | 16      |
-|           | Samples per Second               |    575 |   1171 |  2267 |  4567 |   8863 |
-| CLIP g/14 | Perfect Linear Scaling (Samples) |    575 |   1150 |  2300 |  4599 |   9199 |
-|           | Speedup                          |     1x |  2.04x | 3.94x | 7.94x | 15.42x |
+|           | Samples per Second               | 559  | 1115  | 2190  | 4407  | 8633  |
+| CLIP g/14 | Perfect Linear Scaling (Samples) | 559  | 1119  | 2237  | 4475  | 8950  |
+|           | Speedup                          | 1x   | 1.99x | 3.92x | 7.88x | 15.43x|
 
-<img src="img/CLIP g_14 NeMo Megatron Throughput (A100) (2305).svg"/>
+<img src="img/CLIP%20g_14%20NeMo%20Throughput%20(A100)%20(2308).svg"/>
 
 - NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for CLIP g/14 model)
 
 |           |                                  |         |         |         | Nodes   |          |
 |-----------|----------------------------------|---------|---------|---------|---------|----------|
 |           |                                  | 1       | 2       | 4       | 8       | 16       |
-|           | Samples per Second               |    930 |   1845 |   3482 |  6461 |  13672 |
-| CLIP g/14 | Perfect Linear Scaling (Samples) |    930 |   1859 |   3718 |  7436 |  14873 |
-|           | Speedup                          |     1x |  1.98x |  3.75x | 6.95x | 14.71x |
+|           | Samples per Second               | 935  | 1795  | 3502  | 6771  | 13829 |
+| CLIP g/14 | Perfect Linear Scaling (Samples) | 935  | 1869  | 3739  | 7478  | 14955 |
+|           | Speedup                          | 1x   | 1.92x | 3.75x | 7.24x | 14.8x |
 
-<img src="img/CLIP g_14 NeMo Megatron Throughput (H100) (2305).svg"/>
+<img src="img/CLIP%20g_14%20NeMo%20Throughput%20(H100)%20(2308).svg"/>
 
 - DGX A100 vs. DGX H100: A Comparative Analysis of CLIP Training
 
 | Model     | Nodes | Global Batch Size | Micro Batch Size | Precision | Global Batch / Sec (A100) | Global Batch / Sec (H100) | Speedup (x) |
 |-----------|-------|-------------------|------------------|-----------|---------------------------|---------------------------|-------------|
-| CLIP B/32 | 4     | 16000             | 500              | bf16 (O2) |                      3.01 |                      6.68 |         2.2 |
-| CLIP H/14 | 4     | 3584              | 112              | bf16 (O2) |                      0.90 |                      1.92 |         2.1 |
-| CLIP g/14 | 4     | 2560              | 80               | bf16 (O2) |                      0.89 |                      2.25 |         2.5 |
+| CLIP B/32 | 4     | 16000             | 500              | bf16 (O2) | 2.12                      | 5.26                      | 2.5         |
+| CLIP H/14 | 4     | 3584              | 112              | bf16 (O2) | 0.88                      | 1.92                      | 2.2         |
+| CLIP g/14 | 4     | 2560              | 80               | bf16 (O2) | 0.86                      | 2.25                      | 2.6         |
 
-<img src="img/CLIP Training Throughput Comparison (2305).svg"/>
+<img src="img/CLIP%20Training%20Throughput%20Comparison%20(2308).svg"/>
 
 #### 8.2.3. Inference Performance Results
 
