@@ -3681,6 +3681,7 @@ were not covered in this performance results.
 
 ## 9. Known Issues
 
+* Due to the update to PyTorch Lightning 2.0, there's a problem with training using float16 precision. We recommend using BFloat16 for all models.
 * Due to a [Lightning DDP limitation](https://github.com/Lightning-AI/lightning/issues/3325), the precaching module may
 drop about 0.01% to 0.1% of input data. The specific ratio will depend on the cluster configuration, tarfile chunk_size,
 precaching batch_size and dataset size, but will be consistent across runs. We anticipate that dropping a small percentage of data will not have a significant impact on model training.
