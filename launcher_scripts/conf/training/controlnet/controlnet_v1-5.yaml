@@ -10,7 +10,7 @@ trainer:
   devices: 2
   num_nodes: 1
   accelerator: gpu
-  precision: 16
+  precision: bf16-mixed
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
   use_distributed_sampler: True
