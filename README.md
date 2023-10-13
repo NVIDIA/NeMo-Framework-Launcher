@@ -184,13 +184,18 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
 ## 1. Release Notes
 
 **NeMo Multimodal 23.08**
-1. Added support for the following
+1. Added NeVA (LLaVA, multimodal LLM) with LLaMA2-chat (7B and 13B) backbone and with TRT-LLM support for inference
+2. Added DreamFusion (text-2-3D) with faster convergence and higher quality 3D assets than the original one
+3. Added NSFW content filtering, enabling users to find explicit content
+4. Added support for training DreamBooth with precached features, improving throughput by 75%
+5. Added flash attention v2 support for Stable diffusion and its derivatives
+6. Added support for the following
 
-| Model/ Method                               | Training | Fine-Tuning | Evaulation | In-framework Inference| Export (to TensorRT and ONNX) | Triton deployment |
-|:--------------------------------------------|:--------:|:-----------:|:----------:|    :---:     |:-----------------------------:|          :---: |
-| **NeVA (LlaVA)**                            | &check;  |  &check;    |     _      |&check;|            &check;            |&check;|
-| **NSFW Classfication Tool (Based on CLIP)** |    _     |   &check;   |     _      |&check;|             _                 |_    |
-| **DreamFusion**                             | &check;  |      _      |     _      | _     |               _               | _     |
+| Model/ Method   | Training | Fine-Tuning | Evaluation | In-framework Inference| Export (to TensorRT and ONNX) | Triton deployment |
+| :---                      | :----:       |    :---:            |:----------:|    :---:     |:-----------------------------:|:-----------------:|
+|**LLaVA**            | &check; | &check;       |     _      |&check;  |            &check;            |      &check;      |
+|**DreamFusion** | &check; | _                  |     _      |_             |               _               |         _         |
+|**NSFW filtering**| &check; | _                 |     _      |&check;   |               _               |         _         |
 
 **NeMo Multimodal 23.05**
 
@@ -330,7 +335,7 @@ imporving detection quality compared to just zero-shot classification.
 
 ### 2.9. NeVA
 
-Originating from [LLaVA](https://github.com/haotian-liu/LLaVA/tree/main/llava) (Large Language and Vision Assistant), NeVA stands as a pioneering innovation in the NeMo Multimodal landscape. This model synergizes language-centric large models (such as NVGPT or Llama2) with a vision encoder, leveraging the power of machine-generated multimodal language-image instruction-following data. Where traditional language models focus exclusively on textual processing, NeVA ambitiously pursues an integrated approach to visual and linguistic comprehension.
+Originating from [LLaVA](https://github.com/haotian-liu/LLaVA/tree/main/llava) (Large Language and Vision Assistant), NeVA is a groundbreaking addition to the NeMo Multimodal ecosystem. This model seamlessly integrates language-centric large models (like NVGPT or Llama2) with a vision encoder, harnessing the capabilities of machine-generated multimodal language-image instruction-following data. Building on the foundation set by LLaVA, NeVA enhances its training using the NeMo LLM framework. As a result, we can take advantage of features like model parallelism, activation checkpointing, AMP O2, Flash Attention, and more. While traditional language models have been primarily focused on textual processing, NeVA boldly adopts a holistic approach, bridging visual and linguistic comprehension.
 
 ### 2.10. DreamFusion
 <img src="img/dreamfusion_model_overview.png"/>
