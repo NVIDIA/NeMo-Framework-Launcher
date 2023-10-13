@@ -14,7 +14,6 @@ trainer:
   max_steps: 1250000 # precedence over max_epochs
   logger: False  # Provided by exp_manager 
   precision: bf16 # Should be set to 16 for O1 and O2 to enable the AMP.
-  replace_sampler_ddp: False
   limit_val_batches: 0
   use_distributed_sampler: False
   accelerator: gpu

@@ -3472,12 +3472,13 @@ The tables and charts below show the performance results.
 
 - NVIDIA DGX SuperPODs (16 x 8 x A100 80GB for Imagen Base 2B model)
 
-|                          |                                  |        |               |               | Nodes         |              |
-|--------------------------|----------------------------------|--------|---------------|---------------|---------------|--------------|
-|                          |                                  | 1      | 2             | 4             | 8             | 16           |
-| ImagenBase (2B, Res=64)  | Samples per Second               | 495.52 |        964.16 |       1922.88 |       3748.48 |      7484.16 |
-|                          | Perfect Linear Scaling (Samples) | 495.52 |        991.04 |       1982.08 |       3964.16 |      7928.32 |
-|                          | Speedup                          |     1x | 1.95x(97.29%) | 3.88x(97.01%) | 7.56x(94.56%) | 15.1x(94.4%) |
+|                          |                                  |        |            |              | Nodes      |                |
+|--------------------------|----------------------------------|--------|------------|--------------|------------|----------------|
+|                          |                                  | 1      | 2          | 4            | 8          | 16             |
+| ImagenBase (2B, Res=64)  | Samples per Second               | 264.16 |     527.65 |       987.99 |    2028.73 |        3985.98 |
+|                          | Perfect Linear Scaling (Samples) | 264.16 |     528.32 |      1056.64 |    2113.29 |        4226.59 |
+|                          | Speedup                          |     1x | 2x(99.87%) | 3.74x(93.5%) | 7.68x(96%) | 15.09x(94.31%) |
+
 <img src="img/ImagenBase (2B, Res=64) NeMo Megatron Throughput (A100).svg"/>
 
 - NVIDIA DGX SuperPODs (64 x 8 x A100 80GB for Imagen Base 500M model)
@@ -3487,30 +3488,30 @@ The tables and charts below show the performance results.
 |                           |                                  | 1      | 2       | 4       | 8       | 16       |
 | ImagenBase (500m, Res=64) | Samples per Second               | 902.69 | 1773.35 | 3473.26 | 6692.86 | 13145.11 |
 |                           | Perfect Linear Scaling (Samples) | 902.69 | 1805.38 | 3610.77 | 7221.54 | 14443.08 |
-|                           | Speedup                          |     1x |   1.96x |   3.85x |   7.41x |   14.56x |
+|                           | Speedup                          |     1x |   1.96x(98.23%) |   3.85x(96.19%) |   7.41x(92.68%) |   14.56x(91.01%) |
 
 <img src="img/ImagenBase (500M, Res=64) NeMo Megatron Throughput (A100).svg"/>
 
 - NVIDIA DGX SuperPODs (16 x 8 x H100 80GB for Imagen Base 2B model)
 
-|                         |                                  |        |         |         | Nodes   |          |
-|-------------------------|----------------------------------|--------|---------|---------|---------|----------|
-|                         |                                  |      1 |       2 |       4 |       8 |       16 |
-| ImagenBase (2B, Res=64) | Samples per Second               | 717.89 | 1339.26 | 2641.90 | 5073.07 |  9260.68 |
-|                         | Perfect Linear Scaling (Samples) | 717.89 | 1435.78 | 2871.56 | 5743.13 | 11486.26 |
-|                         | Speedup                          |     1x |   1.87x |   3.68x |   7.07x |    12.9x |
+|                          |                                  |        |               |               | Nodes         |              |
+|--------------------------|----------------------------------|--------|---------------|---------------|---------------|--------------|
+|                          |                                  | 1      | 2             | 4             | 8             | 16           |
+| ImagenBase (2B, Res=64)  | Samples per Second               | 495.52 |        964.16 |       1922.88 |       3748.48 |      7484.16 |
+|                          | Perfect Linear Scaling (Samples) | 495.52 |        991.04 |       1982.08 |       3964.16 |      7928.32 |
+|                          | Speedup                          |     1x | 1.95x(97.29%) | 3.88x(97.01%) | 7.56x(94.56%) | 15.1x(94.4%) |
 
-<img src="img/ImagenBase (2B, Res=64) NeMo Megatron Throughput (H100).svg"/>
+<img src="img/ImagenBase (2B, Res=64) NeMo Megatron Throughput (A100).svg"/>
 
 - DGX A100 vs. DGX H100: A Comparative Analysis of Imagen Training
 
 | Model                     | Nodes | Global Batch | Micro Batch | Precision | Global Batch/Sec (A100) | Global Batch/Sec (H100) | Speedup (x) |
 |---------------------------|-------|--------------|-------------|-----------|------------------|------------------|-------------|
-| ImagenBase (500M, Res=64) |     4 |         2048 |         64 | bf16 (O1) |            1.198 |            2.364 |         2.0 |
-| ImagenBase (2B, Res=64)   |     4 |         512 |         16 | bf16 (O1) |            1.269 |            2.514 |         2.0 |
-| ImagenSR (400M, Res=256)  |     4 |         512 |         16 | bf16 (O1) |            1.213 |            2.247 |         1.9 |
-| ImagenSR (600M, Res=256)  |     4 |         2048 |         64 | bf16 (O1) |            1.007 |            1.885 |         1.9 |
-| ImagenSR (600M, Res=1024) |     4 |         2048 |          64 | bf16 (O1) |            1.006 |            1.830 |         1.8 |
+| ImagenBase (500M, Res=64) |     4 |         2048 |         64 | bf16 (O1) |            1.489 |            3.162 |         2.1 |
+| ImagenBase (2B, Res=64)   |     4 |         512 |         16 | bf16 (O1) |            1.661 |            3.631 |         2.2 |
+| ImagenSR (400M, Res=256)  |     4 |         512 |         16 | bf16 (O1) |            1.609 |            3.166 |         2.0 |
+| ImagenSR (600M, Res=256)  |     4 |         2048 |         64 | bf16 (O1) |            1.264 |            2.668 |         2.1 |
+| ImagenSR (600M, Res=1024) |     4 |         2048 |          64 | bf16 (O1) |            1.319 |            2.837 |         2.2 |
 
 <img src="img/Imagen Training Throughput Comparison.svg"/>
 
