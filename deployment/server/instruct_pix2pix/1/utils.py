@@ -75,8 +75,20 @@ class Engine:
     def activate(self):
         self.context = self.engine.create_execution_context()
 
+    def get_bindings_per_profile(self):
+        return self.engine.num_bindings // self.engine.num_optimization_profiles
+
+    def get_active_profile_bindings(self):
+        active_profile = self.context.active_optimization_profile
+        bindings_per_profile = self.get_bindings_per_profile()
+
+        start_binding = bindings_per_profile * active_profile
+        end_binding = start_binding + bindings_per_profile
+
+        return start_binding, end_binding
+
     def allocate_buffers(self, shape_dict=None, device="cuda"):
-        for idx in range(trt_util.get_bindings_per_profile(self.engine)):
+        for idx in range(self.get_bindings_per_profile()):
             binding = self.engine[idx]
             if shape_dict and binding in shape_dict:
                 shape = shape_dict[binding]
@@ -91,7 +103,7 @@ class Engine:
 
     def infer(self, feed_dict):
         stream = self.stream
-        start_binding, end_binding = trt_util.get_active_profile_bindings(self.context)
+        start_binding, end_binding = self.get_active_profile_bindings()
         # shallow copy of ordered dict
         device_buffers = copy(self.buffers)
         for name, buf in feed_dict.items():

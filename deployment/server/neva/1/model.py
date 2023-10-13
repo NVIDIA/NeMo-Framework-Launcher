@@ -29,7 +29,8 @@ from mpi4py import MPI
 from PIL import Image
 from polygraphy.backend.common import BytesFromPath
 from polygraphy.backend.trt import EngineFromBytes, TrtRunner
-from transformers import CLIPImageProcessor, T5Tokenizer
+from sentencepiece import SentencePieceProcessor
+from transformers import CLIPImageProcessor
 
 ENGINE_DIR = Path(__file__).parent / 'plan'
 VISION_ENGINE = ENGINE_DIR / 'vision_encoder.plan'
@@ -150,10 +151,9 @@ class TritonPythonModel:
             maxprocs=world_size,
         )
 
-        self.tokenizer = T5Tokenizer(str(VOCAB_FILE), extra_ids=0, legacy=False)
-        self.image_start_id = self.tokenizer.convert_tokens_to_ids(DEFAULT_IMAGE_START_TOKEN)
-        self.token_stop_id = self.tokenizer.convert_tokens_to_ids(DEFAULT_STOP_TOKEN)
-        self.token_stop_id = self.tokenizer.eos_token_id
+        self.tokenizer = SentencePieceProcessor(str(VOCAB_FILE))
+        self.image_start_id = self.tokenizer.piece_to_id(DEFAULT_IMAGE_START_TOKEN)
+        self.token_stop_id = self.tokenizer.eos_id()
 
         log(f'Loading the vision engine...')
         self.processor = CLIPImageProcessor.from_pretrained(str(ENGINE_DIR))
@@ -185,10 +185,7 @@ class TritonPythonModel:
             round(float(get_single_input(r, 'temperature', 1.0)), 2) for r in requests  # round for better grouping
         ]
         random_seeds = [get_single_input(r, 'random_seed') for r in requests]
-        end_ids = [
-            self.tokenizer.convert_tokens_to_ids(get_single_input(r, 'stop').decode('utf-8', 'ignore'))
-            for r in requests
-        ]
+        end_ids = [self.tokenizer.piece_to_id(get_single_input(r, 'stop').decode('utf-8', 'ignore')) for r in requests]
         image_lists = [pb_utils.get_input_tensor_by_name(r, 'images').as_numpy().flatten().tolist() for r in requests]
 
         # process texts
