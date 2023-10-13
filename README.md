@@ -195,7 +195,7 @@ at [https://ngc.nvidia.com/containers/ea-bignlp:bignlp-training](https://ngc.nvi
 | :---                      | :----:       |    :---:            |:----------:|    :---:     |:-----------------------------:|:-----------------:|
 |**LLaVA**            | &check; | &check;       |     _      |&check;  |            &check;            |      &check;      |
 |**DreamFusion** | &check; | _                  |     _      |_             |               _               |         _         |
-|**NSFW filtering**| &check; | _                 |     _      |&check;   |               _               |         _         |
+|**NSFW filtering**| &check; | _                 |     _      |&check;   |               &check;               |         &check;         |
 
 **NeMo Multimodal 23.05**
 
