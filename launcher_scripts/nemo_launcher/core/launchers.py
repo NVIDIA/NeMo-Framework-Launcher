@@ -533,6 +533,7 @@ def _make_sbatch_string(
     account: Optional[str] = None,
     gres: Optional[str] = None,
     exclusive: Optional[Union[bool, str]] = None,
+    wait_all_nodes: Optional[str] = None,
     array: Optional[str] = None,
     stderr_to_stdout: bool = False,
     container_image: Optional[str] = None,
