@@ -43,6 +43,8 @@ container: nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.08.03
 
 wandb_api_key_file: null  # File where the w&B api key is stored. Key must be on the first line.
 
+bcp_no_redirect: True  # If True, all stdout and stderr will not be redirected and appear in the standard logs. If False, all stdout and stderr output will be redirected to individual files on a per-rank basis. Ignored for non-BCP clusters.
+
 env_vars:
   NCCL_TOPO_FILE: null # Should be a path to an XML file describing the topology
   UCX_IB_PCI_RELAXED_ORDERING: null # Needed to improve Azure performance
