@@ -19,48 +19,61 @@ python preprocess.py --input=<path/to/data/file>
 """
 
 import json
-import numpy as np
 from argparse import ArgumentParser
+
+import numpy as np
+
 
 def to_jsonl(path_to_data):
     print(f"Preprocessing data to jsonl format...")
     output_path = f"{path_to_data.split('.')[0]}-output.jsonl"
-    with open(path_to_data, 'r') as f, open(output_path, 'w') as g:
+    with open(path_to_data, "r") as f, open(output_path, "w") as g:
         for line in f:
             line = json.loads(line)
-            context = line['context'].strip()
+            context = line["context"].strip()
             if context != "":
                 # Randomize context and instruction order.
                 context_first = np.random.randint(0, 2) == 0
                 if context_first:
-                    instruction = line['instruction'].strip()
+                    instruction = line["instruction"].strip()
                     assert instruction != ""
                     input = f"{context}\n\n{instruction}"
-                    output = line['response']
+                    output = line["response"]
                 else:
-                    instruction = line['instruction'].strip()
+                    instruction = line["instruction"].strip()
                     assert instruction != ""
                     input = f"{instruction}\n\n{context}"
-                    output = line['response']
+                    output = line["response"]
             else:
-                input = line['instruction']
-                output = line['response']
-            g.write(json.dumps({'input': input, 'output': output, 'category': line['category']}) + '\n')
+                input = line["instruction"]
+                output = line["response"]
+            g.write(
+                json.dumps(
+                    {"input": input, "output": output, "category": line["category"]}
+                )
+                + "\n"
+            )
     print(f"Data was successfully preprocessed and saved by {output_path} .")
+
 
 def get_args():
     parser = ArgumentParser()
     parser.add_argument(
-        "--input", type=str, required=True, help="Path to jsonl dataset you want to prepare."
+        "--input",
+        type=str,
+        required=True,
+        help="Path to jsonl dataset you want to prepare.",
     )
     args = parser.parse_args()
 
     return args
+
 
 def main():
     args = get_args()
     path_to_data = args.input
     to_jsonl(path_to_data)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -1,15 +1,15 @@
 import copy
 import shlex
-import omegaconf
-from typing import Dict, List
 from pathlib import Path
+from typing import Dict, List
 
+import omegaconf
+from nemo_launcher.core.launchers import AutoLauncher
 from nemo_launcher.core.stages import (
     NemoMegatronStage,
-    create_args_list,
     clean_command_groups,
+    create_args_list,
 )
-from nemo_launcher.core.launchers import AutoLauncher
 
 
 class DataCurationStage(NemoMegatronStage):
@@ -37,10 +37,10 @@ class DataCurationStage(NemoMegatronStage):
         results_folder = job_path.results_folder
         results_folder.mkdir(parents=True, exist_ok=True)
         # make the log dir
-        self.log_folder = Path(job_path.folder, 'log')
+        self.log_folder = Path(job_path.folder, "log")
         self.log_folder.mkdir(parents=True, exist_ok=True)
         # Make the conf dir
-        self.conf_folder = Path(job_path.folder, 'config')
+        self.conf_folder = Path(job_path.folder, "config")
         self.conf_folder.mkdir(parents=True, exist_ok=True)
 
     def _make_cluster_parameters(self, cluster: str) -> Dict:
@@ -61,10 +61,10 @@ class DataCurationStage(NemoMegatronStage):
         run_cfg = stage_cfg.get("run")
         job_name = run_cfg.get("name")
         time_limit = run_cfg.get("time_limit")
-        nodes = run_cfg.get('nodes')
+        nodes = run_cfg.get("nodes")
         # Allow for updating the partition as we might run
         # on CPU only nodes
-        partition = run_cfg.get('partition')
+        partition = run_cfg.get("partition")
 
         container_image = cfg.get("container")
         container_mounts = self._make_container_mounts_string()
@@ -80,15 +80,16 @@ class DataCurationStage(NemoMegatronStage):
             cluster_params = {
                 **slurm_cfg,
             }
-            cluster_params.update({
-                **shared_parameters,
-                "container_image": container_image,
-                "container_mounts": container_mounts,
-            })
-            cluster_params[
-                "job_name"] = job_name_prefix + cluster_params["job_name"]
-            cluster_params['nodes'] = nodes
-            cluster_params['partition'] = partition
+            cluster_params.update(
+                {
+                    **shared_parameters,
+                    "container_image": container_image,
+                    "container_mounts": container_mounts,
+                }
+            )
+            cluster_params["job_name"] = job_name_prefix + cluster_params["job_name"]
+            cluster_params["nodes"] = nodes
+            cluster_params["partition"] = partition
 
         return cluster_params
 
@@ -106,8 +107,7 @@ class DataCurationStage(NemoMegatronStage):
         # Make cluster configuration parameters
         cluster_parameters = self._make_cluster_parameters(self.cluster)
         stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
-            self.stage_cfg,
-            job_path,
+            self.stage_cfg, job_path,
         )
 
         # Build commands to launch on cluster
@@ -143,22 +143,19 @@ class QualityFiltering(DataCurationStage):
 
         # Write out the filter configuration as a separate config file
         filter_cfg = Path(self.conf_folder, "heuristic_filter.yaml")
-        omegaconf.OmegaConf.save(stage_cfg.get('filter'), filter_cfg)
+        omegaconf.OmegaConf.save(stage_cfg.get("filter"), filter_cfg)
 
         command_groups = [[]]
 
         # If certain arguments are not specified, we remove them from the list
         optional_args = {
-            "output_removed_document_dir":
-            stage_cfg.get('output_removed_document_dir'),
-            "output_document_score_dir":
-            stage_cfg.get('output_document_score_dir'),
+            "output_removed_document_dir": stage_cfg.get("output_removed_document_dir"),
+            "output_document_score_dir": stage_cfg.get("output_document_score_dir"),
         }
 
         # Remove any arguments that are not specified
         optional_args = {
-            arg: optional_args[arg]
-            for arg in optional_args if optional_args[arg]
+            arg: optional_args[arg] for arg in optional_args if optional_args[arg]
         }
 
         # Create the list of arguments for the filter_documents command
@@ -167,8 +164,7 @@ class QualityFiltering(DataCurationStage):
             log_dir=self.log_folder,
             input_data_dir=stage_cfg.get("input_dir"),
             filter_config_file=f"{filter_cfg}",
-            output_retained_document_dir=stage_cfg.get(
-                "output_retained_document_dir"),
+            output_retained_document_dir=stage_cfg.get("output_retained_document_dir"),
             **optional_args,
         )
 

@@ -21,17 +21,23 @@ import re
 import shlex
 import shutil
 import warnings
-from omegaconf import OmegaConf, DictConfig
-import yaml
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Set, Union
 
 import nemo_launcher.utils.job_utils as job_utils
+import yaml
 from nemo_launcher.core.logger import logger
+from omegaconf import DictConfig, OmegaConf
 
 NEMO_LAUNCHER_CI = os.getenv("NEMO_LAUNCHER_CI", "False").lower() in ("true", "t", "1")
-NEMO_LAUNCHER_DEBUG = os.getenv("NEMO_LAUNCHER_DEBUG", "False").lower() in ("true", "t", "1")
-NEMO_LAUNCHER_MEMORY_MEASURE = os.getenv("NEMO_LAUNCHER_MEMORY_MEASURE", "False").lower() in ("true", "t", "1")
+NEMO_LAUNCHER_DEBUG = os.getenv("NEMO_LAUNCHER_DEBUG", "False").lower() in (
+    "true",
+    "t",
+    "1",
+)
+NEMO_LAUNCHER_MEMORY_MEASURE = os.getenv(
+    "NEMO_LAUNCHER_MEMORY_MEASURE", "False"
+).lower() in ("true", "t", "1")
 
 
 class AutoLauncher:
@@ -39,13 +45,21 @@ class AutoLauncher:
     Automatic launcher class. It will create a launcher based on input cluster name.
     """
 
-    def __init__(self, folder: Union[str, Path], job_name: str, cluster: Optional[str] = None, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        folder: Union[str, Path],
+        job_name: str,
+        cluster: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
         self.cluster = cluster or self.which()
         self.cluster = self.cluster.lower()
 
         launchers = self.get_launchers()
         if self.cluster not in launchers:
-            raise ValueError(f"AutoLauncher doesn't know any cluster named {self.cluster}")
+            raise ValueError(
+                f"AutoLauncher doesn't know any cluster named {self.cluster}"
+            )
 
         self._launcher = launchers[self.cluster](folder, job_name, **kwargs)
 
@@ -92,7 +106,9 @@ class Launcher:
         :rtype: str
         """
         submission_file_path = self._make_submission_file(command_groups)
-        logger.info(f"Job {self.job_name} submission file created at '{submission_file_path}'")
+        logger.info(
+            f"Job {self.job_name} submission file created at '{submission_file_path}'"
+        )
 
         job_id = ""
         if not NEMO_LAUNCHER_DEBUG:
@@ -103,7 +119,9 @@ class Launcher:
                     f.write(f"Submitted batch job {job_id}")
         else:
             job_id = str(random.randint(10000, 99999))
-            logger.info(f"[DEBUG] Job {self.job_name} submitted with FAKE Job ID {job_id}")
+            logger.info(
+                f"[DEBUG] Job {self.job_name} submitted with FAKE Job ID {job_id}"
+            )
 
         return job_id
 
@@ -153,7 +171,9 @@ class InteractiveLauncher(Launcher):
         """Launch the submission command"""
         command_list = self._make_submission_command(submission_file_path)
         # run
-        job_utils.CommandFunction(command_list, ret_stdout=False, verbose=False)()  # explicit errors
+        job_utils.CommandFunction(
+            command_list, ret_stdout=False, verbose=False
+        )()  # explicit errors
         return ""
 
     @staticmethod
@@ -192,13 +212,15 @@ class InteractiveLauncher(Launcher):
 
         for group_ind, command_group in enumerate(command_groups):
             command = ";\n  ".join(command_group)
-            command = command.replace("python3 -u", f"torchrun --nproc_per_node={ntasks_per_node}")
+            command = command.replace(
+                "python3 -u", f"torchrun --nproc_per_node={ntasks_per_node}"
+            )
 
             lines += [
                 "",
                 f"# command {group_ind + 1}",
-                f"bash -c \"",
-                f"  {command} \" 2>&1 | tee -a {stdout}",
+                f'bash -c "',
+                f'  {command} " 2>&1 | tee -a {stdout}',
                 "",
             ]
         return "\n".join(lines)
@@ -244,7 +266,9 @@ class BCPLauncher(Launcher):
         """Launch the submission command"""
         command_list = self._make_submission_command(submission_file_path)
         # run
-        job_utils.CommandFunction(command_list, ret_stdout=False, verbose=False)()  # explicit errors
+        job_utils.CommandFunction(
+            command_list, ret_stdout=False, verbose=False
+        )()  # explicit errors
         return ""
 
     @staticmethod
@@ -290,15 +314,17 @@ class BCPLauncher(Launcher):
             lines += ["", "# setup"] + setup
 
         # Add pause_and_prime_dns_connection to command groups on BCP
-        launcher_scripts_path = Path("/opt/NeMo-Megatron-Launcher/launcher_scripts")  # Hard code path on BCP
-        pause_and_prime_dns_connection_command = (
-            f"python3 -u {launcher_scripts_path / 'nemo_launcher/collections/pause_and_prime_dns_connections.py'}"
-        )
+        launcher_scripts_path = Path(
+            "/opt/NeMo-Megatron-Launcher/launcher_scripts"
+        )  # Hard code path on BCP
+        pause_and_prime_dns_connection_command = f"python3 -u {launcher_scripts_path / 'nemo_launcher/collections/pause_and_prime_dns_connections.py'}"
         _nemo_code_path = "/opt/NeMo"
         for ind in range(len(command_groups)):
             # TODO: Find a better way to insert pause_and_prime_dns_connection_command
             if _nemo_code_path in command_groups[ind]:
-                command_groups[ind] = [pause_and_prime_dns_connection_command] + command_groups[ind]
+                command_groups[ind] = [
+                    pause_and_prime_dns_connection_command
+                ] + command_groups[ind]
 
         for group_ind, command_group in enumerate(command_groups):
             command = ";\n  ".join(command_group)
@@ -309,8 +335,8 @@ class BCPLauncher(Launcher):
             lines += [
                 "",
                 f"# command {group_ind + 1}",
-                f"{bcprun_cmd} " f"{launcher_flags} {env_flags} --cmd \"",
-                f"  {command} \" 2>&1 | tee -a {stdout}",
+                f"{bcprun_cmd} " f'{launcher_flags} {env_flags} --cmd "',
+                f'  {command} " 2>&1 | tee -a {stdout}',
                 "",
             ]
         return "\n".join(lines)
@@ -337,7 +363,9 @@ class SlurmLauncher(Launcher):
         self._update_parameters(job_name=job_name, **kwargs)
 
         if shutil.which("srun") is None and not NEMO_LAUNCHER_DEBUG:
-            raise RuntimeError('Could not detect "srun", are you indeed on a slurm cluster?')
+            raise RuntimeError(
+                'Could not detect "srun", are you indeed on a slurm cluster?'
+            )
 
     @classmethod
     def _equivalence_dict(cls):
@@ -381,20 +409,28 @@ class SlurmLauncher(Launcher):
         defaults = _get_default_parameters()
         in_valid_parameters = sorted(set(kwargs) - set(defaults))
         if in_valid_parameters:
-            string = "\n  - ".join(f"{x} (default: {repr(y)})" for x, y in sorted(defaults.items()))
+            string = "\n  - ".join(
+                f"{x} (default: {repr(y)})" for x, y in sorted(defaults.items())
+            )
             logger.warning(
                 f"Unrecognized sbatch parameter(s): {in_valid_parameters}. Use at your own risk.\n\nValid parameters are:\n  - {string}"
             )
 
-        self.parameters.update({k: v for k, v in kwargs.items() if k not in in_valid_parameters})
-        self.parameters.update({"additional_parameters": {k: kwargs[k] for k in in_valid_parameters}},)
+        self.parameters.update(
+            {k: v for k, v in kwargs.items() if k not in in_valid_parameters}
+        )
+        self.parameters.update(
+            {"additional_parameters": {k: kwargs[k] for k in in_valid_parameters}},
+        )
         self.parameters = self._convert_parameters(self.parameters)
 
     def _submit_command(self, submission_file_path: Path) -> str:
         """Launch the submission command"""
         command_list = self._make_submission_command(submission_file_path)
         # run
-        output = job_utils.CommandFunction(command_list, verbose=False)()  # explicit errors
+        output = job_utils.CommandFunction(
+            command_list, verbose=False
+        )()  # explicit errors
 
         job_id = ""
         if output:
@@ -413,7 +449,9 @@ class SlurmLauncher(Launcher):
         :return: submission script file's text
         :rtype: str
         """
-        return _make_sbatch_string(command_groups=command_groups, folder=self.folder, **self.parameters)
+        return _make_sbatch_string(
+            command_groups=command_groups, folder=self.folder, **self.parameters
+        )
 
     @staticmethod
     def _make_submission_command(submission_file_path: Path) -> List[str]:
@@ -474,7 +512,9 @@ class K8SLauncher(Launcher):
         """Launch the submission command"""
         command_list = self._make_submission_command(submission_file_path)
         # run
-        job_utils.CommandFunction(command_list, ret_stdout=False, verbose=False)()  # explicit errors
+        job_utils.CommandFunction(
+            command_list, ret_stdout=False, verbose=False
+        )()  # explicit errors
         return ""
 
     @staticmethod
@@ -493,10 +533,10 @@ class K8SLauncher(Launcher):
         :rtype: str
         """
         paths = job_utils.JobPaths(folder=self.folder, job_name=self.job_name)
-        helm_charts = paths.folder / 'k8s_template'
-        job_name = self.job_name.replace('_', '-')
+        helm_charts = paths.folder / "k8s_template"
+        job_name = self.job_name.replace("_", "-")
 
-        return f'#!/bin/bash\nhelm install {job_name} {helm_charts}\n'
+        return f"#!/bin/bash\nhelm install {job_name} {helm_charts}\n"
 
 
 @functools.lru_cache()
@@ -581,14 +621,20 @@ def _make_sbatch_string(
         "srun_args",
         "heterogeneous",
     ]
-    parameters = {k: v for k, v in locals().items() if v is not None and k not in nonslurm}
+    parameters = {
+        k: v for k, v in locals().items() if v is not None and k not in nonslurm
+    }
     # rename and reformat parameters
 
     if num_gpus is not None:
-        warnings.warn('"num_gpus" is deprecated, please use "gpus_per_node" instead (overwritting with num_gpus)')
+        warnings.warn(
+            '"num_gpus" is deprecated, please use "gpus_per_node" instead (overwritting with num_gpus)'
+        )
         parameters["gpus_per_node"] = parameters.pop("num_gpus", 0)
     if "cpus_per_gpu" in parameters and "gpus_per_task" not in parameters:
-        warnings.warn('"cpus_per_gpu" requires to set "gpus_per_task" to work (and not "gpus_per_node")')
+        warnings.warn(
+            '"cpus_per_gpu" requires to set "gpus_per_task" to work (and not "gpus_per_node")'
+        )
     # add necessary parameters
     job_name = parameters.get("job_name")
     paths = job_utils.JobPaths(folder=folder, job_name=job_name)
@@ -626,7 +672,7 @@ def _make_sbatch_string(
             )
             for k in sorted(parameters):
                 lines.append(_as_sbatch_flag(k, het_parameters[k]))
-            if i != len(nodes) -1:
+            if i != len(nodes) - 1:
                 lines.append(f"#SBATCH hetjob")
     else:
         for k in sorted(parameters):
@@ -639,7 +685,9 @@ def _make_sbatch_string(
     # We pass --output and --error here, because the SBATCH command doesn't work as expected with a filename pattern
     stderr_flags = [] if stderr_to_stdout else ["--error", stderr]
     container_flags = ["--container-image", container_image] if container_image else []
-    container_flags += ["--container-mounts", container_mounts] if container_mounts else []
+    container_flags += (
+        ["--container-mounts", container_mounts] if container_mounts else []
+    )
     if srun_args is None:
         srun_args = []
 
@@ -649,7 +697,15 @@ def _make_sbatch_string(
         mem_stdout = stdout.replace("_%j", "_mem_%j")
         mem_stdout = mem_stdout.replace("_%A_%a", "_mem_%A_%a")
         mem_srun_cmd = shlex.join(
-            ["srun", "--ntasks=1", "--ntasks-per-node=1", "--output", mem_stdout, *container_flags, *srun_args]
+            [
+                "srun",
+                "--ntasks=1",
+                "--ntasks-per-node=1",
+                "--output",
+                mem_stdout,
+                *container_flags,
+                *srun_args,
+            ]
         )
         lines += [
             "",
@@ -666,13 +722,23 @@ def _make_sbatch_string(
             het_stderr = stderr_flags.copy()
             if het_stderr:
                 het_stderr[-1] = het_stderr[-1].replace("_%j", f"_{group_ind}_%j")
-            srun_cmd = shlex.join(["srun", "--output", het_stdout, *het_stderr, *container_flags, *srun_args, het_group])
+            srun_cmd = shlex.join(
+                [
+                    "srun",
+                    "--output",
+                    het_stdout,
+                    *het_stderr,
+                    *container_flags,
+                    *srun_args,
+                    het_group,
+                ]
+            )
             command = ";\n  ".join(command_group)
             lines += [
                 "",
                 f"# command {group_ind + 1}",
-                f"{srun_cmd} bash -c \"",
-                f"  {command} \" &",
+                f'{srun_cmd} bash -c "',
+                f'  {command} " &',
                 "",
             ]
             if group_ind == len(nodes) - 1:
@@ -680,13 +746,22 @@ def _make_sbatch_string(
             else:
                 lines += ["sleep 30"]
         else:
-            srun_cmd = shlex.join(["srun", "--output", stdout, *stderr_flags, *container_flags, *srun_args])
+            srun_cmd = shlex.join(
+                [
+                    "srun",
+                    "--output",
+                    stdout,
+                    *stderr_flags,
+                    *container_flags,
+                    *srun_args,
+                ]
+            )
             command = ";\n  ".join(command_group)
             lines += [
                 "",
                 f"# command {group_ind + 1}",
-                f"{srun_cmd} bash -c \"",
-                f"  {command} \"",
+                f'{srun_cmd} bash -c "',
+                f'  {command} "',
                 "",
             ]
     return "\n".join(lines)

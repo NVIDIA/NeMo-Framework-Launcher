@@ -106,7 +106,13 @@ class Winogrande(HFTask):
         is_preds = results[1::4]
         model_toks = results[2::4]
         gold_toks = results[3::4]
-        assert len(lls) == len(is_preds) == len(model_toks) == len(gold_toks) == num_choices, doc
+        assert (
+            len(lls)
+            == len(is_preds)
+            == len(model_toks)
+            == len(gold_toks)
+            == num_choices
+        ), doc
 
         return {
             # "acc": np.argmax(results) == self.answer_to_num[doc["answer"]]
@@ -119,7 +125,13 @@ class Winogrande(HFTask):
         is_preds = results[1::4]
         model_toks = results[2::4]
         gold_toks = results[3::4]
-        assert len(lls) == len(is_preds) == len(model_toks) == len(gold_toks) == num_choices, doc
+        assert (
+            len(lls)
+            == len(is_preds)
+            == len(model_toks)
+            == len(gold_toks)
+            == num_choices
+        ), doc
         return {
             "sentence": doc["sentence"],
             "option1": doc["option1"],

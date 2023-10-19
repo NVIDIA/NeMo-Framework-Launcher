@@ -55,7 +55,9 @@ class RACE(HFTask):
         # is shown that one document is made per passage.
 
         r = collections.defaultdict(list)
-        for item in datasets.load_dataset(path=self.DATASET_PATH, name=self.DATASET_NAME)[set]:
+        for item in datasets.load_dataset(
+            path=self.DATASET_PATH, name=self.DATASET_NAME
+        )[set]:
             r[item["article"]].append(item)
 
         res = list(
@@ -64,7 +66,13 @@ class RACE(HFTask):
                 lambda x: {
                     "article": x[0]["article"],
                     "problems": x
-                    >> each(lambda y: {"question": y["question"], "answer": y["answer"], "options": y["options"],}),
+                    >> each(
+                        lambda y: {
+                            "question": y["question"],
+                            "answer": y["answer"],
+                            "options": y["options"],
+                        }
+                    ),
                 }
             )
         )
@@ -119,8 +127,11 @@ class RACE(HFTask):
             part of the document for `doc`.
         """
         problem = self.last_problem(doc)
-        ll_choices = [rf.loglikelihood(ctx, " " + problem["options"][i])[0] for i in range(4)] + [
-            rf.loglikelihood("Answer:", " " + problem["options"][i])[0] for i in range(4)
+        ll_choices = [
+            rf.loglikelihood(ctx, " " + problem["options"][i])[0] for i in range(4)
+        ] + [
+            rf.loglikelihood("Answer:", " " + problem["options"][i])[0]
+            for i in range(4)
         ]
         return ll_choices
 
@@ -138,7 +149,9 @@ class RACE(HFTask):
         context_conditional_ll = results[:4]
         context_free_ll = results[4:]
         assert len(context_free_ll) == len(context_conditional_ll)
-        ll_gain = [ccl - cfl for ccl, cfl in zip(context_conditional_ll, context_free_ll)]
+        ll_gain = [
+            ccl - cfl for ccl, cfl in zip(context_conditional_ll, context_free_ll)
+        ]
         pred = np.argmax(ll_gain)
         pred_raw_ll = np.argmax(results[:4])
         return {
@@ -151,14 +164,19 @@ class RACE(HFTask):
         context_conditional_ll = results[:4]
         context_free_ll = results[4:]
         assert len(context_free_ll) == len(context_conditional_ll)
-        ll_gain = [ccl - cfl for ccl, cfl in zip(context_conditional_ll, context_free_ll)]
+        ll_gain = [
+            ccl - cfl for ccl, cfl in zip(context_conditional_ll, context_free_ll)
+        ]
         pred = np.argmax(ll_gain)
         return {
             "format": self.doc_to_text(doc),
             "gold_choice": self.last_problem(doc)["options"][gold],
             "model_choice": self.last_problem(doc)["options"][pred],
             "choices (ll, ull, ll_gain)": dict(
-                zip(self.last_problem(doc)["options"], zip(results[:4], results[4:], ll_gain))
+                zip(
+                    self.last_problem(doc)["options"],
+                    zip(results[:4], results[4:], ll_gain),
+                )
             ),
         }
 

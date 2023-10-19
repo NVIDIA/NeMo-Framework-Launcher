@@ -50,9 +50,15 @@ def main(cfg):
     # exists, it doesn't do anything. Force make via: touch helpers.cpp
     megatron_dir = "/opt/NeMo/nemo/collections/nlp/data/language_modeling/megatron"
     compiled_helpers_lib = os.path.join(megatron_dir, "compiled_helpers_lib")
-    compilecmd = f"cd /opt/NeMo; git rev-parse HEAD; " f"cd {megatron_dir}; " f"touch helpers.cpp; make;"
+    compilecmd = (
+        f"cd /opt/NeMo; git rev-parse HEAD; "
+        f"cd {megatron_dir}; "
+        f"touch helpers.cpp; make;"
+    )
 
-    code_path = "/opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py"
+    code_path = (
+        "/opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py"
+    )
     runcmd = (
         f"cd {megatron_dir}; "
         f'export PYTHONPATH="/opt/NeMo/.:$PYTHONPATH"; '
@@ -64,13 +70,13 @@ def main(cfg):
         file_number = int(os.environ.get("SLURM_ARRAY_TASK_ID"))
         extracted_path = os.path.join(data_dir, f"{file_number:02d}.jsonl")
 
-        model_type = 't5'
-        if 'bert' in data_config:
-            model_type = 'bert'
-        elif 'gpt3' in data_config:
-            model_type = 'gpt3'
-        elif 'llama' in data_config:
-            model_type = 'llama'
+        model_type = "t5"
+        if "bert" in data_config:
+            model_type = "bert"
+        elif "gpt3" in data_config:
+            model_type = "gpt3"
+        elif "llama" in data_config:
+            model_type = "llama"
 
         output_prefix = os.path.join(data_dir, f"my-{model_type}_{file_number:02d}")
 
@@ -86,7 +92,7 @@ def main(cfg):
             f"--workers $SLURM_CPUS_ON_NODE "
         )
 
-        if model_type == 'bert':
+        if model_type == "bert":
             # Used for bert binary head (Next sentence predition)
             flags += "--split-sentences "
         else:
@@ -120,13 +126,13 @@ def main(cfg):
         for file_number in files_to_preproc:
             extracted_path = os.path.join(data_dir, f"{file_number:02d}.jsonl")
 
-            model_type = 't5'
-            if 'bert' in data_config:
-                model_type = 'bert'
-            elif 'gpt3' in data_config:
-                model_type = 'gpt3'
-            elif 'llama' in data_config:
-                model_type = 'llama'
+            model_type = "t5"
+            if "bert" in data_config:
+                model_type = "bert"
+            elif "gpt3" in data_config:
+                model_type = "gpt3"
+            elif "llama" in data_config:
+                model_type = "llama"
 
             output_prefix = os.path.join(data_dir, f"my-{model_type}_{file_number:02d}")
 
@@ -142,7 +148,7 @@ def main(cfg):
                 f"--workers {ncpus} "
             )
 
-            if model_type == 'bert':
+            if model_type == "bert":
                 # Used for bert binary head (Next sentence predition)
                 flags += "--split-sentences "
             else:

@@ -50,7 +50,7 @@ class TestGPT3Config:
         assert (
             expected == conf
         ), f"conf/search_config/gpt3/0.126b.yaml must be set to {expected} but it currently is {conf}."
-    
+
     def test_gpt3_config_0_843b(self):
         conf = OmegaConf.load("conf/search_config/gpt3/0.843b.yaml")
         s = """
@@ -99,7 +99,7 @@ class TestGPT3Config:
         assert (
             expected == conf
         ), f"conf/search_config/gpt3/0.843b.yaml must be set to {expected} but it currently is {conf}."
-    
+
     def test_gpt3_config_2b(self):
         conf = OmegaConf.load("conf/search_config/gpt3/2b.yaml")
         s = """

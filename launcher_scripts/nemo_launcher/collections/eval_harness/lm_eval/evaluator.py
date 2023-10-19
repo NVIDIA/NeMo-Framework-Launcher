@@ -37,7 +37,9 @@ def evaluate(
     #  (task, task_docs, reqs, requests, request_origin). Converting everything to HF dataset objects may be a good alternative
 
     task_dict_items = [
-        (name, task) for name, task in task_dict.items() if (task.has_validation_docs() or task.has_test_docs())
+        (name, task)
+        for name, task in task_dict.items()
+        if (task.has_validation_docs() or task.has_test_docs())
     ]
 
     results = collections.defaultdict(dict)
@@ -97,7 +99,9 @@ def evaluate(
                 doc["doc_id"] = doc_id
                 doc["shot_ids"] = shot_ids
             docs[(task_name, doc_id)] = doc
-            reqs = task.construct_requests(doc, ctx)  # GEO: this is a tuple, like (ll_true, ll_false)
+            reqs = task.construct_requests(
+                doc, ctx
+            )  # GEO: this is a tuple, like (ll_true, ll_false)
             if not isinstance(reqs, (list, tuple)):
                 reqs = [reqs]
             for i, req in enumerate(reqs):
@@ -107,7 +111,9 @@ def evaluate(
                 # i: index in requests for a single task instance. Each doc has as many requests as multiple choice questions.
                 # doc_id: unique id that we can get back to a doc using `docs`. Just an index corresponding to the order of app. in `task_docs`
                 # GEO: TODO: does it really need the `doc`? is this list necessary?
-                requests_origin[req.type].append((i, task_name, doc, doc_id))  # key(s) are 'loglikelihood', etc.
+                requests_origin[req.type].append(
+                    (i, task_name, doc, doc_id)
+                )  # key(s) are 'loglikelihood', etc.
 
     # all responses for each (task, doc)
     process_res_queue = collections.defaultdict(list)  # GEO: not a Queue though...
@@ -143,8 +149,12 @@ def evaluate(
     if lm.can_access_output():
         logging.debug("Calculating individual metrics ...")
         for (task_name, doc_id), responses in process_res_queue.items():
-            responses.sort(key=lambda x: x[0])  # this sorts by class of answer, i.e. 0, 1, ...
-            responses = [x[1] for x in responses]  # calculated loglikelihood for each class
+            responses.sort(
+                key=lambda x: x[0]
+            )  # this sorts by class of answer, i.e. 0, 1, ...
+            responses = [
+                x[1] for x in responses
+            ]  # calculated loglikelihood for each class
 
             task = task_dict[task_name]
             doc = docs[(task_name, doc_id)]
@@ -163,7 +173,9 @@ def evaluate(
             task = task_dict[task_name]
             results[task_name][metric] = task.aggregation()[metric](items)
 
-            stderr = lm_eval.metrics.stderr_for_metric(task.aggregation()[metric], bootstrap_iters=bootstrap_iters)
+            stderr = lm_eval.metrics.stderr_for_metric(
+                task.aggregation()[metric], bootstrap_iters=bootstrap_iters
+            )
             if stderr is not None:
                 results[task_name][metric + "_stderr"] = stderr(items)
 

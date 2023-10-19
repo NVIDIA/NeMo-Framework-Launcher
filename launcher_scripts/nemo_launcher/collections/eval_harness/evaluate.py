@@ -59,10 +59,16 @@ def parse_args(parser_main):
     parser.add_argument("--tasks", default="all_tasks")
     parser.add_argument("--cache_dir", default="")
     parser.add_argument(
-        "--eval_seed", type=int, default=1234, help="Random seed used for python, numpy, [pytorch, and cuda.]",
+        "--eval_seed",
+        type=int,
+        default=1234,
+        help="Random seed used for python, numpy, [pytorch, and cuda.]",
     )
     parser.add_argument(
-        "--limit", type=int, default=None, help="If specified, will limit evaluation set to this number of samples",
+        "--limit",
+        type=int,
+        default=None,
+        help="If specified, will limit evaluation set to this number of samples",
     )
     # I/O
     parser.add_argument(
@@ -85,7 +91,10 @@ def parse_args(parser_main):
     parser.add_argument("--model", required=True)
 
     parser.add_argument(
-        "--nemo_model", default=None, required=False, help="Pass path to model's .nemo file",
+        "--nemo_model",
+        default=None,
+        required=False,
+        help="Pass path to model's .nemo file",
     )
     parser.add_argument(
         "--checkpoint_folder",
@@ -116,7 +125,9 @@ def parse_args(parser_main):
         required=False,
         help="If not using a .nemo file. Path to config for restoring. It's created during training and may need to be modified during restore if restore environment is different than training. Ex: /raid/nemo_experiments/megatron_gpt/hparams.yaml",
     )
-    parser.add_argument("--precision", default=16, help="PyTorch Lightning Trainer precision flag")
+    parser.add_argument(
+        "--precision", default=16, help="PyTorch Lightning Trainer precision flag"
+    )
 
     parser.add_argument("--vocab_file", default=None)
     parser.add_argument("--merge_file", default=None)
@@ -143,12 +154,23 @@ def parse_args(parser_main):
         "e.g. exclude examples of the same type as the sample under evaluation.",
     )
     # HANS
-    parser.add_argument("--ratio_positive", type=float, default=None, help="Ratio of examples with a positive label")
+    parser.add_argument(
+        "--ratio_positive",
+        type=float,
+        default=None,
+        help="Ratio of examples with a positive label",
+    )
     parser.add_argument(
         "--mix_mode",
         type=str,
         default="shuffle",
-        choices=["shuffle", "interleave_first", "interleave_last", "pos_first", "neg_first"],
+        choices=[
+            "shuffle",
+            "interleave_first",
+            "interleave_last",
+            "pos_first",
+            "neg_first",
+        ],
         help="How to mix (arrange order of) positive and negative shot examples in the prompt",
     )
     parser.add_argument(
@@ -159,13 +181,17 @@ def parse_args(parser_main):
     )
 
     # Generation tasks
-    parser.add_argument("--generate-max-token", type=int, default=0, help="Max tokens to generate.")
+    parser.add_argument(
+        "--generate-max-token", type=int, default=0, help="Max tokens to generate."
+    )
 
     # return parser.parse_args()
     return parser_main
 
 
-def can_write_output(lm: Union[base.CachingLM, base.LM], args: argparse.Namespace) -> bool:
+def can_write_output(
+    lm: Union[base.CachingLM, base.LM], args: argparse.Namespace
+) -> bool:
     """Only 1 process should print and dump results, this function would only return True
     for 1 of the processes that has full output
     """
@@ -217,7 +243,9 @@ def setup_output_dir(args, local_args=None, unknown_args=None):
     # file_handler = logging.FileHandler(os.path.join(args.output_path, 'output.log'))
     # logging.addHandler(file_handler)
 
-    logging.info("Command:\n{}".format(" ".join(sys.argv)))  # command used to run program
+    logging.info(
+        "Command:\n{}".format(" ".join(sys.argv))
+    )  # command used to run program
 
     # Save configuration as a (pretty) json file
     config = args.__dict__
@@ -231,9 +259,12 @@ def setup_output_dir(args, local_args=None, unknown_args=None):
 
     try:
         git_hash = subprocess.check_output(
-            ["git", "rev-parse", "--short", "HEAD"], cwd=os.path.dirname(os.path.abspath(__file__))
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
         ).decode()
-        git_diff = subprocess.check_output(["git", "diff"], cwd=os.path.dirname(os.path.abspath(__file__))).decode()
+        git_diff = subprocess.check_output(
+            ["git", "diff"], cwd=os.path.dirname(os.path.abspath(__file__))
+        ).decode()
         with open(os.path.join(output_path, "git.txt"), "w") as fp:
             fp.write("Git hash: {}\n".format(git_hash))
             fp.write(git_diff)
@@ -256,7 +287,9 @@ def setup_output_dir(args, local_args=None, unknown_args=None):
     return args
 
 
-def _inject_model_parallel_rank(filepath, tensor_model_parallel_size=1, pipeline_model_parallel_size=1):
+def _inject_model_parallel_rank(
+    filepath, tensor_model_parallel_size=1, pipeline_model_parallel_size=1
+):
     """
     Injects tensor/pipeline model parallel ranks into the filepath.
     Does nothing if not using model parallelism.
@@ -284,7 +317,9 @@ def main():
 
     assert args is not None
     if "nemo-gpt3" in args.model:
-        assert args.device == "cuda", "devices == 'cuda' are required to run nemo evaluations."
+        assert (
+            args.device == "cuda"
+        ), "devices == 'cuda' are required to run nemo evaluations."
 
     checkpoint_folder = args.checkpoint_folder
     checkpoint_name = args.checkpoint_name
@@ -296,7 +331,9 @@ def main():
     tokenizer_model = args.tokenizer_model
 
     hparams_override_file = None
-    if args.nemo_model is None or args.nemo_model == "None":  # Not loading from .nemo checkpoint
+    if (
+        args.nemo_model is None or args.nemo_model == "None"
+    ):  # Not loading from .nemo checkpoint
         # Checkpoint search
         if checkpoint_name == "latest":
             checkpoints = os.path.join(checkpoint_folder, "*.ckpt")
@@ -308,17 +345,25 @@ def main():
             checkpoint_name = os.path.basename(latest_checkpoint)
 
         checkpoint = os.path.join(checkpoint_folder, checkpoint_name)
-        checkpoint = _inject_model_parallel_rank(checkpoint, tensor_model_parallel_size, pipeline_model_parallel_size)
+        checkpoint = _inject_model_parallel_rank(
+            checkpoint, tensor_model_parallel_size, pipeline_model_parallel_size
+        )
         checkpoint_list = glob.glob(checkpoint)
         if len(checkpoint_list) > 1:
-            raise ValueError("Too many checkpoints fit the checkpoint name pattern in conversion config.")
+            raise ValueError(
+                "Too many checkpoints fit the checkpoint name pattern in conversion config."
+            )
         if len(checkpoint_list) == 0:
-            raise ValueError("No checkpoint found with the checkpoint name pattern in conversion config.")
+            raise ValueError(
+                "No checkpoint found with the checkpoint name pattern in conversion config."
+            )
         args.checkpoint_name = os.path.basename(checkpoint_list[0])
 
         # Create hparam override file for vocab ,merge, and etc.
         if hparams_file is not None:
-            hparams_override_file = os.path.join(args.output_path, "hparams_override.yaml")
+            hparams_override_file = os.path.join(
+                args.output_path, "hparams_override.yaml"
+            )
             conf = OmegaConf.load(hparams_file)
             if vocab_file is not None:
                 conf.cfg.tokenizer.vocab_file = vocab_file
@@ -342,7 +387,7 @@ def main():
                 time.sleep(1)
                 wait_time += 1
                 if wait_time > 60:
-                    raise TimeoutError('Timeout waiting for config file to be created.')
+                    raise TimeoutError("Timeout waiting for config file to be created.")
         args.hparams_file = hparams_override_file
 
     lm = models.get_model(args.model)(args, batch_size=args.batch_size)
@@ -367,7 +412,9 @@ def main():
 
     # prompt tasks, forcing prompt task
     if "prompt" in args.tasks:
-        assert args.prompt_dataset_paths is not None, "Prompt models evaluation requires dataset provided from user."
+        assert (
+            args.prompt_dataset_paths is not None
+        ), "Prompt models evaluation requires dataset provided from user."
         prompt_dataset_paths = args.prompt_dataset_paths.split(",")
         task_names = args.tasks.split(",")
         task_dict = tasks.get_prompt_task_dict(
@@ -386,7 +433,11 @@ def main():
         task_dict = tasks.get_task_dict(task_names, args.cache_dir)
 
     if args.serialize_predictions:
-        no_serialization = [name for name, task in task_dict.items() if not hasattr(task, "serialize_results")]
+        no_serialization = [
+            name
+            for name, task in task_dict.items()
+            if not hasattr(task, "serialize_results")
+        ]
         if len(
             no_serialization
         ):  # Only serialize for those that have implemented the method, instead of raising exception
@@ -421,7 +472,9 @@ def main():
         if "output" in results:
             # TODO(GEO): maybe add a for loop over "taskX" in results['output'][taskX] to store each task separately
             # Store predictions, prompts, labels etc per document as a (pretty) json file
-            predictions_filepath = os.path.join(args.pred_dir, args.experiment_name + "_predictions.json")
+            predictions_filepath = os.path.join(
+                args.pred_dir, args.experiment_name + "_predictions.json"
+            )
             logging.info("Stored predictions in '{}'".format(predictions_filepath))
             with open(predictions_filepath, mode="w") as fp:
                 json.dump(results, fp, indent=4)
@@ -454,7 +507,10 @@ def main():
         latex_writer.value_matrix = values
 
         if hparams_override_file is not None:
-            os.rename(hparams_override_file, os.path.join(args.output_path, "hparams_override.yaml"))
+            os.rename(
+                hparams_override_file,
+                os.path.join(args.output_path, "hparams_override.yaml"),
+            )
 
         logging.info(
             f"{args.model}, limit: {args.limit}, provide_description: {args.provide_description}, num_fewshot: {args.num_fewshot}, batch_size: {args.batch_size}"
@@ -462,7 +518,11 @@ def main():
         logging.info("\n" + md_writer.dumps())
 
         total_time = time.time() - total_start_time
-        logging.info("Total runtime: {} hours, {} minutes, {} seconds".format(*utils.readable_time(total_time)))
+        logging.info(
+            "Total runtime: {} hours, {} minutes, {} seconds".format(
+                *utils.readable_time(total_time)
+            )
+        )
         logging.info("Evaluation complete!")
 
 

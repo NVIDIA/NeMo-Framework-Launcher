@@ -89,9 +89,9 @@ class TestBaseConfigs:
           bias_dropout_add_fusion: True # Use a kernel that fuses the bias addition, dropout and residual connection addition.
           masked_softmax_fusion: True # Use a kernel that fuses the attention softmax with it's mask.
 
-          activations_checkpoint_granularity: selective
-          activations_checkpoint_method: block
-          activations_checkpoint_num_layers: 0
+          activations_checkpoint_granularity: null
+          activations_checkpoint_method: null
+          activations_checkpoint_num_layers: null
           num_micro_batches_with_partial_activation_checkpoints: null
           activations_checkpoint_layers_per_pipeline: null
 
@@ -116,16 +116,20 @@ class TestBaseConfigs:
           megatron_amp_O2: True
           grad_allreduce_chunk_size_mb: 125
 
+          ## Using Megatron Core
+          mcore_gpt: True
+
           ## Transformer Engine
           transformer_engine: False
           fp8: False # enables fp8 in TransformerLayer forward
           fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
-          fp8_hybrid: False # sets fp8_format = recipe.Format.HYBRID
+          fp8_hybrid: True # sets fp8_format = recipe.Format.HYBRID
           fp8_margin: 0 # scaling margin
           fp8_interval: 1 # scaling update interval
-          fp8_amax_history_len: 1 # Number of steps for which amax history is recorded per tensor
-          fp8_amax_compute_algo: most_recent # 'most_recent' or 'max'. Algorithm for computing amax from history
-          use_emha: False
+          fp8_amax_history_len: 1024 # Number of steps for which amax history is recorded per tensor
+          fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
+          fp8_wgrad: True
+          ub_tp_comm_overlap: False
 
           # miscellaneous
           seed: 1234
