@@ -13,8 +13,10 @@ spec:
       - name: nlp-evaluation
         image: {{ .Values.image.trainingImage }}
         env:
-          - name: NCCL_AVOID_RECORD_STREAMS
-            value: "1"
+          {{- range $key, $value := $config.envVars }}
+          - name: {{ $key }}
+            value: {{ $value | quote }}
+          {{- end}}
         command: ["/bin/bash", "-c"]
         args:
           - 'python3 {{ $config.launcherScriptsPath }}/nemo_launcher/collections/eval_harness/download.py --tasks=all_tasks --cache-dir={{ $config.cacheDir }} &&
@@ -51,3 +53,7 @@ spec:
       - configMap:
           name: evaluation-config
         name: evaluation-config
+
+      {{ if ne $config.dnsPolicy "nil" }}
+      dnsPolicy: {{ $config.dnsPolicy }}
+      {{ end }}

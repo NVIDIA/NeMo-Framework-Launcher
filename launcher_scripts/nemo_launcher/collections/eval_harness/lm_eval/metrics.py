@@ -230,7 +230,10 @@ def bootstrap_stderr(f, xs, iters, workers=4):
 
     print("bootstrapping for stddev:", f.__name__)
     for bootstrap in tqdm(
-        pool.imap(_bootstrap_internal(f, chunk_size), [(i, xs) for i in range(iters // chunk_size)]),
+        pool.imap(
+            _bootstrap_internal(f, chunk_size),
+            [(i, xs) for i in range(iters // chunk_size)],
+        ),
         total=iters // chunk_size,
     ):
         # sample w replacement

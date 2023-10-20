@@ -67,14 +67,14 @@ def normalize_answer(s):
     """Lower text and remove punctuation, articles and extra whitespace."""
 
     def remove_articles(text):
-        return re.sub(r'\b(a|an|the)\b', ' ', text)
+        return re.sub(r"\b(a|an|the)\b", " ", text)
 
     def white_space_fix(text):
-        return ' '.join(text.split())
+        return " ".join(text.split())
 
     def remove_punc(text):
         exclude = set(string.punctuation)
-        return ''.join(ch for ch in text if ch not in exclude)
+        return "".join(ch for ch in text if ch not in exclude)
 
     def lower(text):
         return text.lower()
@@ -108,19 +108,19 @@ def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(description="Process some integers.")
     parser.add_argument(
-        '--ground-truth',
+        "--ground-truth",
         type=str,
         help="ground truth .jsonl file made from /NeMo/scripts/dataset_processing/nlp/squad/prompt_learning_squad_preprocessing.py",
     )
     parser.add_argument(
-        '--preds',
+        "--preds",
         type=str,
         help="Text file with test set prompts + model predictions. Prediction file can be made by running NeMo/examples/nlp/language_modeling/megatron_gpt_prompt_learning_eval.py",
     )
     parser.add_argument(
-        '--split-string',
+        "--split-string",
         type=str,
         help="The text at the end of the prompt, write before the predicted answer. This will be used to find the model's predictions in pred files when the pred file containers both the prompt and prediction.",
         default=None,
@@ -147,17 +147,21 @@ def main():
         if not isinstance(true_answers, list):
             true_answers = [true_answers]
 
-        exact_match += metric_max_over_ground_truths(exact_match_score, pred_answer, true_answers)
+        exact_match += metric_max_over_ground_truths(
+            exact_match_score, pred_answer, true_answers
+        )
         f1 += metric_max_over_ground_truths(f1_score, pred_answer, true_answers)
         total += 1
 
     exact_match = 100.0 * exact_match / total
     f1 = 100.0 * f1 / total
 
-    metric = {'exact_match': exact_match, 'f1': f1, 'total': total}
+    metric = {"exact_match": exact_match, "f1": f1, "total": total}
     if is_global_rank_zero:
         print(metric)
-        with open(os.path.join(os.path.dirname(pred_file), 'squad_metric.json'), 'w',) as outfile:
+        with open(
+            os.path.join(os.path.dirname(pred_file), "squad_metric.json"), "w",
+        ) as outfile:
             json.dump(metric, outfile)
 
 

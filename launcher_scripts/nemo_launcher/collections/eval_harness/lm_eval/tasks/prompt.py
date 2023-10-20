@@ -14,7 +14,9 @@
 
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean, perplexity
-from nemo.collections.nlp.data.language_modeling.megatron.gpt_prompt_learning_dataset import GPTPromptLearningDataset
+from nemo.collections.nlp.data.language_modeling.megatron.gpt_prompt_learning_dataset import (
+    GPTPromptLearningDataset,
+)
 
 
 class Prompt(Task):
@@ -56,7 +58,9 @@ class Prompt(Task):
             if self.disable_special_tokens:
                 context = self.tokenizer.ids_to_text(input_ids[:answer_start_idx])
             else:
-                context = self.tokenizer.tokens_to_text(self.tokenizer.ids_to_tokens(input_ids[:answer_start_idx]))
+                context = self.tokenizer.tokens_to_text(
+                    self.tokenizer.ids_to_tokens(input_ids[:answer_start_idx])
+                )
             doc = {
                 "task_id": task_id,
                 "context": context,
@@ -67,7 +71,15 @@ class Prompt(Task):
     def test_docs(self):
         pass
 
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd, filter_shot_examples=False, **kwargs):
+    def fewshot_context(
+        self,
+        doc,
+        num_fewshot,
+        provide_description,
+        rnd,
+        filter_shot_examples=False,
+        **kwargs
+    ):
         """Construct and format full prompt string for a given sample, optionally including description and shot examples
         :param doc: document object corresponding to the sample under examination
         :param num_fewshot: number of examples to be included in the prompt
@@ -79,16 +91,26 @@ class Prompt(Task):
         """
 
         raw_description = self.fewshot_description()
-        description = (raw_description + "\n===\n\n") if provide_description and raw_description else ""
+        description = (
+            (raw_description + "\n===\n\n")
+            if provide_description and raw_description
+            else ""
+        )
 
         if num_fewshot == 0:
             labeled_examples = ""
             shot_ids = []
         else:
-            raise NotImplementedError("No support for fewshots in prompt model evaluation.")
+            raise NotImplementedError(
+                "No support for fewshots in prompt model evaluation."
+            )
 
-        example = self.doc_to_text(doc)  # the document of interest, main part of the prompt
-        prompt_str = description + labeled_examples + example  # the formatted prompt string
+        example = self.doc_to_text(
+            doc
+        )  # the document of interest, main part of the prompt
+        prompt_str = (
+            description + labeled_examples + example
+        )  # the formatted prompt string
         return shot_ids, prompt_str
 
     def doc_to_text(self, doc):
@@ -102,7 +124,9 @@ class Prompt(Task):
         return ""
 
     def construct_requests(self, doc, ctx):
-        ll, is_greedy, greedy_toks, cont_toks = rf.loglikelihood(ctx, self.doc_to_target(doc), doc["task_id"])
+        ll, is_greedy, greedy_toks, cont_toks = rf.loglikelihood(
+            ctx, self.doc_to_target(doc), doc["task_id"]
+        )
 
         return ll, is_greedy, greedy_toks, cont_toks
 

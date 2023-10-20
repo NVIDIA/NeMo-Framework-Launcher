@@ -65,7 +65,7 @@ def get_versions(requested_versions):
             if v.lower() in VERSIONS:
                 versions.append(v)
             else:
-                raise ValueError(f"SQuAD version \"{v}\" not found!")
+                raise ValueError(f'SQuAD version "{v}" not found!')
 
     versions = set(versions)
     return list(versions)
@@ -73,7 +73,9 @@ def get_versions(requested_versions):
 
 def main(arguments):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_dir", help="directory to save data to", type=str, default="squad_data")
+    parser.add_argument(
+        "--data_dir", help="directory to save data to", type=str, default="squad_data"
+    )
     parser.add_argument(
         "--versions",
         help="SQuAD versions (v1.1, v2.0 or xquad) to download data for as a comma separated string",

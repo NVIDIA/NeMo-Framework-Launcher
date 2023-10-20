@@ -14,13 +14,17 @@
 
 import copy
 import os
+import shutil
 from pathlib import Path
 from typing import Dict, List, Optional
-import omegaconf
-import shutil
 
+import omegaconf
 from nemo_launcher.core.launchers import AutoLauncher
-from nemo_launcher.core.stages import NemoMegatronStage, clean_command_groups, create_args_list
+from nemo_launcher.core.stages import (
+    NemoMegatronStage,
+    clean_command_groups,
+    create_args_list,
+)
 from nemo_launcher.utils.file_utils import download_single_file
 from nemo_launcher.utils.job_utils import JobPaths
 
@@ -57,7 +61,9 @@ class DataStage(NemoMegatronStage):
             job_path = self.get_job_path(sub_stage)
             job_path.folder.mkdir(parents=True, exist_ok=True)
 
-            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(self.stage_cfg, job_path, self.cfg)
+            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
+                self.stage_cfg, job_path, self.cfg
+            )
             if job_id:
                 dependency = f"aftercorr:{job_id}"
                 self.stage_cfg["run"]["dependency"] = dependency
@@ -69,26 +75,35 @@ class DataStage(NemoMegatronStage):
             command_groups = self.make_stage_command_groups(stage_cfg_path, sub_stage)
 
             # Prepare Helm chart for k8s
-            if self.cluster == 'k8s':
-                template_root = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'k8s_templates/data_preparation')
-                self._make_k8s_helm_chart(template_root, cluster_parameters, job_path, sub_stage)
+            if self.cluster == "k8s":
+                template_root = os.path.join(
+                    os.path.abspath(os.path.dirname(__file__)),
+                    "k8s_templates/data_preparation",
+                )
+                self._make_k8s_helm_chart(
+                    template_root, cluster_parameters, job_path, sub_stage
+                )
 
             # Create launcher
-            launcher = AutoLauncher(folder=job_path.folder, cluster=self.cluster, **cluster_parameters,)
+            launcher = AutoLauncher(
+                folder=job_path.folder, cluster=self.cluster, **cluster_parameters,
+            )
 
-            if self.cluster == 'k8s':
+            if self.cluster == "k8s":
                 # For k8s clusters, only launch on the final stage (preprocess) as
                 # the Helm chart contains all stages in a single chart.
                 if sub_stage == sub_stages[-1]:
                     job_id = launcher.launch(command_groups=command_groups)
                 else:
-                    job_id = ''
+                    job_id = ""
             else:
                 job_id = launcher.launch(command_groups=command_groups)
 
         return job_id
 
-    def make_stage_command_groups(self, stage_cfg_path: Path, sub_stage: Optional = None,) -> List[List[str]]:
+    def make_stage_command_groups(
+        self, stage_cfg_path: Path, sub_stage: Optional = None,
+    ) -> List[List[str]]:
         """
         Make the command groups for current stage
         Command groups is a list of command group. A command group is defined as:
@@ -111,7 +126,9 @@ class DataStage(NemoMegatronStage):
     def _make_private_cluster_parameters(self, cluster, sub_stage):
         raise NotImplementedError
 
-    def _make_cluster_parameters(self, cluster: str, sub_stage: Optional = None,) -> Dict:
+    def _make_cluster_parameters(
+        self, cluster: str, sub_stage: Optional = None,
+    ) -> Dict:
         """
         Make a cluster-specific parameters for jobs on different clusters.
         Current clusters include bcm(slurm), bcp, k8s, and interactive.
@@ -132,7 +149,9 @@ class DataStage(NemoMegatronStage):
         dependency = run_cfg.get("dependency")
 
         env_vars = self.get_env_vars()
-        env_vars["PYTHONPATH"] = f"{self._launcher_scripts_path}:${{PYTHONPATH}}"  # Required by pile download
+        env_vars[
+            "PYTHONPATH"
+        ] = f"{self._launcher_scripts_path}:${{PYTHONPATH}}"  # Required by pile download
         env_vars["NGC_ARRAY_TYPE"] = "MPIJob"  # Required by BCP
         setup = [f"export {k}={v}" for k, v in env_vars.items()]
 
@@ -154,7 +173,9 @@ class DataStage(NemoMegatronStage):
             cluster_parameters.update(
                 {**shared_parameters, **private_parameters,}
             )
-            cluster_parameters["job_name"] = job_name_prefix + cluster_parameters["job_name"]
+            cluster_parameters["job_name"] = (
+                job_name_prefix + cluster_parameters["job_name"]
+            )
         elif cluster == "bcp":
             cluster_parameters.update(
                 {**shared_parameters, **private_parameters,}
@@ -170,14 +191,21 @@ class DataStage(NemoMegatronStage):
                 {
                     **shared_parameters,
                     **private_parameters,
-                    "container_image": container_image,}
+                    "container_image": container_image,
+                }
             )
         elif cluster == "interactive":
             raise ValueError("Data preparation is not supported in interactive mode.")
 
         return cluster_parameters
 
-    def _make_k8s_helm_chart(self, template_root: str, cluster_parameters: Dict, job_path: JobPaths, sub_stage: str):
+    def _make_k8s_helm_chart(
+        self,
+        template_root: str,
+        cluster_parameters: Dict,
+        job_path: JobPaths,
+        sub_stage: str,
+    ):
         """
         Create a Helm chart for data preparation.
         The Helm chart uses a base template which is extended with user-defined
@@ -190,41 +218,50 @@ class DataStage(NemoMegatronStage):
         :param JobPaths job_path: the path to the job results directory.
         :param str sub_stage: the current stage.
         """
-        with open(os.path.join(template_root, 'values.yaml')) as value_file:
+        with open(os.path.join(template_root, "values.yaml")) as value_file:
             values_template = omegaconf.OmegaConf.load(value_file)
 
-        procs_per_node = self.stage_cfg.run.bcp_preproc_npernode if sub_stage == "preprocess" else 1
+        procs_per_node = (
+            self.stage_cfg.run.bcp_preproc_npernode if sub_stage == "preprocess" else 1
+        )
         total_processes = procs_per_node * self.stage_cfg.run.node_array_size
 
         # Update the Helm chart template with the user-specified settings
-        values_template.image.trainingImage = cluster_parameters['container_image']
-        values_template.image.pullSecret = cluster_parameters['pull_secret']
+        values_template.image.trainingImage = cluster_parameters["container_image"]
+        values_template.image.pullSecret = cluster_parameters["pull_secret"]
         values_template.image.nodes = self.stage_cfg.run.node_array_size
-        values_template.dataPrepConfig.shmSize = cluster_parameters['shm_size']
-        values_template.dataPrepConfig.NFSServer = cluster_parameters['nfs_server']
-        values_template.dataPrepConfig.NFSPath = cluster_parameters['nfs_path']
+        values_template.dataPrepConfig.shmSize = cluster_parameters["shm_size"]
+        values_template.dataPrepConfig.NFSServer = cluster_parameters["nfs_server"]
+        values_template.dataPrepConfig.NFSPath = cluster_parameters["nfs_path"]
         values_template.dataPrepConfig.totalProcesses = total_processes
         values_template.dataPrepConfig.procsPerNode = procs_per_node
         values_template.dataPrepConfig.stage = sub_stage
 
+        if cluster_parameters["dns_policy"] is not None:
+            values_template.dataPrepConfig.dnsPolicy = cluster_parameters["dns_policy"]
+
         k8s_template_path = job_path.folder
-        k8s_template_file = Path(k8s_template_path / 'k8s_template' / 'values.yaml')
+        k8s_template_file = Path(k8s_template_path / "k8s_template" / "values.yaml")
         k8s_template_file.parent.mkdir(parents=True, exist_ok=True)
 
         conf = omegaconf.OmegaConf.create(values_template)
         omegaconf.OmegaConf.save(conf, k8s_template_file)
 
         # Copy the data prep spec files to the Helm chart
-        template_file = os.path.join(template_root, 'data-prep.yaml')
-        chart_file = os.path.join(template_root, 'Chart.yaml')
-        data_prep_path = Path(job_path.folder / 'k8s_template' / 'templates' / 'data-prep.yaml')
+        template_file = os.path.join(template_root, "data-prep.yaml")
+        chart_file = os.path.join(template_root, "Chart.yaml")
+        data_prep_path = Path(
+            job_path.folder / "k8s_template" / "templates" / "data-prep.yaml"
+        )
         data_prep_path.parent.mkdir(parents=True, exist_ok=True)
-        config_path = Path(job_path.folder / 'k8s_template' / 'config')
+        config_path = Path(job_path.folder / "k8s_template" / "config")
         config_path.mkdir(parents=True, exist_ok=True)
-        chart_path = Path(job_path.folder / 'k8s_template' / 'Chart.yaml')
-        data_prep_config_file = os.path.join(template_root, 'data-prep-config.yaml')
-        data_prep_config_path = Path(job_path.folder / 'k8s_template' / 'templates' / 'data-prep-config.yaml')
-        hydra_config_path = Path(job_path.folder / 'k8s_template' / 'config')
+        chart_path = Path(job_path.folder / "k8s_template" / "Chart.yaml")
+        data_prep_config_file = os.path.join(template_root, "data-prep-config.yaml")
+        data_prep_config_path = Path(
+            job_path.folder / "k8s_template" / "templates" / "data-prep-config.yaml"
+        )
+        hydra_config_path = Path(job_path.folder / "k8s_template" / "config")
 
         shutil.copy2(template_file, data_prep_path)
         shutil.copy2(chart_file, chart_path)
@@ -264,9 +301,13 @@ class PileDataPreparation(DataStage):
         tokenizer_save_dir = data_cfg.get("tokenizer_save_dir")
 
         if download_tokenizer_url is not None:
-            assert tokenizer_save_dir is not None, "tokenizer_save_dir must be a valid path."
+            assert (
+                tokenizer_save_dir is not None
+            ), "tokenizer_save_dir must be a valid path."
             download_single_file(
-                url=download_tokenizer_url, save_dir=tokenizer_save_dir, file_name="llama_tokenizer.model",
+                url=download_tokenizer_url,
+                save_dir=tokenizer_save_dir,
+                file_name="llama_tokenizer.model",
             )
 
         # Download vocab
@@ -275,13 +316,17 @@ class PileDataPreparation(DataStage):
             download_single_file(
                 url=download_vocab_url,
                 save_dir=vocab_save_dir,
-                file_name="vocab.json" if download_vocab_url.endswith("json") else "vocab.txt",
+                file_name="vocab.json"
+                if download_vocab_url.endswith("json")
+                else "vocab.txt",
             )
         # Download merges
         if download_merges_url is not None:
             assert merges_save_dir is not None, "merges_save_dir must be a valid path."
             download_single_file(
-                url=download_merges_url, save_dir=merges_save_dir, file_name="merges.txt",
+                url=download_merges_url,
+                save_dir=merges_save_dir,
+                file_name="merges.txt",
             )
 
     def _make_private_cluster_parameters(self, cluster: str, sub_stage: str) -> Dict:
@@ -306,7 +351,9 @@ class PileDataPreparation(DataStage):
 
         node_array_size = run_cfg.get("node_array_size")
         array = run_cfg.get("array")
-        bcp_preproc_npernode = run_cfg.get("bcp_preproc_npernode") if sub_stage == "preprocess" else 1
+        bcp_preproc_npernode = (
+            run_cfg.get("bcp_preproc_npernode") if sub_stage == "preprocess" else 1
+        )
         if cluster == "bcm":
             return {
                 "nodes": 1,
@@ -325,7 +372,10 @@ class PileDataPreparation(DataStage):
     def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
         """Make a command of the specified sub-stage"""
 
-        pile_prep_path = self._launcher_scripts_path / "nemo_launcher/collections/dataprep_scripts/pile_dataprep"
+        pile_prep_path = (
+            self._launcher_scripts_path
+            / "nemo_launcher/collections/dataprep_scripts/pile_dataprep"
+        )
         stage_to_code_path = {
             "download": pile_prep_path / "download.py",
             "extract": pile_prep_path / "extract.py",
@@ -390,9 +440,13 @@ class MC4DataPreparation(DataStage):
                 url=download_vocab_url, save_dir=vocab_save_dir, file_name="vocab.txt",
             )
         if download_tokenizer_url is not None:
-            assert tokenizer_save_dir is not None, "vocab_save_dir must be a valid path."
+            assert (
+                tokenizer_save_dir is not None
+            ), "vocab_save_dir must be a valid path."
             download_single_file(
-                url=download_tokenizer_url, save_dir=tokenizer_save_dir, file_name="mt5_tokenizer.model",
+                url=download_tokenizer_url,
+                save_dir=tokenizer_save_dir,
+                file_name="mt5_tokenizer.model",
             )
 
     def _make_private_cluster_parameters(self, cluster: str, sub_stage: str) -> Dict:
@@ -412,7 +466,11 @@ class MC4DataPreparation(DataStage):
         stage_cfg = self.stage_cfg
         run_cfg = stage_cfg.get("run")
 
-        node_array_size = run_cfg.get("node_array_size") if sub_stage in ["download", "preprocess"] else 1
+        node_array_size = (
+            run_cfg.get("node_array_size")
+            if sub_stage in ["download", "preprocess"]
+            else 1
+        )
         array = f"0-{node_array_size-1}"
         if sub_stage == "preprocess":
             ntasks_per_node = run_cfg.get("workers_per_node")
@@ -443,7 +501,10 @@ class MC4DataPreparation(DataStage):
 
     def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
         """Make a command of the specified sub-stage"""
-        mc4_prep_path = self._launcher_scripts_path / "nemo_launcher/collections/dataprep_scripts/mc4_dataprep"
+        mc4_prep_path = (
+            self._launcher_scripts_path
+            / "nemo_launcher/collections/dataprep_scripts/mc4_dataprep"
+        )
         stage_to_code_path = {
             "prepare": mc4_prep_path / "prepare.py",
             "download": mc4_prep_path / "download.py",
@@ -530,8 +591,12 @@ class CustomDataPreparation(DataStage):
 
         # Setup preprocess data
         data_cfg = self.stage_cfg
+        run_cfg = data_cfg.get("run")
+        nodes = run_cfg.get("node_array_size", 1)
+        workers_per_node = run_cfg.get("workers_per_node", 1)
         raw_dataset_files = data_cfg.get("raw_dataset_files")
         preprocess_worker_mapping = data_cfg.get("preprocess_worker_mapping")
+
         if data_cfg.get("preprocess_data", False):
             if not isinstance(raw_dataset_files, omegaconf.listconfig.ListConfig):
                 raw_dataset_files = os.listdir(raw_dataset_files)
@@ -609,6 +674,8 @@ class CustomDataPreparation(DataStage):
     def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
         """Make a command of the specified sub-stage"""
         data_cfg = self.stage_cfg
+        run_cfg = data_cfg.get("run")
+
         if sub_stage == "train_tokenizer":
             bpe_save_dir = Path(data_cfg.get("bpe_save_dir"))
             bpe_save_dir.mkdir(parents=True, exist_ok=True)
@@ -619,7 +686,7 @@ class CustomDataPreparation(DataStage):
             assert sub_stage == "preprocess", f"Unknown substage {sub_stage}"
             code_path = (
                 self._launcher_scripts_path
-                / "nemo_launchernemo_launcher/collections/dataprep_scripts/custom_dataprep/preprocess.py"
+                / "nemo_launcher/collections/dataprep_scripts/custom_dataprep/preprocess.py"
             )
             args = create_args_list(
                 output_path=data_cfg.get("preprocessed_dir"),
@@ -629,7 +696,6 @@ class CustomDataPreparation(DataStage):
                 tokenizer_model=data_cfg.get("tokenizer_model"),
                 dataset_impl="mmap",
                 log_interval="2000",
-                preproc_folder="store_true",
                 apply_ftfy="store_true",
                 workers=run_cfg.get("cpus_per_node") // run_cfg.get("workers_per_node"),
             )

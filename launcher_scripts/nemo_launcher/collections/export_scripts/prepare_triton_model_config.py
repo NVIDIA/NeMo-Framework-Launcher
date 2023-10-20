@@ -62,7 +62,9 @@ def _get_model_parameters(config_ini):
         list of model parameters
     """
     excluded_section_names = ["ft_instance_hyperparameter", "structure"]
-    sections_names_with_model_parameters = [s for s in config_ini.sections() if s not in excluded_section_names]
+    sections_names_with_model_parameters = [
+        s for s in config_ini.sections() if s not in excluded_section_names
+    ]
 
     if not sections_names_with_model_parameters:
         LOGGER.error(
@@ -73,17 +75,25 @@ def _get_model_parameters(config_ini):
     def _get_model_name(section_name_):
         model_name = config_ini.get(section_name_, "model_name", fallback=None)
         if model_name is None:
-            model_name = config_ini.get(section_name_, "_name_or_path", fallback="unknown")
+            model_name = config_ini.get(
+                section_name_, "_name_or_path", fallback="unknown"
+            )
         return model_name
 
     params_from_model_config = {
-        section_name: {"model_type": config_ini.get(section_name, "model_type", fallback="GPT"),}
+        section_name: {
+            "model_type": config_ini.get(section_name, "model_type", fallback="GPT"),
+        }
         for section_name in sections_names_with_model_parameters
     }
 
     # ensure that for all models it is obtained same parameters
-    parameters_from_all_sections = list(set(map(lambda x: tuple(x.items()), params_from_model_config.values())))[0]
-    if len(parameters_from_all_sections) != len(list(params_from_model_config.values())[0]):
+    parameters_from_all_sections = list(
+        set(map(lambda x: tuple(x.items()), params_from_model_config.values()))
+    )[0]
+    if len(parameters_from_all_sections) != len(
+        list(params_from_model_config.values())[0]
+    ):
         LOGGER.error(
             "Found no consistency between model parameters: %s (%d != %d)",
             params_from_model_config,
@@ -97,7 +107,12 @@ def _get_model_parameters(config_ini):
 
 
 def _update_template(
-    config, model_name, default_model_filename, max_batch_size, parameters, just_update_parameters: bool = True
+    config,
+    model_name,
+    default_model_filename,
+    max_batch_size,
+    parameters,
+    just_update_parameters: bool = True,
 ):
     """
     Update config.pbtxt decoded from file.
@@ -126,21 +141,53 @@ def _update_template(
 
 def main():
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    )
 
     parser = argparse.ArgumentParser(description="Generate Triton model config file")
-    parser.add_argument("--model-train-name", help="Name of trained model", required=True)
-    parser.add_argument("--template-path", help="Path to template of Triton model config file", required=True)
-    parser.add_argument("--config-path", help="Path to output Triton model config file", required=True)
-    parser.add_argument("--ft-checkpoint", help="Path to FasterTransformer checkpoint", required=True)
-    parser.add_argument("--max-batch-size", type=int, help="Max batch size of Triton batcher", required=True)
-    parser.add_argument("--pipeline-model-parallel-size", type=int, help="Pipeline model parallel size", required=True)
-    parser.add_argument("--tensor-model-parallel-size", type=int, help="Tensor model parallel size", required=True)
     parser.add_argument(
-        "--data-type", choices=["fp32", "fp16", "bf16"], help="Data type of weights in runtime", required=True
+        "--model-train-name", help="Name of trained model", required=True
     )
     parser.add_argument(
-        "--int8-mode", action="store_true", help="Enable int8 mode in FasterTransformer Triton backend"
+        "--template-path",
+        help="Path to template of Triton model config file",
+        required=True,
+    )
+    parser.add_argument(
+        "--config-path", help="Path to output Triton model config file", required=True
+    )
+    parser.add_argument(
+        "--ft-checkpoint", help="Path to FasterTransformer checkpoint", required=True
+    )
+    parser.add_argument(
+        "--max-batch-size",
+        type=int,
+        help="Max batch size of Triton batcher",
+        required=True,
+    )
+    parser.add_argument(
+        "--pipeline-model-parallel-size",
+        type=int,
+        help="Pipeline model parallel size",
+        required=True,
+    )
+    parser.add_argument(
+        "--tensor-model-parallel-size",
+        type=int,
+        help="Tensor model parallel size",
+        required=True,
+    )
+    parser.add_argument(
+        "--data-type",
+        choices=["fp32", "fp16", "bf16"],
+        help="Data type of weights in runtime",
+        required=True,
+    )
+    parser.add_argument(
+        "--int8-mode",
+        action="store_true",
+        help="Enable int8 mode in FasterTransformer Triton backend",
     )
     parser.add_argument(
         "--enable-custom-all-reduce",
@@ -180,14 +227,20 @@ def main():
     }
     model_name = args.model_train_name
     updated_triton_model_config = _update_template(
-        triton_model_config_template, model_name, ft_checkpoint_path.name, args.max_batch_size, parameters
+        triton_model_config_template,
+        model_name,
+        ft_checkpoint_path.name,
+        args.max_batch_size,
+        parameters,
     )
 
     # store template
     updated_triton_model_config = google.protobuf.json_format.ParseDict(
         updated_triton_model_config, tritonclient.grpc.model_config_pb2.ModelConfig()
     )
-    updated_triton_model_config_payload = google.protobuf.text_format.MessageToBytes(updated_triton_model_config)
+    updated_triton_model_config_payload = google.protobuf.text_format.MessageToBytes(
+        updated_triton_model_config
+    )
 
     config_path = pathlib.Path(args.config_path)
     config_path.parent.mkdir(parents=True, exist_ok=True)

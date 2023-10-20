@@ -61,7 +61,7 @@ def hparams_override(cfg):
             time.sleep(1)
             wait_time += 1
             if wait_time > 60:
-                raise TimeoutError('Timeout waiting for config file to be created.')
+                raise TimeoutError("Timeout waiting for config file to be created.")
 
 
 if __name__ == "__main__":

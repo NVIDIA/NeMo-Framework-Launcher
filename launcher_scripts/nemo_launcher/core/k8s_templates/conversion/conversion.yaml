@@ -13,8 +13,10 @@ spec:
       - name: nlp-conversion
         image: {{ .Values.image.trainingImage }}
         env:
-          - name: NCCL_AVOID_RECORD_STREAMS
-            value: "1"
+          {{- range $key, $value := $config.envVars }}
+          - name: {{ $key }}
+            value: {{ $value | quote }}
+          {{- end}}
         command: ["/bin/bash", "-c"]
         args:
           - 'export CKPT_NAME=$(python3 {{ $config.launcherScriptsPath }}/nemo_launcher/collections/checkpoint_search.py checkpoint_folder={{ $config.trainingDirectory }}/results/checkpoints checkpoint_name=latest tensor_model_parallel_size=1 pipeline_model_parallel_size=1) &&
@@ -46,3 +48,6 @@ spec:
         emptyDir:
           medium: Memory
           sizeLimit: {{ $config.shmSize }}
+      {{ if ne $config.dnsPolicy "nil" }}
+      dnsPolicy: {{ $config.dnsPolicy }}
+      {{ end }}

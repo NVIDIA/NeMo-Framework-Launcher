@@ -16,8 +16,10 @@ spec:
           - name: pytorch
             image: {{ .Values.image.trainingImage }}
             env:
-              - name: NCCL_AVOID_RECORD_STREAMS
-                value: "1"
+              {{- range $key, $value := $config.envVars }}
+              - name: {{ $key }}
+                value: {{ $value | quote }}
+              {{- end}}
             {{ if eq $config.wandbKey "nil" }}
             command: ["torchrun"]
             args:
@@ -69,3 +71,7 @@ spec:
           - configMap:
               name: training-config
             name: training-config
+
+          {{ if ne $config.dnsPolicy "nil" }}
+          dnsPolicy: {{ $config.dnsPolicy }}
+          {{ end }}

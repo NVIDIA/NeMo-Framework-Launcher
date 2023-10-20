@@ -25,22 +25,32 @@ from argparse import ArgumentParser
 
 default_link = "https://huggingface.co/datasets/databricks/databricks-dolly-15k/blob/main/databricks-dolly-15k.jsonl"
 
+
 def get_file_name(link):
-    file_name = link.split('/')[-1]
+    file_name = link.split("/")[-1]
 
     return file_name
+
 
 def get_args(default_link=default_link):
     parser = ArgumentParser()
     parser.add_argument(
-        "--path_to_save", type=str, required=True, help="Specify the path where to save the data."
+        "--path_to_save",
+        type=str,
+        required=True,
+        help="Specify the path where to save the data.",
     )
     parser.add_argument(
-        "--link_to_download", type=str, required=False, default=default_link , help="Specify the link where to download the data."
+        "--link_to_download",
+        type=str,
+        required=False,
+        default=default_link,
+        help="Specify the link where to download the data.",
     )
     args = parser.parse_args()
-    
+
     return args
+
 
 def main():
     args = get_args()
@@ -49,14 +59,9 @@ def main():
     file_name = get_file_name(link_to_download)
 
     print(f"Downloading Dolly dataset {file_name} to {path_to_save} ...")
-    os.system(
-        f"cd {path_to_save} && "
-        f"wget {link_to_download}"
-    )
+    os.system(f"cd {path_to_save} && " f"wget {link_to_download}")
     print(f"Dolly dataset {file_name} was successfully downloaded to {path_to_save} .")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
-    
-
-
