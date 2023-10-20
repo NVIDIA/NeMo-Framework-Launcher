@@ -52,4 +52,4 @@ module load openmpi
 srun --mpi=pmix --nodes=2 --tasks-per-node=8 --container-image=../../nemo_megatron_training.sqsh \
      --container-mounts="$PWD:/nccl" \
      bash -c "
-     /nccl/nccl-tests/build/all_reduce_perf -b 8 -e 16G -f 2 -g 1 -c 0 -n 100"
+     /nccl/nccl-tests/build/all_reduce_perf -b 256M -e 8G -f 2 -c 1 -n 10"
