@@ -60,7 +60,7 @@ model:
   
   global_batch_size: 128
   micro_batch_size: 4
-  restore_from_path: ${fine_tuning.run.convert_dir}/results/megatron_llama.nemo # Path to an existing .nemo model you wish to add new tasks to or run inference with
+  restore_from_path: ${peft.run.convert_dir}/results/megatron_llama.nemo # Path to an existing .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
   save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training. 
   sync_batch_comm: False
@@ -163,15 +163,15 @@ model:
       file_names: 
       - ${data_dir}/squad_data/v1.1/dev-v1.1_gpt.json # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
       names:
-      - ${fine_tuning.run.task_name} # Names of the corresponding datasets used to log metrics.
+      - ${peft.run.task_name} # Names of the corresponding datasets used to log metrics.
       global_batch_size: ${peft.model.global_batch_size}
       micro_batch_size: ${peft.model.micro_batch_size}
       shuffle: False
       num_workers: 0
       memmap_workers: ${peft.model.data.train_ds.memmap_workers}
       pin_memory: True
-      max_seq_length: ${fine_tuning.model.data.train_ds.max_seq_length}
-      min_seq_length: ${fine_tuning.model.data.train_ds.min_seq_length}
+      max_seq_length: ${peft.model.data.train_ds.max_seq_length}
+      min_seq_length: ${peft.model.data.train_ds.min_seq_length}
       drop_last: False
       context_key: 'input'
       label_key: 'output'
@@ -198,8 +198,8 @@ model:
         num_workers: 0
         memmap_workers: ${peft.model.data.train_ds.memmap_workers}
         pin_memory: True
-        max_seq_length: ${fine_tuning.model.data.train_ds.max_seq_length}
-        min_seq_length: ${fine_tuning.model.data.train_ds.min_seq_length}
+        max_seq_length: ${peft.model.data.train_ds.max_seq_length}
+        min_seq_length: ${peft.model.data.train_ds.min_seq_length}
         drop_last: False
         context_key: 'input'
         label_key: 'output'
