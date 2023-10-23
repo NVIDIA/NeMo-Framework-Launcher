@@ -31,7 +31,7 @@ def get_ln_sm_margin(cfg):
     """
     global cuda_capability
     if cuda_capability == 9:
-        print(8)
+        print(20)
     else:
         print(0)
 

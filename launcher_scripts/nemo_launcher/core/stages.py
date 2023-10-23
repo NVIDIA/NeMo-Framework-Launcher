@@ -468,7 +468,7 @@ class NemoMegatronStage:
         vpp = self.cfg.training.model.get("virtual_pipeline_model_parallel_size")
         if (self.cfg.training.model.get("overlap_p2p_comm", False) and
             self.cfg.training.model.get("pipeline_model_parallel_size") > 1 and
-            vpp is not None and vpp > 1):
+            vpp is not None and vpp > 1) or self.cfg.training.model.get("fsdp", False):
             get_ln_sm_margin_command = (
                 f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/conditional_cfgs.py'} "
                 f"name=get_ln_sm_margin"
@@ -526,12 +526,13 @@ class NeMoStage(NemoMegatronStage):
             core_command = []
         else:
             core_command = [
-                self._cuda_device_max_connections,
                 self._cuda_visible_devices,
                 self._set_ln_sm_margin,
                 self._skip_ag_overlap,
                 self._nvte_bias_gelu_nvfusion,
             ]
+            if not self.cfg.training.model.get("fsdp", False):
+                core_command.append(self._cuda_device_max_connections)
 
         core_command += [
             self._make_api_log_command_prefix(results_dir=self.get_job_path().results_folder),
@@ -669,7 +670,10 @@ class NeMoStage(NemoMegatronStage):
         if self.cluster != "bcm":
             env_vars["SLURM_NTASKS_PER_NODE"] = devices
         if self.cluster in ["bcp", "k8s"]:  # Set env prefix as env var on BCP
-            for env_var_str in [self._cuda_device_max_connections, self._cuda_visible_devices, self._set_ln_sm_margin, self._skip_ag_overlap,]:
+            env_var_strs = [self._cuda_visible_devices, self._set_ln_sm_margin, self._skip_ag_overlap]
+            if not self.cfg.training.model.get("fsdp", False):
+                env_var_strs.append(self._cuda_device_max_connections)
+            for env_var_str in env_var_strs:
                 if env_var_str:
                     var_name, var_val = env_var_str.split("=")
                     env_vars[var_name] = var_val
