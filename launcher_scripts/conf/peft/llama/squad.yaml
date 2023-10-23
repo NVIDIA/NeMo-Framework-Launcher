@@ -65,6 +65,7 @@ model:
   save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training. 
   sync_batch_comm: False
   megatron_amp_O2: False
+  mcore_gpt: True
 
   ## Sequence Parallelism
   # Makes tensor parallelism more memory efficient for LLMs (20B+) by parallelizing layer norms and dropout sequentially
