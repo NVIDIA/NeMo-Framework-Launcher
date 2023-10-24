@@ -27,9 +27,7 @@ export FI_PROVIDER=efa
 
 # NCCL configurations
 export NCCL_DEBUG=info
-export NCCL_PROTO=simple
 export NCCL_BUFFSIZE=33554432
-export NCCL_ALGO=ring
 export NCCL_DEBUG_SUBSYS=init,net,graph,env
 export NCCL_MIN_NCHANNELS=32
 
