@@ -1,5 +1,5 @@
 run:
-  name: neva_22b_fine_tuning
+  name: neva_22b_peft
   time_limit: "1-00:00:00"
   dependency: "singleton"
   model_train_name: neva_22b
@@ -35,7 +35,7 @@ exp_manager:
     name: ${peft.run.name}
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
-  resume_from_checkpoint: ${fine_tuning.model.resume_from_checkpoint}
+  resume_from_checkpoint: ${peft.model.resume_from_checkpoint}
   create_checkpoint_callback: True
   checkpoint_callback_params:
     monitor: val_loss
@@ -44,7 +44,7 @@ exp_manager:
     always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
     save_nemo_on_train_end: True # not recommended when training large models on clusters with short time limits
     filename: 'megatron_clip--{val_loss:.2f}-{step}-{consumed_samples}'
-    model_parallel_size: ${multiply:${fine_tuning.model.tensor_model_parallel_size}, ${fine_tuning.model.pipeline_model_parallel_size}}
+    model_parallel_size: ${multiply:${peft.model.tensor_model_parallel_size}, ${peft.model.pipeline_model_parallel_size}}
   ema:
     enable: False
     decay: 0.9999
@@ -53,7 +53,7 @@ exp_manager:
     cpu_offload: False
 
 model:
-  precision: ${fine_tuning.trainer.precision}
+  precision: ${peft.trainer.precision}
 
   # specify micro_batch_size, global_batch_size, and model parallelism
   # gradient accumulation will be done automatically based on data_parallel_size
@@ -71,7 +71,7 @@ model:
   # Multimodal configs
   mm_cfg:
     llm:
-      from_pretrained: ${base_results_dir}/${fine_tuning.run.model_train_name}/results/checkpoints/nemo_neva.nemo # path to nemo checkpoint
+      from_pretrained: ${base_results_dir}/${peft.run.model_train_name}/results/checkpoints/nemo_neva.nemo # path to nemo checkpoint
       freeze: False
       model_type: nvgpt # `nvgpt` or `llama_2` supported
     vision_encoder:
