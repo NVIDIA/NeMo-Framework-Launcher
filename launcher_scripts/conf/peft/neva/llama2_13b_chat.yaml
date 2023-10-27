@@ -72,7 +72,7 @@ model:
   mm_cfg:
     llm:
       from_pretrained: ${data_dir}/neva/checkpoints/llama-2-13b-chat-tp8.nemo # path to nemo checkpoint
-      freeze: False
+      freeze: True
       model_type: llama_2 # `nvgpt` or `llama_2` supported
     vision_encoder:
       from_pretrained: "openai/clip-vit-large-patch14" # path or name
