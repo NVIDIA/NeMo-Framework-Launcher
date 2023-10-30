@@ -6,6 +6,6 @@ USER root
 RUN apt-get update && apt-get --yes install apt-utils
 # install whatever else you want on this line
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
-RUN apt-get --yes install curl build-essential git-lfs
+RUN apt-get --yes install curl build-essential git-lfs nvidia-cuda-toolkit
 # set the user back to original setting
 USER $NB_UID
