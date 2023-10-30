@@ -1,0 +1,22 @@
+LAUNCHER_DIR="/mnt/nvdl/usr/jbieniusiewi/nemo/NeMo-Megatron-Launcher"
+
+HYDRA_FULL_ERROR=1 PYTHONWARNINGS="ignore"  python3 ${LAUNCHER_DIR}/launcher_scripts/main.py \
+    training=gpt3/126m \
+    stages=["training"] \
+    numa_mapping.enable=True \
+    launcher_scripts_path=${LAUNCHER_DIR}/launcher_scripts  \
+    cluster.gpus_per_task=null \
+    cluster.gpus_per_node=null \
+    cluster.job_name_prefix="nv-test:" \
+    training.exp_manager.create_checkpoint_callback=False \
+    training.run.name="test" \
+    training.trainer.num_nodes=1 \
+    training.trainer.devices=8 \
+    training.model.global_batch_size=16 \
+    training.model.micro_batch_size=2 \
+    cluster_type=bcm \
+    ++training.cluster_type=bcm \
+    training.model.data.data_impl="mock" \
+    training.model.data.data_prefix=[] \
+    ++fault_tolerance.enabled=True \
+
