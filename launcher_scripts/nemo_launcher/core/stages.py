@@ -1239,7 +1239,7 @@ class NeMoEvaluation(NeMoStage):
                 args += create_args_list(split_string=f"'{split_string}'")
             calculation_command = [f"python3 {code_path}", *args]
             calculation_command = " \\\n  ".join(calculation_command)
-        elif choice_model_type.startswith("peft")
+        elif choice_model_type.startswith("peft"):
             calculation_command = None
         elif choice_name == "squad":
             output_file_path_prefix = self.stage_cfg.model.data.validation_ds.get(
