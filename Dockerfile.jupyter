@@ -1,0 +1,9 @@
+FROM jupyter/scipy-notebook
+# must reset to user root to install more stuff
+USER root
+# apt-utils is missing and needed to avoid warning about skipping debconf
+RUN apt-get update && apt-get --yes install apt-utils
+# install whatever else you want on this line
+RUN apt-get --yes install curl build-essential
+# set the user back to original setting
+USER $NB_UID
