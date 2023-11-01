@@ -1415,7 +1415,7 @@ ${data_dir}/neva/datasets/LLaVA-Instruct-150K/images
 
 ##### 6.2.7.2. Setting Up LLaMA-2 Chat Checkpoints
 
-We offer support for both the 7B and 13B chat models. Both versions can be downloaded from [LLaVA's official GitHub repository](https://github.com/haotian-liu/LLaVA/blob/main/docs/MODEL_ZOO.md). Once you've downloaded the appropriate HuggingFace checkpoint, you'll need to extract and save it to your disk to prepare for pretraining.
+We offer support for both the 7B and 13B LLaMA-2 chat models. Once you've downloaded the appropriate HuggingFace checkpoint, you'll need to extract and save it to your disk to prepare for pretraining.
 
 Before initiating pretraining, convert the LLaMA-2 checkpoints to NeMo's format:
 
