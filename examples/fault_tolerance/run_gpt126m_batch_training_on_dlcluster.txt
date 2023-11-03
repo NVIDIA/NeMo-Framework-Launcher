@@ -17,6 +17,5 @@ HYDRA_FULL_ERROR=1 PYTHONWARNINGS="ignore"  python3 ${LAUNCHER_DIR}/launcher_scr
     cluster_type=bcm \
     ++training.cluster_type=bcm \
     training.model.data.data_impl="mock" \
-    training.model.data.data_prefix=[] \
-    ++fault_tolerance.enabled=True \
+    training.model.data.data_prefix=[]
 

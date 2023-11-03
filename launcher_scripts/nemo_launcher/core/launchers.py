@@ -540,6 +540,7 @@ def _make_sbatch_string(
     additional_parameters: Optional[Dict[str, Any]] = None,
     srun_args: Optional[Iterable[str]] = None,
     heterogeneous: bool = False,
+    autoresume_if_interrupted: bool = False,
 ) -> str:
     """Creates the content of an sbatch file with provided parameters
 
@@ -580,6 +581,7 @@ def _make_sbatch_string(
         "container_mounts",
         "srun_args",
         "heterogeneous",
+        "autoresume_if_interrupted",
     ]
     parameters = {k: v for k, v in locals().items() if v is not None and k not in nonslurm}
     # rename and reformat parameters
@@ -635,6 +637,15 @@ def _make_sbatch_string(
     if setup is not None:
         lines += ["", "# setup"] + setup
 
+    if autoresume_if_interrupted is True:
+        lines += [
+            '',
+            '# if the flag file is created by a trainer script, this slurm batch script will be rescheduled',
+            'export INTERRUPTED_FLAG_FILE='+str(paths.results_folder / "_interrupted_flag"),
+            'rm -f $INTERRUPTED_FLAG_FILE',
+            '',
+        ]
+           
     # commandline (this will run the function and args specified in the file provided as argument)
     # We pass --output and --error here, because the SBATCH command doesn't work as expected with a filename pattern
     stderr_flags = [] if stderr_to_stdout else ["--error", stderr]
@@ -689,6 +700,16 @@ def _make_sbatch_string(
                 f"  {command} \"",
                 "",
             ]
+
+    if autoresume_if_interrupted is True:
+        lines += [
+            '', '# automatic resumption',
+            'if [ -f "$INTERRUPTED_FLAG_FILE" ] ; then ',
+            'IS_RESUMED=1 sbatch "$0"',
+            'fi',
+            '',
+        ]
+
     return "\n".join(lines)
 
 

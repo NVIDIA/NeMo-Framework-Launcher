@@ -323,6 +323,12 @@ class NemoMegatronStage:
                 }
             )
 
+        fault_tol_conf = stage_cfg.get("model").get("fault_tolerance", None)
+        if fault_tol_conf is not None:
+            cluster_parameters["autoresume_if_interrupted"] = fault_tol_conf.get("autoresume_if_interrupted", False)
+            if cluster_parameters["autoresume_if_interrupted"] is True and cluster != "bcm":
+                logging.warn(f"autoresume_if_interrupted has no effect if cluster type is not bcm (current cluster is {cluster})")
+        
         return cluster_parameters
 
     def _find_optimal_nodes(self, cfg, gpus) -> None:
