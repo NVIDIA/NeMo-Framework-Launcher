@@ -1,0 +1,2 @@
+evaluate.py --model=nemo-llama --tasks=boolq --precision=bf16 --name=eval_boolq_llama2_126m --nemo_model=/home/models/megatron_llama.nemo
+Unknown args: []
