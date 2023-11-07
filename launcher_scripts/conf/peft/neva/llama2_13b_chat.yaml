@@ -14,7 +14,7 @@ trainer:
   enable_checkpointing: False
   use_distributed_sampler: False
   max_epochs: -1 # PTL default. In practice, max_steps will be reached first.
-  max_steps: 4600 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
+  max_steps: 5190 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
   log_every_n_steps: 10
   val_check_interval: 100
   check_val_every_n_epoch: null
@@ -60,7 +60,7 @@ model:
 
   # Batch size guideline for different types of dataset
   micro_batch_size: 4 # limited by GPU memory
-  global_batch_size: 32 # will use more micro batches to reach global batch size
+  global_batch_size: 128 # will use more micro batches to reach global batch size
 
   tensor_model_parallel_size: 8 # intra-layer model parallelism
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
@@ -83,13 +83,14 @@ model:
       class_token_length: 1
       freeze: True
     pretrain_mm_mlp_adapter: null # path to pretrained mm adapter
+    mm_mlp_adapter_type: mlp2x_gelu
     use_im_start_end: False
 
   peft:
     peft_scheme: "lora"
     restore_from_path: null
     lora_tuning:
-      adapter_dim: 64
+      adapter_dim: 128
       adapter_dropout: 0.05
       column_init_method: 'xavier' # IGNORED if linear_adapter is used, options: xavier, zero or normal
       row_init_method: 'zero' # IGNORED if linear_adapter is used, options: xavier, zero or normal
@@ -204,7 +205,7 @@ model:
     conv_template: ${peft.model.mm_cfg.llm.model_type}
     image_token_len: 256
     image_folder: ${data_dir}/neva/datasets/LLaVA-Instruct-150K/images
-    image_aspect_ratio: 'square'
+    image_aspect_ratio: 'pad'
 
   # Nsys profiling options
   nsys_profile:
@@ -216,7 +217,7 @@ model:
 
   optim:
     name: fused_adam
-    lr: 2e-5
+    lr: 2e-4
     weight_decay: 0.
     betas:
       - 0.9
