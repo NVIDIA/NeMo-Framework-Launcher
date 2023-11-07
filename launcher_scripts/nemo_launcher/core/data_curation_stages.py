@@ -1,7 +1,7 @@
 import copy
 import shlex
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import omegaconf
 from nemo_launcher.core.launchers import AutoLauncher
