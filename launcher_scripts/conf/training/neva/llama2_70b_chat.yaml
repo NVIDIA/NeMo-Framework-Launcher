@@ -13,7 +13,7 @@ trainer:
   enable_checkpointing: False
   use_distributed_sampler: False
   max_epochs: -1 # PTL default. In practice, max_steps will be reached first.
-  max_steps: 2180 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
+  max_steps: 2170 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
   log_every_n_steps: 10
   val_check_interval: 100
   check_val_every_n_epoch: null
@@ -212,6 +212,6 @@ model:
       - 0.95
     sched:
       name: CosineAnnealing
-      warmup_steps: 140
+      warmup_steps: 70
       constant_steps: 0
       min_lr: 2e-5
