@@ -648,7 +648,6 @@ def _make_sbatch_string(
             'CONT_SLURM_JOB_ID=$(echo $CONT_SBATCH_OUT | cut -f1 -d",")',
             'rm -f $INTERRUPTED_FLAG_FILE',
             '',
-            'touch $INTERRUPTED_FLAG_FILE', # FIXME TODO this is for debug only
         ]
            
     # commandline (this will run the function and args specified in the file provided as argument)

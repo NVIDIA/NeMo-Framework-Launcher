@@ -1,4 +1,4 @@
-partition: DGX1
+partition: null
 account: null
 exclusive: True
 gpus_per_task: null
