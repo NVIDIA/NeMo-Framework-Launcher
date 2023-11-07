@@ -75,6 +75,7 @@ STR2STAGECLASS = {
     "rlhf_rm": RLHFRewardModel,
     "rlhf_ppo": RLHFPPO,
     "quality_filtering": QualityFiltering,
+    "deduplication": Deduplication,
 }
 
 

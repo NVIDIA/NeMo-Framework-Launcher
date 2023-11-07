@@ -175,3 +175,96 @@ class QualityFiltering(DataCurationStage):
         command_groups = clean_command_groups(command_groups)
 
         return command_groups
+
+
+class Deduplication(DataCurationStage):
+    """ DataCurationStage for performing quality filtering on documents """
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "deduplication"
+        self.stage_cfg = cfg.get("deduplication")
+
+    def run(self) -> str:
+        """
+        Run current stage including all of the substages, returns job id on slurm based system otherwise empty string
+
+        :return: job id on slurm based system otherwise empty string
+        :rtype: str
+        """
+        # Create the job folders
+        self.setup_folder_and_data()
+        sub_stages = ["compute_minhashes"]
+
+        job_id = ""
+        for sub_stage in sub_stages:
+
+            job_path = self.get_job_path()
+
+            if job_id:
+                dependency = f"aftercorr:{job_id}"
+                self.stage_cfg["run"]["dependency"] = dependency
+
+            # Make cluster configuration parameters
+            cluster_parameters = self._make_cluster_parameters(self.cluster)
+            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
+                self.stage_cfg, job_path,
+            )
+
+            # Build commands to launch on cluster
+            command_groups = self.make_stage_command_groups(stage_cfg_path, sub_stage)
+
+            # Create the launcher for the cluster
+            launcher = AutoLauncher(
+                folder=self.get_job_path().folder,
+                cluster=self.cluster,
+                **cluster_parameters,
+            )
+
+            # Launch the job on the cluster
+            job_id = launcher.launch(command_groups)
+
+        return job_id
+
+    def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
+        """Make a command of the specified sub-stage"""
+
+        stage_cfg = self.stage_cfg
+
+        if sub_stage == "compute_minhashes":
+            args = create_args_list(
+                log_dir=self.log_folder,
+                input_data_dir=stage_cfg.get("input_dir"),
+                minhash_length=stage_cfg.get("minhash_length"),
+                output_minhash_dir=stage_cfg.get("output_minhash_dir"),
+                output_doc_id_file=stage_cfg.get("output_doc_id_file"),
+            )
+
+        sub_stage_command = [sub_stage, *args]
+        sub_stage_command = " \\\n  ".join(sub_stage_command)
+        return [sub_stage_command]
+
+    def make_stage_command_groups(
+        self, stage_cfg_path: Path, sub_stage: Optional = None,
+    ) -> List[List[str]]:
+        """
+        Make the command groups for current stage
+        Command groups is a list of command group. A command group is defined as:
+              0. Command group is a list of command strings
+              1. Each command group occupies one bcprun, srun or bash
+              2. Each command group eventually has multiple commands connected by ";"
+
+        :param Path stage_cfg_path: path to interpolated and saved configuration
+        :param Optional sub_stage: current sub_stage name
+        :return: command groups for current stage
+        :rtype: List[List[str]]
+        """
+
+        command_groups = [[]]
+
+        command_groups[0] += self._make_sub_stage_command(sub_stage)
+        command_groups = clean_command_groups(command_groups)
+        return command_groups
