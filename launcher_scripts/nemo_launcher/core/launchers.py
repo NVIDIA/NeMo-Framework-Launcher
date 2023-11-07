@@ -641,9 +641,14 @@ def _make_sbatch_string(
         lines += [
             '',
             '# if the flag file is created by a trainer script, this slurm batch script will be rescheduled',
-            'export INTERRUPTED_FLAG_FILE='+str(paths.results_folder / "_interrupted_flag"),
+            'export INTERRUPTED_FLAG_FILE='+str(paths.folder / "_interrupted_flag"),
+            'if [ "$RESUMED" = "1" ] && [ ! -f "$INTERRUPTED_FLAG_FILE" ] ; then exit 0 ; fi',
+            'CONT_SBATCH_OUT=$(RESUMED=1 sbatch --parsable --dependency=afterany:"$SLURM_JOB_ID" "$0")',
+            'if [ $? -ne 0 ] ; then echo "Could not schedule continuation job. Check stderr for details." ; exit 1 ; fi',
+            'CONT_SLURM_JOB_ID=$(echo $CONT_SBATCH_OUT | cut -f1 -d",")',
             'rm -f $INTERRUPTED_FLAG_FILE',
             '',
+            'touch $INTERRUPTED_FLAG_FILE', # FIXME TODO this is for debug only
         ]
            
     # commandline (this will run the function and args specified in the file provided as argument)
@@ -703,10 +708,11 @@ def _make_sbatch_string(
 
     if autoresume_if_interrupted is True:
         lines += [
-            '', '# automatic resumption',
-            'if [ -f "$INTERRUPTED_FLAG_FILE" ] ; then ',
-            'IS_RESUMED=1 sbatch "$0"',
-            'fi',
+            '',
+            '# cancel continuation job if no continuation marker file was created',
+            'if [ ! -f "$INTERRUPTED_FLAG_FILE" ] && [ ! -z "$CONT_SLURM_JOB_ID" ] ; then', 
+            'scancel $CONT_SLURM_JOB_ID',
+            'fi'
             '',
         ]
 

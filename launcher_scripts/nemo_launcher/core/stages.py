@@ -327,7 +327,7 @@ class NemoMegatronStage:
         if fault_tol_conf is not None:
             cluster_parameters["autoresume_if_interrupted"] = fault_tol_conf.get("autoresume_if_interrupted", False)
             if cluster_parameters["autoresume_if_interrupted"] is True and cluster != "bcm":
-                logging.warn(f"autoresume_if_interrupted has no effect if cluster type is not bcm (current cluster is {cluster})")
+                raise ValueError(f"autoresume_if_interrupted works only with 'bcm' cluster (current cluster is '{cluster}')")
         
         return cluster_parameters
 
