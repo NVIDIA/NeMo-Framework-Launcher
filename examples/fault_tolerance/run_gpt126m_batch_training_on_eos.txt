@@ -1,0 +1,40 @@
+LAUNCHER_DIR="/lustre/fsw/coreai_dlalgo_llm/jbieniusiewi/nemo/NeMo-Megatron-Launcher"
+
+HYDRA_FULL_ERROR=1 PYTHONWARNINGS="ignore"  python3 ${LAUNCHER_DIR}/launcher_scripts/main.py \
+    training=gpt3/126m \
+    stages=["training"] \
+    numa_mapping.enable=True \
+    data_dir="/lustre/fsr/datasets/gpt/gpt3" \
+    launcher_scripts_path=${LAUNCHER_DIR}/launcher_scripts  \
+    container_mounts=[/lustre/fsw/coreai_dlalgo_llm/jbieniusiewi/:/lustre/fsw/coreai_dlalgo_llm/jbieniusiewi/] \
+    container=gitlab-master.nvidia.com/dl/nemo/nemo-fw/train:230803_fault_tol \
+    cluster.partition=batch \
+    cluster.account=coreai_dlalgo_llm \
+    cluster.job_name_prefix="coreai_dlalgo_llm-test-interact:" \
+    cluster.gpus_per_task=null \
+    cluster.gpus_per_node=null \
+    training.exp_manager.resume_if_exists=True \
+    training.exp_manager.create_checkpoint_callback=True \
+    training.exp_manager.checkpoint_callback_params.save_top_k=1 \
+    training.exp_manager.resume_ignore_no_checkpoint=True \
+    training.run.name="dummy_run_name_126m" \
+    training.run.time_limit=00:12:00 \
+    training.trainer.max_time=00:04:00:00 \
+    training.trainer.num_nodes=1 \
+    training.trainer.devices=8 \
+    training.trainer.log_every_n_steps=1 \
+    training.trainer.val_check_interval=1000 \
+    training.trainer.enable_checkpointing=False \
+    training.model.micro_batch_size=2 \
+    training.model.global_batch_size=16 \
+    training.model.tensor_model_parallel_size=1 \
+    training.model.pipeline_model_parallel_size=1 \
+    training.model.transformer_engine=True \
+    training.model.fp8=False \
+    training.model.fp8_e4m3=False \
+    training.model.grad_div_ar_fusion=False \
+    training.model.activations_checkpoint_granularity=selective \
+    training.model.activations_checkpoint_method=uniform \
+    training.model.data.data_impl="mock" \
+    training.model.data.data_prefix=[]
+

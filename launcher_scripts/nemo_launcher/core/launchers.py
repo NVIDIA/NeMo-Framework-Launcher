@@ -637,6 +637,9 @@ def _make_sbatch_string(
     if setup is not None:
         lines += ["", "# setup"] + setup
 
+    if srun_args is None:
+        srun_args = []
+
     if autoresume_if_interrupted is True:
         lines += [
             '',
@@ -649,14 +652,13 @@ def _make_sbatch_string(
             'rm -f $INTERRUPTED_FLAG_FILE',
             '',
         ]
+        srun_args += ["--kill-on-bad-exit=0", "--wait=0"]
            
     # commandline (this will run the function and args specified in the file provided as argument)
     # We pass --output and --error here, because the SBATCH command doesn't work as expected with a filename pattern
     stderr_flags = [] if stderr_to_stdout else ["--error", stderr]
     container_flags = ["--container-image", container_image] if container_image else []
     container_flags += ["--container-mounts", container_mounts] if container_mounts else []
-    if srun_args is None:
-        srun_args = []
 
     if NEMO_LAUNCHER_MEMORY_MEASURE:
         srun_args += ["--overlap"]
