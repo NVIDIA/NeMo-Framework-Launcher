@@ -197,7 +197,7 @@ class Deduplication(DataCurationStage):
         """
         # Create the job folders
         self.setup_folder_and_data()
-        sub_stages = ["compute_minhashes"]
+        sub_stages = ["gpu_compute_minhashes"]
 
         job_id = ""
         for sub_stage in sub_stages:
@@ -234,13 +234,15 @@ class Deduplication(DataCurationStage):
 
         stage_cfg = self.stage_cfg
 
-        if sub_stage == "compute_minhashes":
+        if sub_stage == "gpu_compute_minhashes":
             args = create_args_list(
                 log_dir=self.log_folder,
-                input_data_dir=stage_cfg.get("input_dir"),
-                minhash_length=stage_cfg.get("minhash_length"),
+                input_data_dirs=stage_cfg.get("input_dir"),
                 output_minhash_dir=stage_cfg.get("output_minhash_dir"),
-                output_doc_id_file=stage_cfg.get("output_doc_id_file"),
+                num_files=stage_cfg.get("output_minhash_dir"),
+                files_per_partition=stage_cfg.get("files_per_partition"),
+                protocol=stage_cfg.get("protocol"),
+                rmm_pool_size=stage_cfg.get("rmm_pool_size"),
             )
 
         sub_stage_command = [sub_stage, *args]
