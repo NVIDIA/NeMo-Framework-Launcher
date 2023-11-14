@@ -161,7 +161,10 @@ class NemoMegatronStage:
         """Make a command of login with w&b api key"""
         cfg = self.cfg
         wandb_cmd = ""
-        if cfg.wandb_api_key_file is not None:
+
+        if cfg.cluster_type == "bcp" and cfg.wandb_api_bcp_secret_key is not None:
+            wandb_cmd = f"wandb login ${cfg.wandb_api_bcp_secret_key}"
+        elif cfg.wandb_api_key_file is not None:
             with open(cfg.wandb_api_key_file, "r") as f:
                 wandb_api_key = f.readline().rstrip()
             wandb_cmd = f"wandb login {wandb_api_key}"
