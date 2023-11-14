@@ -54,7 +54,7 @@ model:
   micro_batch_size: 1
   global_batch_size: 512
   rampup_batch_size: null
-  tensor_model_parallel_size: 2
+  tensor_model_parallel_size: 4
   pipeline_model_parallel_size: 1
   virtual_pipeline_model_parallel_size: null
   encoder_seq_length: 2048
@@ -70,7 +70,7 @@ model:
   ffn_dropout: 0.0
   kv_channels: null
   apply_query_key_layer_scaling: true
-  normalization: LayerNorm
+  normalization: layernorm1p
   layernorm_zero_centered_gamma: True
   layernorm_epsilon: 1.0e-05
   do_layer_norm_weight_decay: false
@@ -142,7 +142,7 @@ model:
   ub_tp_comm_overlap: False
 
   optim:
-    name: fused_adam
+    name: distributed_fused_adam
     lr: 1e-4
     weight_decay: 0.1
     betas:

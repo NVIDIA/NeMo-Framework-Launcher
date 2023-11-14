@@ -13,27 +13,38 @@
 # limitations under the License.
 
 import os
-from omegaconf import OmegaConf, open_dict
 
 import torch
 import tqdm
-from megatron.core import parallel_state
 from lm_eval import utils
 from lm_eval.base import LM
-from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import MegatronGPTModel
-from nemo.collections.nlp.modules.common.megatron.megatron_init import fake_initialize_model_parallel
-from nemo.collections.nlp.modules.common.text_generation_utils import generate, get_computeprob_response
-from nemo.collections.nlp.parts.nlp_overrides import NLPDDPStrategy, NLPSaveRestoreConnector
+from megatron.core import parallel_state
+from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import (
+    MegatronGPTModel,
+)
+from nemo.collections.nlp.modules.common.megatron.megatron_init import (
+    fake_initialize_model_parallel,
+)
+from nemo.collections.nlp.modules.common.text_generation_utils import (
+    generate,
+    get_computeprob_response,
+)
+from nemo.collections.nlp.parts.nlp_overrides import (
+    NLPDDPStrategy,
+    NLPSaveRestoreConnector,
+)
 from nemo.utils import logging
 from nemo.utils.app_state import AppState
 from nemo.utils.get_rank import is_global_rank_zero
 from nemo.utils.model_utils import inject_model_parallel_rank
+from omegaconf import OmegaConf, open_dict
 from pytorch_lightning.trainer.trainer import Trainer
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
 
-from .nemo_gpt3 import RequestDataset, setup_trainer_and_model, DDP_initialize
+from .nemo_gpt3 import DDP_initialize, RequestDataset, setup_trainer_and_model
+
 
 class NeMo_LLAMALM_TP_PP(LM):
     def __init__(self, args, truncate=False, batch_size=1):
@@ -84,7 +95,9 @@ class NeMo_LLAMALM_TP_PP(LM):
         def pad_collate(batch, eos_id=2):
             tokens = [item[0] for item in batch]
             conti_lens = [item[1] for item in batch]
-            lens = [len(token) - 1 for token in tokens]  # fake delete last token by reducing input len
+            lens = [
+                len(token) - 1 for token in tokens
+            ]  # fake delete last token by reducing input len
             max_len = max(lens)
             extra_pad_len = 0
             if max_len % 8 != 0:
@@ -120,29 +133,44 @@ class NeMo_LLAMALM_TP_PP(LM):
             return -len(toks), tuple(toks)
 
         reord = utils.Reorderer(requests, _collate)
-        request_ds = RequestDataset(reord.get_reordered(), self.model.tokenizer, self.max_length)
-        request_dl = DataLoader(request_ds, collate_fn=pad_collate, batch_size=self.batch_size, shuffle=False)
+        request_ds = RequestDataset(
+            reord.get_reordered(), self.model.tokenizer, self.max_length
+        )
+        request_dl = DataLoader(
+            request_ds,
+            collate_fn=pad_collate,
+            batch_size=self.batch_size,
+            shuffle=False,
+        )
 
         def logits_to_results(batch, response):
             input_token_ids_batch, _, lens, conti_lens = batch
             batch_size = len(lens)
-            assert len(response['token_ids']) == batch_size, "Response's length not equal to batch size."
+            assert (
+                len(response["token_ids"]) == batch_size
+            ), "Response's length not equal to batch size."
 
             batch_res = []
             for index in range(batch_size):
                 inp_len = lens[index]
                 conti_len = conti_lens[index]
 
-                inp_token_ids = input_token_ids_batch[index].tolist()[: inp_len + 1]  # recover fake deleted token
-                response_token_ids = response['token_ids'][index][:inp_len]
+                inp_token_ids = input_token_ids_batch[index].tolist()[
+                    : inp_len + 1
+                ]  # recover fake deleted token
+                response_token_ids = response["token_ids"][index][:inp_len]
 
-                assert response_token_ids == inp_token_ids[:-1], f"Mismatch in input tokens."
+                assert (
+                    response_token_ids == inp_token_ids[:-1]
+                ), f"Mismatch in input tokens."
 
-                log_probs = response['full_logprob'][index][:inp_len]  # torch.tensor
+                log_probs = response["full_logprob"][index][:inp_len]  # torch.tensor
                 log_probs = log_probs[-conti_len:]
 
                 greedy_tokens = log_probs.argmax(dim=-1)
-                greedy_tokens = self.tokenizer.ids_to_tokens(greedy_tokens.cpu().numpy().tolist())
+                greedy_tokens = self.tokenizer.ids_to_tokens(
+                    greedy_tokens.cpu().numpy().tolist()
+                )
 
                 conti_token_ids = inp_token_ids[-conti_len:]
                 conti_tokens = self.tokenizer.ids_to_tokens(conti_token_ids)
@@ -150,9 +178,18 @@ class NeMo_LLAMALM_TP_PP(LM):
                 max_equal = greedy_tokens == conti_tokens
                 log_probs = log_probs.cpu().to(torch.float32)
                 conti_enc = torch.tensor(self.tokenizer.tokens_to_ids(conti_tokens))
-                conti_probs = torch.gather(log_probs, 1, conti_enc.unsqueeze(-1)).squeeze(-1)
+                conti_probs = torch.gather(
+                    log_probs, 1, conti_enc.unsqueeze(-1)
+                ).squeeze(-1)
 
-                batch_res.append((float(conti_probs.sum()), bool(max_equal), greedy_tokens, conti_tokens))
+                batch_res.append(
+                    (
+                        float(conti_probs.sum()),
+                        bool(max_equal),
+                        greedy_tokens,
+                        conti_tokens,
+                    )
+                )
             return batch_res
 
         res = []
@@ -172,7 +209,7 @@ class NeMo_LLAMALM_TP_PP(LM):
                 repetition_penalty=1.0,
                 min_tokens_to_generate=0,
                 compute_logprob=True,
-                end_strings=['</s>'],
+                end_strings=["</s>"],
             )
             response = get_computeprob_response(self.tokenizer, response, inputs)
 
@@ -201,7 +238,9 @@ class NeMo_LLAMALM_TP_PP(LM):
                 )
             )
 
-            len_rolling_token_windows.append(len(rolling_token_windows) + len_rolling_token_windows[-1])
+            len_rolling_token_windows.append(
+                len(rolling_token_windows) + len_rolling_token_windows[-1]
+            )
             all_rolling_token_windows.extend(rolling_token_windows)
 
         string_nll = self._loglikelihood(all_rolling_token_windows)
@@ -209,7 +248,15 @@ class NeMo_LLAMALM_TP_PP(LM):
             string_nll = [x[0] for x in string_nll]
             # discard is_greedy
             for i in range(len(len_rolling_token_windows) - 1):
-                loglikelihoods.append(sum(string_nll[len_rolling_token_windows[i] : len_rolling_token_windows[i + 1]]))
+                loglikelihoods.append(
+                    sum(
+                        string_nll[
+                            len_rolling_token_windows[i] : len_rolling_token_windows[
+                                i + 1
+                            ]
+                        ]
+                    )
+                )
 
         return loglikelihoods
 

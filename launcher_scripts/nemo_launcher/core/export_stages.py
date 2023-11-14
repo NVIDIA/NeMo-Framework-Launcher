@@ -48,7 +48,9 @@ class Export(NemoMegatronStage):
             f"{' '.join(checkpoint_override)}"
         )
 
-    def make_stage_command_groups(self, stage_cfg_path, sub_stage=None,) -> List[List[str]]:
+    def make_stage_command_groups(
+        self, stage_cfg_path, sub_stage=None,
+    ) -> List[List[str]]:
         """
         Make the command groups for current stage
         Command groups is a list of command group. A command group is defined as:
@@ -108,7 +110,9 @@ class Export(NemoMegatronStage):
             job_path = self.get_job_path(sub_stage)
             job_path.folder.mkdir(parents=True, exist_ok=True)
 
-            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(self.stage_cfg, job_path, self.cfg)
+            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
+                self.stage_cfg, job_path, self.cfg
+            )
             if job_id:
                 dependency = f"aftercorr:{job_id}"
                 self.stage_cfg["run"]["dependency"] = dependency
@@ -119,7 +123,9 @@ class Export(NemoMegatronStage):
             # Make command groups
             command_groups = self.make_stage_command_groups(stage_cfg_path, sub_stage)
             # Create launcher
-            launcher = AutoLauncher(folder=job_path.folder, cluster=self.cluster, **cluster_parameters,)
+            launcher = AutoLauncher(
+                folder=job_path.folder, cluster=self.cluster, **cluster_parameters,
+            )
             job_id = launcher.launch(command_groups=command_groups)
 
         return job_id
@@ -140,7 +146,10 @@ class Export(NemoMegatronStage):
         container_image = cfg.get("container")
         container_mounts = self._make_container_mounts_string()
 
-        num_tasks = ft_model_cfg.tensor_model_parallel_size * triton_cfg.pipeline_model_parallel_size
+        num_tasks = (
+            ft_model_cfg.tensor_model_parallel_size
+            * triton_cfg.pipeline_model_parallel_size
+        )
         nodes = 1
         ntasks_per_node = 1
 
@@ -170,7 +179,9 @@ class Export(NemoMegatronStage):
                     "container_mounts": container_mounts,
                 }
             )
-            cluster_parameters["job_name"] = job_name_prefix + cluster_parameters["job_name"]
+            cluster_parameters["job_name"] = (
+                job_name_prefix + cluster_parameters["job_name"]
+            )
         elif cluster == "bcp":
             cluster_parameters.update(
                 {**shared_parameters, "env_vars": env_vars,}
@@ -193,9 +204,12 @@ class Export(NemoMegatronStage):
         nemo_megatron_scripts_path = Path(cfg.launcher_scripts_path)
         converter_path = FT_PATH / "examples/pytorch/gpt/utils/nemo_ckpt_convert.py"
         prepare_model_config_script_path = (
-            nemo_megatron_scripts_path / "nemo_launcher/collections/export_scripts/prepare_triton_model_config.py"
+            nemo_megatron_scripts_path
+            / "nemo_launcher/collections/export_scripts/prepare_triton_model_config.py"
         )
-        template_path = FT_BACKEND_PATH / "all_models/gpt/fastertransformer/config.pbtxt"
+        template_path = (
+            FT_BACKEND_PATH / "all_models/gpt/fastertransformer/config.pbtxt"
+        )
 
         triton_model_version_dir = f"{triton_model_dir}/1"
 
@@ -246,7 +260,8 @@ class Export(NemoMegatronStage):
         nemo_megatron_scripts_path = Path(cfg.launcher_scripts_path)
         converter_path = FT_PATH / "examples/pytorch/t5/utils/nemo_t5_ckpt_convert.py"
         prepare_model_config_script_path = (
-            nemo_megatron_scripts_path / "nemo_launcher/collections/export_scripts/prepare_triton_model_config.py"
+            nemo_megatron_scripts_path
+            / "nemo_launcher/collections/export_scripts/prepare_triton_model_config.py"
         )
         template_path = FT_BACKEND_PATH / "all_models/t5/fastertransformer/config.pbtxt"
 

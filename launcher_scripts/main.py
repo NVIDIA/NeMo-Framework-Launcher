@@ -17,25 +17,33 @@ import sys
 
 import hydra
 import omegaconf
-from nemo_launcher.core.data_stages import CustomDataPreparation, MC4DataPreparation, PileDataPreparation
 from nemo_launcher.core.data_curation_stages import QualityFiltering
+from nemo_launcher.core.data_stages import (
+    CustomDataPreparation,
+    MC4DataPreparation,
+    PileDataPreparation,
+)
 from nemo_launcher.core.export_stages import Export
+from nemo_launcher.core.rlhf_stages import RLHFPPO, RLHFRewardModel
 from nemo_launcher.core.stages import (
+    PEFT,
     AdapterLearning,
     Conversion,
     EvalHarnessEvaluation,
     FineTuning,
-    PEFT,
     IA3Learning,
     NeMoEvaluation,
     PromptLearning,
     Training,
 )
-from nemo_launcher.core.rlhf_stages import RLHFRewardModel, RLHFPPO
 
 omegaconf.OmegaConf.register_new_resolver("multiply", lambda x, y: x * y, replace=True)
-omegaconf.OmegaConf.register_new_resolver("divide_ceil", lambda x, y: int(math.ceil(x / y)), replace=True)
-omegaconf.OmegaConf.register_new_resolver("divide_floor", lambda x, y: int(math.floor(x / y)), replace=True)
+omegaconf.OmegaConf.register_new_resolver(
+    "divide_ceil", lambda x, y: int(math.ceil(x / y)), replace=True
+)
+omegaconf.OmegaConf.register_new_resolver(
+    "divide_floor", lambda x, y: int(math.floor(x / y)), replace=True
+)
 
 STR2STAGECLASS = {
     "training": Training,
@@ -48,7 +56,17 @@ STR2STAGECLASS = {
     "export": Export,
     "evaluation": {
         EvalHarnessEvaluation: ["gpt3", "prompt_gpt3", "llama", "prompt_llama"],
-        NeMoEvaluation: ["t5", "mt5", "prompt_t5", "prompt_mt5", "adapter_t5", "adapter_gpt3", "ia3_t5", "ia3_gpt3"],
+        NeMoEvaluation: [
+            "t5",
+            "mt5",
+            "prompt_t5",
+            "prompt_mt5",
+            "adapter_t5",
+            "adapter_gpt3",
+            "ia3_t5",
+            "ia3_gpt3",
+            "peft_llama",
+        ],
     },
     "data_preparation": {
         PileDataPreparation: ["gpt3", "t5", "bert", "llama"],

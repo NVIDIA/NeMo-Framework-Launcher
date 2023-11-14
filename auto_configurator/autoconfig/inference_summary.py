@@ -28,32 +28,42 @@ def scrap_latency(file_name):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate summary from inference benchmark")
+    parser = argparse.ArgumentParser(
+        description="Generate summary from inference benchmark"
+    )
     parser.add_argument("--model-prefix", help="File prefix for logs", required=True)
-    parser.add_argument("--configs-csv", help="Path to CSV file with profile configurations", required=True)
+    parser.add_argument(
+        "--configs-csv",
+        help="Path to CSV file with profile configurations",
+        required=True,
+    )
     parser.add_argument("--workspace", help="Path to workspace folder", required=True)
     parser.add_argument("--output", help="Path to save output summary", required=True)
     args = parser.parse_args()
 
-    with open(args.configs_csv, 'r') as csv_file:
+    with open(args.configs_csv, "r") as csv_file:
         config_lines = list(csv.reader(csv_file))
 
     rows = []
 
     for tp, pp, bs in [l for l in config_lines[1:] if len(l) == 3]:
-        file_prefix = f"{args.workspace}/{args.model_prefix}_tp{tp}_pp{pp}_bs{bs}/log_job*.out"
+        file_prefix = (
+            f"{args.workspace}/{args.model_prefix}_tp{tp}_pp{pp}_bs{bs}/log_job*.out"
+        )
         files = [f for f in glob.glob(file_prefix) if os.path.isfile(f)]
         if len(files) != 1:
             latency = "MISSING_LOG"
         else:
             latency = scrap_latency(files[0])
-        gpu_norm_throughput = round(int(bs) * 1000.0 / float(latency) / int(tp) / int(pp), 3)
+        gpu_norm_throughput = round(
+            int(bs) * 1000.0 / float(latency) / int(tp) / int(pp), 3
+        )
         row = [tp, pp, bs, latency, gpu_norm_throughput]
         rows.append(row)
 
     header = ["TP", "PP", "BS", "Latency [ms]", "Throughput per GPU [samples/sec/gpu]"]
 
-    with open(args.output, 'w') as output_file:
+    with open(args.output, "w") as output_file:
         output_writer = csv.writer(output_file)
         output_writer.writerow(header)
         output_writer.writerows(rows)

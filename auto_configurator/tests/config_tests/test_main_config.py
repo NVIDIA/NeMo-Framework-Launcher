@@ -22,7 +22,6 @@ class TestConfig:
         cluster_type: bcm  # bcm or bcp
         auto_configurator_path: ???  # Path to the location of auto_configurator codebase.
         launcher_scripts_path: ${auto_configurator_path}/../launcher_scripts
-        fastertransformer_path: ${auto_configurator_path}/../FasterTransformer
         base_results_dir: ${auto_configurator_path}/results
         data_dir: ${launcher_scripts_path}/data
 

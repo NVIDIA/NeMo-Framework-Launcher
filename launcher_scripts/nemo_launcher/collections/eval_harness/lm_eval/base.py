@@ -358,7 +358,15 @@ class Task(abc.ABC):
             )
         )
 
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd, filter_shot_examples=False, **kwargs):
+    def fewshot_context(
+        self,
+        doc,
+        num_fewshot,
+        provide_description,
+        rnd,
+        filter_shot_examples=False,
+        **kwargs,
+    ):
         """Construct and format full prompt string for a given sample, optionally including description and shot examples
         :param doc: document object corresponding to the sample under examination
         :param num_fewshot: number of examples to be included in the prompt
@@ -370,7 +378,11 @@ class Task(abc.ABC):
         """
 
         raw_description = self.fewshot_description()
-        description = (raw_description + "\n===\n\n") if provide_description and raw_description else ""
+        description = (
+            (raw_description + "\n===\n\n")
+            if provide_description and raw_description
+            else ""
+        )
 
         if num_fewshot == 0:
             labeled_examples = ""
@@ -380,22 +392,31 @@ class Task(abc.ABC):
             if self.has_training_docs():
                 if filter_shot_examples:
                     fewshotex = self.fewshot_examples(
-                        k=num_fewshot, rnd=rnd, filter_func=partial(self.filter_shots, doc=doc), **kwargs,
+                        k=num_fewshot,
+                        rnd=rnd,
+                        filter_func=partial(self.filter_shots, doc=doc),
+                        **kwargs,
                     )
                 else:
                     fewshotex = self.fewshot_examples(k=num_fewshot, rnd=rnd, **kwargs)
             else:
                 if self._fewshot_docs is None:
                     self._fewshot_docs = list(
-                        self.validation_docs() if self.has_validation_docs() else self.test_docs()
+                        self.validation_docs()
+                        if self.has_validation_docs()
+                        else self.test_docs()
                     )
-                    self._fewshot_docs = list(zip(range(len(self._fewshot_docs)), self._fewshot_docs))
+                    self._fewshot_docs = list(
+                        zip(range(len(self._fewshot_docs)), self._fewshot_docs)
+                    )
                 if filter_shot_examples:
                     fewshotex = self.filter_shots(self._fewshot_docs, doc)
                 else:
                     fewshotex = self._fewshot_docs
 
-                fewshotex = self.sample_examples(fewshotex, num_fewshot + 1, rnd, **kwargs)
+                fewshotex = self.sample_examples(
+                    fewshotex, num_fewshot + 1, rnd, **kwargs
+                )
 
                 # get rid of the doc that's the one we're evaluating, if it's in the fewshot
                 # works because dictionary-like objects support equality operation in Python
@@ -403,11 +424,21 @@ class Task(abc.ABC):
 
             shot_ids, shot_docs = zip(*fewshotex)
             labeled_examples = (
-                "\n\n".join([self.doc_to_text(doc) + self.doc_to_target(doc) for doc in shot_docs]) + "\n\n"
+                "\n\n".join(
+                    [
+                        self.doc_to_text(doc) + self.doc_to_target(doc)
+                        for doc in shot_docs
+                    ]
+                )
+                + "\n\n"
             )
 
-        example = self.doc_to_text(doc)  # the document of interest, main part of the prompt
-        prompt_str = description + labeled_examples + example  # the formatted prompt string
+        example = self.doc_to_text(
+            doc
+        )  # the document of interest, main part of the prompt
+        prompt_str = (
+            description + labeled_examples + example
+        )  # the formatted prompt string
         return shot_ids, prompt_str
 
 
@@ -416,8 +447,11 @@ class MultipleChoiceTask(Task):
         return " " + doc["choices"][doc["gold"]]
 
     def construct_requests(self, doc, ctx):
-        lls = [rf.loglikelihood(ctx, " {}".format(choice))[0] for choice in doc["choices"]] + [  # get likelihoods
-            rf.loglikelihood(ctx, " {}".format(choice))[2] for choice in doc["choices"]  # get tokens
+        lls = [
+            rf.loglikelihood(ctx, " {}".format(choice))[0] for choice in doc["choices"]
+        ] + [  # get likelihoods
+            rf.loglikelihood(ctx, " {}".format(choice))[2]
+            for choice in doc["choices"]  # get tokens
         ]
         return lls
 
@@ -623,7 +657,9 @@ class CachingLM:
 class Request:
     def __init__(self, type, args, index=None):
         if type not in req_ret_lens.keys():
-            raise NotImplementedError("The request type {} is not implemented!".format(type))
+            raise NotImplementedError(
+                "The request type {} is not implemented!".format(type)
+            )
 
         self.type = type
         self.args = args
@@ -642,7 +678,11 @@ class Request:
         return Request(self.type, self.args, i)
 
     def __eq__(self, other):
-        return self.type == other.type and self.args == other.args and self.index == other.index
+        return (
+            self.type == other.type
+            and self.args == other.args
+            and self.index == other.index
+        )
 
     def __repr__(self):
         return f"Req_{self.type}{self.args}[{self.index}]\n"

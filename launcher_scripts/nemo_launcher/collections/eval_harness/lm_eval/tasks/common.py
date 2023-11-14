@@ -27,7 +27,9 @@ class HFTask(Task):
         super().__init__()
 
     def download(self):
-        self.data = datasets.load_dataset(path=self.DATASET_PATH, name=self.DATASET_NAME, cache_dir=self.cache_dir)
+        self.data = datasets.load_dataset(
+            path=self.DATASET_PATH, name=self.DATASET_NAME, cache_dir=self.cache_dir
+        )
 
     def has_training_docs(self):
         """Whether the task has a training set"""
@@ -49,7 +51,9 @@ class HFTask(Task):
         # If data is too large to fit in memory, override this method.
         if self.has_training_docs():
             if self._training_docs is None:
-                self._training_docs = list(map(self._convert_standard, self.data["train"]))
+                self._training_docs = list(
+                    map(self._convert_standard, self.data["train"])
+                )
             return self._training_docs
 
     def validation_docs(self):

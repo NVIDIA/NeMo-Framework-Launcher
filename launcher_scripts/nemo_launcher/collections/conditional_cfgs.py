@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pynvml
 import sys
 
 import hydra
+import pynvml
 
 global cuda_capability
 pynvml.nvmlInit()

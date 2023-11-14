@@ -14,18 +14,20 @@
 
 import copy
 import functools
-import glob, os
-import logging
+import glob
 import json
+import logging
+import os
 import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import omegaconf
 from nemo_launcher.core.launchers import AutoLauncher
+from nemo_launcher.core.stages import NeMoStage, clean_command_groups
 from nemo_launcher.utils.job_utils import JobPaths
 from omegaconf import OmegaConf
-from nemo_launcher.core.stages import NeMoStage, clean_command_groups
+
 
 class RLHFRewardModel(NeMoStage):
     """Stage class of rlhf_rm with NeMo scripts"""
@@ -48,6 +50,7 @@ class RLHFRewardModel(NeMoStage):
             "gpt3": self._rlhf_code_path / "examples/nlp/gpt/train_reward_model.py",
         }
         return model_type_to_code_path[model_type]
+
 
 class RLHFPPO(NeMoStage):
     """Stage class of rlhf_rm with NeMo scripts"""
@@ -86,7 +89,12 @@ class RLHFPPO(NeMoStage):
         run_cfg = stage_cfg.get("run")
         time_limit = run_cfg.get("time_limit")
         dependency = run_cfg.get("dependency")
-        subcfg_list = ["reward_model_server", "initial_policy_server", "critic_server", "actor"]
+        subcfg_list = [
+            "reward_model_server",
+            "initial_policy_server",
+            "critic_server",
+            "actor",
+        ]
 
         job_name = run_cfg.get("name")
 
@@ -104,7 +112,9 @@ class RLHFPPO(NeMoStage):
         setup = None
         env_vars = self.get_env_vars()
         for i in range(3):
-            env_vars[f"HETJOB{i}_HOST"] = f"$(scontrol show hostnames=$SLURM_JOB_NODELIST_HET_GROUP_{i} | head -n1)"
+            env_vars[
+                f"HETJOB{i}_HOST"
+            ] = f"$(scontrol show hostnames=$SLURM_JOB_NODELIST_HET_GROUP_{i} | head -n1)"
         if env_vars:
             setup = [f"export {k}={v}" for k, v in env_vars.items()]
 
@@ -130,7 +140,9 @@ class RLHFPPO(NeMoStage):
                     "container_mounts": container_mounts,
                 }
             )
-            cluster_parameters["job_name"] = job_name_prefix + cluster_parameters["job_name"]
+            cluster_parameters["job_name"] = (
+                job_name_prefix + cluster_parameters["job_name"]
+            )
 
         return cluster_parameters
 
@@ -157,7 +169,12 @@ class RLHFPPO(NeMoStage):
         :rtype: List[List[str]]
         """
         command_groups = []
-        subcfg_list = ["reward_model_server", "initial_policy_server", "critic_server", "actor"]
+        subcfg_list = [
+            "reward_model_server",
+            "initial_policy_server",
+            "critic_server",
+            "actor",
+        ]
         code_path_list = [
             self._rlhf_code_path / "examples/nlp/gpt/serve_reward_model.py",
             self._rlhf_code_path / "examples/nlp/gpt/serve_initial_policy.py",
@@ -188,8 +205,12 @@ class RLHFPPO(NeMoStage):
                 ]
             nemo_call_string = " \\\n  ".join(nemo_cammnd)
             core_command += [
-                self._make_api_log_command_prefix(results_dir=self.get_job_path().results_folder),
-                self._make_nsys_command_prefix(results_dir=self.get_job_path().results_folder),
+                self._make_api_log_command_prefix(
+                    results_dir=self.get_job_path().results_folder
+                ),
+                self._make_nsys_command_prefix(
+                    results_dir=self.get_job_path().results_folder
+                ),
                 nemo_call_string,
             ]
             core_command_string = " ".join([c for c in core_command if c])

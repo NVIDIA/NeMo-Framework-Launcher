@@ -66,10 +66,14 @@ class WikiText(PerplexityTask):
         cache_dir = (
             self.cache_dir
             if self.cache_dir
-            else os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir, "data")
+            else os.path.join(
+                os.path.dirname(__file__), os.path.pardir, os.path.pardir, "data"
+            )
         )
         if not torch.distributed.is_initialized() or torch.distributed.get_rank() == 0:
-            if not os.path.exists(cache_dir + "/wikitext/wikitext-2-raw/wiki.valid.raw"):
+            if not os.path.exists(
+                cache_dir + "/wikitext/wikitext-2-raw/wiki.valid.raw"
+            ):
                 os.makedirs(cache_dir + "/wikitext", exist_ok=True)
                 download_file(
                     "https://s3.amazonaws.com/research.metamind.io/wikitext/wikitext-2-raw-v1.zip",
@@ -98,7 +102,12 @@ class WikiText(PerplexityTask):
     def docs_for_split(self, split):
         ret = []
         for line in (
-            open(self.cache_dir + f"/wikitext/wikitext-2-raw/wiki.{split}.raw", encoding='utf-8').read().split("\n")
+            open(
+                self.cache_dir + f"/wikitext/wikitext-2-raw/wiki.{split}.raw",
+                encoding="utf-8",
+            )
+            .read()
+            .split("\n")
         ):
             rline = line.replace("= = =", "===").replace("= =", "==").strip()
             if rline.startswith("= ") and rline.strip().endswith(" ="):
@@ -131,10 +140,14 @@ class WikiText103(WikiText):
         cache_dir = (
             self.cache_dir
             if self.cache_dir
-            else os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir, "data")
+            else os.path.join(
+                os.path.dirname(__file__), os.path.pardir, os.path.pardir, "data"
+            )
         )
         if not torch.distributed.is_initialized() or torch.distributed.get_rank() == 0:
-            if not os.path.exists(cache_dir + "/wikitext/wikitext-103-raw/wiki.valid.raw"):
+            if not os.path.exists(
+                cache_dir + "/wikitext/wikitext-103-raw/wiki.valid.raw"
+            ):
                 os.makedirs(cache_dir + "/wikitext", exist_ok=True)
                 download_file(
                     "https://s3.amazonaws.com/research.metamind.io/wikitext/wikitext-103-raw-v1.zip",
@@ -149,7 +162,12 @@ class WikiText103(WikiText):
     def docs_for_split(self, split):
         ret = []
         for line in (
-            open(self.cache_dir + f"/wikitext/wikitext-103-raw/wiki.{split}.raw", encoding='utf-8').read().split("\n")
+            open(
+                self.cache_dir + f"/wikitext/wikitext-103-raw/wiki.{split}.raw",
+                encoding="utf-8",
+            )
+            .read()
+            .split("\n")
         ):
             rline = line.replace("= = =", "===").replace("= =", "==").strip()
             if rline.startswith("= ") and rline.strip().endswith(" ="):

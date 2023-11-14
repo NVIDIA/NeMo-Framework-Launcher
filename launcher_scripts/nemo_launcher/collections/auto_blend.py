@@ -59,7 +59,9 @@ def generate_data_blend(cfg):
     res = []
     for split in file_size:
         for prefix, size in file_size[split]:
-            res.extend([round(size / split_size[split] * split_ratio[split], 6), prefix])
+            res.extend(
+                [round(size / split_size[split] * split_ratio[split], 6), prefix]
+            )
 
     print(str(res).replace(" ", ""))
 

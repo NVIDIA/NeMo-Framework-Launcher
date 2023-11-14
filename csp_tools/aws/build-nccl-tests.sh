@@ -23,4 +23,4 @@ srun --container-mounts="$PWD:/nccl" \
      curl -fSsL --proto '=https' https://github.com/NVIDIA/nccl-tests/tarball/master | tar xz &&
      mv NVIDIA-nccl-tests* nccl-tests &&
      cd nccl-tests &&
-     make -j CUDA_HOME=/usr/local/cuda MPI=1 MPI_HOME=/opt/hpcx/ompi"
+     make -j CUDA_HOME=/usr/local/cuda MPI=1 MPI_HOME=/opt/amazon/openmpi/"

@@ -34,7 +34,9 @@ def main(cfg) -> None:
         file_number = int(os.environ.get("SLURM_ARRAY_TASK_ID"))
         downloaded_path = os.path.join(data_dir, f"{file_number:02d}.jsonl.zst")
         output_file = f"{file_number:02d}.jsonl"
-        utils.extract_single_zst_file(downloaded_path, data_dir, output_file, rm_downloaded)
+        utils.extract_single_zst_file(
+            downloaded_path, data_dir, output_file, rm_downloaded
+        )
     elif cfg.get("cluster_type") in ["bcp", "k8s"]:
         file_numbers = cfg.get("file_numbers")
         # Downloading the files
@@ -51,7 +53,8 @@ def main(cfg) -> None:
             output_file = f"{file_number:02d}.jsonl"
             # TODO: Consider multiprocessing.Pool instead.
             proc = multiprocessing.Process(
-                target=utils.extract_single_zst_file, args=(downloaded_path, data_dir, output_file, rm_downloaded),
+                target=utils.extract_single_zst_file,
+                args=(downloaded_path, data_dir, output_file, rm_downloaded),
             )
             proc_list.append(proc)
             proc.start()
