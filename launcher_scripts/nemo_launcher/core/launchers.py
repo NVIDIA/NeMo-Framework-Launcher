@@ -328,10 +328,17 @@ class BCPLauncher(Launcher):
 
         for group_ind, command_group in enumerate(command_groups):
             command = ";\n  ".join(command_group)
+            redirect = ""
+
+            if self.parameters["no_redirect"]:
+                redirect = "-no_redirect"
+
             if group_ind + 1 == len(command_groups):
-                bcprun_cmd = f"bcprun --nnodes {nnodes} --npernode {npernode}"
+                bcprun_cmd = (
+                    f"bcprun --nnodes {nnodes} --npernode {npernode} {redirect}"
+                )
             else:
-                bcprun_cmd = f"bcprun --nnodes 1 --npernode 1"
+                bcprun_cmd = f"bcprun --nnodes 1 --npernode 1 {redirect}"
             lines += [
                 "",
                 f"# command {group_ind + 1}",

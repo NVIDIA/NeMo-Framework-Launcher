@@ -330,7 +330,11 @@ class NemoMegatronStage:
             )
         elif cluster == "bcp":
             cluster_parameters.update(
-                {**shared_parameters, "env_vars": env_vars,}
+                {
+                    **shared_parameters,
+                    "no_redirect": cfg.get("bcp_no_redirect"),
+                    "env_vars": env_vars,
+                }
             )
         elif cluster == "interactive":
             cluster_parameters.update(shared_parameters)

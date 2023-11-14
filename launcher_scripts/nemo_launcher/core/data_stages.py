@@ -178,7 +178,11 @@ class DataStage(NemoMegatronStage):
             )
         elif cluster == "bcp":
             cluster_parameters.update(
-                {**shared_parameters, **private_parameters,}
+                {
+                    **shared_parameters,
+                    **private_parameters,
+                    "no_redirect": cfg.get("bcp_no_redirect"),
+                }
             )
         elif cluster == "k8s":
             cluster_cfg = cfg.get("cluster")
