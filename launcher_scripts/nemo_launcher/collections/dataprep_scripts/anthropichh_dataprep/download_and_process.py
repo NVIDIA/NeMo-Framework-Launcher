@@ -24,7 +24,9 @@ from datasets import load_dataset
 def prepare_args():
     parser = argparse.ArgumentParser(description="generate dataset")
     parser.add_argument(
-        "--output-dir", type=str, default="./",
+        "--output-dir",
+        type=str,
+        default="./",
     )
     return parser.parse_args()
 
@@ -58,11 +60,17 @@ def process_hh(split):
                 body, response = output
 
             if len(string_to_use) == 0:
-                prompt_string_to_use = START_PROMPT_FORMAT.format(body=body, response="")
+                prompt_string_to_use = START_PROMPT_FORMAT.format(
+                    body=body, response=""
+                )
                 string_to_use = START_PROMPT_FORMAT.format(body=body, response=response)
             else:
-                prompt_string_to_use = PROMPT_CONTINUATION_FORMAT.format(text=string_to_use, body=body, response="")
-                string_to_use = PROMPT_CONTINUATION_FORMAT.format(text=string_to_use, body=body, response=response)
+                prompt_string_to_use = PROMPT_CONTINUATION_FORMAT.format(
+                    text=string_to_use, body=body, response=""
+                )
+                string_to_use = PROMPT_CONTINUATION_FORMAT.format(
+                    text=string_to_use, body=body, response=response
+                )
 
         # for prompt, remove the space at the end
         return string_to_use, prompt_string_to_use[:-1]
@@ -98,7 +106,9 @@ def convert_list_of_dict_to_jsonl(list_of_dict):
 
 
 def save_dataset(list_of_dict, split, save_dir):
-    prompts_to_save = convert_list_of_dict_to_jsonl({"text": item["prompt"]} for item in list_of_dict)
+    prompts_to_save = convert_list_of_dict_to_jsonl(
+        {"text": item["prompt"]} for item in list_of_dict
+    )
 
     with open(Path(save_dir) / f"{split}_prompts.jsonl", "w") as f:
         f.write(prompts_to_save)
