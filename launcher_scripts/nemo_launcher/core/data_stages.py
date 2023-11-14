@@ -682,6 +682,7 @@ class CustomDataPreparation(DataStage):
         """Make a command of the specified sub-stage"""
         data_cfg = self.stage_cfg
         run_cfg = data_cfg.get("run")
+        cluster_type = self.cfg.cluster_type
 
         if sub_stage == "train_tokenizer":
             bpe_save_dir = Path(data_cfg.get("bpe_save_dir"))
@@ -699,13 +700,22 @@ class CustomDataPreparation(DataStage):
                 output_path=data_cfg.get("preprocessed_dir"),
                 workers_per_node=run_cfg.get("workers_per_node"),
                 worker_mapping_file=data_cfg.get("preprocess_worker_mapping"),
-                tokenizer_library="sentencepiece",
+                tokenizer_library=data_cfg.get("tokenizer_library"),
                 tokenizer_model=data_cfg.get("tokenizer_model"),
+                tokenizer_type=data_cfg.get("tokenizer_type"),
                 dataset_impl="mmap",
                 log_interval="2000",
                 apply_ftfy="store_true",
                 workers=run_cfg.get("cpus_per_node") // run_cfg.get("workers_per_node"),
             )
+
+            if cluster_type == "bcp":
+                args += create_args_list(bcp="store_true")
+
+            if data_cfg.vocab_file and data_cfg.merges_file:
+                args += create_args_list(
+                    vocab_file=data_cfg.vocab_file, merges_file=data_cfg.merges_file
+                )
 
         sub_stage_command = [f"python3 -u {code_path}", *args]
         sub_stage_command = " \\\n  ".join(sub_stage_command)
