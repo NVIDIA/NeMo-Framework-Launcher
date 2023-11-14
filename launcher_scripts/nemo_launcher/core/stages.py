@@ -161,7 +161,10 @@ class NemoMegatronStage:
         """Make a command of login with w&b api key"""
         cfg = self.cfg
         wandb_cmd = ""
-        if cfg.wandb_api_key_file is not None:
+
+        if cfg.cluster_type == "bcp" and cfg.wandb_api_bcp_secret_key is not None:
+            wandb_cmd = f"wandb login ${cfg.wandb_api_bcp_secret_key}"
+        elif cfg.wandb_api_key_file is not None:
             with open(cfg.wandb_api_key_file, "r") as f:
                 wandb_api_key = f.readline().rstrip()
             wandb_cmd = f"wandb login {wandb_api_key}"
@@ -1243,6 +1246,8 @@ class NeMoEvaluation(NeMoStage):
                 args += create_args_list(split_string=f"'{split_string}'")
             calculation_command = [f"python3 {code_path}", *args]
             calculation_command = " \\\n  ".join(calculation_command)
+        elif choice_model_type.startswith("peft"):
+            calculation_command = None
         elif choice_name == "squad":
             output_file_path_prefix = self.stage_cfg.model.data.validation_ds.get(
                 "output_file_path_prefix"
@@ -1304,6 +1309,8 @@ class NeMoEvaluation(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_t5_adapter_eval.py",
             "adapter_gpt3": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_eval.py",
+            "peft_llama": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
         }
         return model_type_to_code_path[model_type]
 
