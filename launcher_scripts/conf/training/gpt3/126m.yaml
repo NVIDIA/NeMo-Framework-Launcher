@@ -174,9 +174,8 @@ model:
      rank_termination_signal: 9
      simulated_fault:
          fault_type: rank_killed
-         rank_to_fail: 1
          base_delay: 180
-     autoresume_if_interrupted: True
+     autoresume_if_interrupted: False
 
   data:
     data_impl: mmap
