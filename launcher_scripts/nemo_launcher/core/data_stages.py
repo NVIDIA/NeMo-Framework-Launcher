@@ -588,6 +588,26 @@ class CustomDataPreparation(DataStage):
             sub_stages += ["preprocess"]
         return sub_stages
 
+    def _filter_raw_json_files(self, raw_dataset_files: list) -> List:
+        """
+        Filter the input dataset files to only include json files and derivatives.
+
+        :param list raw_dataset_files: List of the raw dataset files specified in the config
+        :return: a list of only the json files in the dataset.
+        :rtype: list
+        """
+        if isinstance(raw_dataset_files, omegaconf.listconfig.ListConfig):
+            return raw_dataset_files
+
+        filtered_files = []
+
+        for raw_file in os.listdir(raw_dataset_files):
+            # Only select files that end in .jsonl
+            if not Path(raw_file).suffix.lower() in [".json", ".jsonl", "json.gz"]:
+                continue
+            filtered_files.append(os.path.join(raw_dataset_files, raw_file))
+        return filtered_files
+
     def setup_folder_and_data(self) -> None:
         """Setup job/data folders and fine-tuning/prompt-learning dataset"""
         job_path = self.get_job_path()
@@ -602,11 +622,8 @@ class CustomDataPreparation(DataStage):
         preprocess_worker_mapping = data_cfg.get("preprocess_worker_mapping")
 
         if data_cfg.get("preprocess_data", False):
-            if not isinstance(raw_dataset_files, omegaconf.listconfig.ListConfig):
-                raw_dataset_files = [
-                    os.path.join(raw_dataset_files, raw_file)
-                    for raw_file in os.listdir(raw_dataset_files)
-                ]
+            raw_dataset_files = self._filter_raw_json_files(raw_dataset_files)
+
             # Sort list of files in directory by size
             sorted_files = sorted(raw_dataset_files, key=lambda x: os.stat(x).st_size)
             file_sizes = [os.stat(x).st_size for x in sorted_files]
