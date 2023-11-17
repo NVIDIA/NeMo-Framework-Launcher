@@ -323,7 +323,7 @@ class NemoMegatronStage:
                 }
             )
 
-        fault_tol_conf = stage_cfg.get("model").get("fault_tolerance", None)
+        fault_tol_conf = stage_cfg.get("exp_manager").get("fault_tolerance", None)
         if fault_tol_conf is not None:
             cluster_parameters["autoresume_if_interrupted"] = fault_tol_conf.get("autoresume_if_interrupted", False)
             if cluster_parameters["autoresume_if_interrupted"] is True and cluster != "bcm":
