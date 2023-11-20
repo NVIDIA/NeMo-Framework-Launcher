@@ -152,7 +152,6 @@ class DataStage(NemoMegatronStage):
         env_vars[
             "PYTHONPATH"
         ] = f"{self._launcher_scripts_path}:${{PYTHONPATH}}"  # Required by pile download
-        env_vars["NGC_ARRAY_TYPE"] = "MPIJob"  # Required by BCP
         setup = [f"export {k}={v}" for k, v in env_vars.items()]
 
         cluster_parameters = {}
@@ -369,7 +368,6 @@ class PileDataPreparation(DataStage):
             return {
                 "nodes": node_array_size,
                 "ntasks_per_node": bcp_preproc_npernode,
-                "bcp_launcher": "'mpirun --allow-run-as-root'",
             }
         return {}
 
@@ -499,7 +497,6 @@ class MC4DataPreparation(DataStage):
             return {
                 "nodes": node_array_size,
                 "ntasks_per_node": ntasks_per_node,
-                "bcp_launcher": "'mpirun --allow-run-as-root'",
             }
         return {}
 
@@ -691,7 +688,6 @@ class CustomDataPreparation(DataStage):
             return {
                 "nodes": node_array_size,
                 "ntasks_per_node": ntasks_per_node,
-                "bcp_launcher": "'mpirun --allow-run-as-root'",
             }
         return {}
 
