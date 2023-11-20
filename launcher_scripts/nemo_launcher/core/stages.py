@@ -175,7 +175,7 @@ class NemoMegatronStage:
         return [
             f"cd {self._nemo_code_path}",
             "git rev-parse HEAD",
-            f"export PYTHONPATH={self._nemo_code_path}:\${{PYTHONPATH}}",
+            f"export PYTHONPATH={self._nemo_code_path}:{self._megatron_code_path}:\${{PYTHONPATH}}",
         ]
 
     def _make_k8s_spec_file(
@@ -454,6 +454,10 @@ class NemoMegatronStage:
     @property
     def _nemo_code_path(self) -> Path:
         return Path("/opt/NeMo")
+
+    @property
+    def _megatron_code_path(self) -> Path:
+        return Path("/opt/Megatron-LM")
 
     @property
     def _data_dir(self) -> Path:
