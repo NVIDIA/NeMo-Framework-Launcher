@@ -49,6 +49,9 @@ class TestConfig:
         container: nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.08.03
         
         wandb_api_key_file: null  # File where the w&B api key is stored. Key must be on the first line.
+        wandb_api_bcp_secret_key: null  # For BCP clusters, read the W&B api key directly from the environment variable set as a secret from BCP. The value must match the name of the environment variable in BCP, such as WANDB_TOKEN.
+
+        bcp_no_redirect: True  # If True, all stdout and stderr will not be redirected and appear in the standard logs. If False, all stdout and stderr output will be redirected to individual files on a per-rank basis. Ignored for non-BCP clusters.
         
         env_vars:
           NCCL_TOPO_FILE: null # Should be a path to an XML file describing the topology
@@ -60,6 +63,7 @@ class TestConfig:
           TRANSFORMERS_OFFLINE: 1
           TORCH_NCCL_AVOID_RECORD_STREAMS: 1
           NCCL_NVLS_ENABLE: 0
+          NVTE_APPLY_QK_LAYER_SCALING: 1
         
         # GPU Mapping
         numa_mapping:
