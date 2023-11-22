@@ -152,7 +152,7 @@ model:
 
   optim:
     name: distributed_fused_adam
-    bucket_cap_mb: 200
+    bucket_cap_mb: 220
     overlap_grad_sync: True
     overlap_param_sync: true
     contiguous_grad_buffer: True
