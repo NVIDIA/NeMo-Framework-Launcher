@@ -26,6 +26,7 @@ trainer:
   accumulate_grad_batches: 1
   gradient_clip_val: 1.0
 
+
 exp_manager:
   explicit_log_dir: ${training.run.results_dir}/results
   exp_dir: null
@@ -166,16 +167,6 @@ model:
       warmup_steps: 636
       constant_steps: 100000
       min_lr: 6e-5
-
-  fault_tolerance:
-     initial_rank_heartbeat_timeout: 120
-     rank_heartbeat_timeout: 30
-     ipc_timeout: 30
-     rank_termination_signal: 9
-     simulated_fault:
-         fault_type: rank_killed
-         base_delay: 180
-     autoresume_if_interrupted: False
 
   data:
     data_impl: mmap

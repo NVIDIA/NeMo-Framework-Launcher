@@ -325,9 +325,11 @@ class NemoMegatronStage:
 
         fault_tol_conf = stage_cfg.get("exp_manager").get("fault_tolerance", None)
         if fault_tol_conf is not None:
-            cluster_parameters["autoresume_if_interrupted"] = fault_tol_conf.get("autoresume_if_interrupted", False)
+            resume_on_fault = fault_tol_conf.get("autoresume_if_faulted", False)
+            resume_on_preemption = fault_tol_conf.get("autoresume_if_preempted", False)
+            cluster_parameters["autoresume_if_interrupted"] = (resume_on_fault or resume_on_preemption)
             if cluster_parameters["autoresume_if_interrupted"] is True and cluster != "bcm":
-                raise ValueError(f"autoresume_if_interrupted works only with 'bcm' cluster (current cluster is '{cluster}')")
+                raise ValueError(f"`autoresume_if_faulted` and `autoresume_if_preempted` works only with 'bcm' cluster (current cluster is '{cluster}')")
         
         return cluster_parameters
 
