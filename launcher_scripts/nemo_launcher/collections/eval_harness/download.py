@@ -26,7 +26,7 @@ def parse_args(parser_main):
     # parser = argparse.ArgumentParser()
     parser = parser_main.add_argument_group(title="download-tasks")
     parser.add_argument("--tasks", default="all_tasks")
-    parser.add_argument("--cache_dir", default="")
+    parser.add_argument("--cache-dir", default="")
     # return parser.parse_args()
     return parser_main
 
