@@ -67,8 +67,8 @@ class NemoMegatronStage:
         job_path = self.get_job_path()
 
         if (
-            self.stage_name == "training"
-            and self.cfg.get("training").get("model").get("rampup_batch_size")
+            self.cfg.get("training").get("model").get("rampup_batch_size")
+            and self.stage_name == "training"
         ):
             gpus = self.stage_cfg.get("trainer").get("devices")
             self._find_optimal_nodes(self.cfg, gpus)
@@ -310,7 +310,7 @@ class NemoMegatronStage:
         }
         if cluster == "bcm":
             cluster_cfg = cfg.get("cluster")
-            if self.stage_name=="training" and cfg.get("training").get("model").get("ub_tp_comm_overlap", False):
+            if cfg.get("training").get("model").get("ub_tp_comm_overlap", False):
                 if "srun_args" not in cluster_cfg:
                     cluster_cfg["srun_args"] = []
                 cluster_cfg["srun_args"] += ["--mpi=pmix"]
@@ -501,7 +501,6 @@ class NemoMegatronStage:
     @property
     def _set_ln_sm_margin(self) -> str:
         """ Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel """
-        if self.stage_name!="training": return ""
         vpp = self.cfg.training.model.get("virtual_pipeline_model_parallel_size")
         if (
             self.cfg.training.model.get("overlap_p2p_comm", False)
@@ -520,8 +519,7 @@ class NemoMegatronStage:
     def _skip_ag_overlap(self) -> str:
         """ Skip TP-AllGather overlap with ring-exchange at (1) bf16 and (2) PP > 1 """
         if (
-            "training" in self.cfg
-            and self.cfg.training.model.get("ub_tp_comm_overlap", False)
+            self.cfg.training.model.get("ub_tp_comm_overlap", False)
             and self.cfg.training.model.get("pipeline_model_parallel_size") > 1
         ):
             use_fp8 = self.cfg.training.model.get("fp8", False)
