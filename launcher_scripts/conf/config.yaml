@@ -3,6 +3,7 @@ defaults:
   - cluster: bcm  # Set to bcm for BCM and BCP clusters. Set to k8s for a k8s cluster.
   - data_preparation: gpt3/download_gpt3_pile
   - quality_filtering: heuristic/english
+  - deduplication: fuzzy
   - training: gpt3/5b
   - conversion: gpt3/convert_gpt3
   - fine_tuning: null
@@ -71,6 +72,7 @@ numa_mapping:
 # Do not modify below, use the values above instead.
 data_preparation_config: ${hydra:runtime.choices.data_preparation}
 quality_filtering_config: ${hydra:runtime.choices.quality_filtering}
+deduplication_config: ${hydra:runtime.choices.deduplication}
 training_config: ${hydra:runtime.choices.training}
 fine_tuning_config: ${hydra:runtime.choices.fine_tuning}
 peft_config: ${hydra:runtime.choices.peft}

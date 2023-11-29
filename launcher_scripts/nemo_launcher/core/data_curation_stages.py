@@ -175,3 +175,44 @@ class QualityFiltering(DataCurationStage):
         command_groups = clean_command_groups(command_groups)
 
         return command_groups
+
+
+class Deduplication(DataCurationStage):
+    """ DataCurationStage for performing quality filtering on documents """
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "deduplication"
+        self.stage_cfg = cfg.get("deduplication")
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        # Write out the filter configuration as a separate config file
+        filter_cfg = Path(self.conf_folder, "heuristic_filter.yaml")
+        omegaconf.OmegaConf.save(stage_cfg.get("filter"), filter_cfg)
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        # args = create_args_list(
+        #     replace_underscore=True,
+        #     log_dir=self.log_folder,
+        #     input_data_dir=stage_cfg.get("input_dir"),
+        #     filter_config_file=f"{filter_cfg}",
+        #     output_retained_document_dir=stage_cfg.get("output_retained_document_dir"),
+        #     **optional_args,
+        # )
+
+        core_command = ["create_dask_cluster.sh"]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
