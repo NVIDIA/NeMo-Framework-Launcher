@@ -190,11 +190,7 @@ class Deduplication(DataCurationStage):
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
-        stage_cfg = self.stage_cfg
-
-        # Write out the filter configuration as a separate config file
-        filter_cfg = Path(self.conf_folder, "heuristic_filter.yaml")
-        omegaconf.OmegaConf.save(stage_cfg.get("filter"), filter_cfg)
+        # stage_cfg = self.stage_cfg
 
         command_groups = [[]]
 
