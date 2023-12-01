@@ -107,7 +107,7 @@ class DataCurationStage(NemoMegatronStage):
         # Make cluster configuration parameters
         cluster_parameters = self._make_cluster_parameters(self.cluster)
         stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
-            self.stage_cfg, job_path,
+            self.stage_cfg, job_path, self.cfg
         )
 
         # Build commands to launch on cluster
@@ -177,7 +177,7 @@ class QualityFiltering(DataCurationStage):
         return command_groups
 
 
-class Deduplication(DataCurationStage):
+class ComputeMinhashes(DataCurationStage):
     """ DataCurationStage for performing quality filtering on documents """
 
     def __init__(self, cfg):
@@ -185,8 +185,8 @@ class Deduplication(DataCurationStage):
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
-        self.stage_name = "deduplication"
-        self.stage_cfg = cfg.get("deduplication")
+        self.stage_name = "compute_minhashes"
+        self.stage_cfg = cfg.get("compute_minhashes")
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -195,14 +195,14 @@ class Deduplication(DataCurationStage):
         command_groups = [[]]
 
         # Create the list of arguments for the filter_documents command
-        # args = create_args_list(
-        #     replace_underscore=True,
-        #     log_dir=self.log_folder,
-        #     input_data_dir=stage_cfg.get("input_dir"),
-        #     filter_config_file=f"{filter_cfg}",
-        #     output_retained_document_dir=stage_cfg.get("output_retained_document_dir"),
-        #     **optional_args,
-        # )
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            input_data_dir=stage_cfg.get("input_dir"),
+            filter_config_file=f"{filter_cfg}",
+            output_retained_document_dir=stage_cfg.get("output_retained_document_dir"),
+            **optional_args,
+        )
 
         core_command = ["create_dask_cluster.sh"]
 
