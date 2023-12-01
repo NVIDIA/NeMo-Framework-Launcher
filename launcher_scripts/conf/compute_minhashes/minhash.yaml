@@ -7,20 +7,16 @@ run:
   partition:
 
 dask:
-  pool_size: 70GiB
+  pool_size: 72GiB
   protocol: ucx
   interface: ibp12s0
-  scheduler_file: ${base_results_dir}/scheduler.json
 
-input_dir:
+input_data_dirs: 
 minhash_length: 260
 char_ngram: 5
 hash_bytes: 4
 seed: 42
-output_minhash_dir: ${base_results_dir}/${run.name}/minhashes
-log_dir: ${base_results_dir}/${run.name}/results
 num_files: -1
 files_per_partition:
 profile_path: 
 log_frequency: 250
-scheduler_file: ${base_results_dir}/scheduler.json

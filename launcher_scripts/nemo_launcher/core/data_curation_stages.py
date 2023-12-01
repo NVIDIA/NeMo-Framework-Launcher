@@ -34,8 +34,8 @@ class DataCurationStage(NemoMegatronStage):
         job_path = self.get_job_path()
         job_path.folder.mkdir(parents=True, exist_ok=True)
         # make the results dir
-        results_folder = job_path.results_folder
-        results_folder.mkdir(parents=True, exist_ok=True)
+        self.results_folder = job_path.results_folder
+        self.results_folder.mkdir(parents=True, exist_ok=True)
         # make the log dir
         self.log_folder = Path(job_path.folder, "log")
         self.log_folder.mkdir(parents=True, exist_ok=True)
@@ -190,7 +190,7 @@ class ComputeMinhashes(DataCurationStage):
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
-        # stage_cfg = self.stage_cfg
+        stage_cfg = self.stage_cfg
 
         command_groups = [[]]
 
@@ -198,13 +198,20 @@ class ComputeMinhashes(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            input_data_dir=stage_cfg.get("input_dir"),
-            filter_config_file=f"{filter_cfg}",
-            output_retained_document_dir=stage_cfg.get("output_retained_document_dir"),
-            **optional_args,
+            input_data_dirs=stage_cfg.get("input_data_dirs"),
+            minhash_length=stage_cfg.get("minhash_length"),
+            char_ngram=stage_cfg.get("char_ngram"),
+            hash_bytes=stage_cfg.get("hash_bytes"),
+            seed=stage_cfg.get("seed"),
+            output_minhash_dir=self.results_folder / "minhashes",
+            num_files=stage_cfg.get("num_files"),
+            files_per_partition=stage_cfg.get("files_per_partition"),
+            profile_path=,
+            log_frequency=stage_cfg.get("log_frequency"),
+            scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        core_command = ["create_dask_cluster.sh"]
+        core_command = [f"LOGDIR={self.log_folder} create_dask_cluster.sh"]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]

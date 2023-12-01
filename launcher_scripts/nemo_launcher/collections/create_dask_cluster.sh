@@ -36,8 +36,8 @@ export INTERFACE=ibp12s0
 export PROTOCOL=ucx
 echo $INTERFACE
 
-# DEDUP CONFIGS
-export NUM_FILES=-1
+# # DEDUP CONFIGS
+# export NUM_FILES=-1
 
 if [[ $SLURM_NODEID == 0 ]]; then
   echo "Starting scheduler"
@@ -57,7 +57,7 @@ sleep 60
 
 if [[ $SLURM_NODEID == 0 ]]; then
   echo "Time Check: `date`"
-#   bash $RUNSCRIPT
+  # bash $RUNSTRING
   echo "Time Check: `date`"
   touch $LOGDIR/done.txt
 fi
