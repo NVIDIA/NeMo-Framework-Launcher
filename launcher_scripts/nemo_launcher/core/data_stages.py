@@ -152,7 +152,6 @@ class DataStage(NemoMegatronStage):
         env_vars[
             "PYTHONPATH"
         ] = f"{self._launcher_scripts_path}:${{PYTHONPATH}}"  # Required by pile download
-        env_vars["NGC_ARRAY_TYPE"] = "MPIJob"  # Required by BCP
         setup = [f"export {k}={v}" for k, v in env_vars.items()]
 
         cluster_parameters = {}
@@ -369,7 +368,6 @@ class PileDataPreparation(DataStage):
             return {
                 "nodes": node_array_size,
                 "ntasks_per_node": bcp_preproc_npernode,
-                "bcp_launcher": "'mpirun --allow-run-as-root'",
             }
         return {}
 
@@ -499,7 +497,6 @@ class MC4DataPreparation(DataStage):
             return {
                 "nodes": node_array_size,
                 "ntasks_per_node": ntasks_per_node,
-                "bcp_launcher": "'mpirun --allow-run-as-root'",
             }
         return {}
 
@@ -588,6 +585,26 @@ class CustomDataPreparation(DataStage):
             sub_stages += ["preprocess"]
         return sub_stages
 
+    def _filter_raw_json_files(self, raw_dataset_files: list) -> List:
+        """
+        Filter the input dataset files to only include json files and derivatives.
+
+        :param list raw_dataset_files: List of the raw dataset files specified in the config
+        :return: a list of only the json files in the dataset.
+        :rtype: list
+        """
+        if isinstance(raw_dataset_files, omegaconf.listconfig.ListConfig):
+            return raw_dataset_files
+
+        filtered_files = []
+
+        for raw_file in os.listdir(raw_dataset_files):
+            # Only select files that end in .jsonl
+            if not Path(raw_file).suffix.lower() in [".json", ".jsonl", "json.gz"]:
+                continue
+            filtered_files.append(os.path.join(raw_dataset_files, raw_file))
+        return filtered_files
+
     def setup_folder_and_data(self) -> None:
         """Setup job/data folders and fine-tuning/prompt-learning dataset"""
         job_path = self.get_job_path()
@@ -602,11 +619,8 @@ class CustomDataPreparation(DataStage):
         preprocess_worker_mapping = data_cfg.get("preprocess_worker_mapping")
 
         if data_cfg.get("preprocess_data", False):
-            if not isinstance(raw_dataset_files, omegaconf.listconfig.ListConfig):
-                raw_dataset_files = [
-                    os.path.join(raw_dataset_files, raw_file)
-                    for raw_file in os.listdir(raw_dataset_files)
-                ]
+            raw_dataset_files = self._filter_raw_json_files(raw_dataset_files)
+
             # Sort list of files in directory by size
             sorted_files = sorted(raw_dataset_files, key=lambda x: os.stat(x).st_size)
             file_sizes = [os.stat(x).st_size for x in sorted_files]
@@ -674,7 +688,6 @@ class CustomDataPreparation(DataStage):
             return {
                 "nodes": node_array_size,
                 "ntasks_per_node": ntasks_per_node,
-                "bcp_launcher": "'mpirun --allow-run-as-root'",
             }
         return {}
 
@@ -682,6 +695,7 @@ class CustomDataPreparation(DataStage):
         """Make a command of the specified sub-stage"""
         data_cfg = self.stage_cfg
         run_cfg = data_cfg.get("run")
+        cluster_type = self.cfg.cluster_type
 
         if sub_stage == "train_tokenizer":
             bpe_save_dir = Path(data_cfg.get("bpe_save_dir"))
@@ -699,13 +713,22 @@ class CustomDataPreparation(DataStage):
                 output_path=data_cfg.get("preprocessed_dir"),
                 workers_per_node=run_cfg.get("workers_per_node"),
                 worker_mapping_file=data_cfg.get("preprocess_worker_mapping"),
-                tokenizer_library="sentencepiece",
+                tokenizer_library=data_cfg.get("tokenizer_library"),
                 tokenizer_model=data_cfg.get("tokenizer_model"),
+                tokenizer_type=data_cfg.get("tokenizer_type"),
                 dataset_impl="mmap",
                 log_interval="2000",
                 apply_ftfy="store_true",
                 workers=run_cfg.get("cpus_per_node") // run_cfg.get("workers_per_node"),
             )
+
+            if cluster_type == "bcp":
+                args += create_args_list(bcp="store_true")
+
+            if data_cfg.vocab_file and data_cfg.merges_file:
+                args += create_args_list(
+                    vocab_file=data_cfg.vocab_file, merges_file=data_cfg.merges_file
+                )
 
         sub_stage_command = [f"python3 -u {code_path}", *args]
         sub_stage_command = " \\\n  ".join(sub_stage_command)
