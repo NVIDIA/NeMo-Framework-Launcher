@@ -63,7 +63,6 @@ class TestConfig:
           TRANSFORMERS_OFFLINE: 1
           TORCH_NCCL_AVOID_RECORD_STREAMS: 1
           NCCL_NVLS_ENABLE: 0
-          NVTE_APPLY_QK_LAYER_SCALING: 1
         
         # GPU Mapping
         numa_mapping:
