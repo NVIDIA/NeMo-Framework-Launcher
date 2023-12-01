@@ -206,7 +206,7 @@ class ComputeMinhashes(DataCurationStage):
             output_minhash_dir=self.results_folder / "minhashes",
             num_files=stage_cfg.get("num_files"),
             files_per_partition=stage_cfg.get("files_per_partition"),
-            profile_path=,
+            profile_path=self.log_folder,
             log_frequency=stage_cfg.get("log_frequency"),
             scheduler_file=self.results_folder / "scheduler.json",
         )
