@@ -34,19 +34,9 @@ import time
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Preprocess (m)C4", allow_abbrev=False)
-    parser.add_argument(
-        "--rm-downloaded",
-        help="Whether to remove original downloaded data",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--output-path", help="Path to store output bin files", required=True
-    )
-    parser.add_argument(
-        "--worker-mapping-file",
-        help="Decide which worker download which languages",
-        required=True,
-    )
+    parser.add_argument("--rm-downloaded", help="Whether to remove original downloaded data", action="store_true")
+    parser.add_argument("--output-path", help="Path to store output bin files", required=True)
+    parser.add_argument("--worker-mapping-file", help="Decide which worker download which languages", required=True)
     parser.add_argument(
         "--workers-per-node",
         default=int(os.environ.get("SLURM_NTASKS_PER_NODE", 1)),
@@ -58,7 +48,7 @@ if __name__ == "__main__":
 
     workers_per_node = args.workers_per_node  # local world size
     if args.bcp:
-        global_rank = int(os.environ.get("RANK", 0))
+        global_rank = int(os.environ.get("OMPI_COMM_WORLD_RANK", 0))
         task_id = global_rank // workers_per_node
         rank = global_rank % workers_per_node
     else:  # on slurm based platforms
@@ -70,11 +60,7 @@ if __name__ == "__main__":
     lang_splits = []
     if task_id * workers_per_node + rank < len(mapping):
         lang_splits = mapping[task_id * workers_per_node + rank].strip().split(",")
-    print(
-        " ****** Task ID {:02d} Rank {:02d} is preparing to preprocess {:}...".format(
-            task_id, rank, lang_splits
-        )
-    )
+    print(" ****** Task ID {:02d} Rank {:02d} is preparing to preprocess {:}...".format(task_id, rank, lang_splits))
 
     os.makedirs(args.output_path, exist_ok=True)
     start_time = time.time()
@@ -91,10 +77,7 @@ if __name__ == "__main__":
             )
         )
         input_arg = ["--input", split]
-        output_arg = [
-            "--output-prefix",
-            os.path.join(args.output_path, os.path.basename(split)),
-        ]
+        output_arg = ["--output-prefix", os.path.join(args.output_path, os.path.basename(split))]
         subprocess.check_call(cmd + input_arg + output_arg + other_args)
         print(
             " ****** Task ID {:02d} Rank {:02d} finished preprocessing {:}...".format(

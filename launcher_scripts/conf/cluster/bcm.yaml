@@ -1,9 +1,9 @@
-partition: null
-account: null
+partition: batch_block1
+account: llmservice_modelalignment_ppo
 exclusive: True
 gpus_per_task: null
 gpus_per_node: 8
 mem: 0
-job_name_prefix: 'nemo-megatron-'
+job_name_prefix: 'llmservice_modelalignment_ppo-nemofw:launcher-'
 srun_args:
   - "--no-container-mount-home"

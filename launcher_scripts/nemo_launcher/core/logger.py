@@ -26,11 +26,7 @@ level: Union[int, str] = level_str if not level_str.isdigit() else int(level_str
 CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
-    "formatters": {
-        "nemo_megatron_basic": {
-            "format": "%(name)s %(levelname)s (%(asctime)s) - %(message)s"
-        }
-    },
+    "formatters": {"nemo_megatron_basic": {"format": "%(name)s %(levelname)s (%(asctime)s) - %(message)s"}},
     "handlers": {
         "nemo_megatron_out": {
             "class": "logging.StreamHandler",
@@ -45,12 +41,7 @@ CONFIG = {
             "stream": "ext://sys.stderr",
         },
     },
-    "loggers": {
-        "nemo_launcher": {
-            "handlers": ["nemo_megatron_err", "nemo_megatron_out"],
-            "level": level,
-        }
-    },
+    "loggers": {"nemo_launcher": {"handlers": ["nemo_megatron_err", "nemo_megatron_out"], "level": level}},
 }
 
 

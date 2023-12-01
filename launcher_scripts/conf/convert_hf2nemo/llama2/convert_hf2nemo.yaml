@@ -1,0 +1,11 @@
+run:
+  name: convert_${conversion.run.model_train_name}
+  nodes: ${divide_ceil:${conversion.model.model_parallel_size}, 8} # 8 gpus per node
+  time_limit: "1:00:00"
+  dependency: "singleton"
+  ntasks_per_node: ${divide_ceil:${conversion.model.model_parallel_size}, ${.nodes}}
+  convert_name: convert_hf2nemo
+
+hf_ckpt_dir: ${hf_ckpt_dir}/llama2-7b-hf/
+output_nemo_folder: ${hf_ckpt_dir}/llama2_7b.nemo # latest OR name pattern of a checkpoint (e.g. megatron_llama-*last.ckpt)
+tokenizer_file : ${data_dir}/tokenizer.model # /path/to/tokenizer.model

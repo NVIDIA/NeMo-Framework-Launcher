@@ -17,33 +17,30 @@ import sys
 
 import hydra
 import omegaconf
+from nemo_launcher.core.data_stages import CustomDataPreparation, MC4DataPreparation, PileDataPreparation
 from nemo_launcher.core.data_curation_stages import QualityFiltering
-from nemo_launcher.core.data_stages import (
-    CustomDataPreparation,
-    MC4DataPreparation,
-    PileDataPreparation,
-)
 from nemo_launcher.core.export_stages import Export
-from nemo_launcher.core.rlhf_stages import RLHFPPO, RLHFRewardModel
 from nemo_launcher.core.stages import (
-    PEFT,
     AdapterLearning,
     Conversion,
     EvalHarnessEvaluation,
     FineTuning,
+    PEFT,
     IA3Learning,
     NeMoEvaluation,
     PromptLearning,
-    Training,
-)
+    Training,   
+    SteerLM_SFT,
+    )
+from nemo_launcher.core.ckpt_convert_stage import ConvertHF2NeMo
+
+from nemo_launcher.core.rlhf_stages import RLHFRewardModel, RLHFPPO
+#import sys
+#sys.path.append("/workspace/NeMo/")
 
 omegaconf.OmegaConf.register_new_resolver("multiply", lambda x, y: x * y, replace=True)
-omegaconf.OmegaConf.register_new_resolver(
-    "divide_ceil", lambda x, y: int(math.ceil(x / y)), replace=True
-)
-omegaconf.OmegaConf.register_new_resolver(
-    "divide_floor", lambda x, y: int(math.floor(x / y)), replace=True
-)
+omegaconf.OmegaConf.register_new_resolver("divide_ceil", lambda x, y: int(math.ceil(x / y)), replace=True)
+omegaconf.OmegaConf.register_new_resolver("divide_floor", lambda x, y: int(math.floor(x / y)), replace=True)
 
 STR2STAGECLASS = {
     "training": Training,
@@ -56,17 +53,7 @@ STR2STAGECLASS = {
     "export": Export,
     "evaluation": {
         EvalHarnessEvaluation: ["gpt3", "prompt_gpt3", "llama", "prompt_llama"],
-        NeMoEvaluation: [
-            "t5",
-            "mt5",
-            "prompt_t5",
-            "prompt_mt5",
-            "adapter_t5",
-            "adapter_gpt3",
-            "ia3_t5",
-            "ia3_gpt3",
-            "peft_llama",
-        ],
+        NeMoEvaluation: ["t5", "mt5", "prompt_t5", "prompt_mt5", "adapter_t5", "adapter_gpt3", "ia3_t5", "ia3_gpt3"],
     },
     "data_preparation": {
         PileDataPreparation: ["gpt3", "t5", "bert", "llama"],
@@ -76,6 +63,8 @@ STR2STAGECLASS = {
     "rlhf_rm": RLHFRewardModel,
     "rlhf_ppo": RLHFPPO,
     "quality_filtering": QualityFiltering,
+    "convert_hf2nemo": ConvertHF2NeMo,
+    "steerlm": SteerLM_SFT
 }
 
 
@@ -103,7 +92,7 @@ def main(cfg):
         command = " \\\n  ".join(sys.argv)
         with open(job_path.folder / "launcher_cmd.log", "w") as f:
             f.write(command)
-
+        print("done_writing")
         if job_id:
             dependency = f"afterany:{job_id}"
 

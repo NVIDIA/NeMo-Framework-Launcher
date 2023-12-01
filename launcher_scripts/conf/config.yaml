@@ -3,8 +3,9 @@ defaults:
   - cluster: bcm  # Set to bcm for BCM and BCP clusters. Set to k8s for a k8s cluster.
   - data_preparation: gpt3/download_gpt3_pile
   - quality_filtering: heuristic/english
-  - training: gpt3/5b
-  - conversion: gpt3/convert_gpt3
+  - training: llama/llama2_7b
+  - conversion: t5/convert_t5.yaml
+  - convert_hf2nemo : llama2/convert_hf2nemo.yaml
   - fine_tuning: null
   - peft: null
   - prompt_learning: null
@@ -14,6 +15,7 @@ defaults:
   - export: gpt3/export_gpt3
   - rlhf_rm: gpt3/2b_rm
   - rlhf_ppo: gpt3/2b_ppo
+  - steerlm : llama/llama_steerlm
   - override hydra/job_logging: stdout
 
 hydra:
@@ -26,25 +28,25 @@ debug: False
 stages:
   #- data_preparation
   #- training
-  - conversion
+  #- conversion
   #- prompt_learning
   #- adapter_learning
   #- ia3_learning
   #- evaluation
   #- export
+  #- convert_hf2nemo
+  - steerlm
 
-cluster_type: bcm  # bcm, bcp, or k8s. If bcm or k8s, it must match - cluster above.
-launcher_scripts_path: ???  # Path to NeMo Megatron Launch scripts, should ends with /launcher_scripts
-data_dir: ${launcher_scripts_path}/data  # Location to store and read the data.
-base_results_dir: ${launcher_scripts_path}/results  # Location to store the results, checkpoints and logs.
+cluster_type: bcm #bcm  # bcm, bcp, or k8s. If bcm or k8s, it must match - cluster above.
+launcher_scripts_path: /lustre/fsw/portfolios/llmservice/users/zcharpy/opt/NeMo-Megatron-Launcher/launcher_scripts  # Path to NeMo Megatron Launch scripts, should ends with /launcher_scripts
+data_dir: /lustre/fsw/portfolios/llmservice/users/zcharpy/mount_dir  # Location to store and read the data.
+base_results_dir: /lustre/fsw/portfolios/llmservice/users/zcharpy/job_launch_logs  # Location to store the results, checkpoints and logs.
+hf_ckpt_dir:  null  # Location to store the results, checkpoints and logs.
 container_mounts: # List of additional paths to mount to container. They will be mounted to same path.
   - null
-container: nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.08.03
+container: nvcr.io/nvidian/nm:nemo-align #nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.08.03
 
 wandb_api_key_file: null  # File where the w&B api key is stored. Key must be on the first line.
-wandb_api_bcp_secret_key: null  # For BCP clusters, read the W&B api key directly from the environment variable set as a secret from BCP. The value must match the name of the environment variable in BCP, such as WANDB_TOKEN.
-
-bcp_no_redirect: True  # If True, all stdout and stderr will not be redirected and appear in the standard logs. If False, all stdout and stderr output will be redirected to individual files on a per-rank basis. Ignored for non-BCP clusters.
 
 env_vars:
   NCCL_TOPO_FILE: null # Should be a path to an XML file describing the topology
@@ -56,7 +58,6 @@ env_vars:
   TRANSFORMERS_OFFLINE: 1
   TORCH_NCCL_AVOID_RECORD_STREAMS: 1
   NCCL_NVLS_ENABLE: 0
-  NVTE_APPLY_QK_LAYER_SCALING: 1
 
 # GPU Mapping
 numa_mapping:
@@ -82,3 +83,4 @@ conversion_config: ${hydra:runtime.choices.conversion}
 export_config: ${hydra:runtime.choices.export}
 rlhf_rm_config: ${hydra:runtime.choices.rlhf_rm}
 rlhf_ppo_config: ${hydra:runtime.choices.rlhf_ppo}
+steerlm_config : ${hydra:runtime.choices.steerlm}
