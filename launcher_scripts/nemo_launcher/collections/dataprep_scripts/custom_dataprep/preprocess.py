@@ -50,11 +50,41 @@ if __name__ == "__main__":
         type=int,
     )
     parser.add_argument("--bcp", action="store_true", help="Whether on BCP platform")
+    parser.add_argument(
+        "--vocab-file",
+        default=None,
+        help="If using BPE tokenizer, specify the path to a vocab file. Keep None if not using BPE.",
+        type=str,
+    )
+    parser.add_argument(
+        "--merges-file",
+        default=None,
+        help="If using BPE tokenizer, specify the path to a merges file. Keep None if not using BPE.",
+        type=str,
+    )
+    parser.add_argument(
+        "--tokenizer-library",
+        default="sentencepiece",
+        help="Name of the tokenizer library, such as sentencepiece or megatron",
+        type=str,
+    )
+    parser.add_argument(
+        "--tokenizer-type",
+        default=None,
+        help="Name of the tokenizer type to use, such as GPT2BPETokenizer",
+        type=str,
+    )
+    parser.add_argument(
+        "--dataset-impl",
+        default="mmap",
+        help="Specify how the dataset is stored and will be processed.",
+        type=str,
+    )
     args, other_args = parser.parse_known_args()
 
     workers_per_node = args.workers_per_node  # local world size
     if args.bcp:
-        global_rank = int(os.environ.get("OMPI_COMM_WORLD_RANK", 0))
+        global_rank = int(os.environ.get("RANK", 0))
         task_id = global_rank // workers_per_node
         rank = global_rank % workers_per_node
     else:  # on slurm based platforms
@@ -82,12 +112,25 @@ if __name__ == "__main__":
         print(
             f" ****** Task ID {task_id:02d} Rank {rank:02d} starts to preprocess {os.path.basename(split)}..."
         )
-        input_arg = ["--input", split]
-        output_arg = [
-            "--output-prefix",
-            os.path.join(args.output_path, os.path.basename(split)),
+        input_arg = split
+        output_arg = os.path.join(args.output_path, os.path.basename(split))
+
+        flags = [
+            f"--input={split}",
+            f"--output-prefix={output_arg}",
+            f"--dataset-impl={args.dataset_impl}",
+            f"--tokenizer-library={args.tokenizer_library}",
+            f"--tokenizer-type={args.tokenizer_type}",
         ]
-        subprocess.check_call(cmd + input_arg + output_arg + other_args)
+
+        if args.vocab_file and args.merges_file:
+            flags += [
+                f"--vocab={args.vocab_file}",
+                f"--merge-file={args.merges_file}",
+                f"--append-eod",
+            ]
+
+        subprocess.check_call(cmd + flags + other_args)
         print(
             f" ****** Task ID {task_id:02d} Rank {rank:02d} finished preprocessing {os.path.basename(split)}..."
         )
