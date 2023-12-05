@@ -83,3 +83,4 @@ conversion_config: ${hydra:runtime.choices.conversion}
 export_config: ${hydra:runtime.choices.export}
 rlhf_rm_config: ${hydra:runtime.choices.rlhf_rm}
 rlhf_ppo_config: ${hydra:runtime.choices.rlhf_ppo}
+steerlm_config : ${hydra:runtime.choices.steerlm}
