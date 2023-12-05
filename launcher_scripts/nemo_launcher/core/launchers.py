@@ -586,6 +586,7 @@ def _make_sbatch_string(
     additional_parameters: Optional[Dict[str, Any]] = None,
     srun_args: Optional[Iterable[str]] = None,
     heterogeneous: bool = False,
+    autoresume_if_interrupted: bool = False,
 ) -> str:
     """Creates the content of an sbatch file with provided parameters
 
@@ -626,6 +627,7 @@ def _make_sbatch_string(
         "container_mounts",
         "srun_args",
         "heterogeneous",
+        "autoresume_if_interrupted",
     ]
     parameters = {
         k: v for k, v in locals().items() if v is not None and k not in nonslurm
@@ -687,6 +689,23 @@ def _make_sbatch_string(
     if setup is not None:
         lines += ["", "# setup"] + setup
 
+    if srun_args is None:
+        srun_args = []
+
+    if autoresume_if_interrupted is True:
+        lines += [
+            '',
+            '# if the flag file is created by a trainer script, this slurm batch script will be rescheduled',
+            'export INTERRUPTED_FLAG_FILE='+str(paths.folder / "_interrupted_flag"),
+            'if [ "$RESUMED" = "1" ] && [ ! -f "$INTERRUPTED_FLAG_FILE" ] ; then exit 0 ; fi',
+            'CONT_SBATCH_OUT=$(RESUMED=1 sbatch --parsable --dependency=afterany:"$SLURM_JOB_ID" "$0")',
+            'if [ $? -ne 0 ] ; then echo "Could not schedule continuation job. Check stderr for details." ; exit 1 ; fi',
+            'CONT_SLURM_JOB_ID=$(echo $CONT_SBATCH_OUT | cut -f1 -d",")',
+            'rm -f $INTERRUPTED_FLAG_FILE',
+            '',
+        ]
+        srun_args += ["--kill-on-bad-exit=0", "--wait=3600"]
+           
     # commandline (this will run the function and args specified in the file provided as argument)
     # We pass --output and --error here, because the SBATCH command doesn't work as expected with a filename pattern
     stderr_flags = [] if stderr_to_stdout else ["--error", stderr]
@@ -694,8 +713,6 @@ def _make_sbatch_string(
     container_flags += (
         ["--container-mounts", container_mounts] if container_mounts else []
     )
-    if srun_args is None:
-        srun_args = []
 
     if NEMO_LAUNCHER_MEMORY_MEASURE:
         srun_args += ["--overlap"]
@@ -770,6 +787,17 @@ def _make_sbatch_string(
                 f'  {command} "',
                 "",
             ]
+
+    if autoresume_if_interrupted is True:
+        lines += [
+            '',
+            '# cancel continuation job if no continuation marker file was created',
+            'if [ ! -f "$INTERRUPTED_FLAG_FILE" ] && [ ! -z "$CONT_SLURM_JOB_ID" ] ; then', 
+            'scancel $CONT_SLURM_JOB_ID',
+            'fi'
+            '',
+        ]
+
     return "\n".join(lines)
 
 

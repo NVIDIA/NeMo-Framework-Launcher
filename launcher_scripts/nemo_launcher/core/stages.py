@@ -351,6 +351,13 @@ class NemoMegatronStage:
                 }
             )
 
+        fault_tol_conf = stage_cfg.get("exp_manager").get("fault_tolerance", None)
+        resume_on_fault = fault_tol_conf and fault_tol_conf.get("autoresume_if_faulted", False)
+        resume_on_preemption = stage_cfg.get("exp_manager").get("autoresume_if_preempted", False)
+        cluster_parameters["autoresume_if_interrupted"] = (resume_on_fault or resume_on_preemption)
+        if cluster_parameters["autoresume_if_interrupted"] is True and cluster != "bcm":
+            raise ValueError(f"`autoresume_if_faulted` and `autoresume_if_preempted` works only with 'bcm' cluster (current cluster is '{cluster}')")
+        
         return cluster_parameters
 
     def _find_optimal_nodes(self, cfg, gpus) -> None:
