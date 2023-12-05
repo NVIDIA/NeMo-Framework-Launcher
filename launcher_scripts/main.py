@@ -77,8 +77,7 @@ STR2STAGECLASS = {
     "rlhf_rm": RLHFRewardModel,
     "rlhf_ppo": RLHFPPO,
     "quality_filtering": QualityFiltering,
-    "steerlm": SteerLM_SFT
-
+    "steerlm": SteerLM_SFT,
 }
 
 

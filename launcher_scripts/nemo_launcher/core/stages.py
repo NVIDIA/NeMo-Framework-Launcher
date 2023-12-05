@@ -1598,7 +1598,6 @@ class SteerLM_SFT(NeMoStage):
         data_dir = self.cfg.get("data_dir")
         task_name = self.stage_cfg.run.get("task_name")
 
-        
     def _get_nemo_code_path(self, model_type: str) -> Path:
         """
         Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
@@ -1610,6 +1609,6 @@ class SteerLM_SFT(NeMoStage):
         """
 
         model_type_to_code_path = {
-            "llama" : f'{self._rlhf_code_path}/examples/nlp/gpt/train_gpt_sft.py',
+            "llama": f"{self._rlhf_code_path}/examples/nlp/gpt/train_gpt_sft.py",
         }
         return model_type_to_code_path[model_type]
