@@ -24,9 +24,10 @@ HYDRA_FULL_ERROR=1 PYTHONWARNINGS="ignore" python3 ${LAUNCHER_DIR}/launcher_scri
     ++training.exp_manager.fault_tolerance.initial_rank_heartbeat_timeout=600 \
     ++training.exp_manager.fault_tolerance.rank_heartbeat_timeout=300 \
     ++training.exp_manager.fault_tolerance.ipc_timeout=30 \
-    ++training.exp_manager.fault_tolerance.rank_termination_signal=9
+    ++training.exp_manager.fault_tolerance.rank_termination_signal=9 \
     ++training.exp_manager.fault_tolerance.autoresume_if_faulted=True \
     ++training.exp_manager.autoresume_if_preempted=True
+
 
 # Uncomment to test simulated faults
 #    ++training.exp_manager.fault_tolerance.simulated_fault.fault_type=random \
