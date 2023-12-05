@@ -1580,3 +1580,36 @@ def create_args_list(
                 k = k.replace("_", "-")
             args.append(f"--{k}" if v == "store_true" else f"--{k}={v}")
     return args
+
+
+class SteerLM_SFT(NeMoStage):
+    """Stage class of fine-tuning with NeMo scripts"""
+
+    def setup_stage_vars(self, cfg: OmegaConf):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "steerlm"
+        self.stage_cfg = cfg.get("steerlm")
+
+    def setup_folder_and_data(self) -> None:
+        """Setup job/data folders and OASST train-val splitted dataset"""
+        super().setup_folder_and_data()
+
+        # Prepare fine-tuning dataset
+        data_dir = self.cfg.get("data_dir")
+        task_name = self.stage_cfg.run.get("task_name")
+
+        
+    def _get_nemo_code_path(self, model_type: str) -> Path:
+        """
+        Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
+        For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
+
+        :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
+        :return: path current stage's essential nemo scripts code
+        :rtype: Path
+        """
+
+        model_type_to_code_path = {
+            "llama" : f'{self._rlhf_code_path}/examples/nlp/gpt/train_gpt_sft.py',
+        }
+        return model_type_to_code_path[model_type]
