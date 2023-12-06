@@ -45,6 +45,7 @@ infer:
   save_to_file: False # We need to rename and maintain the order of images for clip score calculation, so we will save it outside the inference pipeline
   out_path: null # not used here
   seed: 123
+  batch_size: 4
   prompts:
 
 trainer:

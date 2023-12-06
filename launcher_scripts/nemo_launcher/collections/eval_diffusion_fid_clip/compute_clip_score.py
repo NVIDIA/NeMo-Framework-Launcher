@@ -19,11 +19,10 @@ python clip_script.py --captions_path /path/to/coco2014_val/captions \
    `clip_score` column lists the corresponding average CLIP scores between the synthetic
    images in each subfolder and the captions from `--captions_path`.
 """
+
 import argparse
 import csv
-import multiprocessing
 import os
-from functools import partial
 from glob import glob
 
 import open_clip
@@ -74,35 +73,6 @@ class CLIPEncoder(nn.Module):
         return similarity
 
 
-def clip_score_one_subfolder(idx, clip_version):
-    print('Init CLIP Encoder..')
-    cuda_idx = idx % torch.cuda.device_count()
-    encoder = CLIPEncoder(clip_version=clip_version, device=f'cuda:{cuda_idx}')
-
-    images = sorted(
-        glob(f'{subfolders[idx]}/*.png'), key=lambda x: (int(x.split('/')[-1].strip('.png').strip("image")))
-    )
-    texts = sorted(glob(f'{captions_path}/*.txt'))
-    print(images[:5], texts[:5])
-    assert len(images) == len(texts)
-    print(f'Number of images text pairs: {len(images)}')
-
-    ave_sim = 0.0
-    count = 0
-    for text, img in zip(tqdm(texts), images):
-        with open(text, 'r') as f:
-            text = f.read().strip()
-        sim = encoder.get_clip_score(text, img)
-        ave_sim += sim
-        count += 1
-        if count % 2000 == 0:
-            print(ave_sim / count)
-
-    ave_sim /= count
-    print(f'The CLIP similarity for CFG {subfolder}: {ave_sim}')
-    return ave_sim
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--captions_path', default='/coco2014/coco2014_val_sampled_30k/captions/', type=str)
@@ -111,26 +81,51 @@ if __name__ == '__main__':
     parser.add_argument('--clip_version', default='ViT-L-14', type=str)
     args = parser.parse_args()
 
+    # Initialize distributed training
+    torch.distributed.init_process_group(backend='nccl')
+    torch.cuda.set_device(int(os.environ['LOCAL_RANK']))
+
     captions_path = args.captions_path
-
-    # Iterate through subfolders in fid_images_path
-    subfolders = []
-    for subfolder in os.listdir(args.fid_images_path):
-        subfolder_path = os.path.join(args.fid_images_path, subfolder)
-        if os.path.isdir(subfolder_path):
-            subfolders.append(subfolder_path)
-
-    num_processes = min(len(subfolders), multiprocessing.cpu_count(), torch.cuda.device_count())
-    torch.set_num_threads(multiprocessing.cpu_count() // num_processes)
-    print(f"multiprocessing with {num_processes} processes")
-    with multiprocessing.Pool(num_processes) as p:
-        ave_sims = p.map(partial(clip_score_one_subfolder, clip_version=args.clip_version), range(len(subfolders)))
+    print('Init CLIP Encoder..')
+    encoder = CLIPEncoder(clip_version=args.clip_version)
 
     # Create output CSV file
     with open(args.output_path, 'w', newline='') as csvfile:
         fieldnames = ['cfg', 'clip_score']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
-        # Write CLIP score to output CSV file
-        for subfolder, ave_sim in zip(subfolders, ave_sims):
-            writer.writerow({'cfg': float(subfolder.split("/")[-1]), 'clip_score': ave_sim.item()})
+
+        # Iterate through subfolders in fid_images_path
+        for subfolder in os.listdir(args.fid_images_path):
+            subfolder_path = os.path.join(args.fid_images_path, subfolder)
+            if os.path.isdir(subfolder_path):
+                images = sorted(
+                    glob(f'{subfolder_path}/*.png'), key=lambda x: (int(x.split('/')[-1].strip('.png').strip('image')))
+                )
+                texts = sorted(glob(f'{captions_path}/*.txt'))
+                print(images[:5], texts[:5])
+                # this enables computing clip on the smaller images set
+                texts = texts[:len(images)]
+                assert len(images) == len(texts)
+                print(f'Number of images text pairs: {len(images)}')
+
+                imgs = torch.utils.data.DataLoader(images, sampler=torch.utils.data.distributed.DistributedSampler(images))
+                txts = torch.utils.data.DataLoader(texts, sampler=torch.utils.data.distributed.DistributedSampler(texts))
+
+                ave_sim = torch.tensor(0.0).cuda()
+                count = 0
+                for text, img in zip(tqdm(txts), imgs):
+                    with open(text[0], 'r') as f:
+                        text = f.read().strip()
+                    sim = encoder.get_clip_score(text, img[0])
+                    ave_sim += sim[0,0]
+                    count += 1
+                    if count % 2000 == 0:
+                        print(ave_sim / count)
+
+                torch.distributed.all_reduce(ave_sim)
+                ave_sim /= len(images)
+                print(f'The CLIP similarity for CFG {subfolder}: {ave_sim}')
+
+                # Write CLIP score to output CSV file
+                writer.writerow({'cfg': subfolder, 'clip_score': float(ave_sim)})
