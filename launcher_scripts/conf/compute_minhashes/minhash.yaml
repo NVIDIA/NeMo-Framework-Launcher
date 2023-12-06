@@ -11,12 +11,11 @@ dask:
   protocol: ucx
   interface: ibp12s0
 
-input_data_dirs: 
+input_data_dirs:
 minhash_length: 260
 char_ngram: 5
 hash_bytes: 4
 seed: 42
 num_files: -1
 files_per_partition:
-profile_path: 
 log_frequency: 250

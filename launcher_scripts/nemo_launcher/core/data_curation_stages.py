@@ -125,6 +125,17 @@ class DataCurationStage(NemoMegatronStage):
 
         return job_id
 
+    def make_dask_command_string(self, runscript_path):
+        dask_config = self.stage_cfg.get("dask")
+
+        env_vars = []
+        env_vars.append(f"LOGDIR={self.results_folder}")
+        env_vars.append(f"RUNSCRIPT={runscript_path}")
+        env_vars.append(f"POOLSIZE={dask_config.get("pool_size")}")
+        env_vars.append(f"PROTOCOL={dask_config.get("protocol")}")
+        cenv_vars.append(f"INTERFACE={dask_config.get("interface")}")
+        return " ".join(env_vars) + " run_dask_stage.sh"
+
 
 class QualityFiltering(DataCurationStage):
     """ DataCurationStage for performing quality filtering on documents """
@@ -206,16 +217,20 @@ class ComputeMinhashes(DataCurationStage):
             output_minhash_dir=self.results_folder / "minhashes",
             num_files=stage_cfg.get("num_files"),
             files_per_partition=stage_cfg.get("files_per_partition"),
-            profile_path=self.log_folder,
             log_frequency=stage_cfg.get("log_frequency"),
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        core_command = [f"LOGDIR={self.log_folder} create_dask_cluster.sh"]
+        runscript = " \\\n  ".join(["compute_minhashes", *args])
+        runscript_path = os.path.join(self.reults_folder, "compute_minhashes.sh")
+        
+        with f = open(runscript_path, "w"):
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]
         command_groups = clean_command_groups(command_groups)
 
         return command_groups
-

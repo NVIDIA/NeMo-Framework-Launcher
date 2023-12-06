@@ -30,14 +30,7 @@ conda activate rapids;
 export RAPIDS_NO_INITIALIZE="1"
 export CUDF_SPILL="1"
 
-
 export LIBCUDF_CUFILE_POLICY=${LIBCUDF_CUFILE_POLICY:-ALWAYS}
-export INTERFACE=ibp12s0
-export PROTOCOL=ucx
-echo $INTERFACE
-
-# # DEDUP CONFIGS
-# export NUM_FILES=-1
 
 if [[ $SLURM_NODEID == 0 ]]; then
   echo "Starting scheduler"
@@ -51,13 +44,13 @@ fi
 sleep 30
 
 echo "Starting workers..."
-dask-cuda-worker --scheduler-file $LOGDIR/scheduler.json --rmm-pool-size 72GiB --interface $INTERFACE --rmm-async >> $LOGDIR/worker_$HOSTNAME.log 2>&1 &
+dask-cuda-worker --scheduler-file $LOGDIR/scheduler.json --rmm-pool-size $POOL_SIZE --interface $INTERFACE --rmm-async >> $LOGDIR/worker_$HOSTNAME.log 2>&1 &
 
 sleep 60
 
 if [[ $SLURM_NODEID == 0 ]]; then
   echo "Time Check: `date`"
-  # bash $RUNSTRING
+  bash $RUNSCRIPT
   echo "Time Check: `date`"
   touch $LOGDIR/done.txt
 fi
