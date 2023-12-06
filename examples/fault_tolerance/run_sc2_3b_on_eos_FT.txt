@@ -1,7 +1,7 @@
 USR_DIR="/lustre/fsw/coreai_dlalgo_llm/jbieniusiewi"
 LAUNCHER_DIR="/lustre/fsw/coreai_dlalgo_llm/jbieniusiewi/nemo/NeMo-Megatron-Launcher/"
 
-HYDRA_FULL_ERROR=1 PYTHONWARNINGS="ignore" python3 ${LAUNCHER_DIR}/launcher_scripts/main.py \
+NVTE_APPLY_QK_LAYER_SCALING=1 HYDRA_FULL_ERROR=1 PYTHONWARNINGS="ignore" python3 ${LAUNCHER_DIR}/launcher_scripts/main.py \
     training=gpt3/starcoder2_3b \
     stages=["training"] \
     numa_mapping.enable=True \
@@ -26,7 +26,7 @@ HYDRA_FULL_ERROR=1 PYTHONWARNINGS="ignore" python3 ${LAUNCHER_DIR}/launcher_scri
     ++training.exp_manager.fault_tolerance.ipc_timeout=30 \
     ++training.exp_manager.fault_tolerance.rank_termination_signal=9 \
     ++training.exp_manager.fault_tolerance.autoresume_if_faulted=True \
-    ++training.exp_manager.autoresume_if_preempted=True
+    ++training.exp_manager.autoresume_if_preempted=False
 
 
 # Uncomment to test simulated faults
