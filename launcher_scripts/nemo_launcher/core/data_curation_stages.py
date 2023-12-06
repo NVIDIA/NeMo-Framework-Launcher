@@ -231,7 +231,7 @@ class ComputeMinhashes(DataCurationStage):
         runscript = " \\\n  ".join(["compute_minhashes", *args])
         runscript_path = os.path.join(self.reults_folder, "compute_minhashes.sh")
     
-        with f = open(runscript_path, "w"):
+        with open(runscript_path, "w") as f:
             f.write(runscript)
 
         core_command = [self.make_dask_command_string(runscript_path)]
