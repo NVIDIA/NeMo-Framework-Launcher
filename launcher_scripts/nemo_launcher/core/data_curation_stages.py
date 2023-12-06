@@ -131,9 +131,16 @@ class DataCurationStage(NemoMegatronStage):
         command_string = ["bash"]
         command_string.append(f"LOGDIR={self.results_folder}")
         command_string.append(f"RUNSCRIPT={runscript_path}")
-        command_string.append(f"POOLSIZE={dask_config.get("pool_size")}")
-        command_string.append(f"PROTOCOL={dask_config.get("protocol")}")
-        command_string.append(f"INTERFACE={dask_config.get("interface")}")
+
+        pool_size = dask_config.get("pool_size")
+        command_string.append(f"POOL_SIZE={pool_size}")
+
+        protocol = dask_config.get("protocol")
+        command_string.append(f"PROTOCOL={protocol}")
+
+        interface = dask_config.get('interface')
+        command_string.append(f"INTERFACE={interface}")
+
         return " ".join(command_string) + " run_dask_stage.sh"
 
 
