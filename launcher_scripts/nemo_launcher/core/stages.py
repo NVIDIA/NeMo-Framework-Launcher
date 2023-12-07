@@ -1613,6 +1613,6 @@ class SteerLM_REG_SFT(NeMoStage):
         """
 
         model_type_to_code_path = {
-            "llama": f"{self._aligner_code_path}/examples/nlp/gpt/train_gpt_sft.py",
+            "rw_sft": f"{self._aligner_code_path}/examples/nlp/gpt/train_reward_model.py",
         }
         return model_type_to_code_path[model_type]
