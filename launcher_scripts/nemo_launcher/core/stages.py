@@ -1587,12 +1587,12 @@ def create_args_list(
 
 
 class SteerLM_REG_SFT(NeMoStage):
-    """Stage class of fine-tuning with NeMo scripts"""
+    """Stage class of reward model training with NeMo-Aligner scripts"""
 
     def setup_stage_vars(self, cfg: OmegaConf):
         """Setup the stage vars, i.e. stage name and stage cfg"""
-        self.stage_name = "steerlm"
-        self.stage_cfg = cfg.get("steerlm")
+        self.stage_name = "steerlm_reg"
+        self.stage_cfg = cfg.get("steerlm_reg")
 
     def setup_folder_and_data(self) -> None:
         """Setup job/data folders and OASST train-val splitted dataset"""
