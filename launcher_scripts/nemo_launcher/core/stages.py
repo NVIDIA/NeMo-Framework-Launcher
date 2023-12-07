@@ -464,6 +464,10 @@ class NemoMegatronStage:
         return Path("/opt/nemo-rlhf")
 
     @property
+    def _aligner_code_path(self) -> Path:
+        return Path("/opt/NeMo-Aligner")
+
+    @property
     def _cuda_visible_devices(self) -> str:
         ntasks_per_node = self.stage_cfg.run.get("ntasks_per_node")
         if ntasks_per_node is None:
@@ -1582,7 +1586,7 @@ def create_args_list(
     return args
 
 
-class SteerLM_SFT(NeMoStage):
+class SteerLM_REG_SFT(NeMoStage):
     """Stage class of fine-tuning with NeMo scripts"""
 
     def setup_stage_vars(self, cfg: OmegaConf):
@@ -1609,6 +1613,6 @@ class SteerLM_SFT(NeMoStage):
         """
 
         model_type_to_code_path = {
-            "llama": f"{self._rlhf_code_path}/examples/nlp/gpt/train_gpt_sft.py",
+            "llama": f"{self._aligner_code_path}/examples/nlp/gpt/train_gpt_sft.py",
         }
         return model_type_to_code_path[model_type]

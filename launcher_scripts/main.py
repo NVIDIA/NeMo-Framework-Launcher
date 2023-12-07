@@ -35,7 +35,7 @@ from nemo_launcher.core.stages import (
     NeMoEvaluation,
     PromptLearning,
     Training,
-    SteerLM_SFT,
+    SteerLM_REG_SFT,
 )
 
 omegaconf.OmegaConf.register_new_resolver("multiply", lambda x, y: x * y, replace=True)
@@ -77,7 +77,7 @@ STR2STAGECLASS = {
     "rlhf_rm": RLHFRewardModel,
     "rlhf_ppo": RLHFPPO,
     "quality_filtering": QualityFiltering,
-    "steerlm": SteerLM_SFT,
+    "steerlm_reg": SteerLM_REG_SFT,
 }
 
 

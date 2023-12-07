@@ -21,7 +21,7 @@ class TestConfig:
           - export: gpt3/export_gpt3
           - rlhf_rm: gpt3/2b_rm
           - rlhf_ppo: gpt3/2b_ppo
-          - steerlm : llama/llama_steerlm
+          - steerlm_reg : rw_sft/training_rm
           - override hydra/job_logging: stdout
         
         hydra:
@@ -40,7 +40,7 @@ class TestConfig:
           #- ia3_learning
           #- evaluation
           #- export
-          #- steerlm
+          #- steerlm_reg
         
         cluster_type: bcm  # bcm or bcp. If bcm, it must match - cluster above.
         launcher_scripts_path: ???  # Path to NeMo Megatron Launch scripts, should ends with /launcher_scripts
@@ -90,7 +90,7 @@ class TestConfig:
         export_config: ${hydra:runtime.choices.export}
         rlhf_rm_config: ${hydra:runtime.choices.rlhf_rm}
         rlhf_ppo_config: ${hydra:runtime.choices.rlhf_ppo}
-        steerlm_config : ${hydra:runtime.choices.steerlm}
+        steerlm_reg_config : ${hydra:runtime.choices.steerlm_reg}
         """
         expected = OmegaConf.create(s)
         assert (
