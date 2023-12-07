@@ -1,6 +1,6 @@
 run:
   name: ${.task_name}_${.model_train_name}
-  time_limit: "08:00:00"
+  time_limit: null
   dependency: "singleton"
   convert_name: convert_nemo
   model_train_name: gpt3_llama2_7b_steerlm_reg
@@ -30,15 +30,15 @@ trainer:
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
   use_distributed_sampler: False
-  max_time: null
-  max_epochs: ${.rm.max_epochs}
-  max_steps: ${.rm.max_steps}
+  max_time: null #04:00:00
+  max_epochs: 1 #${.rm.max_epochs}
+  max_steps: 100 #${.rm.max_steps}
 
 exp_manager:
   explicit_log_dir: ${base_results_dir}/results
   exp_dir: null
   name: megatron_gpt
-  max_time_per_run: 08:00:00 #${trainer.max_time}
+  max_time_per_run: null #04:00:00 #${trainer.max_time}
   create_wandb_logger: False
   wandb_logger_kwargs:
     project: nemo_aligner_rm
@@ -57,7 +57,7 @@ exp_manager:
     model_parallel_size: ${multiply:${steerlm_reg.model.tensor_model_parallel_size}, ${steerlm_reg.model.pipeline_model_parallel_size}}
 
 pretrained_checkpoint:
-  restore_from_path: ${data_dir}/ckpt/llama7b.nemo 
+  restore_from_path: ${data_dir}/ckpt/llama7b.nemo
 
 model:
   mcore_gpt: True
@@ -92,8 +92,8 @@ model:
     overlap_grad_sync: False
     contiguous_grad_buffer: True
     lr: 9e-6
-    weight_decay: 0.1 
-    betas: 
+    weight_decay: 0.1
+    betas:
     - 0.9
     - 0.98
     sched:
@@ -113,6 +113,6 @@ model:
     reset_attention_mask: False # Reset attention mask after end-of-document token
     eod_mask_loss: False # Mask loss for the end of document tokens
     index_mapping_dir: null # path to save index mapping .npy files, by default will save in the same location as data_prefix
-    data_prefix: {train: ["/mount_dir/data/merge_train_reg.jsonl"], validation: ["/mount_dir/data/merge_val_reg.jsonl"], test: ["/mount_dir/data/merge_val_reg.jsonl"]}
+    data_prefix: {train: ["${data_dir}/data/merge_train_reg.jsonl"], validation: ["${data_dir}/data/merge_val_reg.jsonl"], test: ["${data_dir}/data/merge_val_reg.jsonl"]}
 
   precision: bf16 #${trainer.precision}
