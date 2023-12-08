@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     workers_per_node = args.workers_per_node  # local world size
     if args.bcp:
-        global_rank = int(os.environ.get("OMPI_COMM_WORLD_RANK", 0))
+        global_rank = int(os.environ.get("RANK", 0))
         task_id = global_rank // workers_per_node
         rank = global_rank % workers_per_node
     else:  # on slurm based platforms

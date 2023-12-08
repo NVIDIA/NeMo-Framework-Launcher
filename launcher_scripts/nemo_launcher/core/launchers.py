@@ -266,9 +266,8 @@ class BCPLauncher(Launcher):
         """Launch the submission command"""
         command_list = self._make_submission_command(submission_file_path)
         # run
-        job_utils.CommandFunction(
-            command_list, ret_stdout=False, verbose=False
-        )()  # explicit errors
+        job_utils.CommandFunction(command_list, verbose=False)()  # explicit errors
+
         return ""
 
     @staticmethod
