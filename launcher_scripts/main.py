@@ -17,7 +17,15 @@ import sys
 
 import hydra
 import omegaconf
-from nemo_launcher.core.data_curation_stages import QualityFiltering, ComputeMinhashes
+from nemo_launcher.core.data_curation_stages import (
+    QualityFiltering,
+    ComputeMinhashes,
+    MinhashBuckets,
+    JaccardMapBuckets,
+    JaccardShuffle,
+    JaccardCompute,
+    ConnectedComponent,
+)
 from nemo_launcher.core.data_stages import (
     CustomDataPreparation,
     MC4DataPreparation,
@@ -77,6 +85,11 @@ STR2STAGECLASS = {
     "rlhf_ppo": RLHFPPO,
     "quality_filtering": QualityFiltering,
     "compute_minhashes": ComputeMinhashes,
+    "minhash_buckets": MinHashBuckets,
+    "jaccard_map_buckets": JaccardMapBuckets,
+    "jaccard_shuffle": JaccardShuffle,
+    "jaccard_compute": JaccardCompute,
+    "connected_component": ConnectedComponent,
 }
 
 

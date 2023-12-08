@@ -4,6 +4,11 @@ defaults:
   - data_preparation: gpt3/download_gpt3_pile
   - quality_filtering: heuristic/english
   - compute_minhashes: minhash
+  - minhash_buckets: buckets
+  - jaccard_map_buckets: map
+  - jaccard_shuffle: shuffle
+  - jaccard_compute: jaccard
+  - connected_component: cc
   - training: gpt3/5b
   - conversion: gpt3/convert_gpt3
   - fine_tuning: null
