@@ -1,4 +1,5 @@
 import copy
+import os
 import shlex
 from pathlib import Path
 from typing import Dict, List
@@ -128,7 +129,7 @@ class DataCurationStage(NemoMegatronStage):
     def make_dask_command_string(self, runscript_path):
         dask_config = self.stage_cfg.get("dask")
 
-        command_string = ["bash"]
+        command_string = []
         command_string.append(f"LOGDIR={self.results_folder}")
         command_string.append(f"RUNSCRIPT={runscript_path}")
 
@@ -141,7 +142,9 @@ class DataCurationStage(NemoMegatronStage):
         interface = dask_config.get('interface')
         command_string.append(f"INTERFACE={interface}")
 
-        return " ".join(command_string) + " run_dask_stage.sh"
+        dask_script_path = self._launcher_scripts_path / "nemo_launcher/collections/run_dask_stage.sh"
+
+        return " ".join(command_string) + f" bash {dask_script_path}"
 
 
 class QualityFiltering(DataCurationStage):
@@ -228,8 +231,10 @@ class ComputeMinhashes(DataCurationStage):
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
+        # minhashes_path = self._launcher_scripts_path / "nemo_launcher/collections/nemo-data-curator/ndc/gpu_deduplication/compute_minhashes.py"
+
         runscript = " \\\n  ".join(["compute_minhashes", *args])
-        runscript_path = os.path.join(self.reults_folder, "compute_minhashes.sh")
+        runscript_path = os.path.join(self.results_folder, "compute_minhashes.sh")
     
         with open(runscript_path, "w") as f:
             f.write(runscript)
