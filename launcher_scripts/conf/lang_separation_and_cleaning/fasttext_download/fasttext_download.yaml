@@ -1,0 +1,11 @@
+run:
+  name: 'fasttext-download'
+  results_dir: ${lang_separation_and_cleaning.run.results_dir}/${.name}
+  time_limit: "00:20:00"
+  dependency: "singleton"
+  nodes: 1
+
+filter_config:
+  filter_module: ndc.filter.classifier.filter.FastTextLangId
+  params:
+    model_path: <Path to the FasText language id model (e.g., lid.176.bin)>

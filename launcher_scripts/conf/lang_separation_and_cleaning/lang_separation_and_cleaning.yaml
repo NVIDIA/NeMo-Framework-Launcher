@@ -1,0 +1,9 @@
+run:
+  name: 'lang-separation-and-cleaning'
+  results_dir: ${base_results_dir}/${.name}
+
+defaults:
+  - fasttext_download: fasttext_download
+  - language_identification: language_identification
+  - separate_by_language: separate_by_language
+  - text_cleaning: text_cleaning
