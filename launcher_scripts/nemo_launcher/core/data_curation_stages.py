@@ -38,10 +38,10 @@ class DataCurationStage(NemoMegatronStage):
         self.results_folder = job_path.results_folder
         self.results_folder.mkdir(parents=True, exist_ok=True)
         # make the log dir
-        self.log_folder = Path(results_folder, "log")
+        self.log_folder = Path(self.results_folder, "log")
         self.log_folder.mkdir(parents=True, exist_ok=True)
         # Make the conf dir
-        self.conf_folder = Path(results_folder, "config")
+        self.conf_folder = Path(self.results_folder, "config")
         self.conf_folder.mkdir(parents=True, exist_ok=True)
 
     def _make_cluster_parameters(self, cluster: str) -> Dict:
@@ -145,10 +145,12 @@ class DataCurationStage(NemoMegatronStage):
         protocol = dask_config.get("protocol")
         command_string.append(f"PROTOCOL={protocol}")
 
-        interface = dask_config.get('interface')
+        interface = dask_config.get("interface")
         command_string.append(f"INTERFACE={interface}")
 
-        dask_script_path = self._launcher_scripts_path / "nemo_launcher/collections/run_dask_stage.sh"
+        dask_script_path = (
+            self._launcher_scripts_path / "nemo_launcher/collections/run_dask_stage.sh"
+        )
 
         return " ".join(command_string) + f" bash {dask_script_path}"
 
@@ -518,7 +520,7 @@ class ComputeMinhashes(DataCurationStage):
 
         runscript = " \\\n  ".join(["compute_minhashes", *args])
         runscript_path = os.path.join(self.results_folder, "compute_minhashes.sh")
-    
+
         with open(runscript_path, "w") as f:
             f.write(runscript)
 
@@ -532,7 +534,6 @@ class ComputeMinhashes(DataCurationStage):
 
 
 class MinHashBuckets(DataCurationStage):
-
     def __init__(self, cfg):
         super().__init__(cfg)
 
@@ -564,7 +565,7 @@ class MinHashBuckets(DataCurationStage):
 
         runscript = " \\\n  ".join(["minhash_buckets", *args])
         runscript_path = os.path.join(self.results_folder, "minhash_buckets.sh")
-    
+
         with open(runscript_path, "w") as f:
             f.write(runscript)
 
@@ -578,7 +579,6 @@ class MinHashBuckets(DataCurationStage):
 
 
 class JaccardMapBuckets(DataCurationStage):
-
     def __init__(self, cfg):
         super().__init__(cfg)
 
@@ -609,7 +609,7 @@ class JaccardMapBuckets(DataCurationStage):
 
         runscript = " \\\n  ".join(["jaccard_map_buckets", *args])
         runscript_path = os.path.join(self.results_folder, "jaccard_map_buckets.sh")
-    
+
         with open(runscript_path, "w") as f:
             f.write(runscript)
 
@@ -623,7 +623,6 @@ class JaccardMapBuckets(DataCurationStage):
 
 
 class JaccardShuffle(DataCurationStage):
-
     def __init__(self, cfg):
         super().__init__(cfg)
 
@@ -644,7 +643,8 @@ class JaccardShuffle(DataCurationStage):
             log_dir=self.log_folder,
             log_frequency=stage_cfg.get("log_frequency"),
             input_data_dirs=stage_cfg.get("input_data_dirs"),
-            input_bucket_mapping_dir=self.results_folder / "anchor_docs_with_bk.parquet",
+            input_bucket_mapping_dir=self.results_folder
+            / "anchor_docs_with_bk.parquet",
             text_ddf_blocksize=stage_cfg.get("text_ddf_blocksize"),
             output_dir=self.results_folder,
             parts_per_worker=stage_cfg.get("parts_per_worker"),
@@ -655,7 +655,7 @@ class JaccardShuffle(DataCurationStage):
 
         runscript = " \\\n  ".join(["jaccard_shuffle", *args])
         runscript_path = os.path.join(self.results_folder, "jaccard_shuffle.sh")
-    
+
         with open(runscript_path, "w") as f:
             f.write(runscript)
 
@@ -669,7 +669,6 @@ class JaccardShuffle(DataCurationStage):
 
 
 class JaccardCompute(DataCurationStage):
-
     def __init__(self, cfg):
         super().__init__(cfg)
 
@@ -699,7 +698,7 @@ class JaccardCompute(DataCurationStage):
 
         runscript = " \\\n  ".join(["jaccard_compute", *args])
         runscript_path = os.path.join(self.results_folder, "jaccard_compute.sh")
-    
+
         with open(runscript_path, "w") as f:
             f.write(runscript)
 
@@ -713,7 +712,6 @@ class JaccardCompute(DataCurationStage):
 
 
 class ConnectedComponent(DataCurationStage):
-
     def __init__(self, cfg):
         super().__init__(cfg)
 
@@ -742,7 +740,7 @@ class ConnectedComponent(DataCurationStage):
 
         runscript = " \\\n  ".join(["connected_component", *args])
         runscript_path = os.path.join(self.results_folder, "connected_component.sh")
-    
+
         with open(runscript_path, "w") as f:
             f.write(runscript)
 
