@@ -1607,12 +1607,13 @@ class SteerLM_REG_SFT(NeMoStage):
         Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
         For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
 
-        :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
-        :return: path current stage's essential nemo scripts code
+        :param str model_type: i.e. `rw_sft`, `ac_sft`... etc.
+        :return: path current stage's essential NeMo-Aligner scripts code
         :rtype: Path
         """
 
         model_type_to_code_path = {
             "rw_sft": f"{self._aligner_code_path}/examples/nlp/gpt/train_reward_model.py",
+            "ac_sft": f"{self._aligner_code_path}/examples/nlp/gpt/train_gpt_sft.py",
         }
         return model_type_to_code_path[model_type]
