@@ -21,7 +21,7 @@ class TestConfig:
           - export: gpt3/export_gpt3
           - rlhf_rm: gpt3/2b_rm
           - rlhf_ppo: gpt3/2b_ppo
-          - steerlm_reg : rw_sft/training_rm
+          - steerlm_reg : ac_sft/gpt_sft #rw_sft/training_rm
           - override hydra/job_logging: stdout
         
         hydra:
