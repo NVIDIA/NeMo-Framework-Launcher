@@ -1586,7 +1586,7 @@ def create_args_list(
     return args
 
 
-class SteerLM_REG_SFT(NeMoStage):
+class SteerLMRegSFT(NeMoStage):
     """Stage class of reward model training with NeMo-Aligner scripts"""
 
     def setup_stage_vars(self, cfg: OmegaConf):
