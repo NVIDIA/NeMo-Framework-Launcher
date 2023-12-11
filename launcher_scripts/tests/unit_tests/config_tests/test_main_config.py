@@ -10,6 +10,7 @@ class TestConfig:
           - cluster: bcm  # Set to bcm for BCM and BCP clusters. Set to k8s for a k8s cluster.
           - data_preparation: gpt3/download_gpt3_pile
           - quality_filtering: heuristic/english
+          - lang_separation_and_cleaning: lang_separation_and_cleaning
           - training: gpt3/5b
           - conversion: gpt3/convert_gpt3
           - fine_tuning: null

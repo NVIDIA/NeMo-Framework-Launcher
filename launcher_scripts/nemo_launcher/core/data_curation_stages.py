@@ -185,7 +185,7 @@ class QualityFiltering(DataCurationStage):
 
 class FastTextDownload(NemoMegatronStage):
     """Stage class of downloading the fastText model for language identification"""
-    
+
     def __init__(self, cfg):
         super().__init__(cfg)
         self.log_folder = Path()
@@ -196,10 +196,7 @@ class FastTextDownload(NemoMegatronStage):
         self.stage_name = "fasttext_download"
         self.stage_cfg = cfg["lang_separation_and_cleaning"].get("fasttext_download")
 
-    def _make_cluster_parameters(
-        self,
-        cluster: str,
-    ) -> Dict:
+    def _make_cluster_parameters(self, cluster: str,) -> Dict:
         """
         Make a cluster-specific parameters for jobs on different clusters.
         Current clusters include bcm(slurm), bcp and interactive.
@@ -236,16 +233,13 @@ class FastTextDownload(NemoMegatronStage):
                 **slurm_cfg,
             }
             cluster_params.update(
-                {
-                    **shared_parameters,
-                }
+                {**shared_parameters,}
             )
             cluster_params["job_name"] = job_name_prefix + cluster_params["job_name"]
             cluster_params["nodes"] = nodes
             cluster_params["partition"] = partition
             cluster_params["gpus_per_node"] = gpus_per_node
             cluster_params["constraint"] = constraint
-
 
         return cluster_params
 
@@ -261,17 +255,19 @@ class FastTextDownload(NemoMegatronStage):
 
         # Get the path to download script
         # preface it with bash
-        start_download_script = str(Path().joinpath(
-            self.cfg["launcher_scripts_path"],
-            "nemo_launcher",
-            "collections",
-            "datacuration_scripts",
-            "download_fasttext.sh"
-        ))
+        start_download_script = str(
+            Path().joinpath(
+                self.cfg["launcher_scripts_path"],
+                "nemo_launcher",
+                "collections",
+                "datacuration_scripts",
+                "download_fasttext.sh",
+            )
+        )
         cmd = [
             "bash",
             f"{start_download_script}",
-            str(self.get_job_path().results_folder)
+            str(self.get_job_path().results_folder),
         ]
         cluster_parameters["setup"] = [shlex.join(cmd)]
 
@@ -288,17 +284,18 @@ class FastTextDownload(NemoMegatronStage):
 
 class LanguageIdentification(DataCurationStage):
     """DataCurationStage for performing language identification on documents"""
-    
+
     def __init__(self, cfg):
         super().__init__(cfg)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "language_identification"
-        self.stage_cfg = cfg["lang_separation_and_cleaning"].get("language_identification")
+        self.stage_cfg = cfg["lang_separation_and_cleaning"].get(
+            "language_identification"
+        )
 
-    def make_stage_command_groups(self,
-                                  stage_cfg_path: Path) -> List[List[str]]:
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
         stage_cfg = self.stage_cfg
 
@@ -308,7 +305,9 @@ class LanguageIdentification(DataCurationStage):
         optional_args = {
             "output_removed_document_dir": stage_cfg.get("output_removed_document_dir"),
             "output_document_score_dir": stage_cfg.get("output_document_score_dir"),
-            "output_retained_document_dir": stage_cfg.get("output_retained_document_dir")
+            "output_retained_document_dir": stage_cfg.get(
+                "output_retained_document_dir"
+            ),
         }
 
         # Remove any arguments that are not specified
@@ -336,7 +335,7 @@ class LanguageIdentification(DataCurationStage):
 
 class SeparateByLanguage(DataCurationStage):
     """DataCurationStage for separating documents by language"""
-    
+
     def __init__(self, cfg):
         super().__init__(cfg)
 
@@ -345,8 +344,7 @@ class SeparateByLanguage(DataCurationStage):
         self.stage_name = "separate_by_language"
         self.stage_cfg = cfg["lang_separation_and_cleaning"].get("separate_by_language")
 
-    def make_stage_command_groups(self,
-                                  stage_cfg_path: Path) -> List[List[str]]:
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
         stage_cfg = self.stage_cfg
 
@@ -384,7 +382,7 @@ class SeparateByLanguage(DataCurationStage):
 
 class TextCleaning(DataCurationStage):
     """DataCurationStage for cleaning documents"""
-    
+
     def __init__(self, cfg):
         super().__init__(cfg)
 
@@ -393,8 +391,7 @@ class TextCleaning(DataCurationStage):
         self.stage_name = "text_cleaning"
         self.stage_cfg = cfg["lang_separation_and_cleaning"].get("text_cleaning")
 
-    def make_stage_command_groups(self,
-                                  stage_cfg_path: Path) -> List[List[str]]:
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
         stage_cfg = self.stage_cfg
 
@@ -406,7 +403,7 @@ class TextCleaning(DataCurationStage):
             replace_underscore=True,
             log_dir=self.log_folder,
             input_data_dir=stage_cfg.get("input_data_dir"),
-            output_clean_dir=stage_cfg.get("output_clean_dir")
+            output_clean_dir=stage_cfg.get("output_clean_dir"),
         )
 
         core_command = ["text_cleaning", *args]
@@ -420,7 +417,7 @@ class TextCleaning(DataCurationStage):
 
 class LangSeparationAndCleaning(NemoMegatronStage):
     """Stage class for running all parts of language separation and cleaning"""
-    
+
     def __init__(self, cfg):
         super().__init__(cfg)
         self.log_folder = Path()

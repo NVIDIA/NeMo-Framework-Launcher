@@ -19,7 +19,7 @@ import hydra
 import omegaconf
 from nemo_launcher.core.data_curation_stages import (
     QualityFiltering,
-    LangSeparationAndCleaning
+    LangSeparationAndCleaning,
 )
 from nemo_launcher.core.data_stages import (
     CustomDataPreparation,
