@@ -55,7 +55,7 @@ STR2STAGECLASS = {
     "conversion": Conversion,
     "export": Export,
     "evaluation": {
-        EvalHarnessEvaluation: ["gpt3", "prompt_gpt3", "llama", "prompt_llama"],
+        EvalHarnessEvaluation: ["gpt3", "prompt_gpt3", "llama", "prompt_llama", "baichuan2", "prompt_baichuan2"],
         NeMoEvaluation: [
             "t5",
             "mt5",
@@ -66,10 +66,11 @@ STR2STAGECLASS = {
             "ia3_t5",
             "ia3_gpt3",
             "peft_llama",
+            "peft_baichuan2"
         ],
     },
     "data_preparation": {
-        PileDataPreparation: ["gpt3", "t5", "bert", "llama"],
+        PileDataPreparation: ["gpt3", "t5", "bert", "llama", "baichuan2"],
         MC4DataPreparation: ["mt5"],
         CustomDataPreparation: ["generic"],
     },
