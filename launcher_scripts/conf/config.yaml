@@ -4,7 +4,7 @@ defaults:
   - data_preparation: gpt3/download_gpt3_pile
   - quality_filtering: heuristic/english
   - training: gpt3/5b
-  - conversion: gpt3/convert_gpt3
+  - conversion: hf_llama2/convert_llama2_nemo
   - fine_tuning: null
   - peft: null
   - prompt_learning: null

@@ -1173,7 +1173,9 @@ class Conversion(NemoMegatronStage):
         nemo_file_path = self.get_job_path().results_folder / nemo_file_name
         code_path = (
             self._nemo_code_path
-            / "examples/nlp/language_modeling/megatron_ckpt_to_nemo.py"
+            / "examples/nlp/language_modeling/megatron_ckpt_to_nemo.py",
+            "hf_llama2": f"{self._nemo_code_path}/scripts/nlp_language_modeling/convert_hf_llama_to_nemo.py",
+
         )
         args = create_args_list(
             replace_underscore=False,
