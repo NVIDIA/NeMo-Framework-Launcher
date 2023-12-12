@@ -72,9 +72,15 @@ class DataCurationStage(NemoMegatronStage):
         container_image = cfg.get("container")
         container_mounts = self._make_container_mounts_string()
 
+        setup = None
+        env_vars = self.get_env_vars()
+        if env_vars:
+            setup = [f"export {k}={v}" for k, v in env_vars.items()]
+
         shared_parameters = {
             "job_name": job_name,
             "time": time_limit,
+            "setup": setup,
         }
         if cluster == "bcm":
             cluster_cfg = cfg.get("cluster")
