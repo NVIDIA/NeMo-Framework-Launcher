@@ -20,6 +20,7 @@ class DataCurationStage(NemoMegatronStage):
     Common Crawl requires download, extraction, deduplication and filtering.
     They have dependencies on each other and will be launched one by one.
     """
+
     def __init__(self, cfg):
         super().__init__(cfg)
         self.log_folder = Path()
@@ -65,13 +66,20 @@ class DataCurationStage(NemoMegatronStage):
         # Allow for updating the partition as we might run
         # on CPU only nodes
         partition = run_cfg.get('partition')
+        dependency = run_cfg.get('dependency')
 
         container_image = cfg.get("container")
         container_mounts = self._make_container_mounts_string()
 
+        setup = None
+        env_vars = self.get_env_vars()
+        if env_vars:
+            setup = [f"export {k}={v}" for k, v in env_vars.items()]
+
         shared_parameters = {
             "job_name": job_name,
             "time": time_limit,
+            "setup": setup,
         }
         if cluster == "bcm":
             cluster_cfg = cfg.get("cluster")
@@ -89,6 +97,7 @@ class DataCurationStage(NemoMegatronStage):
                 "job_name"] = job_name_prefix + cluster_params["job_name"]
             cluster_params['nodes'] = nodes
             cluster_params['partition'] = partition
+            cluster_params['dependency'] = dependency
 
         return cluster_params
 
@@ -128,6 +137,7 @@ class DataCurationStage(NemoMegatronStage):
 
 class QualityFiltering(DataCurationStage):
     """ DataCurationStage for performing quality filtering on documents """
+
     def __init__(self, cfg):
         super().__init__(cfg)
 
@@ -150,15 +160,16 @@ class QualityFiltering(DataCurationStage):
         # If certain arguments are not specified, we remove them from the list
         optional_args = {
             "output_removed_document_dir":
-            stage_cfg.get('output_removed_document_dir'),
+                stage_cfg.get('output_removed_document_dir'),
             "output_document_score_dir":
-            stage_cfg.get('output_document_score_dir'),
+                stage_cfg.get('output_document_score_dir'),
         }
 
         # Remove any arguments that are not specified
         optional_args = {
             arg: optional_args[arg]
-            for arg in optional_args if optional_args[arg]
+            for arg in optional_args
+            if optional_args[arg]
         }
 
         # Create the list of arguments for the filter_documents command
@@ -181,7 +192,163 @@ class QualityFiltering(DataCurationStage):
         return command_groups
 
 
+class GetWikipediaUrls(DataCurationStage):
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "get_wikipedia_urls"
+        self.stage_cfg = cfg['wikipedia'].get("get_wikipedia_urls")
+
+    def make_stage_command_groups(self,
+                                  staage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        # Write out the filter configuration as a separate config file
+        command_groups = [[]]
+
+        # If certain arguments are not specified, we remove them from the list
+        optional_args = {
+            "language": stage_cfg.get('language'),
+            "wikidumps_index_base_url": stage_cfg.get('wikidump_index_baseurl'),
+        }
+
+        # Remove any arguments that are not specified
+        optional_args = {
+            arg: optional_args[arg]
+            for arg in optional_args
+            if optional_args[arg]
+        }
+
+        # Create the list of arguments for the command
+        args = create_args_list(
+            replace_underscore=True,
+            output_url_file=stage_cfg.get("output_url_file"),
+            **optional_args,
+        )
+
+        core_command = ["get_wikipedia_urls", *args]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class DownloadAndExtractWikipedia(DataCurationStage):
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+
+    def setup_stage_vars(
+        self,
+        cfg,
+    ):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "download_and_extract"
+        self.stage_cfg = cfg['wikipedia'].get("download_and_extract")
+
+    def make_stage_command_groups(self,
+                                  stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        # Write out the filter configuration as a separate config file
+        command_groups = [[]]
+        # Write out the filter configuration as a separate config file
+
+        builder_cfg = Path(self.conf_folder, "dataset_builder.yaml")
+        omegaconf.OmegaConf.save(stage_cfg.get('builder_config'), builder_cfg)
+
+        # If certain arguments are not specified, we remove them from the list
+        optional_args = {
+            "input_data_dir": stage_cfg.get('input_data_dir'),
+            "download_only": stage_cfg.get('download_only'),
+            "extract_only": stage_cfg.get('extract_only'),
+            "keep_downloaded_files": stage_cfg.get('keep_downloaded_files'),
+            "output_download_dir": stage_cfg.get('output_download_dir'),
+            "overwrite_existing_json": stage_cfg.get('overwrite_existing_json')
+        }
+
+        # Remove any arguments that are not specified
+        optional_args = {
+            arg: optional_args[arg]
+            for arg in optional_args
+            if optional_args[arg]
+        }
+
+        # Create the list of arguments for the command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            input_url_file=stage_cfg.get("input_url_file"),
+            output_json_dir=stage_cfg.get("output_json_dir"),
+            builder_config_file=f"{builder_cfg}",
+            max_queue_size=stage_cfg.get("max_queue_size"),
+            download_processes_per_node=stage_cfg.get(
+                "download_processes_per_node"),
+            extract_processes_per_node=stage_cfg.get(
+                "extract_processes_per_node"),
+            **optional_args,
+        )
+
+        core_command = ["download_and_extract", *args]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class Wikipedia(NemoMegatronStage):
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.log_folder = Path()
+        self.conf_folder = Path()
+        self.STR2SUBSTAGECLASS = {
+            'get_wikipedia_urls': GetWikipediaUrls,
+            'download_and_extract': DownloadAndExtractWikipedia,
+        }
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "wikipedia"
+        self.stage_cfg = cfg.get("wikipedia")
+
+    def run(self) -> str:
+        """
+        Run current stage including all of the substages,
+        returns job id on slurm based system otherwise empty string
+
+        :return: job id on slurm based system otherwise empty string
+        :rtype: str
+        """
+        # Create the job folders
+        self.setup_folder_and_data()
+
+        job_id = ""
+        for sub_stage_name in self.stage_cfg.keys():
+            if sub_stage_name != 'run':
+                sub_stage_class = self.STR2SUBSTAGECLASS[sub_stage_name]
+                # Create the sub-stage
+                sub_stage = sub_stage_class(self.cfg)
+                if job_id:
+                    dependency = f"aftercorr:{job_id}"
+                    sub_stage.stage_cfg["run"]["dependency"] = dependency
+                # Launch the sub-stage
+                job_id = sub_stage.run()
+
+        return job_id
+
+
 class GetCommonCrawlUrls(DataCurationStage):
+
     def __init__(self, cfg):
         super().__init__(cfg)
 
@@ -201,18 +368,19 @@ class GetCommonCrawlUrls(DataCurationStage):
         # If certain arguments are not specified, we remove them from the list
         optional_args = {
             "cc_news":
-            stage_cfg.get('cc_news'),
+                stage_cfg.get('cc_news'),
             "cc_snapshot_index_file":
-            Path().joinpath(
-                self.get_job_path().results_folder,
-                "collinfo.json",
-            ),
+                Path().joinpath(
+                    self.get_job_path().results_folder,
+                    "collinfo.json",
+                ),
         }
 
         # Remove any arguments that are not specified
         optional_args = {
             arg: optional_args[arg]
-            for arg in optional_args if optional_args[arg]
+            for arg in optional_args
+            if optional_args[arg]
         }
 
         # Create the list of arguments for the command
@@ -237,6 +405,7 @@ class GetCommonCrawlUrls(DataCurationStage):
 
 
 class DownloadAndExtractCommonCrawl(DataCurationStage):
+
     def __init__(self, cfg):
         super().__init__(cfg)
 
@@ -273,7 +442,8 @@ class DownloadAndExtractCommonCrawl(DataCurationStage):
         # Remove any arguments that are not specified
         optional_args = {
             arg: optional_args[arg]
-            for arg in optional_args if optional_args[arg]
+            for arg in optional_args
+            if optional_args[arg]
         }
 
         # Create the list of arguments for the command
@@ -301,6 +471,7 @@ class DownloadAndExtractCommonCrawl(DataCurationStage):
 
 
 class CommonCrawl(NemoMegatronStage):
+
     def __init__(self, cfg):
         super().__init__(cfg)
         self.log_folder = Path()
@@ -342,6 +513,7 @@ class CommonCrawl(NemoMegatronStage):
 
 
 class AddId(DataCurationStage):
+
     def __init__(self, cfg, super_stage_name=None):
         self.super_stage_name = super_stage_name
         super().__init__(cfg)
@@ -379,6 +551,7 @@ class AddId(DataCurationStage):
 
 
 class StartRedisCluster(NemoMegatronStage):
+
     def __init__(self, cfg, super_stage_name=None):
         self.super_stage_name = super_stage_name
         super().__init__(cfg)
@@ -420,9 +593,15 @@ class StartRedisCluster(NemoMegatronStage):
         # on CPU only nodes
         partition = run_cfg.get('partition')
 
+        setup = None
+        env_vars = self.get_env_vars()
+        if env_vars:
+            setup = [f"export {k}={v}" for k, v in env_vars.items()]
+
         shared_parameters = {
             "job_name": job_name,
             "time": time_limit,
+            "setup": setup,
         }
         if cluster == "bcm":
             cluster_cfg = cfg.get("cluster")
@@ -475,6 +654,7 @@ class StartRedisCluster(NemoMegatronStage):
 
 
 class HashDocuments(DataCurationStage):
+
     def __init__(self, cfg, super_stage_name=None):
         self.super_stage_name = super_stage_name
         super().__init__(cfg)
@@ -499,18 +679,19 @@ class HashDocuments(DataCurationStage):
         # If certain arguments are not specified, we remove them from the list
         optional_args = {
             "cc_news":
-            stage_cfg.get('cc_news'),
+                stage_cfg.get('cc_news'),
             "cc_snapshot_index_file":
-            Path().joinpath(
-                self.get_job_path().results_folder,
-                "collinfo.json",
-            ),
+                Path().joinpath(
+                    self.get_job_path().results_folder,
+                    "collinfo.json",
+                ),
         }
 
         # Remove any arguments that are not specified
         optional_args = {
             arg: optional_args[arg]
-            for arg in optional_args if optional_args[arg]
+            for arg in optional_args
+            if optional_args[arg]
         }
 
         # Create the list of arguments for the command
@@ -535,6 +716,7 @@ class HashDocuments(DataCurationStage):
 
 
 class ShutdownRedisCluster(NemoMegatronStage):
+
     def __init__(self, cfg, super_stage_name=None):
         self.super_stage_name = super_stage_name
         super().__init__(cfg)
@@ -603,10 +785,9 @@ class ShutdownRedisCluster(NemoMegatronStage):
         self.setup_folder_and_data()
 
         shutdown_redis_cluster_script = str(
-            Path().joinpath(
-                self.cfg['launcher_scripts_path'], 'nemo_launcher',
-                'collections',
-                'datacuration_scripts/shutdown_redis_cluster.sh'), )
+            Path().joinpath(self.cfg['launcher_scripts_path'], 'nemo_launcher',
+                            'collections',
+                            'datacuration_scripts/shutdown_redis_cluster.sh'),)
         if self.cfg['debug']:
             print(f'scancel {shutdown_redis_cluster_script}')
         else:
@@ -614,6 +795,7 @@ class ShutdownRedisCluster(NemoMegatronStage):
 
 
 class GroupDuplicates(DataCurationStage):
+
     def __init__(self, cfg, super_stage_name=None):
         self.super_stage_name = super_stage_name
         super().__init__(cfg)
@@ -638,18 +820,19 @@ class GroupDuplicates(DataCurationStage):
         # If certain arguments are not specified, we remove them from the list
         optional_args = {
             "cc_news":
-            stage_cfg.get('cc_news'),
+                stage_cfg.get('cc_news'),
             "cc_snapshot_index_file":
-            Path().joinpath(
-                self.get_job_path().results_folder,
-                "collinfo.json",
-            ),
+                Path().joinpath(
+                    self.get_job_path().results_folder,
+                    "collinfo.json",
+                ),
         }
 
         # Remove any arguments that are not specified
         optional_args = {
             arg: optional_args[arg]
-            for arg in optional_args if optional_args[arg]
+            for arg in optional_args
+            if optional_args[arg]
         }
 
         # Create the list of arguments for the command
@@ -674,6 +857,7 @@ class GroupDuplicates(DataCurationStage):
 
 
 class RemoveDuplicates(DataCurationStage):
+
     def __init__(self, cfg, super_stage_name=None):
         self.super_stage_name = super_stage_name
         super().__init__(cfg)
@@ -683,7 +867,7 @@ class RemoveDuplicates(DataCurationStage):
         self.stage_name = "remove_duplicates"
         if self.super_stage_name is not None:
             self.stage_cfg = cfg[self.super_stage_name].get(
-                "remove_duplicate_documents", )
+                "remove_duplicate_documents",)
         else:
             self.stage_cfg = cfg.get("remove_duplicate_documents")
 
@@ -698,18 +882,19 @@ class RemoveDuplicates(DataCurationStage):
         # If certain arguments are not specified, we remove them from the list
         optional_args = {
             "cc_news":
-            stage_cfg.get('cc_news'),
+                stage_cfg.get('cc_news'),
             "cc_snapshot_index_file":
-            Path().joinpath(
-                self.get_job_path().results_folder,
-                "collinfo.json",
-            ),
+                Path().joinpath(
+                    self.get_job_path().results_folder,
+                    "collinfo.json",
+                ),
         }
 
         # Remove any arguments that are not specified
         optional_args = {
             arg: optional_args[arg]
-            for arg in optional_args if optional_args[arg]
+            for arg in optional_args
+            if optional_args[arg]
         }
 
         # Create the list of arguments for the command
@@ -734,6 +919,7 @@ class RemoveDuplicates(DataCurationStage):
 
 
 class ExactDeduplication(NemoMegatronStage):
+
     def __init__(self, cfg):
         super().__init__(cfg)
         self.log_folder = Path()
