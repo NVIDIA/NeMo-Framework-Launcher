@@ -1,9 +1,6 @@
 run:
-  name: convert_${conversion.run.model_train_name}
-  nodes: ${divide_ceil:${conversion.model.model_parallel_size}, 8} # 8 gpus per node
-  time_limit: "2:00:00"
+  name: convert_${convert_hf2nemo.run.model_train_name}
   dependency: "singleton"
-  ntasks_per_node: ${divide_ceil:${conversion.model.model_parallel_size}, ${.nodes}}
   convert_name: convert_hf_llama2_to_nemo
   model_train_name: hf_llama2
   train_dir: ${base_results_dir}/${.model_train_name}
@@ -50,7 +47,7 @@ exp_manager:
     always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
     save_nemo_on_train_end: False # not recommended when training large models on clusters with short time limits
     filename: 'megatron_gpt--{val_loss:.2f}-{step}-{consumed_samples}'
-    model_parallel_size: ${multiply:${model.tensor_model_parallel_size}, ${model.pipeline_model_parallel_size}}
+    model_parallel_size: 1 #${multiply:${model.tensor_model_parallel_size}, ${model.pipeline_model_parallel_size}}
 
 model:
   mcore_gpt: True
@@ -197,7 +194,7 @@ model:
     index_mapping_dir: null # path to save index mapping .npy files, by default will save in the same location as data_prefix
     data_impl: mmap
     splits_string: 900,50,50
-    seq_length: ${model.encoder_seq_length}
+    seq_length: 4096 #${model.encoder_seq_length}
     skip_warmup: True
     num_workers: 8
     dataloader_type: single # cyclic

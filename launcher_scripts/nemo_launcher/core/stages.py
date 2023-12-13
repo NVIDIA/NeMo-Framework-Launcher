@@ -1774,7 +1774,7 @@ class ConvertHF2NeMo(NemoMegatronStage):
             / "scripts/nlp_language_modeling/convert_hf_llama_to_nemo.py"
         )
         args = create_args_list(
-            in_file=run_conf.get("huggingface_ckpt_path"),
+            in_file=run_cfg.get("huggingface_ckpt_path"),
             out_file=run_cfg.get("nemo_file_name"),            
         )
         if model_cfg.get("pipeline_model_parallel_split_rank") is not None:
