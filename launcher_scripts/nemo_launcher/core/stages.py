@@ -1755,14 +1755,7 @@ class ConvertHF2NeMo(NemoMegatronStage):
         command_groups[0] += self._make_hparams_override_command()
 
         run_cfg = self.stage_cfg.get("run")
-        model_cfg = self.stage_cfg.get("model")
-        checkpoint_search_command = self._make_checkpoint_search_command(
-            checkpoint_folder=run_cfg.get("huggingface_ckpt_path"),
-            checkpoint_name=run_cfg.get("nemo_file_name"),
-            tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size"),
-            pipeline_model_parallel_size=model_cfg.get("pipeline_model_parallel_size"),
-        )
-        command_groups[-1] += [f"export CKPT_NAME=$({checkpoint_search_command})"]
+        model_cfg = self.stage_cfg.get("model")              
 
         nemo_file_name = run_cfg.get("nemo_file_name")
         hparams_override_file = (
