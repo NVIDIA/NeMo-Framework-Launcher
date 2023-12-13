@@ -1757,8 +1757,8 @@ class ConvertHF2NeMo(NemoMegatronStage):
         run_cfg = self.stage_cfg.get("run")
         model_cfg = self.stage_cfg.get("model")
         checkpoint_search_command = self._make_checkpoint_search_command(
-            checkpoint_folder=model_cfg.get("checkpoint_folder"),
-            checkpoint_name=model_cfg.get("checkpoint_name"),
+            checkpoint_folder=run_cfg.get("huggingface_ckpt_path"),
+            checkpoint_name=run_cfg.get("nemo_file_name"),
             tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size"),
             pipeline_model_parallel_size=model_cfg.get("pipeline_model_parallel_size"),
         )
