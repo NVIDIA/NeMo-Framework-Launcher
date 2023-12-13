@@ -1155,7 +1155,6 @@ class Conversion(NemoMegatronStage):
         """
         command_groups = [[], []]
         command_groups[0] += self._make_hparams_override_command()
-
         run_cfg = self.stage_cfg.get("run")
         model_cfg = self.stage_cfg.get("model")
         checkpoint_search_command = self._make_checkpoint_search_command(
@@ -1752,15 +1751,10 @@ class ConvertHF2NeMo(NemoMegatronStage):
         :rtype: List[List[str]]
         """
         command_groups = [[], []]
-        command_groups[0] += self._make_hparams_override_command()
-
         run_cfg = self.stage_cfg.get("run")
         model_cfg = self.stage_cfg.get("model")              
 
-        nemo_file_name = run_cfg.get("nemo_file_name")
-        hparams_override_file = (
-            self.get_job_path().results_folder / "hparams_override.yaml"
-        )
+        nemo_file_name = run_cfg.get("nemo_file_name")        
         nemo_file_path = self.get_job_path().results_folder / nemo_file_name
         code_path = (
             self._nemo_code_path
