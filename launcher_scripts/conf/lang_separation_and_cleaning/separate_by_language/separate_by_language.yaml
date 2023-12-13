@@ -1,0 +1,10 @@
+run:
+  name: 'separate-by-language'
+  results_dir: ${lang_separation_and_cleaning.run.results_dir}/${.name}
+  time_limit: "01:00:00"
+  dependency: "singleton"
+  nodes: 1
+
+input_data_dir: ${data_dir}/json
+output_data_dir: ${data_dir}/lang_separated
+output_language_distribution: ${lang_separation_and_cleaning.separate_by_language.run.results_dir}/lang_distro.json
