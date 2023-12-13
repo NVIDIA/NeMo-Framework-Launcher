@@ -9,7 +9,7 @@ run:
   train_dir: ${base_results_dir}/${.model_train_name}
   results_dir: ${.train_dir}/${.convert_name}
   huggingface_ckpt_path : ${data_dir}/hf_ckpt/
-  nemo_file_name: llama2_7b.nemo # name of nemo checkpoint; must be .nemo file
+  nemo_file_name: ${data_dir}/results/llama2_7b.nemo # name of nemo checkpoint; must be .nemo file
 name: megatron_llama
 restore_from_path: null # used when starting from a .nemo file
 
