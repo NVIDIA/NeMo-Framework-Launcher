@@ -1618,9 +1618,8 @@ class SteerLMRegSFT(NeMoStage):
         return model_type_to_code_path[model_type]
 
 
-
-class ConvertHF2NeMo(NemoMegatronStage):
-    """Stage class of converting training checkpoints to .nemo format"""
+class ConvertHF2NeMo(NeMoStage):
+    """Stage class of reward model training with NeMo-Aligner scripts"""
 
     def setup_stage_vars(self, cfg: OmegaConf):
         """Setup the stage vars, i.e. stage name and stage cfg"""
@@ -1752,9 +1751,9 @@ class ConvertHF2NeMo(NemoMegatronStage):
         """
         command_groups = [[], []]
         run_cfg = self.stage_cfg.get("run")
-        model_cfg = self.stage_cfg.get("model")              
+        model_cfg = self.stage_cfg.get("model")
 
-        nemo_file_name = run_cfg.get("nemo_file_name")        
+        nemo_file_name = run_cfg.get("nemo_file_name")
         nemo_file_path = self.get_job_path().results_folder / nemo_file_name
         code_path = (
             self._nemo_code_path
@@ -1762,7 +1761,7 @@ class ConvertHF2NeMo(NemoMegatronStage):
         )
         args = create_args_list(
             in_file=run_cfg.get("huggingface_ckpt_path"),
-            out_file=run_cfg.get("nemo_file_name"),            
+            out_file=run_cfg.get("nemo_file_name"),
         )
         if model_cfg.get("pipeline_model_parallel_split_rank") is not None:
             args += create_args_list(
