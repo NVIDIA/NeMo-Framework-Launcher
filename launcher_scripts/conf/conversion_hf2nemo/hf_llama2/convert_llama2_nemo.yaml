@@ -1,5 +1,5 @@
 run:
-  name: convert_${convert_hf2nemo.run.model_train_name}
+  name: convert_${conversion_hf2nemo.run.model_train_name}
   dependency: "singleton"
   convert_name: convert_hf_llama2_to_nemo
   model_train_name: hf_llama2
