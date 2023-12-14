@@ -1618,7 +1618,7 @@ class SteerLMRegSFT(NeMoStage):
         return model_type_to_code_path[model_type]
 
 
-class ConvertHF2NeMo(NeMoStage):
+class ConversionHF2NeMo(NeMoStage):
     """Stage class of reward model training with NeMo-Aligner scripts"""
 
     def setup_stage_vars(self, cfg: OmegaConf):
