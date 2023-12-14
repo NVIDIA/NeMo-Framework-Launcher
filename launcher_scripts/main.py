@@ -40,6 +40,7 @@ from nemo_launcher.core.stages import (
     PromptLearning,
     Training,
     SteerLMRegSFT,
+    ConversionHF2NeMo,
 )
 
 omegaconf.OmegaConf.register_new_resolver("multiply", lambda x, y: x * y, replace=True)
@@ -58,6 +59,7 @@ STR2STAGECLASS = {
     "adapter_learning": AdapterLearning,
     "ia3_learning": IA3Learning,
     "conversion": Conversion,
+    "conversion_hf2nemo": ConversionHF2NeMo,
     "export": Export,
     "evaluation": {
         EvalHarnessEvaluation: ["gpt3", "prompt_gpt3", "llama", "prompt_llama"],
