@@ -1623,8 +1623,8 @@ class ConversionHF2NeMo(NeMoStage):
 
     def setup_stage_vars(self, cfg: OmegaConf):
         """Setup the stage vars, i.e. stage name and stage cfg"""
-        self.stage_name = "convert_hf2nemo"
-        self.stage_cfg = cfg.get("convert_hf2nemo")
+        self.stage_name = "conversion_hf2nemo"
+        self.stage_cfg = cfg.get("conversion_hf2nemo")
 
     def _make_hparams_override_command(self):
         """
