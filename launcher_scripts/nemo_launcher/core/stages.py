@@ -464,6 +464,10 @@ class NemoMegatronStage:
         return Path("/opt/nemo-rlhf")
 
     @property
+    def _aligner_code_path(self) -> Path:
+        return Path("/opt/NeMo-Aligner")
+
+    @property
     def _cuda_visible_devices(self) -> str:
         ntasks_per_node = self.stage_cfg.run.get("ntasks_per_node")
         if ntasks_per_node is None:
@@ -1594,3 +1598,36 @@ def create_args_list(
                 k = k.replace("_", "-")
             args.append(f"--{k}" if v == "store_true" else f"--{k}={v}")
     return args
+
+
+class SteerLMRegSFT(NeMoStage):
+    """Stage class of reward model training with NeMo-Aligner scripts"""
+
+    def setup_stage_vars(self, cfg: OmegaConf):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "steerlm_reg"
+        self.stage_cfg = cfg.get("steerlm_reg")
+
+    def setup_folder_and_data(self) -> None:
+        """Setup job/data folders and OASST train-val splitted dataset"""
+        super().setup_folder_and_data()
+
+        # Prepare fine-tuning dataset
+        data_dir = self.cfg.get("data_dir")
+        task_name = self.stage_cfg.run.get("task_name")
+
+    def _get_nemo_code_path(self, model_type: str) -> Path:
+        """
+        Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
+        For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
+
+        :param str model_type: i.e. `rw_sft`, `ac_sft`... etc.
+        :return: path current stage's essential NeMo-Aligner scripts code
+        :rtype: Path
+        """
+
+        model_type_to_code_path = {
+            "rw_sft": f"{self._aligner_code_path}/examples/nlp/gpt/train_reward_model.py",
+            "ac_sft": f"{self._aligner_code_path}/examples/nlp/gpt/train_gpt_sft.py",
+        }
+        return model_type_to_code_path[model_type]
