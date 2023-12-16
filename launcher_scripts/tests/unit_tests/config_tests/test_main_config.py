@@ -69,7 +69,6 @@ class TestConfig:
           TRANSFORMERS_OFFLINE: 1
           TORCH_NCCL_AVOID_RECORD_STREAMS: 1
           NCCL_NVLS_ENABLE: 0
-          HF_DATASETS_CACHE: ${data_dir}/hf_data # Path to store HuggingFace task specific datasets for data curation
         
         # GPU Mapping
         numa_mapping:
