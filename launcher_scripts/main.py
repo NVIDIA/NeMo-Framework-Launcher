@@ -20,6 +20,7 @@ import omegaconf
 from nemo_launcher.core.data_curation_stages import (
     QualityFiltering,
     LangSeparationAndCleaning,
+    TaskDeduplication,
 )
 from nemo_launcher.core.data_stages import (
     CustomDataPreparation,
@@ -83,6 +84,7 @@ STR2STAGECLASS = {
     "rlhf_ppo": RLHFPPO,
     "quality_filtering": QualityFiltering,
     "lang_separation_and_cleaning": LangSeparationAndCleaning,
+    "task_deduplication": TaskDeduplication,
     "steerlm_reg": SteerLMRegSFT,
 }
 

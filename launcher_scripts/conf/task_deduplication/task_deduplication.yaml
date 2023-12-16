@@ -1,0 +1,8 @@
+run:
+  name: 'task-deduplication'
+  results_dir: ${base_results_dir}/${.name}
+
+defaults:
+  - prepare_task_data: prepare_task_data
+  - find_matching_ngrams: find_matching_ngrams
+  - remove_matching_ngrams: remove_matching_ngrams

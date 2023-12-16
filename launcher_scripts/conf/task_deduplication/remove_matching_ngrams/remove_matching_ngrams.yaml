@@ -1,0 +1,10 @@
+run:
+  name: 'remove-matching-ngrams'
+  results_dir: ${task_deduplication.run.results_dir}/${.name}
+  time_limit: "08:00:00"
+  dependency: "singleton"
+  nodes: 1
+
+input_data_dir: ${data_dir}/json/filtered/high_quality
+input_matched_ngrams: ${task_deduplication.find_matching_ngrams.output_matched_ngram_data}
+output_task_deduped_dir: ${data_dir}/json/task_deduped
