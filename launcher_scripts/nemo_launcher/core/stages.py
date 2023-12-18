@@ -464,6 +464,10 @@ class NemoMegatronStage:
         return Path("/opt/nemo-rlhf")
 
     @property
+    def _aligner_code_path(self) -> Path:
+        return Path("/opt/NeMo-Aligner")
+
+    @property
     def _cuda_visible_devices(self) -> str:
         ntasks_per_node = self.stage_cfg.run.get("ntasks_per_node")
         if ntasks_per_node is None:
@@ -1155,7 +1159,6 @@ class Conversion(NemoMegatronStage):
         """
         command_groups = [[], []]
         command_groups[0] += self._make_hparams_override_command()
-
         run_cfg = self.stage_cfg.get("run")
         model_cfg = self.stage_cfg.get("model")
         checkpoint_search_command = self._make_checkpoint_search_command(
@@ -1584,3 +1587,199 @@ def create_args_list(
                 k = k.replace("_", "-")
             args.append(f"--{k}" if v == "store_true" else f"--{k}={v}")
     return args
+
+
+class SteerLMRegSFT(NeMoStage):
+    """Stage class of reward model training with NeMo-Aligner scripts"""
+
+    def setup_stage_vars(self, cfg: OmegaConf):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "steerlm_reg"
+        self.stage_cfg = cfg.get("steerlm_reg")
+
+    def setup_folder_and_data(self) -> None:
+        """Setup job/data folders and OASST train-val splitted dataset"""
+        super().setup_folder_and_data()
+
+        # Prepare fine-tuning dataset
+        data_dir = self.cfg.get("data_dir")
+        task_name = self.stage_cfg.run.get("task_name")
+
+    def _get_nemo_code_path(self, model_type: str) -> Path:
+        """
+        Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
+        For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
+
+        :param str model_type: i.e. `rw_sft`, `ac_sft`... etc.
+        :return: path current stage's essential NeMo-Aligner scripts code
+        :rtype: Path
+        """
+
+        model_type_to_code_path = {
+            "rw_sft": f"{self._aligner_code_path}/examples/nlp/gpt/train_reward_model.py",
+            "ac_sft": f"{self._aligner_code_path}/examples/nlp/gpt/train_gpt_sft.py",
+        }
+        return model_type_to_code_path[model_type]
+
+
+class ConversionHF2NeMo(NeMoStage):
+    """Stage class of reward model training with NeMo-Aligner scripts"""
+
+    def setup_stage_vars(self, cfg: OmegaConf):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "conversion_hf2nemo"
+        self.stage_cfg = cfg.get("conversion_hf2nemo")
+
+    def _make_hparams_override_command(self):
+        """
+        Make the command string to override some fields in hparams.yaml file while converting checkpoint into .nemo format
+
+        :return: command string for hparams override with the script in collections
+        :rtype: str
+        """
+        model_cfg = self.stage_cfg.get("model")
+        hparams_file = model_cfg.get("hparams_file")
+        vocab_file = model_cfg.get("vocab_file")
+        merge_file = model_cfg.get("merge_file")
+        tokenizer_model = model_cfg.get("tokenizer_model")
+        override_configs = {
+            "hparams_file": hparams_file,
+            "output_path": self.get_job_path().results_folder,
+            "vocab_file": vocab_file,
+            "merge_file": merge_file,
+            "tokenizer_model": tokenizer_model,
+        }
+        hparams_override = [f"{k}={v}" for k, v in override_configs.items()]
+        override_command = [
+            f"python3 -u {self._launcher_scripts_path / 'nemo_launcher/collections/hparams_override.py'}",
+            *hparams_override,
+        ]
+        override_command = " \\\n  ".join(override_command)
+        return [override_command]
+
+    def _make_checkpoint_search_command(self, **kwargs: Any) -> str:
+        """
+        Make the command string to search for the latest checkpoint inside checkpoint folder
+
+        :param Path **kwargs: checkpoint search script's argument override
+        :return: command string for searching for latest checkpoint with the script in collections
+        :rtype: str
+        """
+        checkpoint_override = [f"{k}={v}" for k, v in kwargs.items()]
+        return (
+            f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/checkpoint_search.py'} "
+            f"{' '.join(checkpoint_override)}"
+        )
+
+    def _make_k8s_spec_file(
+        self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
+    ):
+        """
+        Create a spec file for a Kubernetes conversion job.
+        The spec file is generated based on the parameters in the cluster and conversion config files.
+
+        :param str template_root: path to where the k8s template files are located
+        :param Dict cluster_parameters: settings specific to the cluster that is being used
+        :param JobPaths job_path: JobPaths object
+        """
+        with open(os.path.join(template_root, "values.yaml")) as value_file:
+            values_template = OmegaConf.load(value_file)
+
+        num_gpus = (
+            self.cfg.conversion.model.pipeline_model_parallel_size
+            * self.cfg.conversion.model.tensor_model_parallel_size
+        )
+
+        values_template.image.trainingImage = cluster_parameters["container_image"]
+        values_template.image.pullSecret = cluster_parameters["pull_secret"]
+        values_template.image.gpuNum = num_gpus
+        values_template.trainingConfig.shmSize = cluster_parameters["shm_size"]
+        values_template.trainingConfig.NFSServer = cluster_parameters["nfs_server"]
+        values_template.trainingConfig.NFSPath = cluster_parameters["nfs_path"]
+        values_template.trainingConfig.vocabPath = self.cfg.conversion.model.vocab_file
+        values_template.trainingConfig.mergesPath = self.cfg.conversion.model.merge_file
+        values_template.trainingConfig.resultsDirectory = str(job_path.folder)
+        values_template.trainingConfig.trainingDirectory = (
+            self.cfg.conversion.run.train_dir
+        )
+        values_template.trainingConfig.launcherScriptsPath = (
+            self.cfg.launcher_scripts_path
+        )
+        values_template.trainingConfig.tensorParallelism = (
+            self.cfg.conversion.model.tensor_model_parallel_size
+        )
+        values_template.trainingConfig.pipelineParallelism = (
+            self.cfg.conversion.model.pipeline_model_parallel_size
+        )
+        values_template.trainingConfig.envVars = cluster_parameters["env_vars"]
+
+        if cluster_parameters["dns_policy"] is not None:
+            values_template.trainingConfig.dnsPolicy = cluster_parameters["dns_policy"]
+
+        k8s_template_path = job_path.folder
+        k8s_template_file = Path(k8s_template_path / "k8s_template" / "values.yaml")
+        k8s_template_file.parent.mkdir(parents=True, exist_ok=True)
+
+        conf = OmegaConf.create(values_template)
+        OmegaConf.save(conf, k8s_template_file)
+
+    def _copy_k8s_helm_chart(self, template_root: str, job_path: JobPaths):
+        """
+        Copy the k8s Helm charts to the results directory.
+
+        :param str template_root: path to where the k8s template files are located
+        :param JobPaths job_path: JobPaths object
+        """
+        template_file = os.path.join(template_root, "conversion.yaml")
+        chart_file = os.path.join(template_root, "Chart.yaml")
+        conversion_path = Path(
+            job_path.folder / "k8s_template" / "templates" / "conversion.yaml"
+        )
+        conversion_path.parent.mkdir(parents=True, exist_ok=True)
+        chart_path = Path(job_path.folder / "k8s_template" / "Chart.yaml")
+
+        shutil.copy2(template_file, conversion_path)
+        shutil.copy2(chart_file, chart_path)
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """
+        Make the command groups for current stage
+        Command groups is a list of command group. A command group is defined as:
+              0. Command group is a list of command strings
+              1. Each command group occupies one bcprun, srun or bash
+              2. Each command group eventually has multiple commands connected by ";"
+
+        :param Path stage_cfg_path: path to interpolated and saved configuration
+        :return: command groups for current stage
+        :rtype: List[List[str]]
+        """
+        command_groups = [[], []]
+        run_cfg = self.stage_cfg.get("run")
+        model_cfg = self.stage_cfg.get("model")
+
+        nemo_file_name = run_cfg.get("nemo_file_name")
+        nemo_file_path = self.get_job_path().results_folder / nemo_file_name
+        code_path = (
+            self._nemo_code_path
+            / "scripts/nlp_language_modeling/convert_hf_llama_to_nemo.py"
+        )
+        args = create_args_list(
+            in_file=run_cfg.get("huggingface_ckpt_path"),
+            out_file=run_cfg.get("nemo_file_name"),
+        )
+        if model_cfg.get("pipeline_model_parallel_split_rank") is not None:
+            args += create_args_list(
+                replace_underscore=False,
+                pipeline_model_parallel_split_rank=model_cfg.get(
+                    "pipeline_model_parallel_split_rank"
+                ),
+            )
+
+        args += ["--bcp"] if self.cluster == "bcp" else []
+
+        core_command = [f"python3 -u {code_path}", *args]
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups

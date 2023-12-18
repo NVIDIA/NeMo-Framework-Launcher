@@ -10,8 +10,11 @@ class TestConfig:
           - cluster: bcm  # Set to bcm for BCM and BCP clusters. Set to k8s for a k8s cluster.
           - data_preparation: gpt3/download_gpt3_pile
           - quality_filtering: heuristic/english
+          - lang_separation_and_cleaning: lang_separation_and_cleaning
+          - task_deduplication: task_deduplication
           - training: gpt3/5b
           - conversion: gpt3/convert_gpt3
+          - conversion_hf2nemo: hf_llama2/convert_llama2_nemo
           - fine_tuning: null
           - peft: null
           - prompt_learning: null
@@ -21,6 +24,7 @@ class TestConfig:
           - export: gpt3/export_gpt3
           - rlhf_rm: gpt3/2b_rm
           - rlhf_ppo: gpt3/2b_ppo
+          - steerlm_reg : ac_sft/gpt_sft #rw_sft/training_rm
           - override hydra/job_logging: stdout
         
         hydra:
@@ -34,11 +38,13 @@ class TestConfig:
           #- data_preparation
           #- training
           - conversion
+          #- conversion_hf2nemo
           #- prompt_learning
           #- adapter_learning
           #- ia3_learning
           #- evaluation
           #- export
+          #- steerlm_reg
         
         cluster_type: bcm  # bcm or bcp. If bcm, it must match - cluster above.
         launcher_scripts_path: ???  # Path to NeMo Megatron Launch scripts, should ends with /launcher_scripts
@@ -46,7 +52,7 @@ class TestConfig:
         base_results_dir: ${launcher_scripts_path}/results  # Location to store the results, checkpoints and logs.
         container_mounts: # List of additional paths to mount to container. They will be mounted to same path.
             - null
-        container: nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.08.03
+        container: nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.11
         
         wandb_api_key_file: null  # File where the w&B api key is stored. Key must be on the first line.
         wandb_api_bcp_secret_key: null  # For BCP clusters, read the W&B api key directly from the environment variable set as a secret from BCP. The value must match the name of the environment variable in BCP, such as WANDB_TOKEN.
@@ -63,7 +69,6 @@ class TestConfig:
           TRANSFORMERS_OFFLINE: 1
           TORCH_NCCL_AVOID_RECORD_STREAMS: 1
           NCCL_NVLS_ENABLE: 0
-          NVTE_APPLY_QK_LAYER_SCALING: 1
         
         # GPU Mapping
         numa_mapping:
@@ -78,6 +83,8 @@ class TestConfig:
         # Do not modify below, use the values above instead.
         data_preparation_config: ${hydra:runtime.choices.data_preparation}
         quality_filtering_config: ${hydra:runtime.choices.quality_filtering}
+        lang_separation_and_cleaning_config: ${hydra:runtime.choices.lang_separation_and_cleaning}
+        task_deduplication_config: ${hydra:runtime.choices.task_deduplication}
         training_config: ${hydra:runtime.choices.training}
         fine_tuning_config: ${hydra:runtime.choices.fine_tuning}
         peft_config: ${hydra:runtime.choices.peft}
@@ -89,6 +96,8 @@ class TestConfig:
         export_config: ${hydra:runtime.choices.export}
         rlhf_rm_config: ${hydra:runtime.choices.rlhf_rm}
         rlhf_ppo_config: ${hydra:runtime.choices.rlhf_ppo}
+        steerlm_reg_config : ${hydra:runtime.choices.steerlm_reg}
+        conversion_hf2nemo_config: ${hydra:runtime.choices.conversion_hf2nemo}
         """
         expected = OmegaConf.create(s)
         assert (
