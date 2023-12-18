@@ -1,11 +1,12 @@
 run:
   name: 'prepare-task-data'
-  results_dir: ${task_deduplication.run.results_dir}/${.name}
-  time_limit: "04:00:00"
+  results_dir: ${data_curation.run.results_dir}/${.name}
   dependency: "singleton"
-  nodes: 1
+  time_limit: "04:00:00"
+  nodes: 2
+  node_type: cpu
 
-output_task_ngrams: ${task_deduplication.prepare_task_data.run.results_dir}/task_ngrams.pkl
+output_task_ngrams: ${.run.results_dir}/task_ngrams.pkl
 # The below flag skips computation of task n-grams if the file above is already present
 # Set to False if you want to recompute task n-grams with different tasks
 use_ngram_cache: True

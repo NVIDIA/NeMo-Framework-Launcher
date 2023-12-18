@@ -1,9 +1,10 @@
 run:
   name: 'fasttext-download'
-  results_dir: ${lang_separation_and_cleaning.run.results_dir}/${.name}
-  time_limit: "00:20:00"
+  results_dir: ${data_curation.run.results_dir}/${.name}
   dependency: "singleton"
+  time_limit: "00:20:00"
   nodes: 1
+  node_type: cpu
 
 filter_config:
   filter_module: ndc.filter.classifier.filter.FastTextLangId
