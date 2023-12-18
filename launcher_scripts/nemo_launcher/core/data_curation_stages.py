@@ -681,7 +681,6 @@ class ComputeMinhashes(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            log_frequency=stage_cfg.get("log_frequency"),
             input_data_dirs=stage_cfg.get("input_data_dirs"),
             minhash_length=stage_cfg.get("minhash_length"),
             char_ngram=stage_cfg.get("char_ngram"),
@@ -693,7 +692,7 @@ class ComputeMinhashes(DataCurationStage):
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["compute_minhashes", *args])
+        runscript = " \\\n  ".join(["gpu_compute_minhashes", *args])
         runscript_path = os.path.join(self.results_folder, "compute_minhashes.sh")
 
         with open(runscript_path, "w") as f:
@@ -727,7 +726,6 @@ class MinHashBuckets(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            log_frequency=stage_cfg.get("log_frequency"),
             input_data_dirs=stage_cfg.get("input_data_dirs"),
             minhash_length=stage_cfg.get("minhash_length"),
             output_bucket_dir=self.results_folder,
@@ -770,7 +768,6 @@ class JaccardMapBuckets(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            log_frequency=stage_cfg.get("log_frequency"),
             input_data_dirs=stage_cfg.get("input_data_dirs"),
             input_bucket_dir=stage_cfg.get("input_bucket_dir"),
             text_ddf_blocksize=stage_cfg.get("text_ddf_blocksize"),
@@ -812,7 +809,6 @@ class JaccardShuffle(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            log_frequency=stage_cfg.get("log_frequency"),
             input_data_dirs=stage_cfg.get("input_data_dirs"),
             input_bucket_mapping_dir=self.results_folder
             / "anchor_docs_with_bk.parquet",
@@ -856,7 +852,6 @@ class JaccardCompute(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            log_frequency=stage_cfg.get("log_frequency"),
             output_dir=self.results_folder,
             num_files=stage_cfg.get("num_files"),
             files_per_partition=stage_cfg.get("files_per_partition"),
@@ -897,13 +892,12 @@ class ConnectedComponent(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            log_frequency=stage_cfg.get("log_frequency"),
             output_dir=self.results_folder / "cc_output",
             cache_dir=self.results_folder / "cc_cache",
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["connected_component", *args])
+        runscript = " \\\n  ".join(["gpu_onnected_component", *args])
         runscript_path = os.path.join(self.results_folder, "connected_component.sh")
 
         with open(runscript_path, "w") as f:
@@ -916,53 +910,6 @@ class ConnectedComponent(DataCurationStage):
         command_groups = clean_command_groups(command_groups)
 
         return command_groups
-
-
-class FuzzyDeduplication(NemoMegatronStage):
-    """Stage class for running all parts of language separation and cleaning"""
-
-    def __init__(self, cfg):
-        super().__init__(cfg)
-        self.log_folder = Path()
-        self.conf_folder = Path()
-        self.STR2SUBSTAGECLASS = {
-            "compute_minhashes": ComputeMinhashes,
-            "minhash_buckets": MinhashBuckets,
-            "jaccard_map_buckets": JaccardMapBuckets,
-            "jaccard_shuffle": JaccardShuffe,
-            "jaccard_compute": FindMatchingNgrams,
-            "connected_component": ConnectedComponent,
-        }
-
-    def setup_stage_vars(self, cfg):
-        """Setup the stage vars, i.e. stage name and stage cfg"""
-        self.stage_name = "fuzzy_deduplication"
-        self.stage_cfg = cfg.get("fuzzy_deduplication")
-
-    def run(self) -> str:
-        """
-        Run current stage including all of the substages,
-        returns job id on slurm based system otherwise empty string
-
-        :return: job id on slurm based system otherwise empty string
-        :rtype: str
-        """
-        # Create the job folders
-        self.setup_folder_and_data()
-
-        job_id = ""
-        for sub_stage_name in self.stage_cfg.keys():
-            if sub_stage_name != "run":
-                sub_stage_class = self.STR2SUBSTAGECLASS[sub_stage_name]
-                # Create the sub-stage
-                sub_stage = sub_stage_class(self.cfg)
-                if job_id:
-                    dependency = f"aftercorr:{job_id}"
-                    sub_stage.stage_cfg["run"]["dependency"] = dependency
-                # Launch the sub-stage
-                job_id = sub_stage.run()
-
-        return job_id
 
 
 class WriteDedupedResultWithText(DataCurationStage):
@@ -984,7 +931,6 @@ class WriteDedupedResultWithText(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            log_frequency=stage_cfg.get("log_frequency"),
             original_path=stage_cfg.get("input_data_dirs"),
             output_dir=self.results_folder / "cc_output",
             scheduler_file=self.results_folder / "scheduler.json",
@@ -1026,7 +972,6 @@ class VerifyAllPairsJaccard(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            log_frequency=stage_cfg.get("log_frequency"),
             output_dir=self.results_folder / "cc_output",
             cache_dir=self.results_folder / "cc_cache",
             scheduler_file=self.results_folder / "scheduler.json",
@@ -1047,3 +992,52 @@ class VerifyAllPairsJaccard(DataCurationStage):
         command_groups = clean_command_groups(command_groups)
 
         return command_groups
+
+
+class FuzzyDeduplication(NemoMegatronStage):
+    """Stage class for running all parts of language separation and cleaning"""
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.log_folder = Path()
+        self.conf_folder = Path()
+        self.STR2SUBSTAGECLASS = {
+            "compute_minhashes": ComputeMinhashes,
+            "minhash_buckets": MinhashBuckets,
+            "jaccard_map_buckets": JaccardMapBuckets,
+            "jaccard_shuffle": JaccardShuffe,
+            "jaccard_compute": FindMatchingNgrams,
+            "connected_component": ConnectedComponent,
+            "write_deduped_result_with_text": WriteDedupedResultWithText,
+            "verify_all_pairs_jaccard": VerifyAllPairsJaccard,
+        }
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "fuzzy_deduplication"
+        self.stage_cfg = cfg.get("fuzzy_deduplication")
+
+    def run(self) -> str:
+        """
+        Run current stage including all of the substages,
+        returns job id on slurm based system otherwise empty string
+
+        :return: job id on slurm based system otherwise empty string
+        :rtype: str
+        """
+        # Create the job folders
+        self.setup_folder_and_data()
+
+        job_id = ""
+        for sub_stage_name in self.stage_cfg.keys():
+            if sub_stage_name != "run":
+                sub_stage_class = self.STR2SUBSTAGECLASS[sub_stage_name]
+                # Create the sub-stage
+                sub_stage = sub_stage_class(self.cfg)
+                if job_id:
+                    dependency = f"aftercorr:{job_id}"
+                    sub_stage.stage_cfg["run"]["dependency"] = dependency
+                # Launch the sub-stage
+                job_id = sub_stage.run()
+
+        return job_id
