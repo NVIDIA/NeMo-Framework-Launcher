@@ -693,8 +693,6 @@ class ComputeMinhashes(DataCurationStage):
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        # minhashes_path = self._launcher_scripts_path / "nemo_launcher/collections/nemo-data-curator/ndc/gpu_deduplication/compute_minhashes.py"
-
         runscript = " \\\n  ".join(["compute_minhashes", *args])
         runscript_path = os.path.join(self.results_folder, "compute_minhashes.sh")
 
@@ -738,8 +736,6 @@ class MinHashBuckets(DataCurationStage):
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        # minhashes_path = self._launcher_scripts_path / "nemo_launcher/collections/nemo-data-curator/ndc/gpu_deduplication/compute_minhashes.py"
-
         runscript = " \\\n  ".join(["minhash_buckets", *args])
         runscript_path = os.path.join(self.results_folder, "minhash_buckets.sh")
 
@@ -781,8 +777,6 @@ class JaccardMapBuckets(DataCurationStage):
             output_dir=self.results_folder,
             scheduler_file=self.results_folder / "scheduler.json",
         )
-
-        # minhashes_path = self._launcher_scripts_path / "nemo_launcher/collections/nemo-data-curator/ndc/gpu_deduplication/compute_minhashes.py"
 
         runscript = " \\\n  ".join(["jaccard_map_buckets", *args])
         runscript_path = os.path.join(self.results_folder, "jaccard_map_buckets.sh")
@@ -828,8 +822,6 @@ class JaccardShuffle(DataCurationStage):
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        # minhashes_path = self._launcher_scripts_path / "nemo_launcher/collections/nemo-data-curator/ndc/gpu_deduplication/compute_minhashes.py"
-
         runscript = " \\\n  ".join(["jaccard_shuffle", *args])
         runscript_path = os.path.join(self.results_folder, "jaccard_shuffle.sh")
 
@@ -871,8 +863,6 @@ class JaccardCompute(DataCurationStage):
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        # minhashes_path = self._launcher_scripts_path / "nemo_launcher/collections/nemo-data-curator/ndc/gpu_deduplication/compute_minhashes.py"
-
         runscript = " \\\n  ".join(["jaccard_compute", *args])
         runscript_path = os.path.join(self.results_folder, "jaccard_compute.sh")
 
@@ -913,8 +903,6 @@ class ConnectedComponent(DataCurationStage):
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        # minhashes_path = self._launcher_scripts_path / "nemo_launcher/collections/nemo-data-curator/ndc/gpu_deduplication/compute_minhashes.py"
-
         runscript = " \\\n  ".join(["connected_component", *args])
         runscript_path = os.path.join(self.results_folder, "connected_component.sh")
 
@@ -928,3 +916,84 @@ class ConnectedComponent(DataCurationStage):
         command_groups = clean_command_groups(command_groups)
 
         return command_groups
+
+
+class WriteDedupedResultWithText(DataCurationStage):
+    def __init__(self, cfg):
+        super().__init__(cfg)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "write_deduped_result_with_text"
+        self.stage_cfg = cfg.get("write_deduped_result_with_text")
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            log_frequency=stage_cfg.get("log_frequency"),
+            original_path=stage_cfg.get("input_data_dirs"),
+            output_dir=self.results_folder / "cc_output",
+            scheduler_file=self.results_folder / "scheduler.json",
+        )
+
+        runscript = " \\\n  ".join(["write_deduped_result_with_text", *args])
+        runscript_path = os.path.join(self.results_folder, "write_deduped_result_with_text.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class VerifyAllPairsJaccard(DataCurationStage):
+    def __init__(self, cfg):
+        super().__init__(cfg)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "verify_all_pairs_jaccard"
+        self.stage_cfg = cfg.get("verify_all_pairs_jaccard")
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            log_frequency=stage_cfg.get("log_frequency"),
+            output_dir=self.results_folder / "cc_output",
+            cache_dir=self.results_folder / "cc_cache",
+            scheduler_file=self.results_folder / "scheduler.json",
+        )
+
+        runscript = " \\\n  ".join(["verify_all_pairs_jaccard", *args])
+        runscript_path = os.path.join(self.results_folder, "verify_all_pairs_jaccard.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
