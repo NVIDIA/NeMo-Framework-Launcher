@@ -5,6 +5,7 @@ defaults:
   - data_preparation: gpt3/download_gpt3_pile
   - training: gpt3/5b
   - conversion: gpt3/convert_gpt3
+  - conversion_hf2nemo: hf_llama2/convert_llama2_nemo
   - fine_tuning: null
   - peft: null
   - prompt_learning: null
@@ -25,9 +26,10 @@ hydra:
 debug: False
 
 stages:
-  - data_curation
   #- data_preparation
   #- training
+  - conversion
+  #- conversion_hf2nemo
   # - conversion
   #- prompt_learning
   #- adapter_learning
@@ -85,3 +87,4 @@ export_config: ${hydra:runtime.choices.export}
 rlhf_rm_config: ${hydra:runtime.choices.rlhf_rm}
 rlhf_ppo_config: ${hydra:runtime.choices.rlhf_ppo}
 steerlm_reg_config : ${hydra:runtime.choices.steerlm_reg}
+conversion_hf2nemo_config: ${hydra:runtime.choices.conversion_hf2nemo}
