@@ -73,9 +73,15 @@ class DataCurationStage(NemoMegatronStage):
         container_image = cfg.get("container")
         container_mounts = self._make_container_mounts_string()
 
+        setup = None
+        env_vars = self.get_env_vars()
+        if env_vars:
+            setup = [f"export {k}={v}" for k, v in env_vars.items()]
+
         shared_parameters = {
             "job_name": job_name,
             "time": time_limit,
+            "setup": setup,
         }
         if cluster == "bcm":
             cluster_cfg = cfg.get("cluster")
@@ -456,6 +462,177 @@ class LangSeparationAndCleaning(NemoMegatronStage):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "lang_separation_and_cleaning"
         self.stage_cfg = cfg.get("lang_separation_and_cleaning")
+
+    def run(self) -> str:
+        """
+        Run current stage including all of the substages,
+        returns job id on slurm based system otherwise empty string
+
+        :return: job id on slurm based system otherwise empty string
+        :rtype: str
+        """
+        # Create the job folders
+        self.setup_folder_and_data()
+
+        job_id = ""
+        for sub_stage_name in self.stage_cfg.keys():
+            if sub_stage_name != "run":
+                sub_stage_class = self.STR2SUBSTAGECLASS[sub_stage_name]
+                # Create the sub-stage
+                sub_stage = sub_stage_class(self.cfg)
+                if job_id:
+                    dependency = f"aftercorr:{job_id}"
+                    sub_stage.stage_cfg["run"]["dependency"] = dependency
+                # Launch the sub-stage
+                job_id = sub_stage.run()
+
+        return job_id
+
+
+class PrepareTaskData(DataCurationStage):
+    """DataCurationStage for preparing the task specific ngrams"""
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "prepare_task_data"
+        self.stage_cfg = cfg["task_deduplication"].get("prepare_task_data")
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+        output_task_ngrams = stage_cfg.get("output_task_ngrams")
+
+        # Use the cache if configured to and it exists
+        if stage_cfg.get("use_ngram_cache") and Path(output_task_ngrams).is_file():
+            return command_groups
+
+        # Write out the task configuration as a separate config file
+        task_cfg = Path(self.conf_folder, "lm_tasks.yaml")
+        omegaconf.OmegaConf.save(stage_cfg.get("lm_tasks_config"), task_cfg)
+
+        # Create the list of arguments for the command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            output_task_ngrams=output_task_ngrams,
+            task_config_file=f"{task_cfg}",
+        )
+
+        core_command = ["prepare_task_data", *args]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class FindMatchingNgrams(DataCurationStage):
+    """DataCurationStage for finding task ngrams in the dataset"""
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "find_matching_ngrams"
+        self.stage_cfg = cfg["task_deduplication"].get("find_matching_ngrams")
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        # Write out the filter configuration as a separate config file
+        command_groups = [[]]
+
+        # If certain arguments are not specified, we remove them from the list
+        optional_args = {
+            "min_ngram_size": stage_cfg.get("min_ngram_size"),
+            "max_ngram_size": stage_cfg.get("max_ngram_size"),
+        }
+
+        # Remove any arguments that are not specified
+        optional_args = {
+            arg: optional_args[arg] for arg in optional_args if optional_args[arg]
+        }
+
+        # Create the list of arguments for the command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            input_data_dir=stage_cfg.get("input_data_dir"),
+            input_task_ngrams=stage_cfg.get("input_task_ngrams"),
+            output_matched_ngram_data=stage_cfg.get("output_matched_ngram_data"),
+            **optional_args,
+        )
+
+        core_command = ["find_matching_ngrams", *args]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class RemoveMatchingNgrams(DataCurationStage):
+    """DataCurationStage for removing dataset text matching task ngrams"""
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "remove_matching_ngrams"
+        self.stage_cfg = cfg["task_deduplication"].get("remove_matching_ngrams")
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        # Write out the filter configuration as a separate config file
+        command_groups = [[]]
+
+        # Create the list of arguments for the command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            input_data_dir=stage_cfg.get("input_data_dir"),
+            input_matched_ngrams=stage_cfg.get("input_matched_ngrams"),
+            output_task_deduped_dir=stage_cfg.get("output_task_deduped_dir"),
+        )
+
+        core_command = ["remove_matching_ngrams", *args]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class TaskDeduplication(NemoMegatronStage):
+    """Stage class for running all parts of language separation and cleaning"""
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.log_folder = Path()
+        self.conf_folder = Path()
+        self.STR2SUBSTAGECLASS = {
+            "prepare_task_data": PrepareTaskData,
+            "find_matching_ngrams": FindMatchingNgrams,
+            "remove_matching_ngrams": RemoveMatchingNgrams,
+        }
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "task_deduplication"
+        self.stage_cfg = cfg.get("task_deduplication")
 
     def run(self) -> str:
         """

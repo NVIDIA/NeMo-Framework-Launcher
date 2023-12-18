@@ -20,6 +20,7 @@ import omegaconf
 from nemo_launcher.core.data_curation_stages import (
     QualityFiltering,
     LangSeparationAndCleaning,
+    TaskDeduplication,
     ComputeMinhashes,
     MinhashBuckets,
     JaccardMapBuckets,
@@ -45,6 +46,7 @@ from nemo_launcher.core.stages import (
     PromptLearning,
     Training,
     SteerLMRegSFT,
+    ConversionHF2NeMo,
 )
 
 omegaconf.OmegaConf.register_new_resolver("multiply", lambda x, y: x * y, replace=True)
@@ -63,6 +65,7 @@ STR2STAGECLASS = {
     "adapter_learning": AdapterLearning,
     "ia3_learning": IA3Learning,
     "conversion": Conversion,
+    "conversion_hf2nemo": ConversionHF2NeMo,
     "export": Export,
     "evaluation": {
         EvalHarnessEvaluation: ["gpt3", "prompt_gpt3", "llama", "prompt_llama"],
@@ -87,6 +90,7 @@ STR2STAGECLASS = {
     "rlhf_ppo": RLHFPPO,
     "quality_filtering": QualityFiltering,
     "lang_separation_and_cleaning": LangSeparationAndCleaning,
+    "task_deduplication": TaskDeduplication,
     "steerlm_reg": SteerLMRegSFT,
     "compute_minhashes": ComputeMinhashes,
     "minhash_buckets": MinHashBuckets,
