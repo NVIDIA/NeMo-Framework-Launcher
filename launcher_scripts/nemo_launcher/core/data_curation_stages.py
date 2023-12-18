@@ -917,6 +917,7 @@ class ConnectedComponent(DataCurationStage):
 
         return command_groups
 
+
 class FuzzyDeduplication(NemoMegatronStage):
     """Stage class for running all parts of language separation and cleaning"""
 
@@ -990,7 +991,9 @@ class WriteDedupedResultWithText(DataCurationStage):
         )
 
         runscript = " \\\n  ".join(["write_deduped_result_with_text", *args])
-        runscript_path = os.path.join(self.results_folder, "write_deduped_result_with_text.sh")
+        runscript_path = os.path.join(
+            self.results_folder, "write_deduped_result_with_text.sh"
+        )
 
         with open(runscript_path, "w") as f:
             f.write(runscript)
@@ -1030,7 +1033,9 @@ class VerifyAllPairsJaccard(DataCurationStage):
         )
 
         runscript = " \\\n  ".join(["verify_all_pairs_jaccard", *args])
-        runscript_path = os.path.join(self.results_folder, "verify_all_pairs_jaccard.sh")
+        runscript_path = os.path.join(
+            self.results_folder, "verify_all_pairs_jaccard.sh"
+        )
 
         with open(runscript_path, "w") as f:
             f.write(runscript)
@@ -1042,4 +1047,3 @@ class VerifyAllPairsJaccard(DataCurationStage):
         command_groups = clean_command_groups(command_groups)
 
         return command_groups
-
