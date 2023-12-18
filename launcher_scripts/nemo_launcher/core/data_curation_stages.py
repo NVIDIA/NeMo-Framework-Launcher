@@ -917,6 +917,52 @@ class ConnectedComponent(DataCurationStage):
 
         return command_groups
 
+class FuzzyDeduplication(NemoMegatronStage):
+    """Stage class for running all parts of language separation and cleaning"""
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.log_folder = Path()
+        self.conf_folder = Path()
+        self.STR2SUBSTAGECLASS = {
+            "compute_minhashes": ComputeMinhashes,
+            "minhash_buckets": MinhashBuckets,
+            "jaccard_map_buckets": JaccardMapBuckets,
+            "jaccard_shuffle": JaccardShuffe,
+            "jaccard_compute": FindMatchingNgrams,
+            "connected_component": ConnectedComponent,
+        }
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "fuzzy_deduplication"
+        self.stage_cfg = cfg.get("fuzzy_deduplication")
+
+    def run(self) -> str:
+        """
+        Run current stage including all of the substages,
+        returns job id on slurm based system otherwise empty string
+
+        :return: job id on slurm based system otherwise empty string
+        :rtype: str
+        """
+        # Create the job folders
+        self.setup_folder_and_data()
+
+        job_id = ""
+        for sub_stage_name in self.stage_cfg.keys():
+            if sub_stage_name != "run":
+                sub_stage_class = self.STR2SUBSTAGECLASS[sub_stage_name]
+                # Create the sub-stage
+                sub_stage = sub_stage_class(self.cfg)
+                if job_id:
+                    dependency = f"aftercorr:{job_id}"
+                    sub_stage.stage_cfg["run"]["dependency"] = dependency
+                # Launch the sub-stage
+                job_id = sub_stage.run()
+
+        return job_id
+
 
 class WriteDedupedResultWithText(DataCurationStage):
     def __init__(self, cfg):

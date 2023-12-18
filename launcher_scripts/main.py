@@ -21,12 +21,7 @@ from nemo_launcher.core.data_curation_stages import (
     QualityFiltering,
     LangSeparationAndCleaning,
     TaskDeduplication,
-    ComputeMinhashes,
-    MinhashBuckets,
-    JaccardMapBuckets,
-    JaccardShuffle,
-    JaccardCompute,
-    ConnectedComponent,
+    FuzzyDeduplication,
 )
 from nemo_launcher.core.data_stages import (
     CustomDataPreparation,
@@ -92,12 +87,7 @@ STR2STAGECLASS = {
     "lang_separation_and_cleaning": LangSeparationAndCleaning,
     "task_deduplication": TaskDeduplication,
     "steerlm_reg": SteerLMRegSFT,
-    "compute_minhashes": ComputeMinhashes,
-    "minhash_buckets": MinHashBuckets,
-    "jaccard_map_buckets": JaccardMapBuckets,
-    "jaccard_shuffle": JaccardShuffle,
-    "jaccard_compute": JaccardCompute,
-    "connected_component": ConnectedComponent,
+    "fuzzy_deduplication": FuzzyDeduplication,
 }
 
 
