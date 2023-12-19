@@ -707,7 +707,7 @@ class ComputeMinhashes(DataCurationStage):
         return command_groups
 
 
-class MinHashBuckets(DataCurationStage):
+class MinhashBuckets(DataCurationStage):
     def __init__(self, cfg):
         super().__init__(cfg)
 
