@@ -669,7 +669,7 @@ class ComputeMinhashes(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "compute_minhashes"
-        self.stage_cfg = cfg.get("compute_minhashes")
+        self.stage_cfg = cfg["fuzzy_deduplication"].get("compute_minhashes")
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -714,7 +714,7 @@ class MinhashBuckets(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "minhash_buckets"
-        self.stage_cfg = cfg.get("minhash_buckets")
+        self.stage_cfg = cfg["fuzzy_deduplication"].get("minhash_buckets")
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -756,7 +756,7 @@ class JaccardMapBuckets(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "jaccard_map_buckets"
-        self.stage_cfg = cfg.get("jaccard_map_buckets")
+        self.stage_cfg = cfg["fuzzy_deduplication"].get("jaccard_map_buckets")
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -797,7 +797,7 @@ class JaccardShuffle(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "jaccard_shuffle"
-        self.stage_cfg = cfg.get("jaccard_shuffle")
+        self.stage_cfg = cfg["fuzzy_deduplication"].get("jaccard_shuffle")
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -840,7 +840,7 @@ class JaccardCompute(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "jaccard_compute"
-        self.stage_cfg = cfg.get("jaccard_compute")
+        self.stage_cfg = cfg["fuzzy_deduplication"].get("jaccard_compute")
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -880,7 +880,7 @@ class ConnectedComponent(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "connected_component"
-        self.stage_cfg = cfg.get("connected_component")
+        self.stage_cfg = cfg["fuzzy_deduplication"].get("connected_component")
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -919,7 +919,7 @@ class WriteDedupedResultWithText(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "write_deduped_result_with_text"
-        self.stage_cfg = cfg.get("write_deduped_result_with_text")
+        self.stage_cfg = cfg["fuzzy_deduplication"].get("write_deduped_result_with_text")
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -960,7 +960,7 @@ class VerifyAllPairsJaccard(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "verify_all_pairs_jaccard"
-        self.stage_cfg = cfg.get("verify_all_pairs_jaccard")
+        self.stage_cfg = cfg["fuzzy_deduplication"].get("verify_all_pairs_jaccard")
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -1005,7 +1005,7 @@ class FuzzyDeduplication(NemoMegatronStage):
             "compute_minhashes": ComputeMinhashes,
             "minhash_buckets": MinhashBuckets,
             "jaccard_map_buckets": JaccardMapBuckets,
-            "jaccard_shuffle": JaccardShuffe,
+            "jaccard_shuffle": JaccardShuffle,
             "jaccard_compute": FindMatchingNgrams,
             "connected_component": ConnectedComponent,
             "write_deduped_result_with_text": WriteDedupedResultWithText,
