@@ -549,6 +549,7 @@ class FindMatchingNgrams(DataCurationSubStage):
         optional_args = {
             "min_ngram_size": stage_cfg.get("min_ngram_size"),
             "max_ngram_size": stage_cfg.get("max_ngram_size"),
+            "input_json_text_field": stage_cfg.get("input_json_text_field"),
         }
 
         # Remove any arguments that are not specified
@@ -597,6 +598,19 @@ class RemoveMatchingNgrams(DataCurationSubStage):
         # Write out the filter configuration as a separate config file
         command_groups = [[]]
 
+        # If certain arguments are not specified, we remove them from the list
+        optional_args = {
+            "input_json_text_field": stage_cfg.get("input_json_text_field"),
+            "match_threshold": stage_cfg.get("match_threshold"),
+            "max_document_splits": stage_cfg.get("max_document_splits"),
+            "remove_split_docs": stage_cfg.get("remove_split_docs"),
+        }
+
+        # Remove any arguments that are not specified
+        optional_args = {
+            arg: optional_args[arg] for arg in optional_args if optional_args[arg]
+        }
+
         output_dir = stage_cfg.get("output_task_deduped_dir")
 
         # Create the list of arguments for the command
@@ -606,6 +620,7 @@ class RemoveMatchingNgrams(DataCurationSubStage):
             input_data_dir=self.memory.data_dir,
             input_matched_ngrams=self.memory.ngrams_path,
             output_task_deduped_dir=output_dir,
+            **optional_args,
         )
 
         self.memory.data_dir = output_dir
