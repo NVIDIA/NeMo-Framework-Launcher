@@ -919,7 +919,9 @@ class WriteDedupedResultWithText(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "write_deduped_result_with_text"
-        self.stage_cfg = cfg["fuzzy_deduplication"].get("write_deduped_result_with_text")
+        self.stage_cfg = cfg["fuzzy_deduplication"].get(
+            "write_deduped_result_with_text"
+        )
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
