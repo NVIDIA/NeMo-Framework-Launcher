@@ -25,6 +25,7 @@ conda activate rapids;
 # #cd /workspace/rapids-deduplication/rapids_deduplication/deduplication
 # #-----#
 
+#pip install /home/cjarrett/rapids-deduplication
 
 # Env vars
 export RAPIDS_NO_INITIALIZE="1"

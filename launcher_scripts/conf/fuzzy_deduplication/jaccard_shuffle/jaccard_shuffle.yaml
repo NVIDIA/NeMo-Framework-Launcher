@@ -1,19 +1,19 @@
 run:
   name: 'jaccard-shuffle'
   results_dir: ${base_results_dir}/${.name}
-  time_limit: "08:00:00"
+  time_limit: "02:00:00"
   dependency: "singleton"
   nodes: 2
-  partition:
+  partition: luna
 
 dask:
   pool_size: 72GiB
   protocol: ucx
   interface: ibp12s0
 
-input_bucket_mapping_dir: 
+input_bucket_mapping_dir: ${base_results_dir}/anchor_docs_with_bk.parquet
 num_files: -1
 text_ddf_blocksize: 512
-input_data_dirs: 
-output_dir: 
+input_data_dirs: /lustre/fsw/rapids/cjarrett/data/dedup_test_rapids 
+output_dir: ${base_results_dir}
 parts_per_worker: 2

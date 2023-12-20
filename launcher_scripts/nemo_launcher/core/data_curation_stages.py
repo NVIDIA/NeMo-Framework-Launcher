@@ -686,13 +686,13 @@ class ComputeMinhashes(DataCurationStage):
             char_ngram=stage_cfg.get("char_ngram"),
             hash_bytes=stage_cfg.get("hash_bytes"),
             seed=stage_cfg.get("seed"),
-            output_minhash_dir=self.results_folder / "minhashes",
+            output_minhash_dir=stage_cfg.get("output_minhash_dir"),
             num_files=stage_cfg.get("num_files"),
             files_per_partition=stage_cfg.get("files_per_partition"),
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["gpu_compute_minhashes", *args])
+        runscript = " \\\n  ".join(["python3 -u /home/cjarrett/rapids-deduplication/rapids_deduplication/deduplication/compute_minhashes.py", *args])
         runscript_path = os.path.join(self.results_folder, "compute_minhashes.sh")
 
         with open(runscript_path, "w") as f:
@@ -728,13 +728,14 @@ class MinhashBuckets(DataCurationStage):
             log_dir=self.log_folder,
             input_data_dirs=stage_cfg.get("input_data_dirs"),
             minhash_length=stage_cfg.get("minhash_length"),
-            output_bucket_dir=self.results_folder,
+            output_bucket_dir=stage_cfg.get("output_bucket_dir"),
             num_bands=stage_cfg.get("num_bands"),
             buckets_per_shuffle=stage_cfg.get("buckets_per_shuffle"),
+            protocol=self.stage_cfg.get("dask").get("protocol"),
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["minhash_buckets", *args])
+        runscript = " \\\n  ".join(["python3 -u /home/cjarrett/rapids-deduplication/rapids_deduplication/deduplication/minhash_buckets.py", *args])
         runscript_path = os.path.join(self.results_folder, "minhash_buckets.sh")
 
         with open(runscript_path, "w") as f:
@@ -771,11 +772,11 @@ class JaccardMapBuckets(DataCurationStage):
             input_data_dirs=stage_cfg.get("input_data_dirs"),
             input_bucket_dir=stage_cfg.get("input_bucket_dir"),
             text_ddf_blocksize=stage_cfg.get("text_ddf_blocksize"),
-            output_dir=self.results_folder,
+            output_dir=stage_cfg.get("output_dir"),
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["jaccard_map_buckets", *args])
+        runscript = " \\\n  ".join(["python3 -u /home/cjarrett/rapids-deduplication/rapids_deduplication/deduplication/jaccard_map_buckets.py", *args])
         runscript_path = os.path.join(self.results_folder, "jaccard_map_buckets.sh")
 
         with open(runscript_path, "w") as f:
@@ -810,15 +811,14 @@ class JaccardShuffle(DataCurationStage):
             replace_underscore=True,
             log_dir=self.log_folder,
             input_data_dirs=stage_cfg.get("input_data_dirs"),
-            input_bucket_mapping_dir=self.results_folder
-            / "anchor_docs_with_bk.parquet",
+            input_bucket_mapping_dir=stage_cfg.get("input_bucket_mapping_dir"),
             text_ddf_blocksize=stage_cfg.get("text_ddf_blocksize"),
-            output_dir=self.results_folder,
+            output_dir=stage_cfg.get("output_dir"),
             parts_per_worker=stage_cfg.get("parts_per_worker"),
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["jaccard_shuffle", *args])
+        runscript = " \\\n  ".join(["python3 -u /home/cjarrett/rapids-deduplication/rapids_deduplication/deduplication/jaccard_shuffle.py", *args])
         runscript_path = os.path.join(self.results_folder, "jaccard_shuffle.sh")
 
         with open(runscript_path, "w") as f:
@@ -852,13 +852,14 @@ class JaccardCompute(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            output_dir=self.results_folder,
+            shuffled_docs_path=stage_cfg.get("shuffled_docs_path"),
+            output_dir=stage_cfg.get("output_dir"),
             num_files=stage_cfg.get("num_files"),
             files_per_partition=stage_cfg.get("files_per_partition"),
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["jaccard_compute", *args])
+        runscript = " \\\n  ".join(["python3 -u /home/cjarrett/rapids-deduplication/rapids_deduplication/deduplication/jaccard_compute.py", *args])
         runscript_path = os.path.join(self.results_folder, "jaccard_compute.sh")
 
         with open(runscript_path, "w") as f:
@@ -892,12 +893,13 @@ class ConnectedComponent(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            output_dir=self.results_folder / "cc_output",
-            cache_dir=self.results_folder / "cc_cache",
+            jaccard_pairs_path=stage_cfg.get("jaccard_pairs_path"),
+            output_dir=stage_cfg.get("cc_output"),
+            cache_dir=stage_cfg.get("cc_cache"),
             scheduler_file=self.results_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["gpu_onnected_component", *args])
+        runscript = " \\\n  ".join(["python3 -u /home/cjarrett/rapids-deduplication/rapids_deduplication/deduplication/connected_component.py", *args])
         runscript_path = os.path.join(self.results_folder, "connected_component.sh")
 
         with open(runscript_path, "w") as f:
@@ -1008,7 +1010,7 @@ class FuzzyDeduplication(NemoMegatronStage):
             "minhash_buckets": MinhashBuckets,
             "jaccard_map_buckets": JaccardMapBuckets,
             "jaccard_shuffle": JaccardShuffle,
-            "jaccard_compute": FindMatchingNgrams,
+            "jaccard_compute": JaccardCompute,
             "connected_component": ConnectedComponent,
             "write_deduped_result_with_text": WriteDedupedResultWithText,
             "verify_all_pairs_jaccard": VerifyAllPairsJaccard,
