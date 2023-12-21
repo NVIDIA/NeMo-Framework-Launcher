@@ -1320,6 +1320,8 @@ class NeMoEvaluation(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_eval.py",
             "peft_llama": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            "peft_falcon": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py"
         }
         return model_type_to_code_path[model_type]
 
