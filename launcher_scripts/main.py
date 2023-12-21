@@ -76,7 +76,7 @@ STR2STAGECLASS = {
         ],
     },
     "data_preparation": {
-        PileDataPreparation: ["gpt3", "t5", "bert", "llama"],
+        PileDataPreparation: ["gpt3", "t5", "bert", "llama", "falcon"],
         MC4DataPreparation: ["mt5"],
         CustomDataPreparation: ["generic"],
     },
