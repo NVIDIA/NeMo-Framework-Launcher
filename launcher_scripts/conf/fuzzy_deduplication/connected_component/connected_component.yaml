@@ -4,13 +4,13 @@ run:
   time_limit: "02:00:00"
   dependency: "singleton"
   nodes: 2
-  partition: luna
+  partition: 
 
 dask:
   pool_size: 72GiB
   protocol: ucx
   interface: ibp12s0
 
-jaccard_pairs_path: ${base_results_dir}/dedup_final_results.parquet
-output_dir: ${base_results_dir}/cc_output
-cache_dir: ${base_results_dir}/cc_cache
+jaccard_pairs_path: ${fuzzy_deduplication.run.results_dir}/dedup_final_results.parquet
+output_dir: ${fuzzy_deduplication.run.results_dir}/cc_output
+cache_dir: ${fuzzy_deduplication.run.results_dir}/cc_cache

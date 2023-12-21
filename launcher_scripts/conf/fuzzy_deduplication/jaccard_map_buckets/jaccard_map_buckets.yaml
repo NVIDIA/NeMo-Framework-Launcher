@@ -4,15 +4,15 @@ run:
   time_limit: "02:00:00"
   dependency: "singleton"
   nodes: 2
-  partition: luna
+  partition: 
 
 dask:
   pool_size: 72GiB
   protocol: ucx
   interface: ibp12s0
 
-input_bucket_dir: ${base_results_dir}/buckets.parquet 
+input_bucket_dir: ${fuzzy_deduplication.run.results_dir}/buckets.parquet 
 num_files: -1
 text_ddf_blocksize: 512
-input_data_dirs: /lustre/fsw/rapids/cjarrett/data/dedup_test_rapids
-output_dir: ${base_results_dir}
+input_data_dirs: 
+output_dir: ${fuzzy_deduplication.run.results_dir}

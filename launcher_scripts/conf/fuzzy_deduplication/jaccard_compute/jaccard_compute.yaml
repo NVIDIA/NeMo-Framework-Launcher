@@ -4,14 +4,14 @@ run:
   time_limit: "02:00:00"
   dependency: "singleton"
   nodes: 2
-  partition: luna
+  partition: 
 
 dask:
   pool_size: 72GiB
   protocol: ucx
   interface: ibp12s0
 
-shuffled_docs_path: ${base_results_dir}/shuffled_docs.parquet
-output_dir: ${base_results_dir}
+shuffled_docs_path: ${fuzzy_deduplication.run.results_dir}/shuffled_docs.parquet
+output_dir: ${fuzzy_deduplication.run.results_dir}
 files_per_partition: 5
 num_files: -1

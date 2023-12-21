@@ -1,31 +1,5 @@
-# export JOB_DIR=rapids-dedup-scripts/DEDUP-$TODAY
-# export FULL_OUTPUT_DIR=$HOME/$JOB_DIR
-# export LOGDIR=$FULL_OUTPUT_DIR/logs
-# export PROFILESDIR=$FULL_OUTPUT_DIR/profiles
-# RUNSCRIPT=${RUNSCRIPT:-$HOME/prospector-lm/run-minhash-cluster.sh}
-# echo $RUNSCRIPT
-# mkdir -p $LOGDIR
-# mkdir -p $PROFILESDIR
-
-
 source /opt/conda/etc/profile.d/conda.sh;
 conda activate rapids;
-
-# # extra code for home dir run
-# cd /
-# rm -r /workspace/rapids-deduplication
-# pip uninstall rapids-deduplication -y
-# rm -rf /workspace/rapids-deduplication
-# cp -r ~/rapids-deduplication/ /
-# cd /rapids-deduplication/
-
-# pip install --no-cache-dir .
-# sleep 20
-# cd /rapids-deduplication/rapids_deduplication/deduplication
-# #cd /workspace/rapids-deduplication/rapids_deduplication/deduplication
-# #-----#
-
-#pip install /home/cjarrett/rapids-deduplication
 
 # Env vars
 export RAPIDS_NO_INITIALIZE="1"

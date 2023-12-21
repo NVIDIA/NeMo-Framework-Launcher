@@ -1,13 +1,15 @@
 run:
   name: 'verify-all-pairs-jaccard'
   results_dir: ${base_results_dir}/${.name}
-  time_limit: "08:00:00"
+  time_limit: "02:00:00"
   dependency: "singleton"
-  nodes:
-  partition:
+  nodes: 2
+  partition: 
 
 dask:
-  pool_size: 72GiB
+  pool_size: 2GiB
   protocol: ucx
   interface: ibp12s0
 
+output_dir: ${fuzzy_deduplication.run.results_dir}/cc_output
+cache_dir: ${fuzzy_deduplication.run.results_dir}/cc_cache

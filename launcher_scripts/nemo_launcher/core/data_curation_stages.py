@@ -35,13 +35,13 @@ class DataCurationStage(NemoMegatronStage):
         job_path = self.get_job_path()
         job_path.folder.mkdir(parents=True, exist_ok=True)
         # make the results dir
-        self.results_folder = job_path.results_folder
-        self.results_folder.mkdir(parents=True, exist_ok=True)
+        results_folder = job_path.results_folder
+        results_folder.mkdir(parents=True, exist_ok=True)
         # make the log dir
-        self.log_folder = Path(self.results_folder, "log")
+        self.log_folder = Path(results_folder, "log")
         self.log_folder.mkdir(parents=True, exist_ok=True)
         # Make the conf dir
-        self.conf_folder = Path(self.results_folder, "config")
+        self.conf_folder = Path(results_folder, "config")
         self.conf_folder.mkdir(parents=True, exist_ok=True)
 
     def _make_cluster_parameters(self, cluster: str) -> Dict:
@@ -142,7 +142,7 @@ class DataCurationStage(NemoMegatronStage):
         dask_config = self.stage_cfg.get("dask")
 
         command_string = []
-        command_string.append(f"LOGDIR={self.results_folder}")
+        command_string.append(f"LOGDIR={self.log_folder}")
         command_string.append(f"RUNSCRIPT={runscript_path}")
 
         pool_size = dask_config.get("pool_size")
@@ -689,11 +689,11 @@ class ComputeMinhashes(DataCurationStage):
             output_minhash_dir=stage_cfg.get("output_minhash_dir"),
             num_files=stage_cfg.get("num_files"),
             files_per_partition=stage_cfg.get("files_per_partition"),
-            scheduler_file=self.results_folder / "scheduler.json",
+            scheduler_file=self.log_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["python3 -u /home/cjarrett/rapids-deduplication/rapids_deduplication/deduplication/compute_minhashes.py", *args])
-        runscript_path = os.path.join(self.results_folder, "compute_minhashes.sh")
+        runscript = " \\\n  ".join(["gpu_compute_minhashes", *args])
+        runscript_path = os.path.join(self.log_folder, "compute_minhashes.sh")
 
         with open(runscript_path, "w") as f:
             f.write(runscript)
@@ -731,12 +731,12 @@ class MinhashBuckets(DataCurationStage):
             output_bucket_dir=stage_cfg.get("output_bucket_dir"),
             num_bands=stage_cfg.get("num_bands"),
             buckets_per_shuffle=stage_cfg.get("buckets_per_shuffle"),
-            protocol=self.stage_cfg.get("dask").get("protocol"),
-            scheduler_file=self.results_folder / "scheduler.json",
+            protocol=stage_cfg.get("dask").get("protocol"),
+            scheduler_file=self.log_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["python3 -u /home/cjarrett/rapids-deduplication/rapids_deduplication/deduplication/minhash_buckets.py", *args])
-        runscript_path = os.path.join(self.results_folder, "minhash_buckets.sh")
+        runscript = " \\\n  ".join(["minhash_buckets", *args])
+        runscript_path = os.path.join(self.log_folder, "minhash_buckets.sh")
 
         with open(runscript_path, "w") as f:
             f.write(runscript)
@@ -773,11 +773,11 @@ class JaccardMapBuckets(DataCurationStage):
             input_bucket_dir=stage_cfg.get("input_bucket_dir"),
             text_ddf_blocksize=stage_cfg.get("text_ddf_blocksize"),
             output_dir=stage_cfg.get("output_dir"),
-            scheduler_file=self.results_folder / "scheduler.json",
+            scheduler_file=self.log_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["python3 -u /home/cjarrett/rapids-deduplication/rapids_deduplication/deduplication/jaccard_map_buckets.py", *args])
-        runscript_path = os.path.join(self.results_folder, "jaccard_map_buckets.sh")
+        runscript = " \\\n  ".join(["jaccard_map_buckets", *args])
+        runscript_path = os.path.join(self.log_folder, "jaccard_map_buckets.sh")
 
         with open(runscript_path, "w") as f:
             f.write(runscript)
@@ -815,11 +815,11 @@ class JaccardShuffle(DataCurationStage):
             text_ddf_blocksize=stage_cfg.get("text_ddf_blocksize"),
             output_dir=stage_cfg.get("output_dir"),
             parts_per_worker=stage_cfg.get("parts_per_worker"),
-            scheduler_file=self.results_folder / "scheduler.json",
+            scheduler_file=self.log_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["python3 -u /home/cjarrett/rapids-deduplication/rapids_deduplication/deduplication/jaccard_shuffle.py", *args])
-        runscript_path = os.path.join(self.results_folder, "jaccard_shuffle.sh")
+        runscript = " \\\n  ".join(["jaccard_shuffle", *args])
+        runscript_path = os.path.join(self.log_folder, "jaccard_shuffle.sh")
 
         with open(runscript_path, "w") as f:
             f.write(runscript)
@@ -856,11 +856,11 @@ class JaccardCompute(DataCurationStage):
             output_dir=stage_cfg.get("output_dir"),
             num_files=stage_cfg.get("num_files"),
             files_per_partition=stage_cfg.get("files_per_partition"),
-            scheduler_file=self.results_folder / "scheduler.json",
+            scheduler_file=self.log_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["python3 -u /home/cjarrett/rapids-deduplication/rapids_deduplication/deduplication/jaccard_compute.py", *args])
-        runscript_path = os.path.join(self.results_folder, "jaccard_compute.sh")
+        runscript = " \\\n  ".join(["jaccard_compute", *args])
+        runscript_path = os.path.join(self.log_folder, "jaccard_compute.sh")
 
         with open(runscript_path, "w") as f:
             f.write(runscript)
@@ -894,13 +894,13 @@ class ConnectedComponent(DataCurationStage):
             replace_underscore=True,
             log_dir=self.log_folder,
             jaccard_pairs_path=stage_cfg.get("jaccard_pairs_path"),
-            output_dir=stage_cfg.get("cc_output"),
-            cache_dir=stage_cfg.get("cc_cache"),
-            scheduler_file=self.results_folder / "scheduler.json",
+            output_dir=stage_cfg.get("output_dir"),
+            cache_dir=stage_cfg.get("cache_dir"),
+            scheduler_file=self.log_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["python3 -u /home/cjarrett/rapids-deduplication/rapids_deduplication/deduplication/connected_component.py", *args])
-        runscript_path = os.path.join(self.results_folder, "connected_component.sh")
+        runscript = " \\\n  ".join(["gpu_connected_component", *args])
+        runscript_path = os.path.join(self.log_folder, "connected_component.sh")
 
         with open(runscript_path, "w") as f:
             f.write(runscript)
@@ -936,13 +936,12 @@ class WriteDedupedResultWithText(DataCurationStage):
             replace_underscore=True,
             log_dir=self.log_folder,
             original_path=stage_cfg.get("input_data_dirs"),
-            output_dir=self.results_folder / "cc_output",
-            scheduler_file=self.results_folder / "scheduler.json",
+            output_dir=stage_cfg.get("output_dir"),
         )
 
         runscript = " \\\n  ".join(["write_deduped_result_with_text", *args])
         runscript_path = os.path.join(
-            self.results_folder, "write_deduped_result_with_text.sh"
+            self.log_folder, "write_deduped_result_with_text.sh"
         )
 
         with open(runscript_path, "w") as f:
@@ -976,14 +975,14 @@ class VerifyAllPairsJaccard(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            output_dir=self.results_folder / "cc_output",
-            cache_dir=self.results_folder / "cc_cache",
-            scheduler_file=self.results_folder / "scheduler.json",
+            output_dir=stage_cfg.get("output_dir"),
+            cache_dir=stage_cfg.get("cache_dir"),
+            scheduler_file=self.log_folder / "scheduler.json",
         )
 
         runscript = " \\\n  ".join(["verify_all_pairs_jaccard", *args])
         runscript_path = os.path.join(
-            self.results_folder, "verify_all_pairs_jaccard.sh"
+            self.log_folder, "verify_all_pairs_jaccard.sh"
         )
 
         with open(runscript_path, "w") as f:

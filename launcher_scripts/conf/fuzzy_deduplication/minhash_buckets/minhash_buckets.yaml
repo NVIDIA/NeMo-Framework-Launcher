@@ -4,15 +4,15 @@ run:
   time_limit: "02:00:00"
   dependency: "singleton"
   nodes: 2
-  partition: luna
+  partition: 
 
 dask:
   pool_size: 72GiB
   protocol: ucx
   interface: ibp12s0
 
-input_data_dirs: ${base_results_dir}/dedup_test_rapids/minhashes.parquet
+input_data_dirs: ${fuzzy_deduplication.run.results_dir}/dedup_test_rapids/minhashes.parquet
 minhash_length: 260
 num_bands: 20
 buckets_per_shuffle: 10
-output_bucket_dir: ${base_results_dir}
+output_bucket_dir: ${fuzzy_deduplication.run.results_dir}

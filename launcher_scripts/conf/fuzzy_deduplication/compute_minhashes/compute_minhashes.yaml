@@ -4,18 +4,18 @@ run:
   time_limit: "02:00:00"
   dependency: "singleton"
   nodes: 2
-  partition: luna
+  partition: 
 
 dask:
   pool_size: 72GiB
   protocol: ucx
   interface: ibp12s0
 
-input_data_dirs: /lustre/fsw/rapids/cjarrett/data/dedup_test_rapids/
+input_data_dirs: 
 minhash_length: 260
 char_ngram: 5
 hash_bytes: 4
 seed: 42
 num_files: -1
 files_per_partition: 10
-output_minhash_dir: ${base_results_dir}
+output_minhash_dir: ${fuzzy_deduplication.run.results_dir} 
