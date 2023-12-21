@@ -981,9 +981,7 @@ class VerifyAllPairsJaccard(DataCurationStage):
         )
 
         runscript = " \\\n  ".join(["verify_all_pairs_jaccard", *args])
-        runscript_path = os.path.join(
-            self.log_folder, "verify_all_pairs_jaccard.sh"
-        )
+        runscript_path = os.path.join(self.log_folder, "verify_all_pairs_jaccard.sh")
 
         with open(runscript_path, "w") as f:
             f.write(runscript)
