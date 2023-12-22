@@ -1,6 +1,6 @@
 run:
   name: eval_${.task_name}_${.model_train_name}
-  time_limit: "04:00:00"
+  time_limit: "01:00:00"
   dependency: "singleton"
   convert_name: convert_nemo
   model_train_name: falcon_7b
@@ -23,7 +23,7 @@ trainer:
 exp_manager:
   explicit_log_dir: ${evaluation.run.results_dir}/results
   exp_dir: null
-  name: megatron_t5_${evaluation.run.task_name}_eval
+  name: megatron_falcon_${evaluation.run.task_name}_eval
   create_checkpoint_callback: False
 
 model:
@@ -33,7 +33,7 @@ model:
 
   global_batch_size: 32
   micro_batch_size: 4
-  restore_from_path: ${evaluation.run.convert_dir}/results/megatron_falcon.nemo # Path to converted falcon.nemo file
+  restore_from_path: ${peft.run.convert_dir}/results/megatron_falcon.nemo # Path to an existing .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null
   save_nemo_on_validation_end: True
   sync_batch_comm: False
@@ -53,8 +53,8 @@ model:
   ffn_dropout: 0.0
 
   peft:
-    peft_scheme: "ptuning"  # can be either adapter,ia3, or ptuning
-    restore_from_path: ${evaluation.run.fine_tuning_dir}/${.peft_scheme}/megatron_falcon_peft_tuning-${.peft_scheme}/checkpoints/megatron_falcon_peft_tuning-{.peft_scheme}.nemo
+    peft_scheme: "lora"  # can be either lora or ptuning
+    restore_from_path: ${evaluation.run.fine_tuning_dir}/checkpoints/megatron_falcon_peft_tuning-${.peft_scheme}.nemo
     restore_from_ckpt_name: null
     restore_from_hparams_path: null
 
