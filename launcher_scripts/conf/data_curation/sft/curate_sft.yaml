@@ -12,15 +12,11 @@ gpu_config:
 
 stages:
   - task_deduplication
-  - filter_quality
 
 task_deduplication:
   - prepare_task_data
   - find_matching_ngrams
   - remove_matching_ngrams
-
-filter_quality:
-  - quality_filtering
 
 dataset_name: sft
 
@@ -28,7 +24,6 @@ defaults:
   - sft/prepare_task_data/prepare_task_data
   - sft/find_matching_ngrams/find_matching_ngrams
   - sft/remove_matching_ngrams/remove_matching_ngrams
-  - sft/quality_filtering/heuristic/english
 
 special:
   choose_language:

@@ -214,6 +214,7 @@ class QualityFiltering(DataCurationSubStage):
         optional_args = {
             "output_removed_document_dir": stage_cfg.get("output_removed_document_dir"),
             "output_document_score_dir": stage_cfg.get("output_document_score_dir"),
+            "input_json_field": stage_cfg.get("input_json_field"),
         }
 
         # Remove any arguments that are not specified
@@ -603,12 +604,11 @@ class RemoveMatchingNgrams(DataCurationSubStage):
             "input_json_text_field": stage_cfg.get("input_json_text_field"),
             "match_threshold": stage_cfg.get("match_threshold"),
             "max_document_splits": stage_cfg.get("max_document_splits"),
-            "remove_split_docs": stage_cfg.get("remove_split_docs"),
         }
 
         # Remove any arguments that are not specified
         optional_args = {
-            arg: optional_args[arg] for arg in optional_args if optional_args[arg]
+            arg: optional_args[arg] for arg in optional_args if arg in stage_cfg
         }
 
         output_dir = stage_cfg.get("output_task_deduped_dir")
@@ -650,6 +650,7 @@ class DataCurationStage(NemoMegatronStage):
             "find_matching_ngrams": FindMatchingNgrams,
             "remove_matching_ngrams": RemoveMatchingNgrams,
             "choose_language": ChooseLanguage,
+            "quality_filtering": QualityFiltering,
         }
 
     def setup_stage_vars(self, cfg):

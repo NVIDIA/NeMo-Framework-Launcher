@@ -39,7 +39,7 @@ defaults:
   - common_crawl/prepare_task_data/prepare_task_data
   - common_crawl/find_matching_ngrams/find_matching_ngrams
   - common_crawl/remove_matching_ngrams/remove_matching_ngrams
-  - common_crawl/quality_filtering/heuristic/english
+  - common_crawl/quality_filtering/heuristic_english
 
 special:
   choose_language:
