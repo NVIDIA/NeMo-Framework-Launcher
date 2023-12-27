@@ -1,11 +1,10 @@
 run:
   name: 'heuristic-filter-en'
   results_dir: ${base_results_dir}/${.name}
-  time_limit: "08:00:00"
   dependency: "singleton"
+  time_limit: "08:00:00"
   nodes: 1
-  partition:
-  cpus_per_node: 48
+  node_type: cpu
 
 # Provide the downloader, data loader and extraction modules that
 # define how the dataset will be built from the URLs
@@ -121,6 +120,6 @@ filter:
     # will stop at first filter that is triggered during the above defined pipeline
     stop_at_true: True
 
-input_dir: ${data_dir}/json/original
+# input_dir: ${data_dir}/json/original
 # Output directory to where filtered documents will be written
 output_retained_document_dir: ${data_dir}/json/filtered/high_quality

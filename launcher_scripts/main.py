@@ -17,11 +17,7 @@ import sys
 
 import hydra
 import omegaconf
-from nemo_launcher.core.data_curation_stages import (
-    QualityFiltering,
-    LangSeparationAndCleaning,
-    TaskDeduplication,
-)
+from nemo_launcher.core.data_curation_stages import DataCurationStage
 from nemo_launcher.core.data_stages import (
     CustomDataPreparation,
     MC4DataPreparation,
@@ -82,9 +78,7 @@ STR2STAGECLASS = {
     },
     "rlhf_rm": RLHFRewardModel,
     "rlhf_ppo": RLHFPPO,
-    "quality_filtering": QualityFiltering,
-    "lang_separation_and_cleaning": LangSeparationAndCleaning,
-    "task_deduplication": TaskDeduplication,
+    "data_curation": DataCurationStage,
     "steerlm_reg": SteerLMRegSFT,
 }
 
