@@ -81,6 +81,7 @@ class DataCurationSubStage(NemoMegatronStage):
         job_name = run_cfg.get("name")
         time_limit = run_cfg.get("time_limit")
         nodes = run_cfg.get("nodes")
+        dependency = run_cfg.get("dependency")
         # Allow for updating the partition as we might run
         # on CPU only nodes
         node_type = run_cfg.get("node_type")
@@ -115,6 +116,7 @@ class DataCurationSubStage(NemoMegatronStage):
             )
             cluster_params["job_name"] = job_name_prefix + cluster_params["job_name"]
             cluster_params["nodes"] = nodes
+            cluster_params["dependency"] = dependency
             cluster_params.update(node_config)
 
         return cluster_params
