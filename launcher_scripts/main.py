@@ -24,6 +24,7 @@ from nemo_launcher.core.data_curation_stages import (
 )
 from nemo_launcher.core.data_stages import (
     CustomDataPreparation,
+    HumanEvalDataPreparation,
     MC4DataPreparation,
     PileDataPreparation,
 )
@@ -79,6 +80,7 @@ STR2STAGECLASS = {
         PileDataPreparation: ["gpt3", "t5", "bert", "llama"],
         MC4DataPreparation: ["mt5"],
         CustomDataPreparation: ["generic"],
+        HumanEvalDataPreparation: ["code_llama"]
     },
     "rlhf_rm": RLHFRewardModel,
     "rlhf_ppo": RLHFPPO,

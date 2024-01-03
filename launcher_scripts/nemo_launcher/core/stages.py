@@ -872,6 +872,8 @@ class FineTuning(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "llama": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            "code_llama": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "mt5": self._nemo_code_path
