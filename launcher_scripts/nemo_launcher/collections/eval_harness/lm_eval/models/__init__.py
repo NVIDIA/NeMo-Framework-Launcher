@@ -14,7 +14,14 @@
 
 from lm_eval.base import LM
 
-from . import dummy, nemo_gpt3, nemo_gpt3_prompt, nemo_llama, nemo_llama_prompt, nemo_falcon
+from . import (
+    dummy,
+    nemo_gpt3,
+    nemo_gpt3_prompt,
+    nemo_llama,
+    nemo_llama_prompt,
+    nemo_falcon,
+)
 
 MODEL_REGISTRY = {
     "nemo-gpt3": nemo_gpt3.NeMo_GPT3LM_TP_PP,

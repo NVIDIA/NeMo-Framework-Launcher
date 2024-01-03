@@ -62,7 +62,13 @@ STR2STAGECLASS = {
     "conversion_hf2nemo": ConversionHF2NeMo,
     "export": Export,
     "evaluation": {
-        EvalHarnessEvaluation: ["gpt3", "prompt_gpt3", "llama", "prompt_llama", "falcon"],
+        EvalHarnessEvaluation: [
+            "gpt3",
+            "prompt_gpt3",
+            "llama",
+            "prompt_llama",
+            "falcon",
+        ],
         NeMoEvaluation: [
             "t5",
             "mt5",
@@ -73,7 +79,7 @@ STR2STAGECLASS = {
             "ia3_t5",
             "ia3_gpt3",
             "peft_llama",
-            "peft_falcon"
+            "peft_falcon",
         ],
     },
     "data_preparation": {
