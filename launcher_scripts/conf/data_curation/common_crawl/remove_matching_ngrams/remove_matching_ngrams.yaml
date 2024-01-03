@@ -1,0 +1,9 @@
+run:
+  name: 'remove-matching-ngrams'
+  results_dir: ${data_curation.run.results_dir}/${.name}
+  dependency: "singleton"
+  time_limit: "08:00:00"
+  nodes: 2
+  node_type: cpu
+
+output_task_deduped_dir: ${data_dir}/task_deduped
