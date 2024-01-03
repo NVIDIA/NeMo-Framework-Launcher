@@ -3,7 +3,7 @@ run:
   results_dir: ${data_curation.run.results_dir}/${.name}
   dependency: "singleton"
   time_limit: "04:00:00"
-  nodes: 2
+  nodes: 1
   node_type: cpu
 
 output_task_ngrams: ${.run.results_dir}/task_ngrams.pkl

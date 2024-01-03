@@ -120,6 +120,5 @@ filter:
     # will stop at first filter that is triggered during the above defined pipeline
     stop_at_true: True
 
-# input_dir: ${data_dir}/json/original
 # Output directory to where filtered documents will be written
 output_retained_document_dir: ${data_dir}/json/filtered/high_quality

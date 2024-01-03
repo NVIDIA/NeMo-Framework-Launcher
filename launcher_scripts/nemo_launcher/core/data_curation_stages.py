@@ -81,6 +81,7 @@ class DataCurationSubStage(NemoMegatronStage):
         job_name = run_cfg.get("name")
         time_limit = run_cfg.get("time_limit")
         nodes = run_cfg.get("nodes")
+        dependency = run_cfg.get("dependency")
         # Allow for updating the partition as we might run
         # on CPU only nodes
         node_type = run_cfg.get("node_type")
@@ -115,6 +116,7 @@ class DataCurationSubStage(NemoMegatronStage):
             )
             cluster_params["job_name"] = job_name_prefix + cluster_params["job_name"]
             cluster_params["nodes"] = nodes
+            cluster_params["dependency"] = dependency
             cluster_params.update(node_config)
 
         return cluster_params
@@ -214,6 +216,7 @@ class QualityFiltering(DataCurationSubStage):
         optional_args = {
             "output_removed_document_dir": stage_cfg.get("output_removed_document_dir"),
             "output_document_score_dir": stage_cfg.get("output_document_score_dir"),
+            "input_json_field": stage_cfg.get("input_json_field"),
         }
 
         # Remove any arguments that are not specified
@@ -549,6 +552,7 @@ class FindMatchingNgrams(DataCurationSubStage):
         optional_args = {
             "min_ngram_size": stage_cfg.get("min_ngram_size"),
             "max_ngram_size": stage_cfg.get("max_ngram_size"),
+            "input_json_text_field": stage_cfg.get("input_json_text_field"),
         }
 
         # Remove any arguments that are not specified
@@ -597,6 +601,18 @@ class RemoveMatchingNgrams(DataCurationSubStage):
         # Write out the filter configuration as a separate config file
         command_groups = [[]]
 
+        # If certain arguments are not specified, we remove them from the list
+        optional_args = {
+            "input_json_text_field": stage_cfg.get("input_json_text_field"),
+            "match_threshold": stage_cfg.get("match_threshold"),
+            "max_document_splits": stage_cfg.get("max_document_splits"),
+        }
+
+        # Remove any arguments that are not specified
+        optional_args = {
+            arg: optional_args[arg] for arg in optional_args if arg in stage_cfg
+        }
+
         output_dir = stage_cfg.get("output_task_deduped_dir")
 
         # Create the list of arguments for the command
@@ -606,6 +622,7 @@ class RemoveMatchingNgrams(DataCurationSubStage):
             input_data_dir=self.memory.data_dir,
             input_matched_ngrams=self.memory.ngrams_path,
             output_task_deduped_dir=output_dir,
+            **optional_args,
         )
 
         self.memory.data_dir = output_dir
@@ -635,6 +652,7 @@ class DataCurationStage(NemoMegatronStage):
             "find_matching_ngrams": FindMatchingNgrams,
             "remove_matching_ngrams": RemoveMatchingNgrams,
             "choose_language": ChooseLanguage,
+            "quality_filtering": QualityFiltering,
         }
 
     def setup_stage_vars(self, cfg):
