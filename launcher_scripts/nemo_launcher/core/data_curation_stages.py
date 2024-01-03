@@ -1,7 +1,9 @@
+import os
 import copy
 import shlex
 from pathlib import Path
 from typing import Dict, List
+from dataclasses import dataclass
 
 import omegaconf
 from nemo_launcher.core.launchers import AutoLauncher
@@ -12,18 +14,35 @@ from nemo_launcher.core.stages import (
 )
 
 
-class DataCurationStage(NemoMegatronStage):
+@dataclass
+class PipelineMemory:
     """
-    DataCurationStage is a base class for data curation stages.
+    PipelineMemory keeps track of all the directories for inputs and
+    outputs of the data curator. This allows flexible reordering of
+    the data curator substages without needing to manually adjust all
+    the input and output directories.
+    """
+
+    data_dir: str = None
+    nested_dir: str = None
+    # Should only be used for when the path needs to be passed between substages
+    filter_config_path: str = None
+    ngrams_path: str = None
+
+
+class DataCurationSubStage(NemoMegatronStage):
+    """
+    DataCurationSubStage is a base class for data curation sub stages.
     It can hold multiple sub-stages. For example, preparing data from
     Common Crawl requires download, extraction, deduplication and filtering.
     They have dependencies on each other and will be launched one by one.
     """
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, memory):
         super().__init__(cfg)
         self.log_folder = Path()
         self.conf_folder = Path()
+        self.memory = memory
 
     def setup_folder_and_data(self):
         """
@@ -64,10 +83,8 @@ class DataCurationStage(NemoMegatronStage):
         nodes = run_cfg.get("nodes")
         # Allow for updating the partition as we might run
         # on CPU only nodes
-        partition = run_cfg.get("partition")
-        dependency = run_cfg.get("dependency")
-        gpus_per_node = run_cfg.get("gpus_per_node")
-        constraint = run_cfg.get("constraint")
+        node_type = run_cfg.get("node_type")
+        node_config = cfg.get("data_curation").get(f"{node_type}_config")
 
         container_image = cfg.get("container")
         container_mounts = self._make_container_mounts_string()
@@ -98,10 +115,7 @@ class DataCurationStage(NemoMegatronStage):
             )
             cluster_params["job_name"] = job_name_prefix + cluster_params["job_name"]
             cluster_params["nodes"] = nodes
-            cluster_params["partition"] = partition
-            cluster_params["dependency"] = dependency
-            cluster_params["gpus_per_node"] = gpus_per_node
-            cluster_params["constraint"] = constraint
+            cluster_params.update(node_config)
 
         return cluster_params
 
@@ -137,17 +151,54 @@ class DataCurationStage(NemoMegatronStage):
 
         return job_id
 
+    def _get_sub_stage_confg(self, sub_stage_name):
+        dataset_name = self.cfg.get("data_curation").get("dataset_name")
+        sub_stage_config = (
+            self.cfg.get("data_curation").get(dataset_name).get(sub_stage_name)
+        )
+        return sub_stage_config
 
-class QualityFiltering(DataCurationStage):
-    """ DataCurationStage for performing quality filtering on documents """
 
-    def __init__(self, cfg):
-        super().__init__(cfg)
+class InitializeMemory:
+    """Dummy stage for initializing the PipelineMemory"""
+
+    def __init__(self, cfg, memory):
+        self.cfg = cfg
+        self.memory = memory
+
+    def run(self):
+        self.memory.data_dir = self.cfg.get("data_dir")
+
+
+class ChooseLanguage:
+    """Dummy stage for choosing a language"""
+
+    def __init__(self, cfg, memory):
+        self.cfg = cfg
+        self.memory = memory
+        self.stage_cfg = (
+            self.cfg.get("data_curation").get("special").get("choose_language")
+        )
+        with omegaconf.open_dict(self.stage_cfg):
+            self.stage_cfg.run = {"dependency": "singleton"}
+
+    def run(self):
+        lang = self.stage_cfg.get("language")
+        base_path = self.memory.nested_dir
+        self.memory.data_dir = os.path.join(base_path, lang)
+        self.memory.nested_dir = None
+
+
+class QualityFiltering(DataCurationSubStage):
+    """ DataCurationSubStage for performing quality filtering on documents """
+
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "quality_filtering"
-        self.stage_cfg = cfg.get("quality_filtering")
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -170,15 +221,19 @@ class QualityFiltering(DataCurationStage):
             arg: optional_args[arg] for arg in optional_args if optional_args[arg]
         }
 
+        output_dir = stage_cfg.get("output_retained_document_dir")
+
         # Create the list of arguments for the filter_documents command
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            input_data_dir=stage_cfg.get("input_dir"),
+            input_data_dir=self.memory.data_dir,
             filter_config_file=f"{filter_cfg}",
-            output_retained_document_dir=stage_cfg.get("output_retained_document_dir"),
+            output_retained_document_dir=output_dir,
             **optional_args,
         )
+
+        self.memory.data_dir = output_dir
 
         core_command = ["filter_documents", *args]
 
@@ -192,15 +247,19 @@ class QualityFiltering(DataCurationStage):
 class FastTextDownload(NemoMegatronStage):
     """Stage class of downloading the fastText model for language identification"""
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, memory):
         super().__init__(cfg)
         self.log_folder = Path()
         self.conf_folder = Path()
+        self.memory = memory
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "fasttext_download"
-        self.stage_cfg = cfg["lang_separation_and_cleaning"].get("fasttext_download")
+        dataset_name = self.cfg.get("data_curation").get("dataset_name")
+        self.stage_cfg = (
+            self.cfg.get("data_curation").get(dataset_name).get(self.stage_name)
+        )
 
     def _make_cluster_parameters(self, cluster: str,) -> Dict:
         """
@@ -223,9 +282,8 @@ class FastTextDownload(NemoMegatronStage):
         nodes = run_cfg.get("nodes")
         # Allow for updating the partition as we might run
         # on CPU only nodes
-        partition = run_cfg.get("partition")
-        gpus_per_node = run_cfg.get("gpus_per_node")
-        constraint = run_cfg.get("constraint")
+        node_type = run_cfg.get("node_type")
+        node_config = cfg.get("data_curation").get(f"{node_type}_config")
 
         shared_parameters = {
             "job_name": job_name,
@@ -243,9 +301,7 @@ class FastTextDownload(NemoMegatronStage):
             )
             cluster_params["job_name"] = job_name_prefix + cluster_params["job_name"]
             cluster_params["nodes"] = nodes
-            cluster_params["partition"] = partition
-            cluster_params["gpus_per_node"] = gpus_per_node
-            cluster_params["constraint"] = constraint
+            cluster_params.update(node_config)
 
         return cluster_params
 
@@ -258,6 +314,7 @@ class FastTextDownload(NemoMegatronStage):
         # Write out the filter configuration as a separate config file
         filter_cfg = Path(self.get_job_path().results_folder, "fasttext_langid.yaml")
         omegaconf.OmegaConf.save(self.stage_cfg.get("filter_config"), filter_cfg)
+        self.memory.filter_config_path = filter_cfg
 
         # Get the path to download script
         # preface it with bash
@@ -288,18 +345,16 @@ class FastTextDownload(NemoMegatronStage):
         return job_id
 
 
-class LanguageIdentification(DataCurationStage):
-    """DataCurationStage for performing language identification on documents"""
+class LanguageIdentification(DataCurationSubStage):
+    """DataCurationSubStage for performing language identification on documents"""
 
-    def __init__(self, cfg):
-        super().__init__(cfg)
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "language_identification"
-        self.stage_cfg = cfg["lang_separation_and_cleaning"].get(
-            "language_identification"
-        )
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -325,8 +380,8 @@ class LanguageIdentification(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            input_data_dir=stage_cfg.get("input_data_dir"),
-            filter_config_file=stage_cfg.get("filter_config_file"),
+            input_data_dir=self.memory.data_dir,
+            filter_config_file=self.memory.filter_config_path,
             **optional_args,
         )
 
@@ -339,16 +394,16 @@ class LanguageIdentification(DataCurationStage):
         return command_groups
 
 
-class SeparateByLanguage(DataCurationStage):
-    """DataCurationStage for separating documents by language"""
+class SeparateByLanguage(DataCurationSubStage):
+    """DataCurationSubStage for separating documents by language"""
 
-    def __init__(self, cfg):
-        super().__init__(cfg)
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "separate_by_language"
-        self.stage_cfg = cfg["lang_separation_and_cleaning"].get("separate_by_language")
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -366,16 +421,19 @@ class SeparateByLanguage(DataCurationStage):
         optional_args = {
             arg: optional_args[arg] for arg in optional_args if optional_args[arg]
         }
+        output_dir = stage_cfg.get("output_data_dir")
 
         # Create the list of arguments for the command
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            input_data_dir=stage_cfg.get("input_data_dir"),
-            output_data_dir=stage_cfg.get("output_data_dir"),
+            input_data_dir=self.memory.data_dir,
+            output_data_dir=output_dir,
             output_language_distribution=stage_cfg.get("output_language_distribution"),
             **optional_args,
         )
+        self.memory.data_dir = None
+        self.memory.nested_dir = output_dir
 
         core_command = ["separate_by_language", *args]
 
@@ -386,16 +444,16 @@ class SeparateByLanguage(DataCurationStage):
         return command_groups
 
 
-class TextCleaning(DataCurationStage):
-    """DataCurationStage for cleaning documents"""
+class TextCleaning(DataCurationSubStage):
+    """DataCurationSubStage for cleaning documents"""
 
-    def __init__(self, cfg):
-        super().__init__(cfg)
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "text_cleaning"
-        self.stage_cfg = cfg["lang_separation_and_cleaning"].get("text_cleaning")
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -404,13 +462,17 @@ class TextCleaning(DataCurationStage):
         # Write out the filter configuration as a separate config file
         command_groups = [[]]
 
+        output_dir = stage_cfg.get("output_clean_dir")
+
         # Create the list of arguments for the command
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            input_data_dir=stage_cfg.get("input_data_dir"),
-            output_clean_dir=stage_cfg.get("output_clean_dir"),
+            input_data_dir=self.memory.data_dir,
+            output_clean_dir=output_dir,
         )
+
+        self.memory.data_dir = output_dir
 
         core_command = ["text_cleaning", *args]
 
@@ -421,61 +483,16 @@ class TextCleaning(DataCurationStage):
         return command_groups
 
 
-class LangSeparationAndCleaning(NemoMegatronStage):
-    """Stage class for running all parts of language separation and cleaning"""
+class PrepareTaskData(DataCurationSubStage):
+    """DataCurationSubStage for preparing the task specific ngrams"""
 
-    def __init__(self, cfg):
-        super().__init__(cfg)
-        self.log_folder = Path()
-        self.conf_folder = Path()
-        self.STR2SUBSTAGECLASS = {
-            "fasttext_download": FastTextDownload,
-            "language_identification": LanguageIdentification,
-            "separate_by_language": SeparateByLanguage,
-            "text_cleaning": TextCleaning,
-        }
-
-    def setup_stage_vars(self, cfg):
-        """Setup the stage vars, i.e. stage name and stage cfg"""
-        self.stage_name = "lang_separation_and_cleaning"
-        self.stage_cfg = cfg.get("lang_separation_and_cleaning")
-
-    def run(self) -> str:
-        """
-        Run current stage including all of the substages,
-        returns job id on slurm based system otherwise empty string
-
-        :return: job id on slurm based system otherwise empty string
-        :rtype: str
-        """
-        # Create the job folders
-        self.setup_folder_and_data()
-
-        job_id = ""
-        for sub_stage_name in self.stage_cfg.keys():
-            if sub_stage_name != "run":
-                sub_stage_class = self.STR2SUBSTAGECLASS[sub_stage_name]
-                # Create the sub-stage
-                sub_stage = sub_stage_class(self.cfg)
-                if job_id:
-                    dependency = f"aftercorr:{job_id}"
-                    sub_stage.stage_cfg["run"]["dependency"] = dependency
-                # Launch the sub-stage
-                job_id = sub_stage.run()
-
-        return job_id
-
-
-class PrepareTaskData(DataCurationStage):
-    """DataCurationStage for preparing the task specific ngrams"""
-
-    def __init__(self, cfg):
-        super().__init__(cfg)
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "prepare_task_data"
-        self.stage_cfg = cfg["task_deduplication"].get("prepare_task_data")
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -483,6 +500,7 @@ class PrepareTaskData(DataCurationStage):
 
         command_groups = [[]]
         output_task_ngrams = stage_cfg.get("output_task_ngrams")
+        self.memory.ngrams_path = output_task_ngrams
 
         # Use the cache if configured to and it exists
         if stage_cfg.get("use_ngram_cache") and Path(output_task_ngrams).is_file():
@@ -509,16 +527,16 @@ class PrepareTaskData(DataCurationStage):
         return command_groups
 
 
-class FindMatchingNgrams(DataCurationStage):
-    """DataCurationStage for finding task ngrams in the dataset"""
+class FindMatchingNgrams(DataCurationSubStage):
+    """DataCurationSubStage for finding task ngrams in the dataset"""
 
-    def __init__(self, cfg):
-        super().__init__(cfg)
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "find_matching_ngrams"
-        self.stage_cfg = cfg["task_deduplication"].get("find_matching_ngrams")
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -538,15 +556,19 @@ class FindMatchingNgrams(DataCurationStage):
             arg: optional_args[arg] for arg in optional_args if optional_args[arg]
         }
 
+        output_dir = stage_cfg.get("output_matched_ngram_data")
+
         # Create the list of arguments for the command
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            input_data_dir=stage_cfg.get("input_data_dir"),
-            input_task_ngrams=stage_cfg.get("input_task_ngrams"),
-            output_matched_ngram_data=stage_cfg.get("output_matched_ngram_data"),
+            input_data_dir=self.memory.data_dir,
+            input_task_ngrams=self.memory.ngrams_path,
+            output_matched_ngram_data=output_dir,
             **optional_args,
         )
+
+        self.memory.ngrams_path = output_dir
 
         core_command = ["find_matching_ngrams", *args]
 
@@ -557,16 +579,16 @@ class FindMatchingNgrams(DataCurationStage):
         return command_groups
 
 
-class RemoveMatchingNgrams(DataCurationStage):
-    """DataCurationStage for removing dataset text matching task ngrams"""
+class RemoveMatchingNgrams(DataCurationSubStage):
+    """DataCurationSubStage for removing dataset text matching task ngrams"""
 
-    def __init__(self, cfg):
-        super().__init__(cfg)
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "remove_matching_ngrams"
-        self.stage_cfg = cfg["task_deduplication"].get("remove_matching_ngrams")
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -575,14 +597,18 @@ class RemoveMatchingNgrams(DataCurationStage):
         # Write out the filter configuration as a separate config file
         command_groups = [[]]
 
+        output_dir = stage_cfg.get("output_task_deduped_dir")
+
         # Create the list of arguments for the command
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            input_data_dir=stage_cfg.get("input_data_dir"),
-            input_matched_ngrams=stage_cfg.get("input_matched_ngrams"),
-            output_task_deduped_dir=stage_cfg.get("output_task_deduped_dir"),
+            input_data_dir=self.memory.data_dir,
+            input_matched_ngrams=self.memory.ngrams_path,
+            output_task_deduped_dir=output_dir,
         )
+
+        self.memory.data_dir = output_dir
 
         core_command = ["remove_matching_ngrams", *args]
 
@@ -593,23 +619,51 @@ class RemoveMatchingNgrams(DataCurationStage):
         return command_groups
 
 
-class TaskDeduplication(NemoMegatronStage):
-    """Stage class for running all parts of language separation and cleaning"""
+class DataCurationStage(NemoMegatronStage):
+    """Stage class for running all steps of the data curator"""
 
     def __init__(self, cfg):
         super().__init__(cfg)
         self.log_folder = Path()
         self.conf_folder = Path()
         self.STR2SUBSTAGECLASS = {
+            "fasttext_download": FastTextDownload,
+            "language_identification": LanguageIdentification,
+            "separate_by_language": SeparateByLanguage,
+            "text_cleaning": TextCleaning,
             "prepare_task_data": PrepareTaskData,
             "find_matching_ngrams": FindMatchingNgrams,
             "remove_matching_ngrams": RemoveMatchingNgrams,
+            "choose_language": ChooseLanguage,
         }
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
-        self.stage_name = "task_deduplication"
-        self.stage_cfg = cfg.get("task_deduplication")
+        self.stage_name = "data_curation"
+        self.stage_cfg = cfg.get("data_curation")
+
+    def setup_sub_stages(self) -> List:
+        """Process and validate the substages in order"""
+        dataset_name = self.stage_cfg.get("dataset_name")
+        stages = self.stage_cfg.get("stages")
+        sub_stage_classes = [InitializeMemory]
+        for stage_name in stages:
+            stage = self.stage_cfg.get(stage_name)
+            assert isinstance(
+                stage, omegaconf.listconfig.ListConfig
+            ), f"{stage_name} not defined in data curator config."
+            for sub_stage_name in stage:
+                is_valid_substage = sub_stage_name in self.STR2SUBSTAGECLASS
+                assert is_valid_substage, f"{sub_stage_name} not recognized"
+                has_stage_config = sub_stage_name in self.stage_cfg.get(
+                    dataset_name
+                ) or sub_stage_name in self.stage_cfg.get("special")
+                assert has_stage_config, f"Config for {sub_stage_name} not found"
+
+                sub_stage = self.STR2SUBSTAGECLASS[sub_stage_name]
+                sub_stage_classes.append(sub_stage)
+
+        return sub_stage_classes
 
     def run(self) -> str:
         """
@@ -622,16 +676,20 @@ class TaskDeduplication(NemoMegatronStage):
         # Create the job folders
         self.setup_folder_and_data()
 
+        substages = self.setup_sub_stages()
+        memory = PipelineMemory()
+
         job_id = ""
-        for sub_stage_name in self.stage_cfg.keys():
-            if sub_stage_name != "run":
-                sub_stage_class = self.STR2SUBSTAGECLASS[sub_stage_name]
-                # Create the sub-stage
-                sub_stage = sub_stage_class(self.cfg)
-                if job_id:
-                    dependency = f"aftercorr:{job_id}"
-                    sub_stage.stage_cfg["run"]["dependency"] = dependency
-                # Launch the sub-stage
-                job_id = sub_stage.run()
+        for sub_stage_class in substages:
+            # Create the sub-stage
+            sub_stage = sub_stage_class(self.cfg, memory)
+            if job_id:
+                dependency = f"aftercorr:{job_id}"
+                sub_stage.stage_cfg["run"]["dependency"] = dependency
+            # Launch the sub-stage
+            job_id = sub_stage.run()
+
+        assert memory.data_dir, "Data dir cannot be None"
+        self.cfg["data_dir"] = memory.data_dir
 
         return job_id
