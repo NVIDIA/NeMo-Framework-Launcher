@@ -658,6 +658,14 @@ class DataCurationStage(NemoMegatronStage):
             "find_matching_ngrams": FindMatchingNgrams,
             "remove_matching_ngrams": RemoveMatchingNgrams,
             "choose_language": ChooseLanguage,
+            "compute_minhashes": ComputeMinhashes,
+            "minhash_buckets": MinhashBuckets,
+            "jaccard_map_buckets": JaccardMapBuckets,
+            "jaccard_shuffle": JaccardShuffle,
+            "jaccard_compute": JaccardCompute,
+            "connected_component": ConnectedComponent,
+            "write_deduped_result_with_text": WriteDedupedResultWithText,
+            "verify_all_pairs_jaccard": VerifyAllPairsJaccard,
         }
 
     def setup_stage_vars(self, cfg):
@@ -727,7 +735,7 @@ class ComputeMinhashes(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "compute_minhashes"
-        self.stage_cfg = cfg["fuzzy_deduplication"].get("compute_minhashes")
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -739,12 +747,12 @@ class ComputeMinhashes(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            input_data_dirs=stage_cfg.get("input_data_dirs"),
+            input_data_dirs=self.memory.data_dir,
             minhash_length=stage_cfg.get("minhash_length"),
             char_ngram=stage_cfg.get("char_ngram"),
             hash_bytes=stage_cfg.get("hash_bytes"),
             seed=stage_cfg.get("seed"),
-            output_minhash_dir=stage_cfg.get("output_minhash_dir"),
+            output_minhash_dir=stage_cfg.get("output_fuzzy_deduped_dir"),
             num_files=stage_cfg.get("num_files"),
             files_per_partition=stage_cfg.get("files_per_partition"),
             scheduler_file=self.log_folder / "scheduler.json",
@@ -772,7 +780,7 @@ class MinhashBuckets(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "minhash_buckets"
-        self.stage_cfg = cfg["fuzzy_deduplication"].get("minhash_buckets")
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -786,7 +794,7 @@ class MinhashBuckets(DataCurationStage):
             log_dir=self.log_folder,
             input_data_dirs=stage_cfg.get("input_data_dirs"),
             minhash_length=stage_cfg.get("minhash_length"),
-            output_bucket_dir=stage_cfg.get("output_bucket_dir"),
+            output_bucket_dir=stage_cfg.get("output_fuzzy_deduped"),
             num_bands=stage_cfg.get("num_bands"),
             buckets_per_shuffle=stage_cfg.get("buckets_per_shuffle"),
             protocol=stage_cfg.get("dask").get("protocol"),
@@ -815,7 +823,7 @@ class JaccardMapBuckets(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "jaccard_map_buckets"
-        self.stage_cfg = cfg["fuzzy_deduplication"].get("jaccard_map_buckets")
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -856,7 +864,7 @@ class JaccardShuffle(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "jaccard_shuffle"
-        self.stage_cfg = cfg["fuzzy_deduplication"].get("jaccard_shuffle")
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -898,7 +906,7 @@ class JaccardCompute(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "jaccard_compute"
-        self.stage_cfg = cfg["fuzzy_deduplication"].get("jaccard_compute")
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -939,7 +947,7 @@ class ConnectedComponent(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "connected_component"
-        self.stage_cfg = cfg["fuzzy_deduplication"].get("connected_component")
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -979,9 +987,7 @@ class WriteDedupedResultWithText(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "write_deduped_result_with_text"
-        self.stage_cfg = cfg["fuzzy_deduplication"].get(
-            "write_deduped_result_with_text"
-        )
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -1021,7 +1027,7 @@ class VerifyAllPairsJaccard(DataCurationStage):
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
         self.stage_name = "verify_all_pairs_jaccard"
-        self.stage_cfg = cfg["fuzzy_deduplication"].get("verify_all_pairs_jaccard")
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """ Builds the command groups for the current stage """
@@ -1051,52 +1057,3 @@ class VerifyAllPairsJaccard(DataCurationStage):
         command_groups = clean_command_groups(command_groups)
 
         return command_groups
-
-
-class FuzzyDeduplication(NemoMegatronStage):
-    """Stage class for running all parts of language separation and cleaning"""
-
-    def __init__(self, cfg):
-        super().__init__(cfg)
-        self.log_folder = Path()
-        self.conf_folder = Path()
-        self.STR2SUBSTAGECLASS = {
-            "compute_minhashes": ComputeMinhashes,
-            "minhash_buckets": MinhashBuckets,
-            "jaccard_map_buckets": JaccardMapBuckets,
-            "jaccard_shuffle": JaccardShuffle,
-            "jaccard_compute": JaccardCompute,
-            "connected_component": ConnectedComponent,
-            "write_deduped_result_with_text": WriteDedupedResultWithText,
-            "verify_all_pairs_jaccard": VerifyAllPairsJaccard,
-        }
-
-    def setup_stage_vars(self, cfg):
-        """Setup the stage vars, i.e. stage name and stage cfg"""
-        self.stage_name = "fuzzy_deduplication"
-        self.stage_cfg = cfg.get("fuzzy_deduplication")
-
-    def run(self) -> str:
-        """
-        Run current stage including all of the substages,
-        returns job id on slurm based system otherwise empty string
-
-        :return: job id on slurm based system otherwise empty string
-        :rtype: str
-        """
-        # Create the job folders
-        self.setup_folder_and_data()
-
-        job_id = ""
-        for sub_stage_name in self.stage_cfg.keys():
-            if sub_stage_name != "run":
-                sub_stage_class = self.STR2SUBSTAGECLASS[sub_stage_name]
-                # Create the sub-stage
-                sub_stage = sub_stage_class(self.cfg)
-                if job_id:
-                    dependency = f"aftercorr:{job_id}"
-                    sub_stage.stage_cfg["run"]["dependency"] = dependency
-                # Launch the sub-stage
-                job_id = sub_stage.run()
-
-        return job_id

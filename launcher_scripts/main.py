@@ -17,10 +17,7 @@ import sys
 
 import hydra
 import omegaconf
-from nemo_launcher.core.data_curation_stages import (
-    DataCurationStage,
-    FuzzyDeduplication,
-)
+from nemo_launcher.core.data_curation_stages import DataCurationStage
 from nemo_launcher.core.data_stages import (
     CustomDataPreparation,
     MC4DataPreparation,
@@ -83,7 +80,6 @@ STR2STAGECLASS = {
     "rlhf_ppo": RLHFPPO,
     "data_curation": DataCurationStage,
     "steerlm_reg": SteerLMRegSFT,
-    "fuzzy_deduplication": FuzzyDeduplication,
 }
 
 

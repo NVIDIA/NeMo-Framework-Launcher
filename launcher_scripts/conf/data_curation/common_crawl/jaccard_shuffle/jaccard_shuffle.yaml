@@ -1,6 +1,6 @@
 run:
   name: 'jaccard-shuffle'
-  results_dir: ${base_results_dir}/${.name}
+  results_dir: ${data_curation.run.results_dir}/${.name}
   time_limit: "02:00:00"
   dependency: "singleton"
   nodes: 2
@@ -11,9 +11,11 @@ dask:
   protocol: ucx
   interface: ibp12s0
 
-input_bucket_mapping_dir: ${fuzzy_deduplication.run.results_dir}/anchor_docs_with_bk.parquet
+input_bucket_mapping_dir: ${data_curation.run.results_dir}/fuzzy_deduped/anchor_docs_with_bk.parquet
 num_files: -1
 text_ddf_blocksize: 512
 input_data_dirs: 
 output_dir: ${fuzzy_deduplication.run.results_dir}
 parts_per_worker: 2
+
+${data_curation.run.results_dir}/fuzzy_deduped
