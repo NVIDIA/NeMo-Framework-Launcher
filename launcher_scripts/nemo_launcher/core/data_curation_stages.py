@@ -745,7 +745,6 @@ class DataCurationStage(NemoMegatronStage):
 
 
 class ComputeMinhashes(DataCurationSubStage):
-
     def __init__(self, cfg, memory):
         super().__init__(cfg, memory)
 
@@ -791,7 +790,6 @@ class ComputeMinhashes(DataCurationSubStage):
 
 
 class MinhashBuckets(DataCurationSubStage):
-
     def __init__(self, cfg, memory):
         super().__init__(cfg, memory)
 
@@ -835,7 +833,6 @@ class MinhashBuckets(DataCurationSubStage):
 
 
 class JaccardMapBuckets(DataCurationSubStage):
-
     def __init__(self, cfg, memory):
         super().__init__(cfg, memory)
 
@@ -877,7 +874,6 @@ class JaccardMapBuckets(DataCurationSubStage):
 
 
 class JaccardShuffle(DataCurationSubStage):
-
     def __init__(self, cfg, memory):
         super().__init__(cfg, memory)
 
@@ -920,7 +916,6 @@ class JaccardShuffle(DataCurationSubStage):
 
 
 class JaccardCompute(DataCurationSubStage):
-
     def __init__(self, cfg, memory):
         super().__init__(cfg, memory)
 
@@ -962,7 +957,6 @@ class JaccardCompute(DataCurationSubStage):
 
 
 class ConnectedComponent(DataCurationSubStage):
-
     def __init__(self, cfg, memory):
         super().__init__(cfg, memory)
 
@@ -1003,7 +997,6 @@ class ConnectedComponent(DataCurationSubStage):
 
 
 class WriteDedupedResultWithText(DataCurationSubStage):
-
     def __init__(self, cfg, memory):
         super().__init__(cfg, memory)
 
@@ -1044,7 +1037,6 @@ class WriteDedupedResultWithText(DataCurationSubStage):
 
 
 class VerifyAllPairsJaccard(DataCurationSubStage):
-
     def __init__(self, cfg, memory):
         super().__init__(cfg, memory)
 
