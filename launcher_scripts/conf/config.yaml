@@ -30,7 +30,6 @@ stages:
   #- training
   - conversion
   #- conversion_hf2nemo
-  # - conversion
   #- prompt_learning
   #- adapter_learning
   #- ia3_learning
