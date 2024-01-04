@@ -726,11 +726,10 @@ class DataCurationStage(NemoMegatronStage):
         return job_id
 
 
-class ComputeMinhashes(DataCurationStage):
-    """ DataCurationStage for performing quality filtering on documents """
+class ComputeMinhashes(DataCurationSubStage):
 
-    def __init__(self, cfg):
-        super().__init__(cfg)
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
@@ -747,7 +746,7 @@ class ComputeMinhashes(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            input_data_dirs=self.memory.data_dir,
+            input_data_dirs=self.cfg.get("data_dir"),
             minhash_length=stage_cfg.get("minhash_length"),
             char_ngram=stage_cfg.get("char_ngram"),
             hash_bytes=stage_cfg.get("hash_bytes"),
@@ -773,9 +772,10 @@ class ComputeMinhashes(DataCurationStage):
         return command_groups
 
 
-class MinhashBuckets(DataCurationStage):
-    def __init__(self, cfg):
-        super().__init__(cfg)
+class MinhashBuckets(DataCurationSubStage):
+
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
@@ -792,9 +792,9 @@ class MinhashBuckets(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            input_data_dirs=stage_cfg.get("input_data_dirs"),
+            input_data_dirs=stage_cfg.get("input_minhash_dir"),
             minhash_length=stage_cfg.get("minhash_length"),
-            output_bucket_dir=stage_cfg.get("output_fuzzy_deduped"),
+            output_bucket_dir=stage_cfg.get("output_fuzzy_deduped_dir"),
             num_bands=stage_cfg.get("num_bands"),
             buckets_per_shuffle=stage_cfg.get("buckets_per_shuffle"),
             protocol=stage_cfg.get("dask").get("protocol"),
@@ -816,9 +816,10 @@ class MinhashBuckets(DataCurationStage):
         return command_groups
 
 
-class JaccardMapBuckets(DataCurationStage):
-    def __init__(self, cfg):
-        super().__init__(cfg)
+class JaccardMapBuckets(DataCurationSubStage):
+
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
@@ -835,10 +836,10 @@ class JaccardMapBuckets(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            input_data_dirs=stage_cfg.get("input_data_dirs"),
+            input_data_dirs=self.cfg.get("data_dir"),
             input_bucket_dir=stage_cfg.get("input_bucket_dir"),
             text_ddf_blocksize=stage_cfg.get("text_ddf_blocksize"),
-            output_dir=stage_cfg.get("output_dir"),
+            output_dir=stage_cfg.get("output_fuzzy_deduped_dir"),
             scheduler_file=self.log_folder / "scheduler.json",
         )
 
@@ -857,9 +858,10 @@ class JaccardMapBuckets(DataCurationStage):
         return command_groups
 
 
-class JaccardShuffle(DataCurationStage):
-    def __init__(self, cfg):
-        super().__init__(cfg)
+class JaccardShuffle(DataCurationSubStage):
+
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
@@ -876,10 +878,10 @@ class JaccardShuffle(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            input_data_dirs=stage_cfg.get("input_data_dirs"),
+            input_data_dirs=self.cfg.get("data_dir"),
             input_bucket_mapping_dir=stage_cfg.get("input_bucket_mapping_dir"),
             text_ddf_blocksize=stage_cfg.get("text_ddf_blocksize"),
-            output_dir=stage_cfg.get("output_dir"),
+            output_dir=stage_cfg.get("output_fuzzy_deduped_dir"),
             parts_per_worker=stage_cfg.get("parts_per_worker"),
             scheduler_file=self.log_folder / "scheduler.json",
         )
@@ -899,9 +901,10 @@ class JaccardShuffle(DataCurationStage):
         return command_groups
 
 
-class JaccardCompute(DataCurationStage):
-    def __init__(self, cfg):
-        super().__init__(cfg)
+class JaccardCompute(DataCurationSubStage):
+
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
@@ -919,7 +922,7 @@ class JaccardCompute(DataCurationStage):
             replace_underscore=True,
             log_dir=self.log_folder,
             shuffled_docs_path=stage_cfg.get("shuffled_docs_path"),
-            output_dir=stage_cfg.get("output_dir"),
+            output_dir=stage_cfg.get("output_fuzzy_deduped_dir"),
             num_files=stage_cfg.get("num_files"),
             files_per_partition=stage_cfg.get("files_per_partition"),
             scheduler_file=self.log_folder / "scheduler.json",
@@ -940,9 +943,10 @@ class JaccardCompute(DataCurationStage):
         return command_groups
 
 
-class ConnectedComponent(DataCurationStage):
-    def __init__(self, cfg):
-        super().__init__(cfg)
+class ConnectedComponent(DataCurationSubStage):
+
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
@@ -980,9 +984,10 @@ class ConnectedComponent(DataCurationStage):
         return command_groups
 
 
-class WriteDedupedResultWithText(DataCurationStage):
-    def __init__(self, cfg):
-        super().__init__(cfg)
+class WriteDedupedResultWithText(DataCurationSubStage):
+
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""
@@ -999,7 +1004,7 @@ class WriteDedupedResultWithText(DataCurationStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
-            original_path=stage_cfg.get("input_data_dirs"),
+            original_path=self.cfg.get("data_dir"),
             output_dir=stage_cfg.get("output_dir"),
         )
 
@@ -1020,9 +1025,10 @@ class WriteDedupedResultWithText(DataCurationStage):
         return command_groups
 
 
-class VerifyAllPairsJaccard(DataCurationStage):
-    def __init__(self, cfg):
-        super().__init__(cfg)
+class VerifyAllPairsJaccard(DataCurationSubStage):
+
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
 
     def setup_stage_vars(self, cfg):
         """Setup the stage vars, i.e. stage name and stage cfg"""

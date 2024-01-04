@@ -1,15 +1,15 @@
 run:
   name: 'verify-all-pairs-jaccard'
-  results_dir: ${base_results_dir}/${.name}
+  results_dir: ${data_curation.run.results_dir}/${.name}
   time_limit: "02:00:00"
   dependency: "singleton"
   nodes: 2
-  partition: 
+  node_type: gpu
 
 dask:
   pool_size: 2GiB
   protocol: ucx
   interface: ibp12s0
 
-output_dir: ${fuzzy_deduplication.run.results_dir}/cc_output
-cache_dir: ${fuzzy_deduplication.run.results_dir}/cc_cache
+output_dir: ${data_curation.run.results_dir}/fuzzy_deduped/cc_output
+cache_dir: ${data_curation.run.results_dir}/fuzzy_deduped/cc_cache

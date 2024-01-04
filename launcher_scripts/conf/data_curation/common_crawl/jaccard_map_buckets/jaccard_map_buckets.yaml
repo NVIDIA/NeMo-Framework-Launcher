@@ -4,7 +4,7 @@ run:
   time_limit: "02:00:00"
   dependency: "singleton"
   nodes: 2
-  partition: 
+  node_type: gpu
 
 dask:
   pool_size: 72GiB
@@ -14,6 +14,5 @@ dask:
 input_bucket_dir: ${data_curation.run.results_dir}/fuzzy_deduped/buckets.parquet 
 num_files: -1
 text_ddf_blocksize: 512
-input_data_dirs: 
 
-output_dir: ${data_curation.run.results_dir}/fuzzy_deduped
+output_fuzzy_deduped_dir: ${data_curation.run.results_dir}/fuzzy_deduped

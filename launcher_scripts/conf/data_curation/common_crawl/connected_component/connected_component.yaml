@@ -1,16 +1,16 @@
 run:
   name: 'connected-component'
-  results_dir: ${base_results_dir}/${.name}
+  results_dir: ${data_curation.run.results_dir}/${.name}
   time_limit: "02:00:00"
   dependency: "singleton"
   nodes: 2
-  partition: 
+  node_type: gpu
 
 dask:
   pool_size: 72GiB
   protocol: ucx
   interface: ibp12s0
 
-jaccard_pairs_path: ${fuzzy_deduplication.run.results_dir}/dedup_final_results.parquet
-output_dir: ${fuzzy_deduplication.run.results_dir}/cc_output
-cache_dir: ${fuzzy_deduplication.run.results_dir}/cc_cache
+jaccard_pairs_path: ${data_curation.run.results_dir}/fuzzy_deduped/dedup_final_results.parquet
+output_dir: ${data_curation.run.results_dir}/fuzzy_deduped/cc_output
+cache_dir: ${data_curation.run.results_dir}/fuzzy_deduped/cc_cache

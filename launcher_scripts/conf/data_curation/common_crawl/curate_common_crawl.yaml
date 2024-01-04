@@ -8,12 +8,11 @@ cpu_config:
   partition: 
 
 gpu_config:
-  partition: 
+  partition: luna
 
 stages:
   - lang_separation_and_cleaning
   - task_deduplication
-  - fuzzy_deduplication
 
 lang_separation_and_cleaning:
   - fasttext_download

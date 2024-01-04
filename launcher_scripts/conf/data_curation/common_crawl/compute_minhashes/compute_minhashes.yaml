@@ -4,7 +4,7 @@ run:
   time_limit: "02:00:00"
   dependency: "singleton"
   nodes: 2
-  partition: 
+  node_type: gpu
 
 dask:
   pool_size: 72GiB
