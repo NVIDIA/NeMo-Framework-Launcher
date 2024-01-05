@@ -190,6 +190,10 @@ class ChooseLanguage:
         self.memory.data_dir = os.path.join(base_path, lang)
         self.memory.nested_dir = None
 
+        if self.stage_cfg.run["dependency"] != "singleton":
+            job_id = self.stage_cfg.run["dependency"].split(':')[1]
+            return int(job_id)
+
 
 class QualityFiltering(DataCurationSubStage):
     """ DataCurationSubStage for performing quality filtering on documents """
