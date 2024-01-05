@@ -161,6 +161,10 @@ class DataCurationSubStage(NemoMegatronStage):
         return sub_stage_config
 
 
+class PipelineException(Exception):
+    pass
+
+
 class InitializeMemory:
     """Dummy stage for initializing the PipelineMemory"""
 
@@ -191,8 +195,12 @@ class ChooseLanguage:
         self.memory.nested_dir = None
 
         if self.stage_cfg.run["dependency"] != "singleton":
-            job_id = self.stage_cfg.run["dependency"].split(':')[1]
+            job_id = self.stage_cfg.run["dependency"].split(":")[1]
             return int(job_id)
+        else:
+            raise PipelineException(
+                "choose_language is only used after separate_by_language"
+            )
 
 
 class QualityFiltering(DataCurationSubStage):
