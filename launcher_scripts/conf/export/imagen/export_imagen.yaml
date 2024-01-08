@@ -1,0 +1,23 @@
+run:
+  name: export_${.model_train_name}
+  time_limit: "2:00:00"
+  model_train_name: imagen_base64_500m_edm
+  dependency: "singleton"
+  training_dir: ${base_results_dir}/${.model_train_name}
+  config_summary: imagen_fp${export.model.inference_precision}
+  results_dir: ${base_results_dir}/${.model_train_name}/export_${.config_summary}
+  model_type: "imagen"
+
+model:
+  num_images_per_promt: 4
+  run_ema_model: True # Whether load the reg/ema model when using pretrained models
+  customized_model: # Mutually exclusive with model_name
+    base_ckpt: ${base_results_dir}/${export.run.model_train_name}/results/checkpoints/imagen_base.nemo  # Path to a trained Imagen .nemo file
+    sr256_ckpt: ${base_results_dir}/${export.run.model_train_name}/results/checkpoints/imagen_sr256.nemo
+    sr1024_ckpt: ${base_results_dir}/${export.run.model_train_name}/results/checkpoints/imagen_sr1024.nemo
+  target_resolution: 256 # in [64, 256, 1024]
+  inference_precision: 16
+  thresholding_method: dynamic
+  output_path: '${export.run.results_dir}' # Save location
+  record_time: True # Whether to record inference time meta
+  encoder_path: /path/to/t5/folder # Set to null if you wish to download encoders on the fly

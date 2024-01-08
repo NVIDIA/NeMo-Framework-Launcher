@@ -1,0 +1,25 @@
+run:
+  name: eval_${.task_name}_${.model_train_name}
+  time_limit: "04:00:00"
+  dependency: "singleton"
+  model_train_name: clip_vit_B_32
+  task_name: "imagenet_zeroshot"  # Rename this name to be more clear
+  fine_tuning_dir: ${base_results_dir}/${.model_train_name}/imagenet_1k
+  results_dir: ${base_results_dir}/${.model_train_name}/${.name}
+
+trainer:
+  devices: 8
+  num_nodes: 1
+  accelerator: gpu
+  logger: False # logger provided by exp_manager
+  precision: bf16 # 16, 32, or bf16
+
+model:
+  restore_from_path: ${base_results_dir}/${evaluation.run.model_train_name}/results/checkpoints/nemo_clip.nemo  # Path to a trained CLIP .nemo file
+  precision: ${evaluation.trainer.precision}
+  micro_batch_size: 1000
+  global_batch_size: 8000
+
+  data:
+    num_workers: 8
+    imagenet_val: ${data_dir}/imagenet_1k/val # path to imagenet val folder

@@ -1,0 +1,18 @@
+run:
+  name: export_${.model_train_name}
+  time_limit: "2:00:00"
+  model_train_name: "megatron-vit"
+  dependency: "singleton"
+  training_dir: ${base_results_dir}/${.model_train_name}
+  config_summary: vit_fp${export.model.precision}
+  results_dir: ${base_results_dir}/${.model_train_name}/export_${.config_summary}
+  model_type: "megatron_vit"
+
+model:
+  restore_from_path: ${base_results_dir}/${export.run.model_train_name}/results/checkpoints/nemo_vit.nemo  # Path to a trained CLIP .nemo file
+  precision: 16  # 32|16
+
+infer:
+  max_batch_size: 8
+  max_dim: 384
+  out_path: ${export.run.results_dir}

@@ -6,6 +6,8 @@ defaults:
   - training: gpt3/5b
   - conversion: gpt3/convert_gpt3
   - conversion_hf2nemo: hf_llama2/convert_llama2_nemo
+  - fw_inference: null
+  - external_conversion: null
   - fine_tuning: null
   - peft: null
   - prompt_learning: null
@@ -17,13 +19,6 @@ defaults:
   - rlhf_ppo: gpt3/2b_ppo
   - steerlm_reg : ac_sft/gpt_sft # either rw_sft/training_rm or ac_sft/gpt_sft
   - override hydra/job_logging: stdout
-
-hydra:
-  run:
-    dir: .
-  output_subdir: null
-
-debug: False
 
 stages:
   #- data_preparation
@@ -71,6 +66,12 @@ numa_mapping:
   min_cores: 1  # Minimum number of physical cores per process.
   max_cores: 8  # Maximum number of physical cores per process. Can be null to use all available cores.
 
+# hydra settings
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+
 # Do not modify below, use the values above instead.
 data_preparation_config: ${hydra:runtime.choices.data_preparation}
 data_curation_config: ${hydra:runtime.choices.data_curation}
@@ -87,3 +88,5 @@ rlhf_rm_config: ${hydra:runtime.choices.rlhf_rm}
 rlhf_ppo_config: ${hydra:runtime.choices.rlhf_ppo}
 steerlm_reg_config : ${hydra:runtime.choices.steerlm_reg}
 conversion_hf2nemo_config: ${hydra:runtime.choices.conversion_hf2nemo}
+fw_inference_config: ${hydra:runtime.choices.fw_inference}
+external_conversion_config: ${hydra:runtime.choices.external_conversion}

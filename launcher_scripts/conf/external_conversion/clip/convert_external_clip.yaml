@@ -1,0 +1,20 @@
+run:
+  name: convert_external_clip
+  nodes: ${divide_ceil:${external_conversion.model.model_parallel_size}, 8} # 8 gpus per node
+  time_limit: "2:00:00"
+  dependency: "singleton"
+  ntasks_per_node: ${divide_ceil:${external_conversion.model.model_parallel_size}, ${.nodes}}
+  results_dir: ${base_results_dir}/${.name}
+  nemo_file_name: converted_${external_conversion.model.arch}_${external_conversion.model.version}.nemo # name of nemo checkpoint; must be .nemo file
+
+model:
+#  If converting from OpenCLIP, specify the architecture (`arch`) and version (`version`) from the
+#  OpenCLIP model list (https://github.com/mlfoundations/open_clip#usage).
+#  If converting from Hugging Face, set the version to `huggingface` and the architecture (`arch`)
+#  to the Hugging Face model name (e.g., `laion/CLIP-ViT-H-14-laion2B-s32B-b79K`).
+  arch: ViT-H-14
+  version: laion2b_s32b_b79k
+  hparams_file: /path/to/modified_hparam.yaml
+  tensor_model_parallel_size: 1
+  pipeline_model_parallel_size: 1
+  model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
