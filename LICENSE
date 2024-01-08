@@ -1,297 +1,201 @@
-The following applies to all files unless otherwise noted:
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
 
-NVIDIA NEMO FRAMEWORK MULTIMODAL PRE-RELEASE EVALUATION LICENSE
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
-IMPORTANT NOTICE – PLEASE READ AND AGREE BEFORE USING THE CONTAINER. This license
-agreement (“Agreement”) is a legal agreement between you, whether an individual or
-entity ("you”) and NVIDIA Corporation ("NVIDIA") and governs your use of an early
-access version of the NVIDIA NeMo framework multimodal container and all its contents
-(“CONTAINER”). This Agreement can be accepted only by an adult of legal age of
-majority in the country in which the CONTAINER is used. If you don’t have the required
-age or authority to accept this Agreement, or if you don’t accept all the terms and
-conditions of this Agreement, do not download, install or use the CONTAINER. You
-agree to use the CONTAINER only for purposes that are permitted by this Agreement and
-any applicable law or regulation in the relevant jurisdictions.
+   1. Definitions.
 
-1. License.
-1.1 Subject to the terms of this Agreement, NVIDIA grants you a non-exclusive,
-revocable, non-transferable, non-sublicensable (except as expressly granted in this
-Agreement), license to: (a) install and use copies of the CONTAINER, and (b) modify and
-create derivative works of sample or example source code delivered by NVIDIA as part
-of the CONTAINER (if applicable), all the foregoing only for your internal use to
-evaluate or develop and test services and applications with the CONTAINER, without use
-in production.
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
 
-2. Limitations.
-Your license to use the CONTAINER and derivative works of the CONTAINER is restricted
-as follows:
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
 
-2.1 The CONTAINER may run on any computing system with or without NVIDIA GPUs, except
-for the NVIDIA proprietary software (such as CUDA and TensorRT software) in the
-CONTAINER which is licensed only to run on systems with NVIDIA GPUs. The NVIDIA
-proprietary software in the CONTAINER may be present on systems without NVIDIA GPUs,
-as long as it is not running on such systems. For components governed by open source
-software licenses, see the information in the “Components Under Other Licenses” section
-below.
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
 
-2.2 The CONTAINER and derivative works may not be used in any commercial-ready products
-or services, or separately to even for development, test or evaluation of other NVIDIA
-non-NVIDIA products or services.
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
 
-2.3 You may not reverse engineer, decompile, or disassemble the CONTAINER components
-provided in binary form, nor attempt in any other manner to obtain source code of such
-CONTAINER components.
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
 
-2.4 You may not change or remove copyright or other proprietary notices in the
-CONTAINER.
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
 
-2.5 Except as expressly granted in this Agreement, you may not copy, sell, rent,
-sublicense, transfer, distribute, modify or create derivative works of the CONTAINER,
-or make its functionality available to others.
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
 
-2.6 Data generated with use of the CONTAINER may not be used for deployment purposes.
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
 
-2.7 You may not bypass, disable, or circumvent any technical limitation, encryption,
-security, digital rights management or authentication mechanism in the CONTAINER.
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
 
-2.8 You may not replace any NVIDIA software components that are governed by this
-Agreement with other software that implements NVIDIA APIs.
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
 
-2.9 You may not use the CONTAINER for the purpose of developing competing products or
-technologies or assisting a third party in such activities.
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
 
-2.10 You may not use the CONTAINER in any manner that would cause it to become subject
-to an open source software license; subject to the terms in the “Components Under Other
-Licenses” section below.
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
 
-2.11 Unless you have an agreement with NVIDIA for this purpose, you may not use the
-CONTAINER provided under this Agreement and derivative works in a system or
-application where the use of or application where the use of or failure of such system
-or application developed with CONTAINER provided by NVIDIA could result in injury,
-death or catastrophic damage. NVIDIA will not be liable to you or any third party, in
-whole or in part, for any claims or damages arising from these uses. You are solely
-responsible for ensuring that systems and applications developed with the CONTAINER
-as a whole include sufficient safety and redundancy features and comply with all
-applicable legal and regulatory standards and requirements.
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
 
-3. Your Privacy: Collection and Use of Information.
-Please review the NVIDIA Privacy Policy, located at
-https://www.nvidia.com/en-us/about-nvidia/privacy-policy, which explains NVIDIA’s
-policy for collecting and using data, as well as visit the NVIDIA Privacy Center,
-located at https://www.nvidia.com/en-us/privacy-center, to manage your consent and
-privacy preferences. NVIDIA may require certain personal information such as name,
-email address and entitlement information including survey responses to deliver or
-provide the CONTAINER to you.
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
 
-4. Authorized Users.
-You may allow employees and contractors of your entity or of your subsidiary(ies) to
-access and use the CONTAINER from your secure network to perform the work authorized
-by this Agreement on your behalf. If you are an academic institution, you may allow
-users enrolled or employed by the academic institution to access and use the CONTAINER
-as authorized by this Agreement from your secure network. You are responsible for the
-compliance with the terms of this Agreement by your authorized users. Any act or
-omission that if committed by you would constitute a breach of this Agreement will be
-deemed to constitute a breach of this Agreement if committed by your authorized users.
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
 
-5. Confidentiality.
-You agree that you will not use, nor authorize others to use, NVIDIA Confidential
-Information, except as necessary for the performance of this Agreement, and that you
-will not disclose NVIDIA Confidential Information to any third party, except to
-permitted users under this Agreement that have a need to know such Confidential
-Information for the purpose of this Agreement, provided that each such recipient is
-subject to a written agreement that includes confidentiality obligations consistent
-with these terms. You agree to use all reasonable efforts to maintain the
-confidentiality of NVIDIA Confidential Information in your possession or control, but
-in no event less than the efforts that you ordinarily use with respect to your own
-Confidential Information of similar nature and importance. “Confidential Information”
-means the output, and any results of benchmarking or other competitive analysis or
-regression or performance data relating to the CONTAINER.
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
 
-6. Pre-Release Versions.
-CONTAINER versions or specific features identified as alpha, beta, preview, early
-access or otherwise as pre-release may not be fully functional, may contain errors or
-design flaws, and may have reduced or different security, privacy, availability, and
-reliability standards relative to commercial versions of NVIDIA offerings. You may use
-a pre-release CONTAINER at your own risk, understanding that such versions are not
-intended for use in production or business-critical systems. NVIDIA may choose not to
-make available a commercial version of any pre-release CONTAINER. NVIDIA may also
-choose to abandon development and terminate the availability of a pre-release CONTAINER
-at any time without liability.
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
 
-7. Updates.
-NVIDIA may, at its option, make available patches, workarounds or other updates to the
-CONTAINER. Unless the updates are provided with their separate governing terms, they
-are deemed part of the CONTAINER licensed to you as provided in this Agreement.
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
 
-8. Components Under Other Licenses.
-The CONTAINER may include or be distributed with components provided with separate
-legal notices or terms that accompany the components, such as open source software
-terms and other license terms ("Other Licenses”). The components are subject to the
-applicable Other Licenses, including any proprietary notices, disclaimers,
-requirements and extended use rights; except that this Agreement will prevail regarding
-the use of third-party open source software, unless a third-party open source software
-license requires its license terms to prevail. Open source software license means any
-software, data or documentation subject to any license identified as an open source
-license by the Open Source Initiative (http://opensource.org), Free Software Foundation (http://www.fsf.org) or
-other similar open source organization or listed by the Software Package Data Exchange
-(SPDX) Workgroup under the Linux Foundation (http://www.spdx.org).
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
 
-You acknowledge and agree that it is your sole responsibility to obtain any additional
-third-party licenses required to make, have made, use, have used, sell, import, and
-offer for sale your products or services that include or incorporate components under
-Other Licenses, including, without limitation, audio and/or video encoders and decoders
-and implementations of technical standards. NVIDIA does not grant to you under this
-Agreement any necessary patent or other rights, including standard essential patent
-rights, with respect to components under Other Licenses.
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
 
-9. Termination.
-This Agreement will automatically terminate without notice from NVIDIA if you fail to
-comply with any of the terms in this Agreement or if you commence or participate in any
-legal proceeding against NVIDIA with respect to the CONTAINER. Additionally, either
-party may terminate this Agreement at any time with prior written notice to the other
-party. Upon any termination, you must stop using and destroy all copies of the CONTAINER
-and derivative works. Upon written request, you will certify in writing that you have
-complied with your commitments under this section. All provisions will survive
-termination, except for the licenses granted to you.
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
 
-10. Ownership.
-The CONTAINER, including all intellectual property rights, is and will remain the sole
-and exclusive property of NVIDIA or its licensors. Except as expressly granted in this
-Agreement, (i) NVIDIA reserves all rights, interests, and remedies in connection with
-the CONTAINER, and (ii) no other license or right is granted to you by implication,
-estoppel or otherwise. You agree to cooperate with NVIDIA and provide reasonably
-requested information to verify your compliance with this Agreement.
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
 
-11. Feedback.
-You may, but you are not obligated to, provide suggestions, requests, fixes,
-modifications, enhancements, or other feedback regarding the CONTAINER
-(collectively, “Feedback”). Feedback, even if designated as confidential by you,
-will not create any confidentiality obligation for NVIDIA or its affiliates. If
-you provide Feedback, you hereby grant NVIDIA, its affiliates and its designees
-a non-exclusive, perpetual, irrevocable, sublicensable, worldwide, royalty-free,
-fully paid-up and transferable license, under your intellectual property rights,
-to publicly perform, publicly display, reproduce, use, make, have made, sell,
-offer for sale, distribute (through multiple tiers of distribution), import,
-create derivative works of and otherwise commercialize and exploit the Feedback
-at NVIDIA’s discretion. You will not give Feedback (i) that you have reason to
-believe is subject to any restriction that impairs the exercise of the grant
-stated in this section, such as third-party intellectual property rights; or
-(ii) subject to license terms which seek to require any product incorporating or
-developed using such Feedback, or other intellectual property of NVIDIA or its
-affiliates, to be licensed to or otherwise shared with any third party.
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
 
-12. Disclaimer of Warranties.
-THE CONTAINER IS PROVIDED BY NVIDIA AS-IS AND WITH ALL FAULTS. TO THE FULLEST
-EXTENT PERMITTED BY APPLICABLE LAW, NVIDIA DISCLAIMS ALL WARRANTIES AND
-REPRESENTATIONS OF ANY KIND, WHETHER EXPRESS, IMPLIED OR STATUTORY, RELATING TO
-OR ARISING UNDER THIS AGREEMENT, INCLUDING, WITHOUT LIMITATION, THE WARRANTIES
-OF TITLE, NONINFRINGEMENT, MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
-USAGE OF TRADE AND COURSE OF DEALING. WITHOUT LIMITING THE FOREGOING, NVIDIA
-DOES NOT WARRANT THAT THE CONTAINER WILL MEET YOUR REQUIREMENTS; THAT ANY
-DEFECTS OR ERRORS WILL BE CORRECTED; THAT ANY CERTAIN CONTENT WILL BE AVAILABLE;
-OR THAT THE CONTAINER IS FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS.  NO
-INFORMATION OR ADVICE GIVEN BY NVIDIA WILL IN ANY WAY INCREASE THE SCOPE OF ANY
-WARRANTY EXPRESSLY PROVIDED IN THIS AGREEMENT. NVIDIA does not warrant or assume
-responsibility for the accuracy or completeness of any third-party information,
-text, graphics, links contained in THE CONTAINER.
+   END OF TERMS AND CONDITIONS
 
-13. Limitations of Liability.
-TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT WILL NVIDIA BE
-LIABLE FOR ANY (I) INDIRECT, PUNITIVE, SPECIAL, INCIDENTAL OR CONSEQUENTIAL
-DAMAGES, OR (II) DAMAGES FOR THE (A) COST OF PROCURING SUBSTITUTE GOODS OR (B)
-LOSS OF PROFITS, REVENUES, USE, DATA OR GOODWILL ARISING OUT OF OR RELATED TO
-THIS AGREEMENT, WHETHER BASED ON BREACH OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
-STRICT LIABILITY, OR OTHERWISE, AND EVEN IF NVIDIA HAS BEEN ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGES AND EVEN IF A PARTY'S REMEDIES FAIL THEIR ESSENTIAL
-PURPOSE.
+   APPENDIX: How to apply the Apache License to your work.
 
-ADDITIONALLY, TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, NVIDIA’S TOTAL
-CUMULATIVE AGGREGATE LIABILITY FOR ANY AND ALL LIABILITIES, OBLIGATIONS OR
-CLAIMS ARISING OUT OF OR RELATED TO THIS AGREEMENT WILL NOT EXCEED FIVE U.S.
-DOLLARS (US$5).
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
 
-14. Governing Law and Jurisdiction.
-This Agreement will be governed in all respects by the laws of the United States
-and the laws of the State of Delaware, without regard to conflict of laws
-principles or the United Nations Convention on Contracts for the International Sale
-of Goods. The state and federal courts residing in Santa Clara County,
-California will have exclusive jurisdiction over any dispute or claim arising
-out of or related to this Agreement, and the parties irrevocably consent to
-personal jurisdiction and venue in those courts; except that either party may
-apply for injunctive remedies or an equivalent type of urgent legal relief in
-any jurisdiction.
+   Copyright [yyyy] [name of copyright owner]
 
-15. No Assignment.
-NVIDIA may assign, delegate or transfer its rights or obligations under this
-Agreement by any means or operation of law. You may not, without NVIDIA’s prior
-written consent, assign, delegate or transfer any of your rights or obligations
-under this Agreement by any means or operation of law, and any attempt to do so
-is null and void.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-16. Waiver.
-No failure or delay by a party to enforce any Agreement term or obligation will
-operate as a waiver by that party, nor prevent the enforcement of such term or
-obligation later.
+       http://www.apache.org/licenses/LICENSE-2.0
 
-17. Export and Compliance.
-You agree to comply with all applicable export, import, trade and economic
-sanctions laws and regulations, including U.S. Export Administration Regulations
-and Office of Foreign Assets Control regulations. These laws include
-restrictions on destinations, end-users and end-use. The parties each acknowledge
-that its use of the products and services provided by the other party under this
-Agreement will be consistent with NVIDIA’s Human Rights Policy.
-
-18. Government Use.
- The CONTAINER, including related documentation (“Protected Items”) is a
-“Commercial product” as this term is defined at 48 C.F.R. 2.101, consisting of
-“commercial computer software” and “commercial computer software documentation”
-as such terms are used in, respectively, 48 C.F.R. 12.212 and 48 C.F.R.
-227.7202 & 252.227-7014(a)(1). Before any Protected Items are supplied to the
-U.S. Government, you will (i) inform the U.S. Government in writing that the
-Protected Items are and must be treated as commercial computer software and
-commercial computer software documentation developed at private expense; (ii)
-inform the U.S. Government that the Protected Items are provided subject to the
-terms of this Agreement; and (iii) mark the Protected Items as commercial
-computer software and commercial computer software documentation developed at
-private expense. In no event will you permit the U.S. Government to acquire
-rights in Protected Items beyond those specified in 48 C.F.R. 52.227-19(b)(1)-
-(2) or 252.227-7013(c) except as expressly approved by NVIDIA in writing.
-
-19. Notices.
-Unless otherwise specifically stated in this Agreement, all notices, requests,
-consents and other communications, which are required or permitted under this
-Agreement, will be in writing to the address below and will be effective (i)
-upon receipt if by personal delivery, (ii) upon receipt if by certified or
-registered mail (return receipt requested), or (iii) one (1) day after it is
-sent if by next day delivery by a major commercial delivery service. Please
-direct your legal notices or other correspondence to NVIDIA Corporation, 2788
-San Tomas Expressway, Santa Clara, California 95051, United States of America,
-Attention: Legal Department.
-
-20. Force Majeure.
-Neither party will be liable during any period where an event or circumstance
-prevents or delays that party from performing its obligations under this
-Agreement and that event or circumstance: (i) is not within the reasonable
-control of that party and is not the result of that party’s negligence, and (ii)
-cannot be overcome or avoided by that party using reasonably diligent efforts.
-
-21. Entire Agreement.
-Regarding the subject matter of this Agreement, the parties agree that (i) this
-Agreement constitutes the entire and exclusive agreement between the parties and
-supersedes all prior and contemporaneous communications and (ii) any additional
-or different terms or conditions, whether contained in purchase orders, order
-acknowledgments, invoices or otherwise, will not be binding on the receiving party
-and are null and void. a court of competent jurisdiction rules that a provision of
-this Agreement is unenforceable, that provision will be deemed modified to the
-extent necessary to make it enforceable and the remainder of this Agreement will
-continue in full force and effect. Any amendment to this Agreement must be in writing
-and signed by authorized representatives of both parties.
-
-22. Licensing.
-If the terms in this license are not suitable for your organization, or for any
-questions regarding this license, please contact NVIDIA at
-nvidia-compute-license-questions@nvidia.com.
-
-(v. April 10, 2023)
-
---
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
