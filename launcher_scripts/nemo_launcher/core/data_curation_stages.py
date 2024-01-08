@@ -1,5 +1,6 @@
 import os
 import copy
+import os
 import shlex
 from pathlib import Path
 from typing import Dict, List
@@ -159,6 +160,28 @@ class DataCurationSubStage(NemoMegatronStage):
             self.cfg.get("data_curation").get(dataset_name).get(sub_stage_name)
         )
         return sub_stage_config
+
+    def make_dask_command_string(self, runscript_path):
+        dask_config = self.stage_cfg.get("dask")
+
+        command_string = []
+        command_string.append(f"LOGDIR={self.log_folder}")
+        command_string.append(f"RUNSCRIPT={runscript_path}")
+
+        pool_size = dask_config.get("pool_size")
+        command_string.append(f"POOL_SIZE={pool_size}")
+
+        protocol = dask_config.get("protocol")
+        command_string.append(f"PROTOCOL={protocol}")
+
+        interface = dask_config.get("interface")
+        command_string.append(f"INTERFACE={interface}")
+
+        dask_script_path = (
+            self._launcher_scripts_path / "nemo_launcher/collections/run_dask_stage.sh"
+        )
+
+        return " ".join(command_string) + f" bash {dask_script_path}"
 
 
 class InitializeMemory:
@@ -653,6 +676,14 @@ class DataCurationStage(NemoMegatronStage):
             "remove_matching_ngrams": RemoveMatchingNgrams,
             "choose_language": ChooseLanguage,
             "quality_filtering": QualityFiltering,
+            "compute_minhashes": ComputeMinhashes,
+            "minhash_buckets": MinhashBuckets,
+            "jaccard_map_buckets": JaccardMapBuckets,
+            "jaccard_shuffle": JaccardShuffle,
+            "jaccard_compute": JaccardCompute,
+            "connected_component": ConnectedComponent,
+            "write_deduped_result_with_text": WriteDedupedResultWithText,
+            "verify_all_pairs_jaccard": VerifyAllPairsJaccard,
         }
 
     def setup_stage_vars(self, cfg):
@@ -711,3 +742,334 @@ class DataCurationStage(NemoMegatronStage):
         self.cfg["data_dir"] = memory.data_dir
 
         return job_id
+
+
+class ComputeMinhashes(DataCurationSubStage):
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "compute_minhashes"
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            input_data_dirs=self.cfg.get("data_dir"),
+            minhash_length=stage_cfg.get("minhash_length"),
+            char_ngram=stage_cfg.get("char_ngram"),
+            hash_bytes=stage_cfg.get("hash_bytes"),
+            seed=stage_cfg.get("seed"),
+            output_minhash_dir=stage_cfg.get("output_fuzzy_deduped_dir"),
+            num_files=stage_cfg.get("num_files"),
+            files_per_partition=stage_cfg.get("files_per_partition"),
+            scheduler_file=self.log_folder / "scheduler.json",
+        )
+
+        runscript = " \\\n  ".join(["gpu_compute_minhashes", *args])
+        runscript_path = os.path.join(self.log_folder, "compute_minhashes.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class MinhashBuckets(DataCurationSubStage):
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "minhash_buckets"
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            input_data_dirs=stage_cfg.get("input_minhash_dir"),
+            minhash_length=stage_cfg.get("minhash_length"),
+            output_bucket_dir=stage_cfg.get("output_fuzzy_deduped_dir"),
+            num_bands=stage_cfg.get("num_bands"),
+            buckets_per_shuffle=stage_cfg.get("buckets_per_shuffle"),
+            protocol=stage_cfg.get("dask").get("protocol"),
+            scheduler_file=self.log_folder / "scheduler.json",
+        )
+
+        runscript = " \\\n  ".join(["minhash_buckets", *args])
+        runscript_path = os.path.join(self.log_folder, "minhash_buckets.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class JaccardMapBuckets(DataCurationSubStage):
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "jaccard_map_buckets"
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            input_data_dirs=self.cfg.get("data_dir"),
+            input_bucket_dir=stage_cfg.get("input_bucket_dir"),
+            text_ddf_blocksize=stage_cfg.get("text_ddf_blocksize"),
+            output_dir=stage_cfg.get("output_fuzzy_deduped_dir"),
+            scheduler_file=self.log_folder / "scheduler.json",
+        )
+
+        runscript = " \\\n  ".join(["jaccard_map_buckets", *args])
+        runscript_path = os.path.join(self.log_folder, "jaccard_map_buckets.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class JaccardShuffle(DataCurationSubStage):
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "jaccard_shuffle"
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            input_data_dirs=self.cfg.get("data_dir"),
+            input_bucket_mapping_dir=stage_cfg.get("input_bucket_mapping_dir"),
+            text_ddf_blocksize=stage_cfg.get("text_ddf_blocksize"),
+            output_dir=stage_cfg.get("output_fuzzy_deduped_dir"),
+            parts_per_worker=stage_cfg.get("parts_per_worker"),
+            scheduler_file=self.log_folder / "scheduler.json",
+        )
+
+        runscript = " \\\n  ".join(["jaccard_shuffle", *args])
+        runscript_path = os.path.join(self.log_folder, "jaccard_shuffle.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class JaccardCompute(DataCurationSubStage):
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "jaccard_compute"
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            shuffled_docs_path=stage_cfg.get("shuffled_docs_path"),
+            output_dir=stage_cfg.get("output_fuzzy_deduped_dir"),
+            num_files=stage_cfg.get("num_files"),
+            files_per_partition=stage_cfg.get("files_per_partition"),
+            scheduler_file=self.log_folder / "scheduler.json",
+        )
+
+        runscript = " \\\n  ".join(["jaccard_compute", *args])
+        runscript_path = os.path.join(self.log_folder, "jaccard_compute.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class ConnectedComponent(DataCurationSubStage):
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "connected_component"
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            jaccard_pairs_path=stage_cfg.get("jaccard_pairs_path"),
+            output_dir=stage_cfg.get("output_dir"),
+            cache_dir=stage_cfg.get("cache_dir"),
+            scheduler_file=self.log_folder / "scheduler.json",
+        )
+
+        runscript = " \\\n  ".join(["gpu_connected_component", *args])
+        runscript_path = os.path.join(self.log_folder, "connected_component.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class WriteDedupedResultWithText(DataCurationSubStage):
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "write_deduped_result_with_text"
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            original_path=self.cfg.get("data_dir"),
+            output_dir=stage_cfg.get("output_dir"),
+        )
+
+        runscript = " \\\n  ".join(["write_deduped_result_with_text", *args])
+        runscript_path = os.path.join(
+            self.log_folder, "write_deduped_result_with_text.sh"
+        )
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class VerifyAllPairsJaccard(DataCurationSubStage):
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "verify_all_pairs_jaccard"
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            output_dir=stage_cfg.get("output_dir"),
+            cache_dir=stage_cfg.get("cache_dir"),
+            scheduler_file=self.log_folder / "scheduler.json",
+        )
+
+        runscript = " \\\n  ".join(["verify_all_pairs_jaccard", *args])
+        runscript_path = os.path.join(self.log_folder, "verify_all_pairs_jaccard.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups

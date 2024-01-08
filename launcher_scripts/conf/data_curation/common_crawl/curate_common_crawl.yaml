@@ -8,7 +8,7 @@ cpu_config:
   partition: 
 
 gpu_config:
-  partition: 
+  partition: luna
 
 stages:
   - lang_separation_and_cleaning
@@ -29,6 +29,16 @@ task_deduplication:
 filter_quality:
   - quality_filtering
 
+fuzzy_deduplication:
+  - compute_minhashes
+  - minhash_buckets
+  - jaccard_map_buckets
+  - jaccard_shuffle
+  - jaccard_compute
+  - connected_component
+  - write_deduped_result_with_text
+  - verify_all_pairs_jaccard
+
 dataset_name: common_crawl
 
 defaults:
@@ -40,6 +50,14 @@ defaults:
   - common_crawl/find_matching_ngrams/find_matching_ngrams
   - common_crawl/remove_matching_ngrams/remove_matching_ngrams
   - common_crawl/quality_filtering/heuristic_english
+  - common_crawl/compute_minhashes/compute_minhashes
+  - common_crawl/minhash_buckets/minhash_buckets
+  - common_crawl/jaccard_map_buckets/jaccard_map_buckets
+  - common_crawl/jaccard_shuffle/jaccard_shuffle
+  - common_crawl/jaccard_compute/jaccard_compute
+  - common_crawl/connected_component/connected_component
+  - common_crawl/write_deduped_result_with_text/write_deduped_result_with_text
+  - common_crawl/verify_all_pairs_jaccard/verify_all_pairs_jaccard
 
 special:
   choose_language:
