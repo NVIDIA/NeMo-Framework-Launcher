@@ -1,0 +1,21 @@
+run:
+  name: 'compute-minhashes'
+  results_dir: ${data_curation.run.results_dir}/${.name}
+  time_limit: "02:00:00"
+  dependency: "singleton"
+  nodes: 2
+  node_type: gpu
+
+dask:
+  pool_size: 72GiB
+  protocol: ucx
+  interface: ibp12s0
+
+minhash_length: 260
+char_ngram: 5
+hash_bytes: 4
+seed: 42
+num_files: -1
+files_per_partition: 10
+
+output_fuzzy_deduped_dir: ${data_curation.run.results_dir}/fuzzy_deduped
