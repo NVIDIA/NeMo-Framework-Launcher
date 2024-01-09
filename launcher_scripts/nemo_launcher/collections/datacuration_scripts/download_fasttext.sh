@@ -22,12 +22,9 @@
 
 set -eu
 
-res_dir=$1
+res_file=$1
 
 ## Download the fasttext model
-if [ ! -f "${res_dir}/lid.176.bin" ]; then
-  wget https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin -P ${res_dir}
+if [ ! -f ${res_file} ]; then
+  wget https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin -O ${res_file}
 fi
-
-## Replace template text with path to downloaded model
-sed -i "s:<Path to the FasText language id model (e.g., lid.176.bin)>:${res_dir}/lid.176.bin:g" ${res_dir}/fasttext_langid.yaml

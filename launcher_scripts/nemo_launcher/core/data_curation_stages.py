@@ -184,6 +184,10 @@ class DataCurationSubStage(NemoMegatronStage):
         return " ".join(command_string) + f" bash {dask_script_path}"
 
 
+class PipelineException(Exception):
+    pass
+
+
 class InitializeMemory:
     """Dummy stage for initializing the PipelineMemory"""
 
@@ -212,6 +216,14 @@ class ChooseLanguage:
         base_path = self.memory.nested_dir
         self.memory.data_dir = os.path.join(base_path, lang)
         self.memory.nested_dir = None
+
+        if self.stage_cfg.run["dependency"] != "singleton":
+            job_id = self.stage_cfg.run["dependency"].split(":")[1]
+            return int(job_id)
+        else:
+            raise PipelineException(
+                "choose_language is only used after separate_by_language"
+            )
 
 
 class QualityFiltering(DataCurationSubStage):
@@ -338,9 +350,14 @@ class FastTextDownload(NemoMegatronStage):
         cluster_parameters = self._make_cluster_parameters(self.cluster)
 
         # Write out the filter configuration as a separate config file
-        filter_cfg = Path(self.get_job_path().results_folder, "fasttext_langid.yaml")
-        omegaconf.OmegaConf.save(self.stage_cfg.get("filter_config"), filter_cfg)
-        self.memory.filter_config_path = filter_cfg
+        results_path = self.get_job_path().results_folder
+        filter_cfg = self.stage_cfg["filter_config"]
+        bin_path = Path(results_path, filter_cfg["params"]["model_path"])
+        filter_cfg_file = Path(results_path, "fasttext_langid.yaml")
+        filter_cfg["params"]["model_path"] = str(bin_path)
+
+        omegaconf.OmegaConf.save(filter_cfg, filter_cfg_file)
+        self.memory.filter_config_path = filter_cfg_file
 
         # Get the path to download script
         # preface it with bash
@@ -356,7 +373,7 @@ class FastTextDownload(NemoMegatronStage):
         cmd = [
             "bash",
             f"{start_download_script}",
-            str(self.get_job_path().results_folder),
+            str(bin_path),
         ]
         cluster_parameters["setup"] = [shlex.join(cmd)]
 
