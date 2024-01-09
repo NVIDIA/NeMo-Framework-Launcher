@@ -961,7 +961,7 @@ class PEFT(NeMoStage):
                   / "examples/nlp/language_modeling/tuning/megatron_t5_peft_tuning.py",
             "falcon": self._nemo_code_path
                       / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
-            "neva": self._nemo_code_path / "examples/multimodal/mllm/neva/neva_peft.py",
+            "neva": self._nemo_code_path / "examples/multimodal/multimodal_llm/neva/neva_peft.py",
         }
         return model_type_to_code_path[model_type]
 
