@@ -54,6 +54,7 @@ model:
   micro_batch_size: 1
   global_batch_size: 1536
   rampup_batch_size: null
+  context_parallel_size: 1
   tensor_model_parallel_size: 8
   pipeline_model_parallel_size: 2
   virtual_pipeline_model_parallel_size: null
