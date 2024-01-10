@@ -2,6 +2,7 @@ run:
   name: eval_${.task_name}_${.model_train_name}
   time_limit: "04:00:00"
   dependency: "singleton"
+  ntasks_per_node: 1
   convert_name: convert_nemo
   model_train_name: code_llama_python_7b
   task_name: "human_eval"  # HumanEval
