@@ -14,9 +14,9 @@
 
 import copy
 import os
-import wget  
-import random 
-import gzip  
+import wget
+import random
+import gzip
 import json
 import shutil
 from pathlib import Path
@@ -739,22 +739,33 @@ class CustomDataPreparation(DataStage):
         return [sub_stage_command]
 
 
-class HumanEvalDataPreparation():
+class HumanEvalDataPreparation(DataStage):
     """DataStage for preparing a customized dataset"""
 
-    def run(self) -> List[str]:
-        """
-        Downloads the data , extracts it and converts it to train test and validate. 
-        """
-        cfg = self.cfg
-        split_string = self.cfg.get("split_string")
-        filename = wget.download(cfg.get("human_eval_url"))
-        output_dir = self.cfg.get("output_dir")
+    def _make_sub_stages(self) -> List[str]:
+        """There is no sub-stages needed for HumanEval dataset"""
+        return []
+
+    def setup_folder_and_data(self) -> None:
+        """Setup job/data folders for HumanEval dataset"""
+        job_path = self.get_job_path()
+        job_path.folder.mkdir(parents=True, exist_ok=True)
+
+        data_cfg = self.stage_cfg
+        human_eval_url = data_cfg.get("human_eval_url")
+        output_dir = data_cfg.get("output_dir")
+        split_string = data_cfg.get("split_string")
+
+        os.makedirs(output_dir, exist_ok=True)
+
+        assert output_dir is not None, "output_dir must be a valid path."
+        filename = download_single_file(url=human_eval_url, save_dir=output_dir)
+
         output_data = self.read_data_into_list(filename)
-        
+
         random.shuffle(output_data)
         data_splits = [float(split) for split in split_string.split(",")]
-        assert sum(data_splits)==1, "The values in the split string shoudl sum to one."
+        assert abs(sum(data_splits)-1) < 1e-9, "The values in the split string should sum to one."
         assert len(data_splits)==3, "Need 3 values, (train,test,validation) in split string"
         num_samples_in_train = int(len(output_data)*data_splits[0])
         num_samples_in_test = int(len(output_data)*data_splits[1])
@@ -780,11 +791,10 @@ class HumanEvalDataPreparation():
 
     def read_data_into_list(self, filename):
         output_data = []
-        with gzip.open(filename,'r') as fin:        
+        with gzip.open(filename,'r') as fin:
             for line in fin:
                 input_json_obj = json.loads(line)
                 processed_json_obj = {'input':input_json_obj['prompt'], 'output':input_json_obj['canonical_solution']}
                 output_data.append(processed_json_obj)
         return output_data
 
-        

@@ -74,6 +74,7 @@ STR2STAGECLASS = {
             "ia3_t5",
             "ia3_gpt3",
             "peft_llama",
+            "code_llama",
         ],
     },
     "data_preparation": {
