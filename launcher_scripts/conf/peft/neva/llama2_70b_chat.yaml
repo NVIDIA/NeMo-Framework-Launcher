@@ -198,13 +198,13 @@ model:
   data:
     num_workers: 8
     dataloader_type: cyclic
-    data_path: ${data_dir}/neva/datasets/LLaVA-Instruct-150K/llava_instruct_150k.json
+    data_path: ${data_dir}/neva/datasets/LLaVA-Instruct-mixture/llava_v1_5_mix665k.json
     lazy_preprocess: True
     is_multimodal: True
     sep_image_conv_front: False
     conv_template: ${peft.model.mm_cfg.llm.model_type}
     image_token_len: 256
-    image_folder: ${data_dir}/neva/datasets/LLaVA-Instruct-150K/images
+    image_folder: ${data_dir}/neva/datasets/LLaVA-Instruct-mixture/images
     image_aspect_ratio: 'pad'
 
   # Nsys profiling options
