@@ -455,9 +455,14 @@ class SlurmLauncher(Launcher):
         :return: submission script file's text
         :rtype: str
         """
-        return _make_sbatch_string(
-            command_groups=command_groups, folder=self.folder, **self.parameters
-        )
+        if getattr(self.parameters, 'use_fault_tolerance', None):
+            return _make_sbatch_string_ft_launcher(
+                command_groups=command_groups, folder=self.folder, **self.parameters
+            )     
+        else:
+            return _make_sbatch_string(
+                command_groups=command_groups, folder=self.folder, **self.parameters
+            )
 
     @staticmethod
     def _make_submission_command(submission_file_path: Path) -> List[str]:
@@ -586,8 +591,229 @@ def _make_sbatch_string(
     additional_parameters: Optional[Dict[str, Any]] = None,
     srun_args: Optional[Iterable[str]] = None,
     heterogeneous: bool = False,
+) -> str:
+    """Creates the content of an sbatch file with provided parameters
+
+    Parameters
+    ----------
+    See slurm sbatch documentation for most parameters:
+    https://slurm.schedmd.com/sbatch.html
+
+    Below are the parameters that differ from slurm documentation:
+
+    command_groups:
+        each command group will be assigned one srun
+    folder: str/Path
+        folder where print logs and error logs will be written
+    setup: list
+        a list of command to run in sbatch before running srun
+    additional_parameters: dict
+        Forces any parameter to a given value in sbatch. This can be useful
+        to add parameters which are not currently available in nemo_launcher.
+        Eg: {"mail-user": "blublu@nvidia.com", "mail-type": "BEGIN"}
+    srun_args: List[str]
+        Add each argument in the list to the srun call
+
+    Raises
+    ------
+    ValueError
+        In case an erroneous keyword argument is added, a list of all eligible parameters
+        is printed, with their default values
+    """
+    nonslurm = [
+        "nonslurm",
+        "folder",
+        "command_groups",
+        "additional_parameters",
+        "setup",
+        "stderr_to_stdout",
+        "container_image",
+        "container_mounts",
+        "srun_args",
+        "heterogeneous",
+    ]
+    parameters = {
+        k: v for k, v in locals().items() if v is not None and k not in nonslurm
+    }
+    # rename and reformat parameters
+
+    if num_gpus is not None:
+        warnings.warn(
+            '"num_gpus" is deprecated, please use "gpus_per_node" instead (overwritting with num_gpus)'
+        )
+        parameters["gpus_per_node"] = parameters.pop("num_gpus", 0)
+    if "cpus_per_gpu" in parameters and "gpus_per_task" not in parameters:
+        warnings.warn(
+            '"cpus_per_gpu" requires to set "gpus_per_task" to work (and not "gpus_per_node")'
+        )
+    # add necessary parameters
+    job_name = parameters.get("job_name")
+    paths = job_utils.JobPaths(folder=folder, job_name=job_name)
+    stdout = str(paths.stdout)
+    stderr = str(paths.stderr)
+
+    if array is not None:
+        stdout = stdout.replace("%j", "%A_%a")
+        stderr = stderr.replace("%j", "%A_%a")
+    parameters["output"] = stdout.replace("%t", "0")
+
+    if not stderr_to_stdout:
+        parameters["error"] = stderr.replace("%t", "0")
+
+    if NEMO_LAUNCHER_CI:  # Override output file for slurm
+        parameters["output"] = parameters["error"] = str(paths.folder / "slurm_%j.out")
+        stdout = stderr = parameters["output"]
+
+    if additional_parameters is not None:
+        parameters.update(additional_parameters)
+    # now create
+    lines = ["#!/bin/bash", "", "# Parameters"]
+    if heterogeneous:
+        for i in range(len(nodes)):
+            het_parameters = parameters.copy()
+            het_parameters["output"] = parameters["output"].replace("_%j", f"_{i}_%j")
+            if "error" in parameters:
+                het_parameters["error"] = parameters["error"].replace("_%j", f"_{i}_%j")
+            het_parameters.update(
+                {
+                    "job_name": f"{job_name}_{i}",
+                    "nodes": nodes[i],
+                    "ntasks_per_node": ntasks_per_node[i],
+                }
+            )
+            for k in sorted(parameters):
+                lines.append(_as_sbatch_flag(k, het_parameters[k]))
+            if i != len(nodes) - 1:
+                lines.append(f"#SBATCH hetjob")
+    else:
+        for k in sorted(parameters):
+            lines.append(_as_sbatch_flag(k, parameters[k]))
+    # environment setup:
+    if setup is not None:
+        lines += ["", "# setup"] + setup
+
+    # commandline (this will run the function and args specified in the file provided as argument)
+    # We pass --output and --error here, because the SBATCH command doesn't work as expected with a filename pattern
+    stderr_flags = [] if stderr_to_stdout else ["--error", stderr]
+    container_flags = ["--container-image", container_image] if container_image else []
+    container_flags += (
+        ["--container-mounts", container_mounts] if container_mounts else []
+    )
+    if srun_args is None:
+        srun_args = []
+
+    if NEMO_LAUNCHER_MEMORY_MEASURE:
+        srun_args += ["--overlap"]
+
+        mem_stdout = stdout.replace("_%j", "_mem_%j")
+        mem_stdout = mem_stdout.replace("_%A_%a", "_mem_%A_%a")
+        mem_srun_cmd = shlex.join(
+            [
+                "srun",
+                "--ntasks=1",
+                "--ntasks-per-node=1",
+                "--output",
+                mem_stdout,
+                *container_flags,
+                *srun_args,
+            ]
+        )
+        lines += [
+            "",
+            "# run memory measure",
+            f"{mem_srun_cmd} \\",
+            f"  nvidia-smi --query-gpu=timestamp,index,,memory.total,memory.free,memory.used --format=csv -l 1 & ",
+            "",
+        ]
+
+    for group_ind, command_group in enumerate(command_groups):
+        if heterogeneous:
+            het_group = f"--het-group={group_ind}"
+            het_stdout = stdout.replace("_%j", f"_{group_ind}_%j")
+            het_stderr = stderr_flags.copy()
+            if het_stderr:
+                het_stderr[-1] = het_stderr[-1].replace("_%j", f"_{group_ind}_%j")
+            srun_cmd = shlex.join(
+                [
+                    "srun",
+                    "--output",
+                    het_stdout,
+                    *het_stderr,
+                    *container_flags,
+                    *srun_args,
+                    het_group,
+                ]
+            )
+            command = ";\n  ".join(command_group)
+            lines += [
+                "",
+                f"# command {group_ind + 1}",
+                f'{srun_cmd} bash -c "',
+                f'  {command} " &',
+                "",
+            ]
+            if group_ind == len(nodes) - 1:
+                lines += ["wait"]
+            else:
+                lines += ["sleep 30"]
+        else:
+            srun_cmd = shlex.join(
+                [
+                    "srun",
+                    "--output",
+                    stdout,
+                    *stderr_flags,
+                    *container_flags,
+                    *srun_args,
+                ]
+            )
+            command = ";\n  ".join(command_group)
+            lines += [
+                "",
+                f"# command {group_ind + 1}",
+                f'{srun_cmd} bash -c "',
+                f'  {command} "',
+                "",
+            ]
+    return "\n".join(lines)
+
+
+# pylint: disable=too-many-arguments,unused-argument, too-many-locals
+def _make_sbatch_string_ft_launcher(
+    command_groups: List[List[str]],
+    folder: Union[str, Path],
+    job_name: str = "nemo_launcher",
+    partition: Optional[str] = None,
+    time: int = 5,
+    nodes: Union[int, List[int]] = 1,
+    ntasks_per_node: Optional[Union[int, List[int]]] = None,
+    cpus_per_task: Optional[int] = None,
+    cpus_per_gpu: Optional[int] = None,
+    num_gpus: Optional[int] = None,  # legacy
+    gpus_per_node: Optional[int] = None,
+    gpus_per_task: Optional[int] = None,
+    qos: Optional[str] = None,  # quality of service
+    setup: Optional[List[str]] = None,
+    mem: Optional[str] = None,
+    mem_per_gpu: Optional[str] = None,
+    mem_per_cpu: Optional[str] = None,
+    dependency: Optional[str] = None,
+    comment: Optional[str] = None,
+    constraint: Optional[str] = None,
+    exclude: Optional[str] = None,
+    account: Optional[str] = None,
+    gres: Optional[str] = None,
+    exclusive: Optional[Union[bool, str]] = None,
+    array: Optional[str] = None,
+    stderr_to_stdout: bool = False,
+    container_image: Optional[str] = None,
+    container_mounts: Optional[str] = None,
+    additional_parameters: Optional[Dict[str, Any]] = None,
+    srun_args: Optional[Iterable[str]] = None,
+    heterogeneous: bool = False,
     autoresume_if_interrupted: bool = False,
 ) -> str:
+        
     """Creates the content of an sbatch file with provided parameters
 
     Parameters
@@ -666,25 +892,16 @@ def _make_sbatch_string(
     # now create
     lines = ["#!/bin/bash", "", "# Parameters"]
     if heterogeneous:
-        for i in range(len(nodes)):
-            het_parameters = parameters.copy()
-            het_parameters["output"] = parameters["output"].replace("_%j", f"_{i}_%j")
-            if "error" in parameters:
-                het_parameters["error"] = parameters["error"].replace("_%j", f"_{i}_%j")
-            het_parameters.update(
-                {
-                    "job_name": f"{job_name}_{i}",
-                    "nodes": nodes[i],
-                    "ntasks_per_node": ntasks_per_node[i],
-                }
-            )
-            for k in sorted(parameters):
-                lines.append(_as_sbatch_flag(k, het_parameters[k]))
-            if i != len(nodes) - 1:
-                lines.append(f"#SBATCH hetjob")
+        raise ValueError("This PoC does not support heterogeneous jobs")
     else:
+        # run 1 FT launcher per node, it will spawn the actual tasks
+        parameters["ntasks_per_node"] = 1
         for k in sorted(parameters):
             lines.append(_as_sbatch_flag(k, parameters[k]))
+        parameters["ntasks_per_node"] = ntasks_per_node
+        
+    lines += ["", "# This script uses experimental fault tolerance launcher", ""]
+    
     # environment setup:
     if setup is not None:
         lines += ["", "# setup"] + setup
@@ -695,7 +912,6 @@ def _make_sbatch_string(
     if autoresume_if_interrupted is True:
         lines += [
             '',
-            '# if the flag file is created by a trainer script, this slurm batch script will be rescheduled',
             'export INTERRUPTED_FLAG_FILE='+str(paths.folder / "_interrupted_flag"),
             'if [ "$RESUMED" = "1" ] && [ ! -f "$INTERRUPTED_FLAG_FILE" ] ; then exit 0 ; fi',
             'CONT_SBATCH_OUT=$(RESUMED=1 sbatch --parsable --dependency=afterany:"$SLURM_JOB_ID" "$0")',
@@ -705,7 +921,11 @@ def _make_sbatch_string(
             '',
         ]
         srun_args += ["--kill-on-bad-exit=0", "--wait=3600"]
-           
+         
+    lines += [
+        "FT_RDZV_HOST=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)"
+    ]
+      
     # commandline (this will run the function and args specified in the file provided as argument)
     # We pass --output and --error here, because the SBATCH command doesn't work as expected with a filename pattern
     stderr_flags = [] if stderr_to_stdout else ["--error", stderr]
@@ -737,37 +957,20 @@ def _make_sbatch_string(
             f"  nvidia-smi --query-gpu=timestamp,index,,memory.total,memory.free,memory.used --format=csv -l 1 & ",
             "",
         ]
+        
+    # Fault tolerance uses Torch Elastic based launcher with SLURM.
+    # Torch Lightning does not handle that case correctly, 
+    # so we need to force TorchElasticEnvironment over SLURMEnvironment. 
+    # We do this by setting SLURM_JOB_NAME=interactive.
+    # This is a temporary workaround, until the following PR is merged with NeMo 
+    # https://github.com/Lightning-AI/pytorch-lightning/pull/18618
+    ft_launcher_cmd="SLURM_JOB_NAME=interactive ft_launcher " +\
+                    "--rdzv_id=$SLURM_JOB_ID --rdzv_backend=c10d --rdzv_endpoint=$FT_RDZV_HOST " +\
+                    f"--nnodes={nodes} --nproc_per_node={ntasks_per_node}"
 
     for group_ind, command_group in enumerate(command_groups):
         if heterogeneous:
-            het_group = f"--het-group={group_ind}"
-            het_stdout = stdout.replace("_%j", f"_{group_ind}_%j")
-            het_stderr = stderr_flags.copy()
-            if het_stderr:
-                het_stderr[-1] = het_stderr[-1].replace("_%j", f"_{group_ind}_%j")
-            srun_cmd = shlex.join(
-                [
-                    "srun",
-                    "--output",
-                    het_stdout,
-                    *het_stderr,
-                    *container_flags,
-                    *srun_args,
-                    het_group,
-                ]
-            )
-            command = ";\n  ".join(command_group)
-            lines += [
-                "",
-                f"# command {group_ind + 1}",
-                f'{srun_cmd} bash -c "',
-                f'  {command} " &',
-                "",
-            ]
-            if group_ind == len(nodes) - 1:
-                lines += ["wait"]
-            else:
-                lines += ["sleep 30"]
+            raise ValueError("This PoC does not support heterogeneous jobs")
         else:
             srun_cmd = shlex.join(
                 [
@@ -780,6 +983,10 @@ def _make_sbatch_string(
                 ]
             )
             command = ";\n  ".join(command_group)
+            assert "python3 -u" in command
+            command = command.replace(
+                "python3 -u", ft_launcher_cmd,
+            )
             lines += [
                 "",
                 f"# command {group_ind + 1}",

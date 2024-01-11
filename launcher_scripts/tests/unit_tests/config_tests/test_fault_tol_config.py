@@ -46,7 +46,7 @@ def test_fault_tol_config_no_fault_tol_section():
 
 
 def test_fault_tol_config_autoresume_if_preempted():
-    """ autpresume_if_preempted=True and BCM cluster: should be fine """
+    """ autpresume_if_preempted=True and FT enabled, should be fine """
     cfg = OmegaConf.load("conf/config.yaml")
     cfg.stages = ["training"]
     cfg.launcher_scripts_path = LAUNCHER_SCRIPTS_PATH
@@ -56,9 +56,26 @@ def test_fault_tol_config_autoresume_if_preempted():
     cfg.training_config = "gpt3/126m"
     cfg.training = OmegaConf.load("conf/training/gpt3/126m.yaml")
     cfg.training.exp_manager.autoresume_if_preempted = True
+    cfg.training.exp_manager.fault_tolerance = OmegaConf.create(
+        {"autoresume_if_faulted": False}
+    )
     stage = Training(cfg)
     _ = stage.run()
 
+def test_fault_tol_config_autoresume_if_preempted_no_ft():
+    """ autpresume_if_preempted=True without fault tolerance is invalid """
+    cfg = OmegaConf.load("conf/config.yaml")
+    cfg.stages = ["training"]
+    cfg.launcher_scripts_path = LAUNCHER_SCRIPTS_PATH
+    cfg.base_results_dir = TEST_RESULTS_DIR
+    cfg.cluster_type = "bcm"
+    cfg.cluster = OmegaConf.load("conf/cluster/bcm.yaml")
+    cfg.training_config = "gpt3/126m"
+    cfg.training = OmegaConf.load("conf/training/gpt3/126m.yaml")
+    cfg.training.exp_manager.autoresume_if_preempted = True
+    with pytest.raises(ValueError):
+        stage = Training(cfg)
+        _ = stage.run()
 
 def test_fault_tol_config_autoresume_if_preempted_invalid_cluster():
     """ autpresume_if_preempted=True is not allowed with non-BCM cluster """

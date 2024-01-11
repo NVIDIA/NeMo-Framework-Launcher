@@ -351,15 +351,30 @@ class NemoMegatronStage:
                 }
             )
 
-        fault_tol_conf = stage_cfg.get("exp_manager").get("fault_tolerance", None)
-        resume_on_fault = fault_tol_conf and fault_tol_conf.get("autoresume_if_faulted", False)
-        resume_on_preemption = stage_cfg.get("exp_manager").get("autoresume_if_preempted", False)
-        cluster_parameters["autoresume_if_interrupted"] = (resume_on_fault or resume_on_preemption)
-        if cluster_parameters["autoresume_if_interrupted"] is True and cluster != "bcm":
-            raise ValueError(f"`autoresume_if_faulted` and `autoresume_if_preempted` works only with 'bcm' cluster (current cluster is '{cluster}')")
+        cluster_parameters = \
+            self._update_fault_tolerance_params(stage_cfg, cluster, cluster_parameters)
         
         return cluster_parameters
 
+    def _update_fault_tolerance_params(self, stage_cfg, cluster, cluster_parameters):
+        # TODO: cleanup this function
+        exp_man_conf = stage_cfg.get("exp_manager", None)
+        resume_on_preemption = exp_man_conf.get("autoresume_if_preempted", False)
+        ft_conf = exp_man_conf is not None and exp_man_conf.get("fault_tolerance", None)
+        is_ft_enabled = ft_conf is not None
+        if is_ft_enabled:
+            cluster_parameters["use_fault_tolerance"] = True
+            resume_on_fault = ft_conf.get("autoresume_if_faulted", False)
+            cluster_parameters["autoresume_if_interrupted"] = (resume_on_fault or resume_on_preemption)
+            if cluster_parameters["autoresume_if_interrupted"] is True and cluster != "bcm":
+                raise ValueError(f"`autoresume_if_faulted` and `autoresume_if_preempted` "
+                                 f"works only with 'bcm' cluster (current cluster is '{cluster}')")
+        else:
+            if resume_on_preemption is True:
+                raise ValueError(f"`autoresume_if_preempted` works only with fault tolerance enabled")   
+            
+        return cluster_parameters
+                
     def _find_optimal_nodes(self, cfg, gpus) -> None:
         nodes_scheduler_path = (
             f"{cfg.get('training').get('run').get('results_dir')}/nodes_scheduler.json"
