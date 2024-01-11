@@ -1,0 +1,15 @@
+run:
+  name: download_steerlm_openasstant
+  results_dir: ${base_results_dir}/${.name}
+  time_limit: "4:00:00"
+  dependency: "singleton"
+  node_array_size: 30
+  bcp_preproc_npernode: 1 # 2 should be safe to use and x2 times faster.
+
+dataset: openassistant
+download_open_assistant: True  # Whether to download the pile dataset from the internet.
+output_dir: "${data_dir}/steerlm/"  # specify output_directory of the downloaded and preprocessed data
+preprocess_data: True  # True to preprocess the data from a jsonl file, False otherwise.
+
+rm_downloaded: True # Extract script will remove downloaded zst after extraction
+rm_extracted: True # Preprocess script will remove extracted files after preproc.
