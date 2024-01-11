@@ -811,6 +811,7 @@ def _make_sbatch_string_ft_launcher(
     additional_parameters: Optional[Dict[str, Any]] = None,
     srun_args: Optional[Iterable[str]] = None,
     heterogeneous: bool = False,
+    use_fault_tolerance: bool = True,
     autoresume_if_interrupted: bool = False,
 ) -> str:
         
@@ -853,6 +854,7 @@ def _make_sbatch_string_ft_launcher(
         "container_mounts",
         "srun_args",
         "heterogeneous",
+        "use_fault_tolerance",
         "autoresume_if_interrupted",
     ]
     parameters = {
