@@ -366,6 +366,7 @@ class SlurmLauncher(Launcher):
     def __init__(self, folder: Union[Path, str], job_name: str, **kwargs: Any) -> None:
         super().__init__(folder, job_name)
         self.parameters = {}
+        self.use_fault_tolerance = kwargs.pop("use_fault_tolerance", False)
         self._update_parameters(job_name=job_name, **kwargs)
 
         if shutil.which("srun") is None and not NEMO_LAUNCHER_DEBUG:
@@ -455,7 +456,7 @@ class SlurmLauncher(Launcher):
         :return: submission script file's text
         :rtype: str
         """
-        if getattr(self.parameters, 'use_fault_tolerance', None):
+        if self.use_fault_tolerance:
             return _make_sbatch_string_ft_launcher(
                 command_groups=command_groups, folder=self.folder, **self.parameters
             )     
@@ -811,7 +812,6 @@ def _make_sbatch_string_ft_launcher(
     additional_parameters: Optional[Dict[str, Any]] = None,
     srun_args: Optional[Iterable[str]] = None,
     heterogeneous: bool = False,
-    use_fault_tolerance: bool = True,
     autoresume_if_interrupted: bool = False,
 ) -> str:
         
@@ -854,7 +854,6 @@ def _make_sbatch_string_ft_launcher(
         "container_mounts",
         "srun_args",
         "heterogeneous",
-        "use_fault_tolerance",
         "autoresume_if_interrupted",
     ]
     parameters = {

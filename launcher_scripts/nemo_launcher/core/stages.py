@@ -362,8 +362,8 @@ class NemoMegatronStage:
         resume_on_preemption = exp_man_conf.get("autoresume_if_preempted", False)
         ft_conf = exp_man_conf is not None and exp_man_conf.get("fault_tolerance", None)
         is_ft_enabled = ft_conf is not None
+        cluster_parameters["use_fault_tolerance"] = is_ft_enabled
         if is_ft_enabled:
-            cluster_parameters["use_fault_tolerance"] = True
             resume_on_fault = ft_conf.get("autoresume_if_faulted", False)
             cluster_parameters["autoresume_if_interrupted"] = (resume_on_fault or resume_on_preemption)
             if cluster_parameters["autoresume_if_interrupted"] is True and cluster != "bcm":
