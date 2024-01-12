@@ -8,10 +8,8 @@ class TestConfig:
         defaults:
           - _self_
           - cluster: bcm  # Set to bcm for BCM and BCP clusters. Set to k8s for a k8s cluster.
+          - data_curation: common_crawl/curate_common_crawl
           - data_preparation: gpt3/download_gpt3_pile
-          - quality_filtering: heuristic/english
-          - lang_separation_and_cleaning: lang_separation_and_cleaning
-          - task_deduplication: task_deduplication
           - training: gpt3/5b
           - conversion: gpt3/convert_gpt3
           - conversion_hf2nemo: hf_llama2/convert_llama2_nemo
@@ -82,9 +80,7 @@ class TestConfig:
         
         # Do not modify below, use the values above instead.
         data_preparation_config: ${hydra:runtime.choices.data_preparation}
-        quality_filtering_config: ${hydra:runtime.choices.quality_filtering}
-        lang_separation_and_cleaning_config: ${hydra:runtime.choices.lang_separation_and_cleaning}
-        task_deduplication_config: ${hydra:runtime.choices.task_deduplication}
+        data_curation_config: ${hydra:runtime.choices.data_curation}
         training_config: ${hydra:runtime.choices.training}
         fine_tuning_config: ${hydra:runtime.choices.fine_tuning}
         peft_config: ${hydra:runtime.choices.peft}

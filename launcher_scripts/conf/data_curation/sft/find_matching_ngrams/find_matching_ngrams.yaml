@@ -1,0 +1,10 @@
+run:
+  name: 'find-matching-ngrams'
+  results_dir: ${data_curation.run.results_dir}/${.name}
+  dependency: "singleton"
+  time_limit: "08:00:00"
+  nodes: 1
+  node_type: cpu
+
+output_matched_ngram_data: ${.run.results_dir}/matched_ngrams.pkl
+input_json_text_field: text

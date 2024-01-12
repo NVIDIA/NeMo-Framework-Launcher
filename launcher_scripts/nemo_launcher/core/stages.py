@@ -484,7 +484,16 @@ class NemoMegatronStage:
         if not model_cfg:
             return ""
         tensor_model_parallel_size = model_cfg.get("tensor_model_parallel_size", 1)
-        return "CUDA_DEVICE_MAX_CONNECTIONS=1" if tensor_model_parallel_size > 1 else ""
+        context_parallel_size = model_cfg.get("context_parallel_size", 1)
+        fsdp = model_cfg.get("fsdp", False)
+        return (
+            "CUDA_DEVICE_MAX_CONNECTIONS=1"
+            if (
+                (tensor_model_parallel_size > 1 or context_parallel_size > 1)
+                and not fsdp
+            )
+            else ""
+        )
 
     @property
     def _nvte_bias_gelu_nvfusion(self) -> str:
@@ -806,6 +815,8 @@ class Training(NeMoStage):
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "bert": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_bert_pretraining.py",
+            "falcon": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -878,6 +889,8 @@ class FineTuning(NeMoStage):
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "mt5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
+            "falcon": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -924,6 +937,8 @@ class PEFT(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_peft_tuning.py",
+            "falcon": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1317,6 +1332,8 @@ class NeMoEvaluation(NeMoStage):
             "peft_llama": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
             "code_llama": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            "peft_falcon": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
         }
         return model_type_to_code_path[model_type]

@@ -1,0 +1,14 @@
+run:
+  name: 'write-deduped-result-with-text'
+  results_dir: ${data_curation.run.results_dir}/${.name}
+  time_limit: "02:00:00"
+  dependency: "singleton"
+  nodes: 1
+  node_type: gpu
+
+dask:
+  pool_size: 1GiB
+  protocol: ucx
+  interface: ibp12s0
+
+output_dir: ${data_curation.run.results_dir}/fuzzy_deduped/cc_output

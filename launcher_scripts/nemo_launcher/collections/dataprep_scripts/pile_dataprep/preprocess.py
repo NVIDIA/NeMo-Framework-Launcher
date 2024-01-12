@@ -77,6 +77,8 @@ def main(cfg):
             model_type = "gpt3"
         elif "llama" in data_config:
             model_type = "llama"
+        elif "falcon" in data_config:
+            model_type = "falcon"
 
         output_prefix = os.path.join(data_dir, f"my-{model_type}_{file_number:02d}")
 
