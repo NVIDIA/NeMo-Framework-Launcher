@@ -1,0 +1,13 @@
+run:
+  name: download_steerlm_openasstant
+  results_dir: /workspace/tests/download_steerlm_openasstant
+  time_limit: '4:00:00'
+  dependency: singleton
+  node_array_size: 1
+  bcp_preproc_npernode: 1
+dataset: openassistant
+download_open_assistant: true
+output_dir: /workspace/launch_scripts/data/steerlm/
+preprocess_data: true
+rm_downloaded: true
+rm_extracted: true

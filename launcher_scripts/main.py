@@ -82,7 +82,7 @@ STR2STAGECLASS = {
     "data_preparation": {
         PileDataPreparation: ["gpt3", "t5", "bert", "llama", "falcon"],
         MC4DataPreparation: ["mt5"],
-        SteerLMDataPreparation : ["gpt3"],
+        SteerLMDataPreparation : ["steerlm"],
         CustomDataPreparation: ["generic"],
     },
     "rlhf_rm": RLHFRewardModel,
@@ -103,6 +103,8 @@ def main(cfg):
             stage_config_choice = cfg.get(f"{stage_name}_config")
             choice_model_type = stage_config_choice.rsplit("/", 1)[0]
             for cls, model_types in stage_class.items():
+                print("---"*10)
+                print(cls, model_types)
                 if choice_model_type in model_types:
                     stage_class = cls
                     break
