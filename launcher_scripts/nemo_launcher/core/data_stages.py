@@ -198,8 +198,8 @@ class DataStage(NemoMegatronStage):
                 }
             )
         elif cluster == "interactive":
-            #cluster_parameters.update(shared_parameters)
-            raise ValueError("Data preparation is not supported in interactive mode.")
+            cluster_parameters.update(shared_parameters)
+            #raise ValueError("Data preparation is not supported in interactive mode.")
         
         return cluster_parameters
 
@@ -748,10 +748,17 @@ class SteerLMDataPreparation(DataStage):
         :return: a list of sub-stage names which are required to run
         :rtype: List[str]
         """
-        sub_stages = []
+        sub_stages = []     
         
+        if self.stage_cfg.get("dataset") == "openassistant":
+            task_name ="preprocess_openassistant"
+        elif self.stage_cfg.get("dataset") == "helpsteer":
+            task_name = "preprocess_helpsteer"
+        else:
+            print("Currently SteerLM support only openassistand / helpsteer dataset")        
+
         if self.stage_cfg.get("preprocess_data", False):
-            sub_stages += ["preprocess"]
+            sub_stages += [task_name]
         return sub_stages
 
     def setup_folder_and_data(self) -> None:
@@ -809,21 +816,16 @@ class SteerLMDataPreparation(DataStage):
             / "examples/nlp/data/steerlm/"
         )
         stage_to_code_path = {            
-            "preprocess": data_prep_script / "preprocess_openassistant.py",
+            "preprocess_openassistant": data_prep_script / "preprocess_openassistant_data.py",
+            "preprocess_helpsteer": data_prep_script / "preprocess_helpsteer_data.py", 
         }
         choice_model_type, choice_name = self.get_stage_config_choice()
-        print("sub_stage", sub_stage)
+        output_dir=self.stage_cfg.get("output_dir")
         code_path = stage_to_code_path[sub_stage]        
         args = create_args_list(
-            hydra=True,
-            data_config=choice_name,
-            cluster_type=self.cluster,
-            launcher_scripts_path=self._launcher_scripts_path,
-            output_directory=self.stage_cfg.get("output_dir"),            
+            output_directory=output_dir,            
         )
         sub_stage_command = [f"python3 -u {code_path}", *args]
-        print("------"*10)
-        print(">>>")
-        print(sub_stage_command)
+        
         sub_stage_command = " \\\n  ".join(sub_stage_command)
         return [sub_stage_command]
