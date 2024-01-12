@@ -183,7 +183,7 @@ class DataStage(NemoMegatronStage):
                     "no_redirect": cfg.get("bcp_no_redirect"),
                 }
             )
-        elif cluster == "k8s":
+        elif cluster == "k8s": 
             cluster_cfg = cfg.get("cluster")
             container_image = cfg.get("container")
             k8s_cfg = {**copy.deepcopy(cluster_cfg)}
@@ -198,8 +198,9 @@ class DataStage(NemoMegatronStage):
                 }
             )
         elif cluster == "interactive":
+            #cluster_parameters.update(shared_parameters)
             raise ValueError("Data preparation is not supported in interactive mode.")
-
+        
         return cluster_parameters
 
     def _make_k8s_helm_chart(
@@ -811,8 +812,8 @@ class SteerLMDataPreparation(DataStage):
             "preprocess": data_prep_script / "preprocess_openassistant.py",
         }
         choice_model_type, choice_name = self.get_stage_config_choice()
-
-        code_path = stage_to_code_path[sub_stage]
+        print("sub_stage", sub_stage)
+        code_path = stage_to_code_path[sub_stage]        
         args = create_args_list(
             hydra=True,
             data_config=choice_name,
@@ -821,5 +822,8 @@ class SteerLMDataPreparation(DataStage):
             output_directory=self.stage_cfg.get("output_dir"),            
         )
         sub_stage_command = [f"python3 -u {code_path}", *args]
+        print("------"*10)
+        print(">>>")
+        print(sub_stage_command)
         sub_stage_command = " \\\n  ".join(sub_stage_command)
         return [sub_stage_command]
