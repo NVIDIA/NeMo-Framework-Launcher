@@ -82,7 +82,7 @@ STR2STAGECLASS = {
     "data_preparation": {
         PileDataPreparation: ["gpt3", "t5", "bert", "llama", "falcon"],
         MC4DataPreparation: ["mt5"],
-        SteerLMDataPreparation : ["steerlm"],
+        SteerLMDataPreparation: ["steerlm"],
         CustomDataPreparation: ["generic"],
     },
     "rlhf_rm": RLHFRewardModel,

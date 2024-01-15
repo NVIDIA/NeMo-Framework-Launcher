@@ -205,7 +205,7 @@ class DataStage(NemoMegatronStage):
 
     def _make_k8s_helm_chart(
         self,
-        template_root: str,        
+        template_root: str,
         cluster_parameters: Dict,
         job_path: JobPaths,
         sub_stage: str,
@@ -819,9 +819,7 @@ class SteerLMDataPreparation(DataStage):
         choice_model_type, choice_name = self.get_stage_config_choice()
         output_dir = self.stage_cfg.get("output_dir")
         code_path = stage_to_code_path[sub_stage]
-        args = create_args_list(output_directory=output_dir)
-        print("--------->>>", args)
+        args = create_args_list(output_directory=output_dir, replace_underscore=False)
         sub_stage_command = [f"python3 -u {code_path}", *args]
         sub_stage_command = " ".join(sub_stage_command)
-        print("--------->>>", sub_stage_command)
         return [sub_stage_command]
