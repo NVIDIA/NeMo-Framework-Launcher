@@ -819,8 +819,9 @@ class SteerLMDataPreparation(DataStage):
         choice_model_type, choice_name = self.get_stage_config_choice()
         output_dir = self.stage_cfg.get("output_dir")
         code_path = stage_to_code_path[sub_stage]
-        args = create_args_list(output_directory=output_dir,)
+        args = create_args_list(output_directory=output_dir)
+        print("--------->>>", args)
         sub_stage_command = [f"python3 -u {code_path}", *args]
-        sub_stage_command = " \\\n  ".join(sub_stage_command)
-        print("sub_stage_command ------------->>>", sub_stage_command)
+        sub_stage_command = " ".join(sub_stage_command)
+        print("--------->>>", sub_stage_command)
         return [sub_stage_command]
