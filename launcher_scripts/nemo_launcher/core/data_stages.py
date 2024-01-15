@@ -183,7 +183,7 @@ class DataStage(NemoMegatronStage):
                     "no_redirect": cfg.get("bcp_no_redirect"),
                 }
             )
-        elif cluster == "k8s": 
+        elif cluster == "k8s":
             cluster_cfg = cfg.get("cluster")
             container_image = cfg.get("container")
             k8s_cfg = {**copy.deepcopy(cluster_cfg)}
@@ -198,14 +198,14 @@ class DataStage(NemoMegatronStage):
                 }
             )
         elif cluster == "interactive":
-            cluster_parameters.update(shared_parameters)
-            #raise ValueError("Data preparation is not supported in interactive mode.")
-        
+            # cluster_parameters.update(shared_parameters)
+            raise ValueError("Data preparation is not supported in interactive mode.")
+
         return cluster_parameters
 
     def _make_k8s_helm_chart(
         self,
-        template_root: str,
+        template_root: str,        
         cluster_parameters: Dict,
         job_path: JobPaths,
         sub_stage: str,
@@ -736,7 +736,6 @@ class CustomDataPreparation(DataStage):
         return [sub_stage_command]
 
 
-
 class SteerLMDataPreparation(DataStage):
     """DataStage for preparing the Pile dataset for gpt3 and t5"""
 
@@ -748,14 +747,13 @@ class SteerLMDataPreparation(DataStage):
         :return: a list of sub-stage names which are required to run
         :rtype: List[str]
         """
-        sub_stages = []     
-        
+        sub_stages = []
         if self.stage_cfg.get("dataset") == "openassistant":
-            task_name ="preprocess_openassistant"
+            task_name = "preprocess_openassistant"
         elif self.stage_cfg.get("dataset") == "helpsteer":
             task_name = "preprocess_helpsteer"
         else:
-            print("Currently SteerLM support only openassistand / helpsteer dataset")        
+            print("Currently SteerLM support only openassistand / helpsteer dataset")
 
         if self.stage_cfg.get("preprocess_data", False):
             sub_stages += [task_name]
@@ -767,8 +765,9 @@ class SteerLMDataPreparation(DataStage):
         job_path.folder.mkdir(parents=True, exist_ok=True)
 
         data_cfg = self.stage_cfg
-        
+
         output_dir = data_cfg.get("output_dir")
+
     def _make_private_cluster_parameters(self, cluster: str, sub_stage: str) -> Dict:
         """
         A simplifying function to make cluster parameters specific to each cluster type.
@@ -790,7 +789,7 @@ class SteerLMDataPreparation(DataStage):
         container_mounts = self._make_container_mounts_string()
 
         node_array_size = run_cfg.get("node_array_size")
-        array = run_cfg.get("array")
+        array = f"0-{node_array_size-1}"
         bcp_preproc_npernode = (
             run_cfg.get("bcp_preproc_npernode") if sub_stage == "preprocess" else 1
         )
@@ -810,22 +809,18 @@ class SteerLMDataPreparation(DataStage):
 
     def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
         """Make a command of the specified sub-stage"""
-        
-        data_prep_script = (
-            self._aligner_code_path
-            / "examples/nlp/data/steerlm/"
-        )
-        stage_to_code_path = {            
-            "preprocess_openassistant": data_prep_script / "preprocess_openassistant_data.py",
-            "preprocess_helpsteer": data_prep_script / "preprocess_helpsteer_data.py", 
+
+        data_prep_script = self._aligner_code_path / "examples/nlp/data/steerlm/"
+        stage_to_code_path = {
+            "preprocess_openassistant": data_prep_script
+            / "preprocess_openassistant_data.py",
+            "preprocess_helpsteer": data_prep_script / "preprocess_helpsteer_data.py",
         }
         choice_model_type, choice_name = self.get_stage_config_choice()
-        output_dir=self.stage_cfg.get("output_dir")
-        code_path = stage_to_code_path[sub_stage]        
-        args = create_args_list(
-            output_directory=output_dir,            
-        )
+        output_dir = self.stage_cfg.get("output_dir")
+        code_path = stage_to_code_path[sub_stage]
+        args = create_args_list(output_directory=output_dir,)
         sub_stage_command = [f"python3 -u {code_path}", *args]
-        
         sub_stage_command = " \\\n  ".join(sub_stage_command)
+        print("sub_stage_command ------------->>>", sub_stage_command)
         return [sub_stage_command]
