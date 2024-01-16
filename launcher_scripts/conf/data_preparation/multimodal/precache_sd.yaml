@@ -9,7 +9,7 @@ encodings: # see README for instructions
     key: autoencoderkl_image
     precision: 16
     encoder_config:
-      cls: nemo.collections.multimodal.models.stable_diffusion.ldm.autoencoder.AutoencoderKL
+      cls: nemo.collections.multimodal.models.text_to_image.stable_diffusion.ldm.autoencoder.AutoencoderKL
       from_pretrained: /path/to/encoder  # change me
       embed_dim: 4
       ddconfig:
