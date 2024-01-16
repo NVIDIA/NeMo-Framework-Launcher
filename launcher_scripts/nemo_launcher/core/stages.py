@@ -484,7 +484,16 @@ class NemoMegatronStage:
         if not model_cfg:
             return ""
         tensor_model_parallel_size = model_cfg.get("tensor_model_parallel_size", 1)
-        return "CUDA_DEVICE_MAX_CONNECTIONS=1" if tensor_model_parallel_size > 1 else ""
+        context_parallel_size = model_cfg.get("context_parallel_size", 1)
+        fsdp = model_cfg.get("fsdp", False)
+        return (
+            "CUDA_DEVICE_MAX_CONNECTIONS=1"
+            if (
+                (tensor_model_parallel_size > 1 or context_parallel_size > 1)
+                and not fsdp
+            )
+            else ""
+        )
 
     @property
     def _nvte_bias_gelu_nvfusion(self) -> str:
