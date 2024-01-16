@@ -1,4 +1,6 @@
 {{ $config := .Values.trainingConfig }}
+{{ $ibResourceName := .Values.trainingConfig.ibResourceName }}
+{{ $ibCount := .Values.trainingConfig.ibCount }}
 
 apiVersion: kubeflow.org/v1
 kind: PyTorchJob
@@ -42,10 +44,22 @@ spec:
             resources:
               requests:
                 nvidia.com/gpu: {{ .Values.image.numGPUs }}
-                {{ $config.ibResourceName }}: {{ $config.ibCount }}
+                {{- if and (kindIs "slice" $ibResourceName) (kindIs "slice" $ibCount) }}
+                {{- range $i, $val := $ibResourceName }}
+                {{ $val }}: {{ index $ibCount $i }}
+                {{- end }}
+                {{- else }}
+                {{ $ibResourceName }}: {{ $ibCount }}
+                {{- end }}
               limits:
                 nvidia.com/gpu: {{ .Values.image.numGPUs }}
-                {{ $config.ibResourceName }}: {{ $config.ibCount }}
+                {{- if and (kindIs "slice" $ibResourceName) (kindIs "slice" $ibCount) }}
+                {{- range $i, $val := $ibResourceName }}
+                {{ $val }}: {{ index $ibCount $i }}
+                {{- end }}
+                {{- else }}
+                {{ $ibResourceName }}: {{ $ibCount }}
+                {{- end }}
             volumeMounts:
             - mountPath: {{ $config.NFSPath }}
               name: workspace
