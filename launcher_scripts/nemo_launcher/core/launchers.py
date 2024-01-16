@@ -357,16 +357,21 @@ class SlurmLauncher(Launcher):
 
     :param Union[Path, str] folder: folder for storing job submission/output and logs.
     :param str job_name: Name of the job, used as job folder name
+    :param bool use_fault_tolerance: Use fault tolerance launcher to run the job
     :param Any **kwargs: See slurm documentation for most parameters.
             Most useful parameters are: time, mem, gpus_per_node, cpus_per_task, partition
             Below are the parameters that differ from slurm documentation:
                 setup: a list of command to run in sbatch before running srun
     """
 
-    def __init__(self, folder: Union[Path, str], job_name: str, **kwargs: Any) -> None:
+    def __init__(self, 
+                 folder: Union[Path, str], 
+                 job_name: str, 
+                 use_fault_tolerance: bool, 
+                 **kwargs: Any) -> None:
         super().__init__(folder, job_name)
         self.parameters = {}
-        self.use_fault_tolerance = kwargs.pop("use_fault_tolerance", False)
+        self.use_fault_tolerance = use_fault_tolerance
         self._update_parameters(job_name=job_name, **kwargs)
 
         if shutil.which("srun") is None and not NEMO_LAUNCHER_DEBUG:
@@ -387,9 +392,12 @@ class SlurmLauncher(Launcher):
         }
 
     @classmethod
-    def _valid_parameters(cls) -> Set[str]:
+    def _valid_parameters(cls, use_fault_tolerance) -> Set[str]:
         """Parameters that can be set through update_parameters"""
-        return set(_get_default_parameters())
+        if use_fault_tolerance:
+            return set(_get_default_parameters(_make_sbatch_string_ft_launcher))
+        else:
+            return set(_get_default_parameters(_make_sbatch_string))
 
     def _convert_parameters(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """translate slurm parameter names"""
@@ -413,7 +421,11 @@ class SlurmLauncher(Launcher):
             Below are the parameters that differ from slurm documentation:
                 setup: a list of command to run in sbatch before running srun
         """
-        defaults = _get_default_parameters()
+        
+        if self.use_fault_tolerance:
+            defaults = _get_default_parameters_ft_launcher()
+        else:
+            defaults = _get_default_parameters()
         in_valid_parameters = sorted(set(kwargs) - set(defaults))
         if in_valid_parameters:
             string = "\n  - ".join(
@@ -778,6 +790,13 @@ def _make_sbatch_string(
             ]
     return "\n".join(lines)
 
+
+@functools.lru_cache()
+def _get_default_parameters_ft_launcher() -> Dict[str, Any]:
+    """Parameters that can be set through update_parameters"""
+    specs = inspect.getfullargspec(_make_sbatch_string_ft_launcher)
+    zipped = zip(specs.args[-len(specs.defaults) :], specs.defaults)  # type: ignore
+    return {key: val for key, val in zipped if key not in {"command_groups", "folder"}}
 
 # pylint: disable=too-many-arguments,unused-argument, too-many-locals
 def _make_sbatch_string_ft_launcher(

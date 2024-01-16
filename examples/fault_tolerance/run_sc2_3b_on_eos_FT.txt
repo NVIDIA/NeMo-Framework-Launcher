@@ -1,5 +1,5 @@
 USR_DIR="/lustre/fsw/coreai_dlalgo_llm/jbieniusiewi"
-LAUNCHER_DIR="/lustre/fsw/coreai_dlalgo_llm/jbieniusiewi/nemo/NeMo-Megatron-Launcher/"
+LAUNCHER_DIR="/home/jbieniusiewi/nvwork/sc2/NeMo-Megatron-Launcher"
 
 NVTE_APPLY_QK_LAYER_SCALING=1 HYDRA_FULL_ERROR=1 PYTHONWARNINGS="ignore" python3 ${LAUNCHER_DIR}/launcher_scripts/main.py \
     training=gpt3/starcoder2_3b \
