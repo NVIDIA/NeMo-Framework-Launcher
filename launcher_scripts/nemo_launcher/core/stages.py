@@ -938,8 +938,11 @@ class PEFT(NeMoStage):
         values_template.image.gpuNum = self.stage_cfg.trainer.devices
         values_template.image.nodes = self.stage_cfg.trainer.num_nodes
         values_template.trainingConfig.shmSize = cluster_parameters["shm_size"]
-        values_template.trainingConfig.NFSServer = cluster_parameters["nfs_server"]
-        values_template.trainingConfig.NFSPath = cluster_parameters["nfs_path"]
+        if cluster_parameters["host_path"]:
+            values_template.trainingConfig.hostPath = cluster_parameters["host_path"]
+        else:
+            values_template.trainingConfig.NFSServer = cluster_parameters["nfs_server"]
+            values_template.trainingConfig.NFSPath = cluster_parameters["nfs_path"]
         values_template.trainingConfig.scriptPath = str(
             self._get_nemo_code_path(choice_model_type)
         )

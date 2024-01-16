@@ -24,11 +24,13 @@ spec:
             args:
               - 'cd /opt/NeMo;
               git rev-parse HEAD;
+              nvidia-smi;
               export PYTHONPATH=/opt/NeMo:\${PYTHONPATH};
               {{ if ne $config.wandbKey "nil" }}
               wandb login {{ $config.wandbKey }} &&
               {{ end }}
-              torchrun --nnodes={{ .Values.image.nodes }} --rdzv-backend=c10d --rdzv-endpoint=nlp-peft-worker-0 --nproc_per_node={{ .Values.image.gpuNum }} {{ $config.scriptPath }} --config-path=/config --config-name=config.yaml'
+              torchrun --nnodes={{ .Values.image.nodes }} --rdzv-backend=c10d --rdzv-endpoint=nlp-peft-worker-0 --nproc_per_node={{ .Values.image.gpuNum }} {{ $config.scriptPath }} --config-path=/config --config-name=config.yaml
+              '
             imagePullPolicy: Always
             resources:
               requests:
@@ -36,7 +38,7 @@ spec:
               limits:
                 nvidia.com/gpu: {{ .Values.image.gpuNum }}
             volumeMounts:
-            - mountPath: {{ $config.NFSPath }}
+            - mountPath: {{ coalesce $config.hostPath $config.NFSPath }}
               name: workspace
             - mountPath: /dev/shm
               name: dshm
@@ -48,9 +50,16 @@ spec:
 
           volumes:
           - name: workspace
+            {{- if empty $config.hostPath }}
             nfs:
               server: {{ $config.NFSServer }}
               path: {{ $config.NFSPath }}
+            {{- else }}
+            hostPath:
+              path: {{ $config.hostPath }}
+              # Error if this path doesn't exist
+              type: Directory
+            {{ end }}
 
           - name: dshm
             emptyDir:

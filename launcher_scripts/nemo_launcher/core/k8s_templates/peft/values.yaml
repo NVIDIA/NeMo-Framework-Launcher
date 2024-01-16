@@ -1,9 +1,9 @@
 image:
-  trainingImage: cfg.container
+  trainingImage: <training image>
   pullPolicy: IfNotPresent
 
   # Insert the name of your container registry pull secret #
-  pullSecret: nvcr.io
+  pullSecret: ngc-registry
 
   # Insert number of GPUs and nodes #
   gpuNum: 1
@@ -18,6 +18,9 @@ trainingConfig:
 
   # Insert the path to save data on the NFS server #
   NFSPath: <Insert NFS server path>
+
+  # If this is provided, use this instead of NFS. Only suitable for 1 node clusters where all workers have this path mounted/available
+  hostPath: null
 
   # Specify the WandB API key if using WandB for logging #
   wandbKey: "nil"

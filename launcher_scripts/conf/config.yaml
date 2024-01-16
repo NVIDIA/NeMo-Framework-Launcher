@@ -29,6 +29,7 @@ stages:
   - conversion
   #- prompt_learning
   #- adapter_learning
+  #- peft
   #- ia3_learning
   #- evaluation
   #- export
