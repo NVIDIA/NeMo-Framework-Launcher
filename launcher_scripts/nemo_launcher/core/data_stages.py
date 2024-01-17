@@ -14,7 +14,6 @@
 
 import copy
 import os
-import wget
 import random
 import gzip
 import json
