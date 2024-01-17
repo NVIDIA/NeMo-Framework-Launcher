@@ -86,7 +86,7 @@ STR2STAGECLASS = {
         MC4DataPreparation: ["mt5"],
         SteerLMDataPreparation: ["steerlm"],
         CustomDataPreparation: ["generic"],
-        HumanEvalDataPreparation: ["code_llama"]
+        HumanEvalDataPreparation: ["code_llama"],
     },
     "rlhf_rm": RLHFRewardModel,
     "rlhf_ppo": RLHFPPO,

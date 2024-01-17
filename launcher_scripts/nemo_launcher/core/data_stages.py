@@ -854,36 +854,44 @@ class HumanEvalDataPreparation(DataStage):
 
         random.shuffle(output_data)
         data_splits = [float(split) for split in split_string.split(",")]
-        assert abs(sum(data_splits)-1) < 1e-9, "The values in the split string should sum to one."
-        assert len(data_splits)==3, "Need 3 values, (train,test,validation) in split string"
-        num_samples_in_train = int(len(output_data)*data_splits[0])
-        num_samples_in_test = int(len(output_data)*data_splits[1])
-        num_samples_in_validation  = int(len(output_data)*data_splits[2])
+        assert (
+            abs(sum(data_splits) - 1) < 1e-9
+        ), "The values in the split string should sum to one."
+        assert (
+            len(data_splits) == 3
+        ), "Need 3 values, (train,test,validation) in split string"
+        num_samples_in_train = int(len(output_data) * data_splits[0])
+        num_samples_in_test = int(len(output_data) * data_splits[1])
+        num_samples_in_validation = int(len(output_data) * data_splits[2])
         train = output_data[:num_samples_in_train]
-        test = output_data[num_samples_in_train:num_samples_in_train+num_samples_in_test]
+        test = output_data[
+            num_samples_in_train : num_samples_in_train + num_samples_in_test
+        ]
         validation = output_data[-num_samples_in_validation:]
 
-        with open(f'{output_dir}/train.jsonl', 'w') as f:
+        with open(f"{output_dir}/train.jsonl", "w") as f:
             for entry in train:
                 json.dump(entry, f)
-                f.write('\n')
+                f.write("\n")
 
-        with open(f'{output_dir}/test.jsonl', 'w') as f:
+        with open(f"{output_dir}/test.jsonl", "w") as f:
             for entry in test:
                 json.dump(entry, f)
-                f.write('\n')
+                f.write("\n")
 
-        with open(f'{output_dir}/validation.jsonl', 'w') as f:
+        with open(f"{output_dir}/validation.jsonl", "w") as f:
             for entry in validation:
                 json.dump(entry, f)
-                f.write('\n')
+                f.write("\n")
 
     def read_data_into_list(self, filename):
         output_data = []
-        with gzip.open(filename,'r') as fin:
+        with gzip.open(filename, "r") as fin:
             for line in fin:
                 input_json_obj = json.loads(line)
-                processed_json_obj = {'input':input_json_obj['prompt'], 'output':input_json_obj['canonical_solution']}
+                processed_json_obj = {
+                    "input": input_json_obj["prompt"],
+                    "output": input_json_obj["canonical_solution"],
+                }
                 output_data.append(processed_json_obj)
         return output_data
-
