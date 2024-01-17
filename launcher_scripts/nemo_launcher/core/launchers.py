@@ -798,6 +798,7 @@ def _get_default_parameters_ft_launcher() -> Dict[str, Any]:
     zipped = zip(specs.args[-len(specs.defaults) :], specs.defaults)  # type: ignore
     return {key: val for key, val in zipped if key not in {"command_groups", "folder"}}
 
+
 # pylint: disable=too-many-arguments,unused-argument, too-many-locals
 def _make_sbatch_string_ft_launcher(
     command_groups: List[List[str]],
@@ -831,7 +832,8 @@ def _make_sbatch_string_ft_launcher(
     additional_parameters: Optional[Dict[str, Any]] = None,
     srun_args: Optional[Iterable[str]] = None,
     heterogeneous: bool = False,
-    autoresume_if_interrupted: bool = False,
+    max_subsequent_job_failures: int = 0,
+    max_rank_restarts: int = 0,
 ) -> str:
         
     """Creates the content of an sbatch file with provided parameters
@@ -873,7 +875,8 @@ def _make_sbatch_string_ft_launcher(
         "container_mounts",
         "srun_args",
         "heterogeneous",
-        "autoresume_if_interrupted",
+        "max_subsequent_job_failures",
+        "max_rank_restarts",
     ]
     parameters = {
         k: v for k, v in locals().items() if v is not None and k not in nonslurm
@@ -929,23 +932,40 @@ def _make_sbatch_string_ft_launcher(
     if srun_args is None:
         srun_args = []
 
-    if autoresume_if_interrupted is True:
+    lines += [
+        '',
+        '# Fault tolerance related items',
+        f'export FAULT_TOL_CFG_PATH="{str(paths.config_file)}"',
+        f'export FAULT_TOL_FINISHED_FLAG_FILE="{str(paths.folder / "_finished_flag")}"',
+        'RDZV_HOST=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)',
+        'IS_THIS_JOB_SUCCESSFUL=1',
+    ]
+        
+    if max_subsequent_job_failures > 0:
         lines += [
             '',
-            'export INTERRUPTED_FLAG_FILE='+str(paths.folder / "_interrupted_flag"),
-            'if [ "$RESUMED" = "1" ] && [ ! -f "$INTERRUPTED_FLAG_FILE" ] ; then exit 0 ; fi',
-            'CONT_SBATCH_OUT=$(RESUMED=1 sbatch --parsable --dependency=afterany:"$SLURM_JOB_ID" "$0")',
-            'if [ $? -ne 0 ] ; then echo "Could not schedule continuation job. Check stderr for details." ; exit 1 ; fi',
+            '# Automatic job resubmission related items',
+            f'JOB_RESULTS_FILE="{str(paths.folder / "_job_results")}"',
+            f'MAX_JOB_FAILURES={max_subsequent_job_failures}',
+            'is_job_failures_limit_reached() {',
+            '    tail -n $MAX_JOB_FAILURES "$JOB_RESULTS_FILE" | awk "/0/{f++} END{exit !(f>=$MAX_JOB_FAILURES)}"',
+            '}',
+            'is_training_finished() {',
+            '    test -f "$FAULT_TOL_FINISHED_FLAG_FILE"',
+            '}',
+            '# Exit immediately if finished flag file exists and this job is a continuation',
+            'if [ "$FT_RESUMED" = "1" ] ; then',
+            '    if is_training_finished ; then echo "Training is finished" ; exit 0 ; fi',
+            '    if is_job_failures_limit_reached ; then echo "Job failures limit reached ($MAX_JOB_FAILURES)" ; exit 1 ; fi',
+            'else',
+            '    rm -f "$FAULT_TOL_FINISHED_FLAG_FILE" "$JOB_RESULTS_FILE"',
+            'fi',
+            '# Pre-schedule continuation job',
+            'CONT_SBATCH_OUT=$(FT_RESUMED=1 sbatch --parsable --dependency=afterany:"$SLURM_JOB_ID" "$0")',
+            'if [ $? -ne 0 ] ; then echo "Couldnt schedule continuation job. Check stderr for details." ; exit 1 ; fi',
             'CONT_SLURM_JOB_ID=$(echo $CONT_SBATCH_OUT | cut -f1 -d",")',
-            'rm -f $INTERRUPTED_FLAG_FILE',
-            '',
         ]
-        srun_args += ["--kill-on-bad-exit=0", "--wait=3600"]
-         
-    lines += [
-        "FT_RDZV_HOST=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)"
-    ]
-      
+              
     # commandline (this will run the function and args specified in the file provided as argument)
     # We pass --output and --error here, because the SBATCH command doesn't work as expected with a filename pattern
     stderr_flags = [] if stderr_to_stdout else ["--error", stderr]
@@ -984,9 +1004,9 @@ def _make_sbatch_string_ft_launcher(
     # We do this by setting SLURM_JOB_NAME=interactive.
     # This is a temporary workaround, until the following PR is merged with NeMo 
     # https://github.com/Lightning-AI/pytorch-lightning/pull/18618
-    ft_launcher_cmd="SLURM_JOB_NAME=interactive ft_launcher " +\
-                    "--rdzv_id=$SLURM_JOB_ID --rdzv_backend=c10d --rdzv_endpoint=$FT_RDZV_HOST " +\
-                    f"--nnodes={nodes} --nproc_per_node={ntasks_per_node}"
+    ft_launcher_cmd_part="SLURM_JOB_NAME=interactive ft_launcher " +\
+                    "--rdzv_id=$SLURM_JOB_ID --rdzv_backend=c10d --rdzv_endpoint=$RDZV_HOST " +\
+                    f"--nnodes={nodes} --nproc_per_node={ntasks_per_node} --max-restarts={max_rank_restarts}"
 
     for group_ind, command_group in enumerate(command_groups):
         if heterogeneous:
@@ -1005,7 +1025,7 @@ def _make_sbatch_string_ft_launcher(
             command = ";\n  ".join(command_group)
             assert "python3 -u" in command
             command = command.replace(
-                "python3 -u", ft_launcher_cmd,
+                "python3 -u", ft_launcher_cmd_part,
             )
             lines += [
                 "",
@@ -1014,15 +1034,21 @@ def _make_sbatch_string_ft_launcher(
                 f'  {command} "',
                 "",
             ]
+            lines += [
+                'if [ $? -ne 0 ]; then IS_THIS_JOB_SUCCESSFUL=0 ; fi'
+            ]
 
-    if autoresume_if_interrupted is True:
+    if max_subsequent_job_failures > 0:
         lines += [
             '',
-            '# cancel continuation job if no continuation marker file was created',
-            'if [ ! -f "$INTERRUPTED_FLAG_FILE" ] && [ ! -z "$CONT_SLURM_JOB_ID" ] ; then', 
-            'scancel $CONT_SLURM_JOB_ID',
-            'fi'
-            '',
+            '# Check if the continuation job can be cancelled',
+            'echo $IS_THIS_JOB_SUCCESSFUL >> $JOB_RESULTS_FILE',
+            'if is_training_finished ; then',
+            '    echo "Training is finished" ; scancel $CONT_SLURM_JOB_ID ; exit 0',
+            'fi',
+            'if is_job_failures_limit_reached ; then',
+            '    echo "Job failures limit reached ($MAX_JOB_FAILURES)" ; scancel $CONT_SLURM_JOB_ID ; exit 1',
+            'fi',
         ]
 
     return "\n".join(lines)

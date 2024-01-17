@@ -357,22 +357,16 @@ class NemoMegatronStage:
         return cluster_parameters
 
     def _update_fault_tolerance_params(self, stage_cfg, cluster, cluster_parameters):
-        # TODO: cleanup this function
         exp_man_conf = stage_cfg.get("exp_manager", None)
-        resume_on_preemption = exp_man_conf.get("autoresume_if_preempted", False)
         ft_conf = exp_man_conf is not None and exp_man_conf.get("fault_tolerance", None)
-        is_ft_enabled = ft_conf is not None
-        cluster_parameters["use_fault_tolerance"] = is_ft_enabled
-        if is_ft_enabled:
-            resume_on_fault = ft_conf.get("autoresume_if_faulted", False)
-            cluster_parameters["autoresume_if_interrupted"] = (resume_on_fault or resume_on_preemption)
-            if cluster_parameters["autoresume_if_interrupted"] is True and cluster != "bcm":
-                raise ValueError(f"`autoresume_if_faulted` and `autoresume_if_preempted` "
-                                 f"works only with 'bcm' cluster (current cluster is '{cluster}')")
-        else:
-            if resume_on_preemption is True:
-                raise ValueError(f"`autoresume_if_preempted` works only with fault tolerance enabled")   
-            
+        cluster_parameters["use_fault_tolerance"] = ft_conf is not None
+        if cluster_parameters["use_fault_tolerance"]:
+            if cluster.lower() != "bcm":
+                raise ValueError(f"Fault tolerance requires 'bcm' cluster, but it's '{cluster}')")
+            cluster_parameters["max_rank_restarts"] = \
+                ft_conf.get('max_rank_restarts', 0)
+            cluster_parameters["max_subsequent_job_failures"] = \
+                ft_conf.get('max_subsequent_job_failures', 0)
         return cluster_parameters
                 
     def _find_optimal_nodes(self, cfg, gpus) -> None:

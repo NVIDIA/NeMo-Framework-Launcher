@@ -25,8 +25,8 @@ NVTE_APPLY_QK_LAYER_SCALING=1 HYDRA_FULL_ERROR=1 PYTHONWARNINGS="ignore" python3
     ++training.exp_manager.fault_tolerance.rank_heartbeat_timeout=600 \
     ++training.exp_manager.fault_tolerance.ipc_timeout=60 \
     ++training.exp_manager.fault_tolerance.rank_termination_signal=9 \
-    ++training.exp_manager.fault_tolerance.autoresume_if_faulted=True \
-    ++training.exp_manager.autoresume_if_preempted=False
+    ++training.exp_manager.fault_tolerance.max_subsequent_job_failures=2 \
+    ++training.exp_manager.fault_tolerance.max_rank_restarts=1 \
 
 
 # Uncomment to test simulated faults
