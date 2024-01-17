@@ -1004,7 +1004,7 @@ def _make_sbatch_string_ft_launcher(
     # We do this by setting SLURM_JOB_NAME=interactive.
     # This is a temporary workaround, until the following PR is merged with NeMo 
     # https://github.com/Lightning-AI/pytorch-lightning/pull/18618
-    ft_launcher_cmd_part="SLURM_JOB_NAME=interactive ft_launcher " +\
+    ft_launcher_cmd_part="SLURM_JOB_NAME=interactive ft_launcher --fault-tol-cfg-path=$FAULT_TOL_CFG_PATH " +\
                     "--rdzv_id=$SLURM_JOB_ID --rdzv_backend=c10d --rdzv_endpoint=$RDZV_HOST " +\
                     f"--nnodes={nodes} --nproc_per_node={ntasks_per_node} --max-restarts={max_rank_restarts}"
 

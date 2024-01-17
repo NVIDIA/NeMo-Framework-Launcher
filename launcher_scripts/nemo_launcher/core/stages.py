@@ -47,7 +47,8 @@ class NemoMegatronStage:
         self.stage_cfg = None
         self.setup_stage_vars(cfg)
         self.job_name = self.stage_cfg.run.get("name")
-
+        if self.cluster.lower() == 'bcm':
+            self.job_name = cfg.get("cluster").get("job_name_prefix","") + self.job_name
         self.nodes_scheduler = {}
 
     def setup_stage_vars(self, cfg: OmegaConf):
@@ -281,7 +282,7 @@ class NemoMegatronStage:
         cfg = self.cfg
         stage_cfg = self.stage_cfg
         run_cfg = stage_cfg.get("run")
-        job_name = run_cfg.get("name")
+        job_name = self.job_name
         time_limit = run_cfg.get("time_limit")
         nodes = run_cfg.get("nodes")
         dependency = run_cfg.get("dependency")
@@ -315,7 +316,7 @@ class NemoMegatronStage:
                     cluster_cfg["srun_args"] = []
                 cluster_cfg["srun_args"] += ["--mpi=pmix"]
             slurm_cfg = {**copy.deepcopy(cluster_cfg)}
-            job_name_prefix = slurm_cfg.pop("job_name_prefix")
+            slurm_cfg.pop("job_name_prefix")
             cluster_parameters = {**slurm_cfg}
             cluster_parameters.update(
                 {
@@ -324,9 +325,6 @@ class NemoMegatronStage:
                     "container_image": container_image,
                     "container_mounts": container_mounts,
                 }
-            )
-            cluster_parameters["job_name"] = (
-                job_name_prefix + cluster_parameters["job_name"]
             )
         elif cluster == "bcp":
             cluster_parameters.update(
