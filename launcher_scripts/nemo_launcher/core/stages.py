@@ -704,6 +704,7 @@ class NeMoStage(NemoMegatronStage):
             "ib_resource_name"
         ]
         values_template.trainingConfig.ibCount = cluster_parameters["ib_count"]
+        values_template.trainingConfig.ibNetworkAnnotation = cluster_parameters["ib_network_annotation"]
         values_template.trainingConfig.envVars = cluster_parameters["env_vars"]
 
         if cluster_parameters["dns_policy"] is not None:

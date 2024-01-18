@@ -1,5 +1,6 @@
 {{ $config := .Values.trainingConfig }}
 {{ $ibResourceName := .Values.trainingConfig.ibResourceName }}
+{{ $ibNetworkAnnotation := .Values.trainingConfig.ibNetworkAnnotation }}
 {{ $ibCount := .Values.trainingConfig.ibCount }}
 
 apiVersion: kubeflow.org/v1
@@ -13,6 +14,11 @@ spec:
     Worker:
       replicas: {{ .Values.image.nodes }}
       template:
+        {{- if $ibNetworkAnnotation }}
+        metadata:
+          annotations:
+            k8s.v1.cni.cncf.io/networks: {{ $ibNetworkAnnotation }}
+        {{- end }}
         spec:
           containers:
           - name: pytorch
