@@ -355,12 +355,13 @@ class NemoMegatronStage:
         return cluster_parameters
 
     def _update_fault_tolerance_params(self, stage_cfg, cluster, cluster_parameters):
-        exp_man_conf = stage_cfg.get("exp_manager", None)
-        ft_conf = exp_man_conf is not None and exp_man_conf.get("fault_tolerance", None)
-        cluster_parameters["use_fault_tolerance"] = ft_conf is not None
-        if cluster_parameters["use_fault_tolerance"]:
+        exp_man_conf = stage_cfg.get("exp_manager", dict())
+        use_ft = exp_man_conf.get('create_fault_tolerance_callback', False)
+        cluster_parameters["use_fault_tolerance"] = use_ft
+        if use_ft:
             if cluster.lower() != "bcm":
                 raise ValueError(f"Fault tolerance requires 'bcm' cluster, but it's '{cluster}')")
+            ft_conf = exp_man_conf.get("fault_tolerance", dict())
             cluster_parameters["max_rank_restarts"] = \
                 ft_conf.get('max_rank_restarts', 0)
             cluster_parameters["max_subsequent_job_failures"] = \

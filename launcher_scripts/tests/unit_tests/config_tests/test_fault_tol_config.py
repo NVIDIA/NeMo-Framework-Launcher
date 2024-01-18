@@ -30,8 +30,8 @@ def _setup_and_teardown():
     os.system(f"rm -rf {TEST_RESULTS_DIR}")
 
 
-def test_fault_tol_config_no_fault_tol_section_bcm():
-    """ No fault tolerance section in config, BCM cluster, should be fine """
+def test_fault_tol_config_fault_tol_disabled_bcm():
+    """ No fault tolerance, BCM cluster, should be fine """
     cfg = OmegaConf.load("conf/config.yaml")
     cfg.stages = ["training"]
     cfg.launcher_scripts_path = LAUNCHER_SCRIPTS_PATH
@@ -40,13 +40,14 @@ def test_fault_tol_config_no_fault_tol_section_bcm():
     cfg.cluster = OmegaConf.load("conf/cluster/bcm.yaml")
     cfg.training_config = "gpt3/126m"
     cfg.training = OmegaConf.load("conf/training/gpt3/126m.yaml")
-    assert cfg.training.exp_manager.get("fault_tolernace", None) is None
+    assert cfg.training.exp_manager.get("create_fault_tolerance_callback", None) is None
+    assert cfg.training.exp_manager.get("fault_toleranace", None) is None
     stage = Training(cfg)
     _ = stage.run()
 
 
-def test_fault_tol_config_no_fault_tol_section_bcp():
-    """ No fault tolerance section in config, BCP cluster, should be fine """
+def test_fault_tol_config_fault_tol_disabled_bcp():
+    """ No fault tolerance, BCP cluster, should be fine """
     cfg = OmegaConf.load("conf/config.yaml")
     cfg.stages = ["training"]
     cfg.launcher_scripts_path = LAUNCHER_SCRIPTS_PATH
@@ -55,7 +56,8 @@ def test_fault_tol_config_no_fault_tol_section_bcp():
     cfg.cluster = dict()
     cfg.training_config = "gpt3/126m"
     cfg.training = OmegaConf.load("conf/training/gpt3/126m.yaml")
-    assert cfg.training.exp_manager.get("fault_tolernace", None) is None
+    assert cfg.training.exp_manager.get("create_fault_tolerance_callback", None) is None
+    assert cfg.training.exp_manager.get("fault_toleranace", None) is None
     stage = Training(cfg)
     _ = stage.run()
 
@@ -70,11 +72,27 @@ def test_fault_tol_config_with_bcm():
     cfg.cluster = OmegaConf.load("conf/cluster/bcm.yaml")
     cfg.training_config = "gpt3/126m"
     cfg.training = OmegaConf.load("conf/training/gpt3/126m.yaml")
+    cfg.training.exp_manager.create_fault_tolerance_callback=True
     cfg.training.exp_manager.fault_tolerance = OmegaConf.create(
         {"max_subsequent_job_failures": 1}
     )
     stage = Training(cfg)
     _ = stage.run()
+
+def test_fault_tol_config_with_bcm_no_ft_section():
+    """ Fault tolerance + BCM cluster, no "fault_tolerance" section in cfg, should be fine """
+    cfg = OmegaConf.load("conf/config.yaml")
+    cfg.stages = ["training"]
+    cfg.launcher_scripts_path = LAUNCHER_SCRIPTS_PATH
+    cfg.base_results_dir = TEST_RESULTS_DIR
+    cfg.cluster_type = "bcm"
+    cfg.cluster = OmegaConf.load("conf/cluster/bcm.yaml")
+    cfg.training_config = "gpt3/126m"
+    cfg.training = OmegaConf.load("conf/training/gpt3/126m.yaml")
+    cfg.training.exp_manager.create_fault_tolerance_callback=True
+    stage = Training(cfg)
+    _ = stage.run()
+
 
 def test_fault_tol_config_with_bcp():
     """ Fault tolerance + BCP cluster, BCP is not supported """
@@ -86,9 +104,7 @@ def test_fault_tol_config_with_bcp():
     cfg.cluster = dict()
     cfg.training_config = "gpt3/126m"
     cfg.training = OmegaConf.load("conf/training/gpt3/126m.yaml")
-    cfg.training.exp_manager.fault_tolerance = OmegaConf.create(
-        {"max_subsequent_job_failures": 1}
-    )
+    cfg.training.exp_manager.create_fault_tolerance_callback=True
     with pytest.raises(ValueError):
         stage = Training(cfg)
         _ = stage.run()
