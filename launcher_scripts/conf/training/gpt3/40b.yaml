@@ -92,6 +92,12 @@ model:
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
 
+  # FSDP
+  fsdp: False # Enable training with torch FSDP.
+  fsdp_sharding_strategy: 'full' # Method to shard model states. Available options are 'full', 'hybrid', and 'grad'.
+  fsdp_grad_reduce_dtype: 'fp32' # Gradient reduction data type.
+  fsdp_sharded_checkpoint: False # Store and load FSDP shared checkpoint.
+  
   ## Sequence Parallelism
   sequence_parallel: True
 
