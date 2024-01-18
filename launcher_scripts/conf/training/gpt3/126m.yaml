@@ -1,7 +1,3 @@
-hydra:
-  searchpath:
-    - file:///opt/NeMo/examples/nlp/language_modeling/conf
-
 run:
   name: gpt3_126m
   results_dir: ${base_results_dir}/${.name}

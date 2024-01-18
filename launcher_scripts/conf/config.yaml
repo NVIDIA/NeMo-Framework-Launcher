@@ -22,6 +22,9 @@ hydra:
   run:
     dir: .
   output_subdir: null
+  searchpath:
+    - file:///opt/NeMo/examples/nlp/language_modeling/conf
+
 
 debug: False
 
