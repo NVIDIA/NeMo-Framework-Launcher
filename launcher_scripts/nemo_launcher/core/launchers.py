@@ -965,8 +965,8 @@ def _make_sbatch_string_ft_launcher(
             'CONT_SBATCH_OUT=$(FT_RESUMED=1 sbatch --parsable --dependency=afterany:"$SLURM_JOB_ID" "$0")',
             'if [ $? -ne 0 ] ; then echo "Couldnt schedule continuation job. Check stderr for details." ; exit 1 ; fi',
             'CONT_SLURM_JOB_ID=$(echo $CONT_SBATCH_OUT | cut -f1 -d",")',
-            '# Write failure to the job log, eventually we will fix it at the end',
-            'echo "$SLURM_JOB_ID F" >> "$JOB_RESULTS_FILE"',
+            '# Write unknown job status to the job log, we will fix it at the end',
+            'echo "$SLURM_JOB_ID X" >> "$JOB_RESULTS_FILE"',
         ]
               
     # commandline (this will run the function and args specified in the file provided as argument)
@@ -1046,7 +1046,9 @@ def _make_sbatch_string_ft_launcher(
             '',
             '# Fix the job log entry ("JOB_ID F" -> "JOB_ID S"), if the job was successful',
             'if [ "$ANY_JOB_STEP_FAILED" = "0" ] ; then',
-            '   sed -i "s/^$SLURM_JOB_ID[[:space:]]\+F/$SLURM_JOB_ID S/" "$JOB_RESULTS_FILE"',
+            '   sed -i "s/$SLURM_JOB_ID X/$SLURM_JOB_ID S/" "$JOB_RESULTS_FILE"',
+            'else',
+            '   sed -i "s/$SLURM_JOB_ID X/$SLURM_JOB_ID F/" "$JOB_RESULTS_FILE"',
             'fi',
             '# Check if the continuation job can be cancelled',
             'if is_training_finished ; then',
