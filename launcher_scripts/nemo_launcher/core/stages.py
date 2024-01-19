@@ -930,13 +930,13 @@ class PEFT(NeMoStage):
             )
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "llama": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "t5": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_t5_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_t5_finetuning.py",
             "falcon": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1328,9 +1328,9 @@ class NeMoEvaluation(NeMoStage):
             "adapter_gpt3": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_eval.py",
             "peft_llama": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "peft_falcon": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
         }
         return model_type_to_code_path[model_type]
 
