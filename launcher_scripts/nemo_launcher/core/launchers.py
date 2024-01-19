@@ -938,7 +938,7 @@ def _make_sbatch_string_ft_launcher(
         f'export FAULT_TOL_CFG_PATH="{str(paths.config_file)}"',
         f'export FAULT_TOL_FINISHED_FLAG_FILE="{str(paths.folder / "_finished_flag")}"',
         'RDZV_HOST=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)',
-        'IS_THIS_JOB_SUCCESSFUL=1',
+        'ANY_JOB_STEP_FAILED=0',
     ]
         
     if max_subsequent_job_failures > 0:
@@ -948,7 +948,8 @@ def _make_sbatch_string_ft_launcher(
             f'JOB_RESULTS_FILE="{str(paths.folder / "_job_results")}"',
             f'MAX_JOB_FAILURES={max_subsequent_job_failures}',
             'is_job_failures_limit_reached() {',
-            '    tail -n $MAX_JOB_FAILURES "$JOB_RESULTS_FILE" | awk "/0/{f++} END{exit !(f>=$MAX_JOB_FAILURES)}"',
+            '    tail -n $MAX_JOB_FAILURES "$JOB_RESULTS_FILE" | \\',
+            '       awk "/^[[:alnum:]]+[[:space:]]+F$/{f++} END{exit !(f>=$MAX_JOB_FAILURES)}"',
             '}',
             'is_training_finished() {',
             '    test -f "$FAULT_TOL_FINISHED_FLAG_FILE"',
@@ -964,6 +965,8 @@ def _make_sbatch_string_ft_launcher(
             'CONT_SBATCH_OUT=$(FT_RESUMED=1 sbatch --parsable --dependency=afterany:"$SLURM_JOB_ID" "$0")',
             'if [ $? -ne 0 ] ; then echo "Couldnt schedule continuation job. Check stderr for details." ; exit 1 ; fi',
             'CONT_SLURM_JOB_ID=$(echo $CONT_SBATCH_OUT | cut -f1 -d",")',
+            '# Write failure to the job log, eventually we will fix it at the end',
+            'echo "$SLURM_JOB_ID F" >> "$JOB_RESULTS_FILE"',
         ]
               
     # commandline (this will run the function and args specified in the file provided as argument)
@@ -1035,14 +1038,17 @@ def _make_sbatch_string_ft_launcher(
                 "",
             ]
             lines += [
-                'if [ $? -ne 0 ]; then IS_THIS_JOB_SUCCESSFUL=0 ; fi'
+                'if [ $? -ne 0 ]; then ANY_JOB_STEP_FAILED=1 ; fi'
             ]
 
     if max_subsequent_job_failures > 0:
         lines += [
             '',
+            '# Fix the job log entry ("JOB_ID F" -> "JOB_ID S"), if the job was successful',
+            'if [ "$ANY_JOB_STEP_FAILED" = "0" ] ; then',
+            '   sed -i "s/^$SLURM_JOB_ID[[:space:]]\+F/$SLURM_JOB_ID S/" "$JOB_RESULTS_FILE"',
+            'fi',
             '# Check if the continuation job can be cancelled',
-            'echo $IS_THIS_JOB_SUCCESSFUL >> $JOB_RESULTS_FILE',
             'if is_training_finished ; then',
             '    echo "Training is finished" ; scancel $CONT_SLURM_JOB_ID ; exit 0',
             'fi',
