@@ -39,7 +39,7 @@ def main(cfg):
         file_numbers = cfg["file_numbers"]
         # Downloading the files
         files_list = utils.convert_file_numbers(file_numbers)
-        
+
         if cfg.get("cluster_type") == "bcp":
             wrank = int(os.environ.get("RANK", 0))
             wsize = int(os.environ.get("WORLD_SIZE", 0))
