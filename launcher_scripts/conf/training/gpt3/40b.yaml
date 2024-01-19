@@ -124,6 +124,9 @@ model:
   megatron_amp_O2: True # Enable O2-level automatic mixed precision using master parameters
   grad_allreduce_chunk_size_mb: 125
 
+  ## Network
+  sharp: False # Enable the use of SHARP for NCCL data-parallel communications. This is going to be ignored if the network doesn't support SHARP.
+  
   ## Using Megatron Core
   mcore_gpt: True
 
