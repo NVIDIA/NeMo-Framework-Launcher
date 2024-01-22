@@ -6,6 +6,7 @@ run:
   node_array_size: 1
   bcp_preproc_npernode: 1 # 2 should be safe to use and x2 times faster.
 
+pre_stage : "1" # make sure wrap in string type
 dataset: helpsteer # either openassistant or helpsteer
 output_dir: "${data_dir}/steerlm/"  # specify output_directory of the downloaded and preprocessed data
 preprocess_data: True  # True to preprocess the data from a jsonl file, False otherwise.
