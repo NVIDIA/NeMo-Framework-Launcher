@@ -937,7 +937,7 @@ def _make_sbatch_string_ft_launcher(
         '# Fault tolerance related items',
         f'export FAULT_TOL_CFG_PATH="{str(paths.config_file)}"',
         f'export FAULT_TOL_FINISHED_FLAG_FILE="{str(paths.folder / "_finished_flag")}"',
-        'RDZV_HOST=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)',
+        'RDZV_HOST=$(hostname)',
         'ANY_JOB_STEP_FAILED=0',
     ]
         
