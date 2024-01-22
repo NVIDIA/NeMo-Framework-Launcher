@@ -332,6 +332,9 @@ class NemoMegatronStage:
         elif cluster == "interactive":
             cluster_parameters.update(shared_parameters)
         elif cluster == "k8s":
+            # Resolving since there is a dependency between soon-to-be deprecated
+            # cluster.nfs_path which is referenced in cluster.volumes.nfs.path
+            OmegaConf.resolve(cfg.get("cluster"))
             cluster_cfg = cfg.get("cluster")
             k8s_cfg = {**copy.deepcopy(cluster_cfg)}
 
@@ -678,8 +681,7 @@ class NeMoStage(NemoMegatronStage):
         values_template.image.numGPUs = self.stage_cfg.trainer.devices
         values_template.image.nodes = self.stage_cfg.trainer.num_nodes
         values_template.trainingConfig.shmSize = cluster_parameters["shm_size"]
-        values_template.trainingConfig.NFSServer = cluster_parameters["nfs_server"]
-        values_template.trainingConfig.NFSPath = cluster_parameters["nfs_path"]
+        values_template.volumes = cluster_parameters["volumes"]
         values_template.trainingConfig.ibResourceName = cluster_parameters[
             "ib_resource_name"
         ]
@@ -887,8 +889,14 @@ class PEFT(NeMoStage):
         task_name = self.stage_cfg.run.get("task_name")
 
         # Prepare dataset for squad
-        if task_name in ["squad", "xquad"]:
-            prepare_squad_for_fine_tuning(data_dir=os.path.join(data_dir, "squad_data"))
+        if task_name in ("squad", "xquad"):
+            self._task_data_dir = os.path.join(data_dir, "squad_data")
+            if self.cfg.cluster_type == "k8s":
+                # Skip downloading since on k8s the data is downloaded in a
+                # pre-install job since user may not be using a volume type
+                # that's not available locally, e.g., PVC
+                return
+            prepare_squad_for_fine_tuning(data_dir=self._task_data_dir)
 
     def _copy_k8s_helm_chart(self, template_root: str, job_path: JobPaths):
         """
@@ -938,15 +946,14 @@ class PEFT(NeMoStage):
         values_template.image.gpuNum = self.stage_cfg.trainer.devices
         values_template.image.nodes = self.stage_cfg.trainer.num_nodes
         values_template.trainingConfig.shmSize = cluster_parameters["shm_size"]
-        if cluster_parameters["host_path"]:
-            values_template.trainingConfig.hostPath = cluster_parameters["host_path"]
-        else:
-            values_template.trainingConfig.NFSServer = cluster_parameters["nfs_server"]
-            values_template.trainingConfig.NFSPath = cluster_parameters["nfs_path"]
+        values_template.volumes = cluster_parameters["volumes"]
         values_template.trainingConfig.scriptPath = str(
             self._get_nemo_code_path(choice_model_type)
         )
         values_template.trainingConfig.envVars = cluster_parameters["env_vars"]
+
+        values_template.datasetConfig.prepare_task_name = self.stage_cfg.run.get("task_name")
+        values_template.datasetConfig.task_data_dir = self._task_data_dir
 
         if cluster_parameters["dns_policy"] is not None:
             values_template.trainingConfig.dnsPolicy = cluster_parameters["dns_policy"]
@@ -1154,8 +1161,7 @@ class Conversion(NemoMegatronStage):
         values_template.image.pullSecret = cluster_parameters["pull_secret"]
         values_template.image.gpuNum = num_gpus
         values_template.trainingConfig.shmSize = cluster_parameters["shm_size"]
-        values_template.trainingConfig.NFSServer = cluster_parameters["nfs_server"]
-        values_template.trainingConfig.NFSPath = cluster_parameters["nfs_path"]
+        values_template.volumes = cluster_parameters["volumes"]
         values_template.trainingConfig.vocabPath = self.cfg.conversion.model.vocab_file
         values_template.trainingConfig.mergesPath = self.cfg.conversion.model.merge_file
         values_template.trainingConfig.resultsDirectory = str(job_path.folder)
@@ -1432,8 +1438,7 @@ class EvalHarnessEvaluation(NemoMegatronStage):
         values_template.image.pullSecret = cluster_parameters["pull_secret"]
         values_template.image.gpuNum = num_gpus
         values_template.trainingConfig.shmSize = cluster_parameters["shm_size"]
-        values_template.trainingConfig.NFSServer = cluster_parameters["nfs_server"]
-        values_template.trainingConfig.NFSPath = cluster_parameters["nfs_path"]
+        values_template.volumes = cluster_parameters["volumes"]
         values_template.trainingConfig.vocabPath = self.cfg.evaluation.model.vocab_file
         values_template.trainingConfig.mergesPath = self.cfg.evaluation.model.merge_file
         values_template.trainingConfig.resultsDirectory = str(job_path.folder)

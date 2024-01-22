@@ -6,7 +6,7 @@ run:
   dependency: "singleton"
   convert_name: convert_nemo
   model_train_name: t5
-  convert_dir: ${base_results_dir}/${peft.run.model_train_name}/${peft.run.convert_name}
+  convert_dir: ${base_results_dir}/${.model_train_name}/${.convert_name}
   task_name: "squad"
   results_dir: ${base_results_dir}/${.model_train_name}/peft_${.task_name}
 

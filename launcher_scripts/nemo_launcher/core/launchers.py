@@ -536,7 +536,9 @@ class K8SLauncher(Launcher):
         helm_charts = paths.folder / "k8s_template"
         job_name = self.job_name.replace("_", "-")
 
-        return f"#!/bin/bash\nhelm install {job_name} {helm_charts}\n"
+        # Apply a timeout of 15min in case images take a long time to bring up
+        # or pre-install hooks take a while
+        return f"#!/bin/bash\nhelm install --timeout=15m --wait {job_name} {helm_charts}\n"
 
 
 @functools.lru_cache()
