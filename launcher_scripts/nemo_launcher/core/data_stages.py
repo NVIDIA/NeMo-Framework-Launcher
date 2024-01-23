@@ -748,13 +748,21 @@ class SteerLMDataPreparation(DataStage):
         :rtype: List[str]
         """
         sub_stages = []
-        if self.stage_cfg.get("dataset") == "openassistant":
-            task_name = "preprocess_openassistant"
-        elif self.stage_cfg.get("dataset") == "helpsteer":
-            task_name = "preprocess_helpsteer"
+        if self.stage_cfg.get("prep_stage") == "1":
+            if self.stage_cfg.get("dataset") == "openassistant":
+                task_name = "preprocess_openassistant"
+            elif self.stage_cfg.get("dataset") == "helpsteer":
+                task_name = "preprocess_helpsteer"
+            else:
+                print(
+                    "Currently SteerLM support only openassistand / helpsteer dataset"
+                )
+        elif self.stage_cfg.get("prep_stage") == "2":
+            task_name = "process_to_regression_format"
         else:
-            print("Currently SteerLM support only openassistand / helpsteer dataset")
-
+            print(
+                "Refer to NeMo-Aligner for data preparation support: https://github.com/NVIDIA/NeMo-Aligner/blob/main/docs/user-guide/SteerLM.rst#step-2-download-and-preprocess-data-for-attribute-prediction-modelling"
+            )
         if self.stage_cfg.get("preprocess_data", False):
             sub_stages += [task_name]
         return sub_stages
@@ -815,11 +823,22 @@ class SteerLMDataPreparation(DataStage):
             "preprocess_openassistant": data_prep_script
             / "preprocess_openassistant_data.py",
             "preprocess_helpsteer": data_prep_script / "preprocess_helpsteer_data.py",
+            "process_to_regression_format": data_prep_script
+            / "process_to_regression_format.py",
         }
         choice_model_type, choice_name = self.get_stage_config_choice()
-        output_dir = self.stage_cfg.get("output_dir")
+        if choice_name == "steerlm_data_prep2_reg":
+            input_file = self.stage_cfg.get("input_dataset")
+            output_file = self.stage_cfg.get("output_dir")
+            args = create_args_list(
+                input_file=input_file, output_file=output_file, replace_underscore=True
+            )
+        else:
+            output_dir = self.stage_cfg.get("output_dir")
+            args = create_args_list(
+                output_directory=output_dir, replace_underscore=False
+            )
         code_path = stage_to_code_path[sub_stage]
-        args = create_args_list(output_directory=output_dir, replace_underscore=False)
         sub_stage_command = [f"python3 -u {code_path}", *args]
         sub_stage_command = " ".join(sub_stage_command)
         return [sub_stage_command]
