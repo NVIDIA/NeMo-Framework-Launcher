@@ -834,6 +834,7 @@ def _make_sbatch_string_ft_launcher(
     heterogeneous: bool = False,
     max_subsequent_job_failures: int = 0,
     max_rank_restarts: int = 0,
+    additional_ft_launcher_args: str = "",
 ) -> str:
         
     """Creates the content of an sbatch file with provided parameters
@@ -877,6 +878,7 @@ def _make_sbatch_string_ft_launcher(
         "heterogeneous",
         "max_subsequent_job_failures",
         "max_rank_restarts",
+        "additional_ft_launcher_args",
     ]
     parameters = {
         k: v for k, v in locals().items() if v is not None and k not in nonslurm
@@ -1007,7 +1009,8 @@ def _make_sbatch_string_ft_launcher(
     # We do this by setting SLURM_JOB_NAME=interactive.
     # This is a temporary workaround, until the following PR is merged with NeMo 
     # https://github.com/Lightning-AI/pytorch-lightning/pull/18618
-    ft_launcher_cmd_part="SLURM_JOB_NAME=interactive ft_launcher --fault-tol-cfg-path=$FAULT_TOL_CFG_PATH " +\
+    ft_launcher_cmd_part="SLURM_JOB_NAME=interactive ft_launcher "+\
+                    f"--fault-tol-cfg-path=$FAULT_TOL_CFG_PATH {additional_ft_launcher_args} "+\
                     "--rdzv_id=$SLURM_JOB_ID --rdzv_backend=c10d --rdzv_endpoint=$RDZV_HOST " +\
                     f"--nnodes={nodes} --nproc_per_node={ntasks_per_node} --max-restarts={max_rank_restarts}"
 

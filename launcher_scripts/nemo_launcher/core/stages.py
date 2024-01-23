@@ -366,6 +366,8 @@ class NemoMegatronStage:
                 ft_conf.get('max_rank_restarts', 0)
             cluster_parameters["max_subsequent_job_failures"] = \
                 ft_conf.get('max_subsequent_job_failures', 0)
+            cluster_parameters["additional_ft_launcher_args"] = \
+                ft_conf.get('additional_ft_launcher_args', "")
         return cluster_parameters
                 
     def _find_optimal_nodes(self, cfg, gpus) -> None:
