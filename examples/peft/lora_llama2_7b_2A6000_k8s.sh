@@ -21,7 +21,8 @@ set -u
 NEMO_MEGATRON_LAUNCHER_DIR=$(readlink -f ${SCRIPT_DIR}/../..)
 DATA_DIR=${DATA_DIR}
 RESTORE_FROM_PATH=${RESTORE_FROM_PATH}
-HELM_RELEASE_NAME=${HELM_RELEASE_NAME:-a6000-7b-2gpu}
+HELM_RELEASE_NAME=${HELM_RELEASE_NAME:-llama-7b-peft-lora}
+PEFT_CONFIG=${PEFT_CONFIG:-llama/squad}
 
 # peft.model.megatron_amp_O2=false is needed on containers earlier than 23.11 that
 # do not include https://github.com/NVIDIA/NeMo/pull/7971
@@ -29,14 +30,13 @@ TRANSIENT_OVERRIDES="peft.model.megatron_amp_O2=false"
 
 # gbs=128 worked for 8 A100
 # gbs=16 should work for 1 A100 assuming 80G, which is total what 2A6000 can handle, but this OOMd so gbs=4
-#Users should setup their cluster type in /launcher_scripts/conf/config.yaml
 HYDRA_FULL_ERROR=1 python3 ${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts/main.py \
 cluster=k8s \
 cluster_type=k8s \
 "cluster.ib_count='0'" \
 container=nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.11 \
 stages=[peft] \
-peft=llama/squad \
+peft=${PEFT_CONFIG} \
 launcher_scripts_path=${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts \
 data_dir=${DATA_DIR} \
 peft.run.name="${HELM_RELEASE_NAME}" \
