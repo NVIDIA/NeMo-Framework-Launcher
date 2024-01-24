@@ -8,13 +8,13 @@ run:
   model_train_name: t5
   convert_dir: ${base_results_dir}/${.model_train_name}/${.convert_name}
   task_name: "squad"
-  results_dir: ${base_results_dir}/${.model_train_name}/peft_${.task_name}
+  results_dir: ${base_results_dir}/${.model_train_name}/peft_${.name}
 
 trainer:
-  devices: 1
+  devices: 8
   accelerator: gpu
   num_nodes: 1
-  precision: 16
+  precision: bf16
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
   use_distributed_sampler: False
@@ -87,7 +87,7 @@ model:
   ffn_dropout: 0.0
 
   peft:
-    peft_scheme: "adapter"  # can be either adapter, ia3, lora, or ptuning
+    peft_scheme: "lora"  # can be either adapter, ia3, lora, or ptuning
     restore_from_path: null
     
     # Used for adapter peft training
@@ -131,7 +131,8 @@ model:
       #   - /path/to/boolq.jsonl
       # Example of how each dataset is formatted
       # {'input': 'John von Neumann\nVon Neumann made fundamental contributions .... Q: What did the math of artificial viscosity do?', 'output': 'smoothed the shock transition without sacrificing basic physics'}
-      file_names: ${peft.model.data.validation_ds.file_names} # Path to a list of JSONL files corresponding to the source data.
+      file_names:
+      - ${data_dir}/squad_data/v1.1/train-v1.1_gpt.json # Path to a list of JSONL files corresponding to the source data.
       global_batch_size: ${peft.model.global_batch_size}
       micro_batch_size: ${peft.model.micro_batch_size}
       shuffle: True
@@ -146,7 +147,8 @@ model:
       #   - 0.5
       #   - 0.25
       #   - 0.25
-      concat_sampling_probabilities: null # When providing a list of datasets, this arg defines the sampling probabilities from each dataset when strategy='random'
+      concat_sampling_probabilities:
+      - 1.0 # When providing a list of datasets, this arg defines the sampling probabilities from each dataset when strategy='random'
       context_key: 'input'
       label_key: 'output'
       add_eos: True
@@ -158,16 +160,18 @@ model:
       prompt_template: "{input} {output}" # fstring to use for assistant prompt. Example: "Q: {input}\nA: {output}"
 
     validation_ds:
-      file_names: ${peft.model.data.validation_ds.file_names} # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
-      names: null # Names of the corresponding datasets used to log metrics.
+      file_names: 
+      - ${data_dir}/squad_data/v1.1/dev-v1.1_gpt.json # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
+      names:
+      - ${peft.run.task_name} # Names of the corresponding datasets used to log metrics.
       global_batch_size: ${peft.model.global_batch_size}
       micro_batch_size: ${peft.model.micro_batch_size}
       shuffle: False
       num_workers: 0
       memmap_workers: ${peft.model.data.train_ds.memmap_workers}
       pin_memory: True
-      max_seq_length: 2048
-      min_seq_length: 1
+      max_seq_length: ${peft.model.data.train_ds.max_seq_length}
+      min_seq_length: ${peft.model.data.train_ds.min_seq_length}
       drop_last: False
       context_key: 'input'
       label_key: 'output'
@@ -194,8 +198,8 @@ model:
         num_workers: 0
         memmap_workers: ${peft.model.data.train_ds.memmap_workers}
         pin_memory: True
-        max_seq_length: 2048
-        min_seq_length: 1
+        max_seq_length: ${peft.model.data.train_ds.max_seq_length}
+        min_seq_length: ${peft.model.data.train_ds.min_seq_length}
         drop_last: False
         context_key: 'input'
         label_key: 'output'

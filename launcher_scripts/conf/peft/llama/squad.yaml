@@ -8,7 +8,7 @@ run:
   model_train_name: llama2_7b
   convert_dir: ${base_results_dir}/${.model_train_name}/${.convert_name}
   task_name: "squad"
-  results_dir: ${base_results_dir}/${.model_train_name}/peft_${.task_name}
+  results_dir: ${base_results_dir}/${.model_train_name}/peft_${.name}
 
 trainer:
   devices: 8
