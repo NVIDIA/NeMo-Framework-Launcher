@@ -1,0 +1,14 @@
+run:
+  name: 'type_of_speech_classifier_inference'
+  results_dir: ${data_curation.run.results_dir}/${.name}
+  time_limit: "02:00:00"
+  dependency: "singleton"
+  nodes: 2
+  node_type: gpu
+
+model_file_name:
+input_file_path:
+input_file_type: "pickle"
+batch_size: 256
+
+output_classifier_inference_dir: ${data_curation.run.results_dir}/classifier_inference_results

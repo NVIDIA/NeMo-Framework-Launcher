@@ -39,6 +39,11 @@ fuzzy_deduplication:
   - write_deduped_result_with_text
   - verify_all_pairs_jaccard
 
+classifier_inference:
+  - domain_classifier_inference
+  - quality_classifier_inference
+  - type_of_speech_classifier_inference
+
 dataset_name: common_crawl
 
 defaults:
@@ -58,6 +63,9 @@ defaults:
   - common_crawl/connected_component/connected_component
   - common_crawl/write_deduped_result_with_text/write_deduped_result_with_text
   - common_crawl/verify_all_pairs_jaccard/verify_all_pairs_jaccard
+  - common_crawl/domain_classifier_inference/domain_classifier_inference
+  - common_crawl/quality_classifier_inference/quality_classifier_inference
+  - common_crawl/type_of_speech_classifier_inference/type_of_speech_classifier_inference
 
 special:
   choose_language:

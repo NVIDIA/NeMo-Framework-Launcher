@@ -701,6 +701,9 @@ class DataCurationStage(NemoMegatronStage):
             "connected_component": ConnectedComponent,
             "write_deduped_result_with_text": WriteDedupedResultWithText,
             "verify_all_pairs_jaccard": VerifyAllPairsJaccard,
+            "domain_classifier_inference": DomainClassifierInference,
+            "quality_classifier_inference": QualityClassifierInference,
+            "type_of_speech_classifier_inference": TypeOfSpeechClassifierInference,
         }
 
     def setup_stage_vars(self, cfg):
@@ -1084,6 +1087,114 @@ class VerifyAllPairsJaccard(DataCurationSubStage):
             f.write(runscript)
 
         core_command = [self.make_dask_command_string(runscript_path)]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class DomainClassifierInference(DataCurationSubStage):
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "domain_classifier_inference"
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            model_file_name=stage_cfg.get("model_file_name"),
+            input_file_path=stage_cfg.get("input_file_path"),
+            input_file_type=stage_cfg.get("input_file_type"),
+            output_file_path=stage_cfg.get("output_classifier_inference_dir"),
+            batch_size=stage_cfg.get("batch_size"),
+            autocast="store_true",
+        )
+
+        core_command = ["python3 -u domain_classifier_inference.py", *args]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class QualityClassifierInference(DataCurationSubStage):
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "quality_classifier_inference"
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            model_file_name=stage_cfg.get("model_file_name"),
+            input_file_path=stage_cfg.get("input_file_path"),
+            input_file_type=stage_cfg.get("input_file_type"),
+            output_file_path=stage_cfg.get("output_classifier_inference_dir"),
+            batch_size=stage_cfg.get("batch_size"),
+            autocast="store_true",
+        )
+
+        core_command = ["python3 -u quality_classifier_inference.py", *args]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class TypeOfSpeechClassifierInference(DataCurationSubStage):
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "type_of_speech_classifier_inference"
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """ Builds the command groups for the current stage """
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        args = create_args_list(
+            replace_underscore=True,
+            log_dir=self.log_folder,
+            model_file_name=stage_cfg.get("model_file_name"),
+            input_file_path=stage_cfg.get("input_file_path"),
+            input_file_type=stage_cfg.get("input_file_type"),
+            output_file_path=stage_cfg.get("output_classifier_inference_dir"),
+            batch_size=stage_cfg.get("batch_size"),
+            autocast="store_true",
+        )
+
+        core_command = ["python3 -u type_of_speech_classifier_inference.py", *args]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]
