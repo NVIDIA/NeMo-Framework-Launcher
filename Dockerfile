@@ -19,42 +19,13 @@
 # DEALINGS IN THE SOFTWARE.
 
 ARG BIGNLP_BACKEND=pytorch
-ARG BIGNLP_BACKEND_BRANCH_TAG=23.04
+ARG BIGNLP_BACKEND_BRANCH_TAG=23.10
 
 FROM nvcr.io/nvidia/${BIGNLP_BACKEND}:${BIGNLP_BACKEND_BRANCH_TAG}-py3 as pytorch
 
-#########################################
-#### Build fastertransformer pytorch ####
-#########################################
-FROM pytorch as ft_builder
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends bc git-lfs&& \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# backend build
-WORKDIR /workspace/FasterTransformer
-RUN git clone https://github.com/NVIDIA/FasterTransformer.git /workspace/FasterTransformer
-
-ENV NCCL_LAUNCH_MODE=GROUP
-ARG SM=80
-ARG BUILD_MIXED_GEMM=OFF
-ARG FORCE_BACKEND_REBUILD=0
-ARG SPARSITY_SUPPORT=OFF
-ARG BUILD_MULTI_GPU=ON
-RUN mkdir /var/run/sshd -p && \
-    mkdir build -p && cd build && \
-    wget https://developer.download.nvidia.com/compute/libcusparse-lt/0.1.0/local_installers/libcusparse_lt-linux-x86_64-0.1.0.2.tar.gz && \
-    tar -xzvf libcusparse_lt-linux-x86_64-0.1.0.2.tar.gz && \
-    cmake -DSM=${SM} -DCMAKE_BUILD_TYPE=Release -DBUILD_PYT=ON -DSPARSITY_SUPPORT=${SPARSITY_SUPPORT} -DMEASURE_BUILD_TIME=ON \
-      -DBUILD_CUTLASS_MIXED_GEMM=${BUILD_MIXED_GEMM} -DCUSPARSELT_PATH=/workspace/FasterTransformer/build/libcusparse_lt/ \
-      -DBUILD_MULTI_GPU=${BUILD_MULTI_GPU} -DBUILD_TRT=ON .. && \
-    make -j"$(grep -c ^processor /proc/cpuinfo)"
-
-########################################################################
-#### Build training container and install fastertransformer pytorch ####
-########################################################################
+##################################
+#### Build training container ####
+##################################
 FROM pytorch as training
 
 ENV NVIDIA_PRODUCT_NAME="NeMo Megatron"
@@ -82,7 +53,7 @@ WORKDIR /opt
 #RUN ...
 
 # Get fastertransformer_backend
-RUN git clone https://github.com/triton-inference-server/fastertransformer_backend.git
+#RUN git clone https://github.com/triton-inference-server/fastertransformer_backend.git
 
 # Install SentencePiece
 RUN git clone https://github.com/google/sentencepiece.git && \
@@ -95,6 +66,7 @@ RUN git clone https://github.com/google/sentencepiece.git && \
     ldconfig
 
 # Install apex
+RUN pip install packaging
 ARG APEX_COMMIT
 RUN pip uninstall -y apex && \
     git clone https://github.com/NVIDIA/apex && \
@@ -103,7 +75,7 @@ RUN pip uninstall -y apex && \
         git fetch origin $APEX_COMMIT && \
         git checkout FETCH_HEAD; \
     fi && \
-    pip install -v --disable-pip-version-check --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" --global-option="--fast_layer_norm" --global-option="--distributed_adam" --global-option="--deprecated_fused_adam" ./
+    pip install install -v --no-build-isolation --disable-pip-version-check --no-cache-dir --config-settings "--build-option=--cpp_ext --cuda_ext --fast_layer_norm --distributed_adam --deprecated_fused_adam" ./
 
 # Install NeMo
 ARG NEMO_COMMIT
@@ -117,6 +89,17 @@ RUN git clone https://github.com/NVIDIA/NeMo.git && \
     pip install -e ".[nlp]" && \
     cd nemo/collections/nlp/data/language_modeling/megatron && \
     make
+
+# Install launch scripts
+ARG ALIGNER_COMMIT
+RUN git clone https://github.com/NVIDIA/NeMo-Aligner.git && \
+    cd NeMo-Aligner && \
+    git pull && \
+    if [ ! -z $ALIGNER_COMMIT ]; then \
+        git fetch origin $ALIGNER_COMMIT && \
+        git checkout FETCH_HEAD; \
+    fi && \
+    pip install --no-deps -e .
 
 # HF cache
 RUN python -c "from transformers import AutoTokenizer; tok_gpt=AutoTokenizer.from_pretrained('gpt2'); tok_bert=AutoTokenizer.from_pretrained('bert-base-cased'); tok_large_bert=AutoTokenizer.from_pretrained('bert-large-cased'); tok_large_uncased_bert=AutoTokenizer.from_pretrained('bert-large-uncased');"
@@ -143,12 +126,38 @@ RUN git clone https://github.com/NVIDIA/Megatron-LM.git && \
     pip install -e .
 
 # Install launch scripts
-COPY . NeMo-Megatron-Launcher
-RUN cd NeMo-Megatron-Launcher && \
+ARG LAUNCHER_COMMIT
+RUN git clone https://github.com/NVIDIA/NeMo-Megatron-Launcher.git && \
+    cd NeMo-Megatron-Launcher && \
+    git pull && \
+    if [ ! -z $LAUNCHER_COMMIT ]; then \
+        git fetch origin $LAUNCHER_COMMIT && \
+        git checkout FETCH_HEAD; \
+    fi && \
     pip install --no-cache-dir -r requirements.txt
 
 ENV LAUNCHER_SCRIPTS_PATH=/opt/NeMo-Megatron-Launcher/launcher_scripts
 ENV PYTHONPATH=/opt/NeMo-Megatron-Launcher/launcher_scripts:${PYTHONPATH}
+
+# pyenv setup for pytriton
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libffi-dev \
+        libreadline-dev \
+        libsqlite3-dev && \
+    rm -rf /var/lib/apt/lists/*
+RUN curl https://pyenv.run | bash && \
+    export PYENV_ROOT="$HOME/.pyenv" && \
+    command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH" && \
+    eval "$(pyenv init -)" && \
+    pyenv install 3.8 && \
+    pyenv global 3.8 && \
+    pip3 install virtualenv && \
+    mkdir -p ~/.cache/pytriton/ && \
+    python -mvenv ~/.cache/pytriton/python_backend_interpreter --copies --clear && \
+    source ~/.cache/pytriton/python_backend_interpreter/bin/activate && \
+    pip3 install numpy~=1.21 pyzmq~=23.0 && \
+    deactivate && \
+    pyenv global system
 
 # pip install required python packages
 RUN pip install --no-cache-dir wandb==0.15.3 \
@@ -159,7 +168,8 @@ RUN pip install --no-cache-dir wandb==0.15.3 \
         jsonlines==2.0.0 \
         lm_dataformat==0.0.19 \
         mock==4.0.3 \
-        numexpr==2.7.2 \
+        'numba>=0.57.1' \
+        'numexpr>=2.7.2' \
         pybind11==2.8.0 \
         pycountry==20.7.3 \
         pytablewriter==0.58.0 \
@@ -171,14 +181,15 @@ RUN pip install --no-cache-dir wandb==0.15.3 \
         'transformers>=4.1' \
         tqdm-multiprocess==0.0.11 \
         zstandard==0.17.0 \
-        tritonclient[all]~=2.22.4 \
-	'nvidia-pytriton==0.1.5' \
+        tritonclient[all]~=2.33 \
+	    'nvidia-pytriton==0.4.1' \
         'nltk>=3.6.7' \
         'ipython>=7.31.1' \
         'torchmetrics==0.9.1'
 
+RUN pip install pytorch_lightning==2.0.7
 # Copy FasterTransformer
-COPY --from=ft_builder /workspace/FasterTransformer FasterTransformer
+#COPY --from=ft_builder /workspace/FasterTransformer FasterTransformer
 
 # Setup SSH config to allow mpi-operator to communicate with containers in k8s
 RUN echo "    UserKnownHostsFile /dev/null" >> /etc/ssh/ssh_config && \
