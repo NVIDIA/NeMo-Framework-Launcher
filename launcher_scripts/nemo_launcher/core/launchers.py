@@ -1051,7 +1051,7 @@ def _make_sbatch_string_ft_launcher(
     if max_subsequent_job_failures > 0:
         lines += [
             '',
-            '# Fix the job log entry ("JOB_ID F" -> "JOB_ID S"), if the job was successful',
+            '# Fix the job log entry ("JOB_ID X" -> "JOB_ID S/F"), depending on the job result',
             'if [ "$ANY_JOB_STEP_FAILED" = "0" ] ; then',
             '   sed -i "s/$SLURM_JOB_ID X/$SLURM_JOB_ID S/" "$JOB_RESULTS_FILE"',
             'else',
