@@ -1,0 +1,77 @@
+{{ $config := .Values.trainingConfig }}
+
+apiVersion: kubeflow.org/v1
+kind: PyTorchJob
+metadata:
+  name: rlhf-ppo-critic
+  labels:
+    app: rlhf-ppo-critic
+spec:
+  pytorchReplicaSpecs:
+    Worker:
+      replicas: {{ .Values.critic.nodes }}
+      template:
+        spec:
+          containers:
+          - name: pytorch
+            image: {{ .Values.image.trainingImage }}
+            env:
+              {{- range $key, $value := $config.envVars }}
+              - name: {{ $key }}
+                value: {{ $value | quote }}
+              {{- end}}
+            {{ if eq $config.wandbKey "nil" }}
+            command: ["torchrun"]
+            args:
+              - "--nnodes={{ .Values.critic.nodes }}"
+              - "--rdzv-backend=c10d"
+              - "--rdzv-endpoint=rlhf-ppo-critic-worker-0"
+              - "--nproc_per_node={{ .Values.critic.numGPUs }}"
+              - "/opt/NeMo-Aligner/examples/nlp/gpt/serve_ppo_critic.py"
+              - "--config-path=/config"
+              - "--config-name=config_critic.yaml"
+              - "trainer.ppo.port=5567"
+            {{ else }}
+            command: ["bash", "-c"]
+            args:
+              - "wandb login {{ $config.wandbKey }} && torchrun --nnodes={{ .Values.critic.nodes }} --rdzv-backend=c10d --rdzv-endpoint=rlhf-ppo-critic-worker-0 --nproc_per_node={{ .Values.critic.numGPUs }} /opt/NeMo-Aligner/examples/nlp/gpt/serve_ppo_critic.py --config-path=/config --config-name=config_critic.yaml trainer.ppo.port=5567"
+            {{ end }}
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            securityContext:
+              capabilities:
+                add: [ "IPC_LOCK" ]
+            resources:
+              requests:
+                nvidia.com/gpu: {{ .Values.critic.numGPUs }}
+                {{ $config.ibResourceName }}: {{ $config.ibCount }}
+              limits:
+                nvidia.com/gpu: {{ .Values.critic.numGPUs }}
+                {{ $config.ibResourceName }}: {{ $config.ibCount }}
+            ports:
+            - containerPort: 5567
+              name: critic-port
+            volumeMounts:
+            - mountPath: {{ $config.NFSPath }}
+              name: workspace
+            - mountPath: /dev/shm
+              name: dshm
+            - mountPath: /config
+              name: rlhf-ppo-config
+          restartPolicy: Never
+          imagePullSecrets:
+          - name: {{ .Values.image.pullSecret }}
+          volumes:
+          - name: workspace
+            nfs:
+              server: {{ $config.NFSServer }}
+              path: {{ $config.NFSPath }}
+          - name: dshm
+            emptyDir:
+              medium: Memory
+              sizeLimit: {{ $config.shmSize }}
+          - configMap:
+              name: rlhf-ppo-config
+            name: rlhf-ppo-config
+          {{ if ne $config.dnsPolicy "nil" }}
+          dnsPolicy: {{ $config.dnsPolicy }}
+          {{ end }}

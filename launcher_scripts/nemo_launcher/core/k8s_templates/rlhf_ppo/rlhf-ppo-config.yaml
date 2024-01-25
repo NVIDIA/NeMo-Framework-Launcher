@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rlhf-ppo-config
+data:
+  config_critic.yaml: |-
+  {{ (.Files.Glob "config/gpt_ppo_critic.yaml").AsConfig | indent 4 }}
+  config_actor.yaml: |-
+  {{ (.Files.Glob "config/gpt_ppo_actor.yaml").AsConfig | indent 4 }}
