@@ -934,6 +934,10 @@ def _make_sbatch_string_ft_launcher(
     if srun_args is None:
         srun_args = []
 
+    # FT launcher will terminate failed workers, no need SLURM for that.
+    # A safety measure, let SLURM kill the job, 1h after any task ended.
+    srun_args += ["--kill-on-bad-exit=0", "--wait=3600"]
+
     lines += [
         '',
         '# Fault tolerance related items',
