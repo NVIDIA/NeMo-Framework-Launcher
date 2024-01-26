@@ -104,7 +104,7 @@ model:
   sd_locked: True
 
   control_stage_config:
-    _target_: nemo.collections.multimodal.models.controlnet.controlnet.ControlNet
+    _target_: nemo.collections.multimodal.models.text_to_image.controlnet.controlnet.ControlNet
     params:
       from_pretrained_unet: /path/to/stable-diffusion-ckpt # Nemo or HF .ckpt supported
       from_NeMo: True
@@ -125,7 +125,7 @@ model:
       use_flash_attention: False
 
   unet_config:
-    _target_: nemo.collections.multimodal.models.controlnet.controlnet.ControlledUnetModel
+    _target_: nemo.collections.multimodal.models.text_to_image.controlnet.controlnet.ControlledUnetModel
     from_pretrained: /path/to/stable-diffusion-ckpt # Nemo or HF .ckpt supported
     from_NeMo: True
     image_size: 32 # unused

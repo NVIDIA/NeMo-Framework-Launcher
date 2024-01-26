@@ -166,7 +166,7 @@ model:
     #    max_length: 77
 
   noise_scheduler:
-    _target_: nemo.collections.multimodal.models.dreambooth.util.sd_noise_scheduler
+    _target_: nemo.collections.multimodal.models.text_to_image.dreambooth.util.sd_noise_scheduler
     parameterization: eps
     v_posterior: 0
     given_betas:
