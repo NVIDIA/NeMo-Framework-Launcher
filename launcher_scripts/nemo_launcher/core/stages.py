@@ -97,7 +97,9 @@ class NemoMegatronStage:
         command_groups = self.make_stage_command_groups(stage_cfg_path)
         # Create launcher
         launcher = AutoLauncher(
-            folder=job_path.folder, cluster=self.cluster, **cluster_parameters,
+            folder=job_path.folder,
+            cluster=self.cluster,
+            **cluster_parameters,
         )
         job_id = launcher.launch(command_groups=command_groups)
 
@@ -513,7 +515,7 @@ class NemoMegatronStage:
 
     @property
     def _set_ln_sm_margin(self) -> str:
-        """ Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel """
+        """Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel"""
         vpp = self.cfg.training.model.get("virtual_pipeline_model_parallel_size")
         if (
             self.cfg.training.model.get("overlap_p2p_comm", False)
@@ -530,7 +532,7 @@ class NemoMegatronStage:
 
     @property
     def _skip_ag_overlap(self) -> str:
-        """ Skip TP-AllGather overlap with ring-exchange at (1) bf16 and (2) PP > 1 """
+        """Skip TP-AllGather overlap with ring-exchange at (1) bf16 and (2) PP > 1"""
         if (
             self.cfg.training.model.get("ub_tp_comm_overlap", False)
             and self.cfg.training.model.get("pipeline_model_parallel_size") > 1
@@ -704,7 +706,9 @@ class NeMoStage(NemoMegatronStage):
             "ib_resource_name"
         ]
         values_template.trainingConfig.ibCount = cluster_parameters["ib_count"]
-        values_template.trainingConfig.ibNetworkAnnotation = cluster_parameters["ib_network_annotation"]
+        values_template.trainingConfig.ibNetworkAnnotation = cluster_parameters[
+            "ib_network_annotation"
+        ]
         values_template.trainingConfig.envVars = cluster_parameters["env_vars"]
 
         if cluster_parameters["dns_policy"] is not None:
@@ -919,9 +923,9 @@ class PEFT(NeMoStage):
         """
         Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
         For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
-        
+
         :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
-        :return: path current stage's essential nemo scripts code 
+        :return: path current stage's essential nemo scripts code
         :rtype: Path
         """
 
@@ -961,7 +965,8 @@ class PromptLearning(NeMoStage):
         # Prepare squad dataset
         if task_name == "squad":
             prepare_squad_for_prompt_learning(
-                os.path.join(data_dir, "prompt_data"), self._launcher_scripts_path,
+                os.path.join(data_dir, "prompt_data"),
+                self._launcher_scripts_path,
             )
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
@@ -1221,8 +1226,8 @@ class Conversion(NemoMegatronStage):
 
 class NeMoEvaluation(NeMoStage):
     """
-        Stage class of gpt3/t5/mt5 evaluation with NeMo scripts
-        Including: fine-tuning eval, prompt-learning eval, adapter/ia3 learning eval
+    Stage class of gpt3/t5/mt5 evaluation with NeMo scripts
+    Including: fine-tuning eval, prompt-learning eval, adapter/ia3 learning eval
     """
 
     def setup_stage_vars(self, cfg):
@@ -1258,7 +1263,8 @@ class NeMoEvaluation(NeMoStage):
                 / "nemo_launcher/collections/metric_calculation/squad_metric_calc.py"
             )
             args = create_args_list(
-                pred=pred_file_path, ground_truth=ground_truth_file_path,
+                pred=pred_file_path,
+                ground_truth=ground_truth_file_path,
             )
             split_string = self.stage_cfg.get("split_string", None)
             if split_string:
@@ -1365,7 +1371,10 @@ class EvalHarnessEvaluation(NemoMegatronStage):
             self._launcher_scripts_path
             / "nemo_launcher/collections/eval_harness/download.py"
         )
-        args = create_args_list(tasks=tasks, cache_dir=cache_dir,)
+        args = create_args_list(
+            tasks=tasks,
+            cache_dir=cache_dir,
+        )
         download_command = [f"python3 {code_path}", *args]
         download_command_string = " \\\n  ".join(download_command)
         return download_command_string
@@ -1578,7 +1587,9 @@ def _hydra_interpolation(cfg: OmegaConf) -> None:
 
 
 def create_args_list(
-    hydra: bool = False, replace_underscore: bool = True, **kwargs: Any,
+    hydra: bool = False,
+    replace_underscore: bool = True,
+    **kwargs: Any,
 ) -> List[str]:
     """
     An easy tool function to convert arguments into a list of argument strings.
