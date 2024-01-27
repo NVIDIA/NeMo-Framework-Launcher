@@ -179,7 +179,7 @@ class NemoMegatronStage:
         ]
 
     def _make_use_flash_attention_command(self) -> List[str]:
-        """Extend nemo path to python path"""
+        """unset NVTE_FLASH_ATTN when using transformer engine"""
         if self.cfg.training.model.get("mcore_gpt", False) and not self.cfg.training.model.get("use_flash_attention", False):
             return [
                 f"export NVTE_FLASH_ATTN=0",
