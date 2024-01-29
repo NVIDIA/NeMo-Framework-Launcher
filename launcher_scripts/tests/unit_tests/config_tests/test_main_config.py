@@ -8,11 +8,11 @@ class TestConfig:
         defaults:
           - _self_
           - cluster: bcm  # Set to bcm for BCM and BCP clusters. Set to k8s for a k8s cluster.
-          - data_preparation: gpt3/download_gpt3_pile
-          - quality_filtering: heuristic/english
-          - lang_separation_and_cleaning: lang_separation_and_cleaning
+          - data_curation: common_crawl/curate_common_crawl
+          - data_preparation: gpt3/download_gpt3_pile #steerlm/steerlm_data_prep1 or steerlm/steerlm_data_prep2_reg
           - training: gpt3/5b
           - conversion: gpt3/convert_gpt3
+          - conversion_hf2nemo: hf_llama2/convert_llama2_nemo
           - fine_tuning: null
           - peft: null
           - prompt_learning: null
@@ -36,6 +36,7 @@ class TestConfig:
           #- data_preparation
           #- training
           - conversion
+          #- conversion_hf2nemo
           #- prompt_learning
           #- adapter_learning
           #- ia3_learning
@@ -79,7 +80,7 @@ class TestConfig:
         
         # Do not modify below, use the values above instead.
         data_preparation_config: ${hydra:runtime.choices.data_preparation}
-        quality_filtering_config: ${hydra:runtime.choices.quality_filtering}
+        data_curation_config: ${hydra:runtime.choices.data_curation}
         training_config: ${hydra:runtime.choices.training}
         fine_tuning_config: ${hydra:runtime.choices.fine_tuning}
         peft_config: ${hydra:runtime.choices.peft}
@@ -92,6 +93,7 @@ class TestConfig:
         rlhf_rm_config: ${hydra:runtime.choices.rlhf_rm}
         rlhf_ppo_config: ${hydra:runtime.choices.rlhf_ppo}
         steerlm_reg_config : ${hydra:runtime.choices.steerlm_reg}
+        conversion_hf2nemo_config: ${hydra:runtime.choices.conversion_hf2nemo}
         """
         expected = OmegaConf.create(s)
         assert (

@@ -1,0 +1,26 @@
+run:
+  name: 'data-curation'
+  results_dir: ${base_results_dir}/${.name}
+
+# Many steps in the data curator do not use GPUs
+# Adjust configs here if you would like to use different cluster configurations for jobs that do/don't require GPUs
+cpu_config:
+  partition: 
+
+gpu_config:
+  partition: 
+
+stages:
+  - task_deduplication
+
+task_deduplication:
+  - prepare_task_data
+  - find_matching_ngrams
+  - remove_matching_ngrams
+
+dataset_name: sft
+
+defaults:
+  - sft/prepare_task_data/prepare_task_data
+  - sft/find_matching_ngrams/find_matching_ngrams
+  - sft/remove_matching_ngrams/remove_matching_ngrams

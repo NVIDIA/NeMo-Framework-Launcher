@@ -17,14 +17,12 @@ import sys
 
 import hydra
 import omegaconf
-from nemo_launcher.core.data_curation_stages import (
-    QualityFiltering,
-    LangSeparationAndCleaning,
-)
+from nemo_launcher.core.data_curation_stages import DataCurationStage
 from nemo_launcher.core.data_stages import (
     CustomDataPreparation,
     MC4DataPreparation,
     PileDataPreparation,
+    SteerLMDataPreparation,
 )
 from nemo_launcher.core.export_stages import Export
 from nemo_launcher.core.rlhf_stages import RLHFPPO, RLHFRewardModel
@@ -39,6 +37,7 @@ from nemo_launcher.core.stages import (
     PromptLearning,
     Training,
     SteerLMRegSFT,
+    ConversionHF2NeMo,
 )
 
 omegaconf.OmegaConf.register_new_resolver("multiply", lambda x, y: x * y, replace=True)
@@ -57,9 +56,16 @@ STR2STAGECLASS = {
     "adapter_learning": AdapterLearning,
     "ia3_learning": IA3Learning,
     "conversion": Conversion,
+    "conversion_hf2nemo": ConversionHF2NeMo,
     "export": Export,
     "evaluation": {
-        EvalHarnessEvaluation: ["gpt3", "prompt_gpt3", "llama", "prompt_llama", "baichuan2", "prompt_baichuan2"],
+        EvalHarnessEvaluation: [
+            "gpt3",
+            "prompt_gpt3",
+            "llama",
+            "prompt_llama",
+            "falcon",
+        ],
         NeMoEvaluation: [
             "t5",
             "mt5",
@@ -70,18 +76,18 @@ STR2STAGECLASS = {
             "ia3_t5",
             "ia3_gpt3",
             "peft_llama",
-            "peft_baichuan2"
+            "peft_falcon",
         ],
     },
     "data_preparation": {
-        PileDataPreparation: ["gpt3", "t5", "bert", "llama", "baichuan2"],
+        PileDataPreparation: ["gpt3", "t5", "bert", "llama", "falcon"],
         MC4DataPreparation: ["mt5"],
+        SteerLMDataPreparation: ["steerlm"],
         CustomDataPreparation: ["generic"],
     },
     "rlhf_rm": RLHFRewardModel,
     "rlhf_ppo": RLHFPPO,
-    "quality_filtering": QualityFiltering,
-    "lang_separation_and_cleaning": LangSeparationAndCleaning,
+    "data_curation": DataCurationStage,
     "steerlm_reg": SteerLMRegSFT,
 }
 

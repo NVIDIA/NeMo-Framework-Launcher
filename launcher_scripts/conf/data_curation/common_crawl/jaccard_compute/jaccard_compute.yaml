@@ -1,0 +1,18 @@
+run:
+  name: 'jaccard-compute'
+  results_dir: ${data_curation.run.results_dir}/${.name}
+  time_limit: "02:00:00"
+  dependency: "singleton"
+  nodes: 2
+  node_type: gpu
+
+dask:
+  pool_size: 72GiB
+  protocol: ucx
+  interface: ibp12s0
+
+shuffled_docs_path: ${data_curation.run.results_dir}/fuzzy_deduped/shuffled_docs.parquet
+files_per_partition: 5
+num_files: -1
+
+output_fuzzy_deduped_dir: ${data_curation.run.results_dir}/fuzzy_deduped
