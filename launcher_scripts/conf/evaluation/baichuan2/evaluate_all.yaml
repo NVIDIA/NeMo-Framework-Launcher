@@ -1,6 +1,6 @@
 run:
   name: ${.eval_name}_${.model_train_name}
-  time_limit: "02:00:00"
+  time_limit: "04:00:00"
   dependency: "singleton"
   nodes: ${divide_ceil:${evaluation.model.model_parallel_size}, 8} # 8 gpus per node
   ntasks_per_node: ${divide_ceil:${evaluation.model.model_parallel_size}, ${.nodes}}

@@ -83,8 +83,8 @@ model:
   attention_type: multihead
   share_embeddings_and_output_weights: false
   tokenizer:
-    library: 'huggingface'
-    type: baichuan-inc/Baichuan2-7B-Base
+    library: 'sentencepiece'
+    type: null
     model: null
     delimiter: null
     vocab_file: null
