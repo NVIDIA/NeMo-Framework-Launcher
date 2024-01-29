@@ -542,7 +542,14 @@ class K8SLauncher(Launcher):
         helm_charts = paths.folder / "k8s_template"
         job_name = self.job_name.replace("_", "-")
 
-        return f"#!/bin/bash\nhelm install {job_name} {helm_charts}\n"
+        if NEMO_LAUNCHER_DEBUG:
+            # If NEMO_LAUNCHER_DEBUG is set, we just print the template.
+            # The submission script will also have this command so a user is
+            # expected to drop this env-var if they want to subsequently run.
+            sub_command = "template"
+        else:
+            sub_command = "install"
+        return f"#!/bin/bash\nhelm {sub_command} {job_name} {helm_charts}\n"
 
 
 @functools.lru_cache()
