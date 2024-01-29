@@ -48,7 +48,7 @@ exp_manager:
 model:
   mcore_gpt: true
   micro_batch_size: 1
-  global_batch_size: 8
+  global_batch_size: 128
   rampup_batch_size: null
   tensor_model_parallel_size: 2
   pipeline_model_parallel_size: 1
@@ -86,7 +86,7 @@ model:
   tokenizer:
     library: 'sentencepiece'
     type: null
-    model: /mount/data/Baichuan2-7B-Base/tokenizer.model
+    model: ??? # /path/to/tokenizer.model
     delimiter: null
     vocab_file: null
     merge_file: null
@@ -219,5 +219,7 @@ model:
     - ${data_dir}/my-baichuan2_28_text_document
     - .0334
     - ${data_dir}/my-baichuan2_29_text_document
+
+
     
 

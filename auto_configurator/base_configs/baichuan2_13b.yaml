@@ -48,7 +48,7 @@ exp_manager:
 model:
   mcore_gpt: true
   micro_batch_size: 1
-  global_batch_size: 8
+  global_batch_size: 64
   rampup_batch_size: null
   tensor_model_parallel_size: 2
   pipeline_model_parallel_size: 1
@@ -86,7 +86,7 @@ model:
   tokenizer:
     library: 'sentencepiece'
     type: null
-    model: /mount/data/Baichuan2-7B-Base/tokenizer.model
+    model: ??? # /path/to/tokenizer.model
     delimiter: null
     vocab_file: null
     merge_file: null
@@ -159,66 +159,65 @@ model:
     eod_mask_loss: false
     index_mapping_dir: null
     data_prefix:
-#     - .0333
-#     - ${data_dir}/my-baichuan2_00_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_01_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_02_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_03_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_04_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_05_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_06_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_07_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_08_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_09_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_10_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_11_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_12_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_13_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_14_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_15_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_16_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_17_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_18_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_19_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_20_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_21_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_22_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_23_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_24_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_25_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_26_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_27_text_document
-#     - .0333
-#     - ${data_dir}/my-baichuan2_28_text_document
-#     - .0334
-#     - ${data_dir}/my-baichuan2_29_text_document
-    - 1.0
-    - /mount/data/FinGPT/my-dataset_new_v2_input_document
+    - .0333
+    - ${data_dir}/my-baichuan2_00_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_01_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_02_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_03_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_04_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_05_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_06_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_07_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_08_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_09_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_10_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_11_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_12_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_13_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_14_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_15_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_16_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_17_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_18_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_19_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_20_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_21_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_22_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_23_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_24_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_25_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_26_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_27_text_document
+    - .0333
+    - ${data_dir}/my-baichuan2_28_text_document
+    - .0334
+    - ${data_dir}/my-baichuan2_29_text_document
+
 
