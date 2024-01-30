@@ -310,7 +310,10 @@ class NemoMegatronStage:
         }
         if cluster == "bcm":
             cluster_cfg = cfg.get("cluster")
-            if cfg.get("training").get("model").get("ub_tp_comm_overlap", False):
+            if cfg.get("training").get("model").get("ub_tp_comm_overlap", False) or (
+                cfg.get("peft") is not None
+                and cfg.get("peft").get("model").get("ub_tp_comm_overlap", False)
+            ):
                 if "srun_args" not in cluster_cfg:
                     cluster_cfg["srun_args"] = []
                 cluster_cfg["srun_args"] += ["--mpi=pmix"]
@@ -883,6 +886,8 @@ class FineTuning(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "llama": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            "code_llama": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "mt5": self._nemo_code_path
@@ -918,9 +923,9 @@ class PEFT(NeMoStage):
         """
         Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
         For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
-        
+
         :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
-        :return: path current stage's essential nemo scripts code 
+        :return: path current stage's essential nemo scripts code
         :rtype: Path
         """
 
@@ -1328,6 +1333,8 @@ class NeMoEvaluation(NeMoStage):
             "adapter_gpt3": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_eval.py",
             "peft_llama": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            "code_llama": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
             "peft_falcon": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
