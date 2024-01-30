@@ -310,7 +310,10 @@ class NemoMegatronStage:
         }
         if cluster == "bcm":
             cluster_cfg = cfg.get("cluster")
-            if cfg.get("training").get("model").get("ub_tp_comm_overlap", False):
+            if cfg.get("training").get("model").get("ub_tp_comm_overlap", False) or (
+                cfg.get("peft") is not None
+                and cfg.get("peft").get("model").get("ub_tp_comm_overlap", False)
+            ):
                 if "srun_args" not in cluster_cfg:
                     cluster_cfg["srun_args"] = []
                 cluster_cfg["srun_args"] += ["--mpi=pmix"]
