@@ -1,6 +1,6 @@
-hydra:
-  searchpath:
-    - file:///opt/NeMo/examples/nlp/language_modeling/conf
+defaults:
+  - _self_
+  - optional tp_overlap@model.ub_tp_comm_overlap_cfg:
 
 run:
   name: gpt3_40b
