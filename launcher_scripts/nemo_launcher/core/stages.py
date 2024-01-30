@@ -322,7 +322,10 @@ class NemoMegatronStage:
         }
         if cluster == "bcm":
             cluster_cfg = cfg.get("cluster")
-            if cfg.get("training").get("model").get("ub_tp_comm_overlap", False):
+            if cfg.get("training").get("model").get("ub_tp_comm_overlap", False) or (
+                cfg.get("peft") is not None
+                and cfg.get("peft").get("model").get("ub_tp_comm_overlap", False)
+            ):
                 if "srun_args" not in cluster_cfg:
                     cluster_cfg["srun_args"] = []
                 cluster_cfg["srun_args"] += ["--mpi=pmix"]
@@ -496,7 +499,16 @@ class NemoMegatronStage:
         if not model_cfg:
             return ""
         tensor_model_parallel_size = model_cfg.get("tensor_model_parallel_size", 1)
-        return "CUDA_DEVICE_MAX_CONNECTIONS=1" if tensor_model_parallel_size > 1 else ""
+        context_parallel_size = model_cfg.get("context_parallel_size", 1)
+        fsdp = model_cfg.get("fsdp", False)
+        return (
+            "CUDA_DEVICE_MAX_CONNECTIONS=1"
+            if (
+                (tensor_model_parallel_size > 1 or context_parallel_size > 1)
+                and not fsdp
+            )
+            else ""
+        )
 
     @property
     def _nvte_bias_gelu_nvfusion(self) -> str:

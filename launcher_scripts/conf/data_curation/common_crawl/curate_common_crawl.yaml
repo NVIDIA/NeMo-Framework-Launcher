@@ -61,4 +61,4 @@ defaults:
 
 special:
   choose_language:
-    language: PL # Change to language of choice based on fastText supported languages: https://fasttext.cc/docs/en/language-identification.html
+    language: EN # Change to language of choice based on fastText supported languages: https://fasttext.cc/docs/en/language-identification.html

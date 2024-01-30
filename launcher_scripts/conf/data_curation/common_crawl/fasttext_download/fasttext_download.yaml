@@ -9,4 +9,4 @@ run:
 filter_config:
   filter_module: ndc.filter.classifier.filter.FastTextLangId
   params:
-    model_path: <Path to the FasText language id model (e.g., lid.176.bin)>
+    model_path: lid.176.bin # Will be automatically downloaded if it doesn't exist

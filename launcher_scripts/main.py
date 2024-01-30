@@ -24,6 +24,7 @@ from nemo_launcher.core.data_stages import (
     MC4DataPreparation,
     MultimodalDataPreparation,
     PileDataPreparation,
+    SteerLMDataPreparation,
 )
 from nemo_launcher.core.export_stages import Export
 from nemo_launcher.core.rlhf_stages import RLHFPPO, RLHFRewardModel
@@ -91,6 +92,7 @@ STR2STAGECLASS = {
     "data_preparation": {
         PileDataPreparation: ["gpt3", "t5", "bert", "llama", "falcon"],
         MC4DataPreparation: ["mt5"],
+        SteerLMDataPreparation: ["steerlm"],
         CustomDataPreparation: ["generic"],
         MultimodalDataPreparation: ["multimodal"],
         FIDEvaluationDataPreparation: ["fid_evaluation"],
