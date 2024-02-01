@@ -3,7 +3,7 @@
 apiVersion: kubeflow.org/v1
 kind: PyTorchJob
 metadata:
-  name: rlhf-ppo-critic
+  name: {{ .Release.Name }}-critic
   labels:
     app: rlhf-ppo-critic
 spec:
@@ -25,7 +25,7 @@ spec:
             args:
               - "--nnodes={{ .Values.critic.nodes }}"
               - "--rdzv-backend=c10d"
-              - "--rdzv-endpoint=rlhf-ppo-critic-worker-0"
+              - "--rdzv-endpoint={{ .Release.Name }}-critic-worker-0"
               - "--nproc_per_node={{ .Values.critic.numGPUs }}"
               - "/opt/NeMo-Aligner/examples/nlp/gpt/serve_ppo_critic.py"
               - "--config-path=/config"
@@ -34,7 +34,7 @@ spec:
             {{ else }}
             command: ["bash", "-c"]
             args:
-              - "wandb login {{ $config.wandbKey }} && torchrun --nnodes={{ .Values.critic.nodes }} --rdzv-backend=c10d --rdzv-endpoint=rlhf-ppo-critic-worker-0 --nproc_per_node={{ .Values.critic.numGPUs }} /opt/NeMo-Aligner/examples/nlp/gpt/serve_ppo_critic.py --config-path=/config --config-name=config_critic.yaml trainer.ppo.port=5567"
+              - "wandb login {{ $config.wandbKey }} && torchrun --nnodes={{ .Values.critic.nodes }} --rdzv-backend=c10d --rdzv-endpoint={{ .Release.Name }}-critic-worker-0 --nproc_per_node={{ .Values.critic.numGPUs }} /opt/NeMo-Aligner/examples/nlp/gpt/serve_ppo_critic.py --config-path=/config --config-name=config_critic.yaml trainer.ppo.port=5567"
             {{ end }}
             imagePullPolicy: {{ .Values.image.pullPolicy }}
             securityContext:

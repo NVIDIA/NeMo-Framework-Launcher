@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: rlhf-ppo-config
+  name: {{ .Release.Name }}-config
 data:
   config_critic.yaml: |-
   {{ (.Files.Glob "config/gpt_ppo_critic.yaml").AsConfig | indent 4 }}
