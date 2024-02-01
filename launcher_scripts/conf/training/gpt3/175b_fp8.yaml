@@ -1,6 +1,10 @@
 # The configurations below provide the best 175B training performance with the NeMo SW stack.
 # We have confirmed the model convergence only with a limited number of tokens and the full model
 # convergence (e.g., 300B tokens) is not guaranteed.
+defaults:
+  - _self_
+  - optional tp_overlap@model.ub_tp_comm_overlap_cfg: ub_cfg_h100_h12288_tp8_mbs2_seqlen2048
+
 hydra:
   searchpath:
     - file:///opt/NeMo/examples/nlp/language_modeling/conf
