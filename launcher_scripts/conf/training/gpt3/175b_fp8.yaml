@@ -5,6 +5,10 @@ defaults:
   - _self_
   - optional tp_overlap@model.ub_tp_comm_overlap_cfg: ub_cfg_h100_h12288_tp8_mbs2_seqlen2048
 
+hydra:
+  searchpath:
+    - file:///opt/NeMo/examples/nlp/language_modeling/conf
+
 run:
   name: gpt3_175b
   results_dir: ${base_results_dir}/${.name}
