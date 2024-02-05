@@ -380,7 +380,7 @@ class NemoMegatronStage:
         use_ft, ft_conf = self._get_fault_tol_config_section(stage_cfg, cluster)
         if use_ft:
             with omegaconf.open_dict(ft_conf):
-                ft_conf.work_dir = str(self.get_job_path().folder)
+                ft_conf.work_dir = str(self.get_job_path().folder / "_ft_scratch_dir")
                 
     def _find_optimal_nodes(self, cfg, gpus) -> None:
         nodes_scheduler_path = (
