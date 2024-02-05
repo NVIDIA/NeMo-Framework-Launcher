@@ -20,6 +20,7 @@ import omegaconf
 from nemo_launcher.core.data_curation_stages import DataCurationStage
 from nemo_launcher.core.data_stages import (
     CustomDataPreparation,
+    HumanEvalDataPreparation,
     MC4DataPreparation,
     PileDataPreparation,
     SteerLMDataPreparation,
@@ -77,6 +78,7 @@ STR2STAGECLASS = {
             "ia3_t5",
             "ia3_gpt3",
             "peft_llama",
+            "code_llama",
             "peft_falcon",
             "peft_baichuan2",
         ],
@@ -86,6 +88,7 @@ STR2STAGECLASS = {
         MC4DataPreparation: ["mt5"],
         SteerLMDataPreparation: ["steerlm"],
         CustomDataPreparation: ["generic"],
+        HumanEvalDataPreparation: ["code_llama"],
     },
     "rlhf_rm": RLHFRewardModel,
     "rlhf_ppo": RLHFPPO,

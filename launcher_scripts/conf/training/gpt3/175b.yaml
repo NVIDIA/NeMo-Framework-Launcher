@@ -1,3 +1,7 @@
+defaults:
+  - _self_
+  - optional tp_overlap@model.ub_tp_comm_overlap_cfg: ub_cfg_h100_h12288_tp4_mbs1_seqlen2048
+
 hydra:
   searchpath:
     - file:///opt/NeMo/examples/nlp/language_modeling/conf
