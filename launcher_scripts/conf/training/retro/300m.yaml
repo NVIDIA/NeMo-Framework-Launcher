@@ -221,7 +221,7 @@ model:
     splits_string: null  # will be read from RETRO preprocessed workdir
     seq_length: null # will be read from RETRO preprocessed workdir
     skip_warmup: True
-    num_workers: 2
+    num_workers: 0
     dataloader_type: cyclic # cyclic/single
     reset_position_ids: False # Reset position ids after end-of-document token
     reset_attention_mask: False # Reset attention mask after end-of-document token
