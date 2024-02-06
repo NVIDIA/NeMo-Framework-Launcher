@@ -104,7 +104,7 @@ STR2STAGECLASS = {
 }
 
 
-@hydra.main(config_path="conf", config_name="config")
+@hydra.main(config_path="conf", config_name="config", version_base="1.2")
 def main(cfg):
     requested_stages = cfg.get("stages")
 

@@ -20,6 +20,13 @@ defaults:
   - steerlm_reg : ac_sft/gpt_sft # either rw_sft/training_rm or ac_sft/gpt_sft
   - override hydra/job_logging: stdout
 
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+
+debug: False
+
 stages:
   #- data_preparation
   #- training
@@ -67,12 +74,6 @@ numa_mapping:
   balanced: True  # Whether to assing an equal number of physical cores to each process.
   min_cores: 1  # Minimum number of physical cores per process.
   max_cores: 8  # Maximum number of physical cores per process. Can be null to use all available cores.
-
-# hydra settings
-hydra:
-  run:
-    dir: .
-  output_subdir: null
 
 # Do not modify below, use the values above instead.
 data_preparation_config: ${hydra:runtime.choices.data_preparation}
