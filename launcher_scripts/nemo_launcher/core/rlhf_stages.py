@@ -111,9 +111,9 @@ class RLHFPPO(NeMoStage):
         setup = None
         env_vars = self.get_env_vars()
         for i in range(3):
-            env_vars[f"HETJOB{i}_HOST"] = (
-                f"$(scontrol show hostnames=$SLURM_JOB_NODELIST_HET_GROUP_{i} | head -n1)"
-            )
+            env_vars[
+                f"HETJOB{i}_HOST"
+            ] = f"$(scontrol show hostnames=$SLURM_JOB_NODELIST_HET_GROUP_{i} | head -n1)"
         if env_vars:
             setup = [f"export {k}={v}" for k, v in env_vars.items()]
 

@@ -1564,6 +1564,7 @@ def clean_command_groups(command_groups: List[List[str]]) -> List[List[str]]:
         command_groups[ind] = [c for c in command_group if c]
     return command_groups
 
+
 def create_args_list(
     hydra: bool = False, replace_underscore: bool = True, **kwargs: Any,
 ) -> List[str]:
