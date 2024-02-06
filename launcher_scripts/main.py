@@ -21,6 +21,7 @@ from nemo_launcher.core.data_curation_stages import DataCurationStage
 from nemo_launcher.core.data_stages import (
     CustomDataPreparation,
     FIDEvaluationDataPreparation,
+    HumanEvalDataPreparation,
     MC4DataPreparation,
     MultimodalDataPreparation,
     PileDataPreparation,
@@ -83,6 +84,7 @@ STR2STAGECLASS = {
             "ia3_t5",
             "ia3_gpt3",
             "peft_llama",
+            "code_llama",
             "peft_falcon",
             "vit",
             "clip",
@@ -96,6 +98,7 @@ STR2STAGECLASS = {
         CustomDataPreparation: ["generic"],
         MultimodalDataPreparation: ["multimodal"],
         FIDEvaluationDataPreparation: ["fid_evaluation"],
+        HumanEvalDataPreparation: ["code_llama"],
     },
     "rlhf_rm": RLHFRewardModel,
     "rlhf_ppo": RLHFPPO,

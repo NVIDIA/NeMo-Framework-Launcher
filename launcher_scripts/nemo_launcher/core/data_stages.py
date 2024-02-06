@@ -15,6 +15,9 @@
 import copy
 import glob
 import os
+import random
+import gzip
+import json
 import shutil
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -1102,3 +1105,72 @@ class FIDEvaluationDataPreparation(DataStage):
         else:
             raise NotImplementedError
         return [sub_stage_command]
+
+
+class HumanEvalDataPreparation(DataStage):
+    """DataStage for preparing a customized dataset"""
+
+    def _make_sub_stages(self) -> List[str]:
+        """There is no sub-stages needed for HumanEval dataset"""
+        return []
+
+    def setup_folder_and_data(self) -> None:
+        """Setup job/data folders for HumanEval dataset"""
+        job_path = self.get_job_path()
+        job_path.folder.mkdir(parents=True, exist_ok=True)
+
+        data_cfg = self.stage_cfg
+        human_eval_url = data_cfg.get("human_eval_url")
+        output_dir = data_cfg.get("output_dir")
+        split_string = data_cfg.get("split_string")
+
+        os.makedirs(output_dir, exist_ok=True)
+
+        assert output_dir is not None, "output_dir must be a valid path."
+        filename = download_single_file(url=human_eval_url, save_dir=output_dir)
+
+        output_data = self.read_data_into_list(filename)
+
+        random.shuffle(output_data)
+        data_splits = [float(split) for split in split_string.split(",")]
+        assert (
+            abs(sum(data_splits) - 1) < 1e-9
+        ), "The values in the split string should sum to one."
+        assert (
+            len(data_splits) == 3
+        ), "Need 3 values, (train,test,validation) in split string"
+        num_samples_in_train = int(len(output_data) * data_splits[0])
+        num_samples_in_test = int(len(output_data) * data_splits[1])
+        num_samples_in_validation = int(len(output_data) * data_splits[2])
+        train = output_data[:num_samples_in_train]
+        test = output_data[
+            num_samples_in_train : num_samples_in_train + num_samples_in_test
+        ]
+        validation = output_data[-num_samples_in_validation:]
+
+        with open(f"{output_dir}/train.jsonl", "w") as f:
+            for entry in train:
+                json.dump(entry, f)
+                f.write("\n")
+
+        with open(f"{output_dir}/test.jsonl", "w") as f:
+            for entry in test:
+                json.dump(entry, f)
+                f.write("\n")
+
+        with open(f"{output_dir}/validation.jsonl", "w") as f:
+            for entry in validation:
+                json.dump(entry, f)
+                f.write("\n")
+
+    def read_data_into_list(self, filename):
+        output_data = []
+        with gzip.open(filename, "r") as fin:
+            for line in fin:
+                input_json_obj = json.loads(line)
+                processed_json_obj = {
+                    "input": input_json_obj["prompt"],
+                    "output": input_json_obj["canonical_solution"],
+                }
+                output_data.append(processed_json_obj)
+        return output_data

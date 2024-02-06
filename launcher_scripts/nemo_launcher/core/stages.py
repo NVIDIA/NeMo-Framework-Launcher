@@ -800,11 +800,6 @@ class Training(NeMoStage):
                 f"blending_alpha={blending_alpha}"
             )
             hydra_override += [f"model.data.data_prefix=\$({auto_blend_command})"]
-        if self.stage_cfg.model.get("ub_tp_comm_overlap", False):
-            ub_cfg_name = self._get_ub_cfg_override()
-            hydra_override += [
-                f"'+tp_overlap@model.ub_tp_comm_overlap_cfg={ub_cfg_name}'"
-            ]
         if self.stage_cfg.model.get("gc_interval", 0) > 1:
             gc_interval = min(
                 self.stage_cfg.model.get("gc_interval"),
@@ -848,17 +843,6 @@ class Training(NeMoStage):
             "neva": self._nemo_code_path / "examples/multimodal/multimodal_llm/neva/neva_pretrain.py",
         }
         return model_type_to_code_path[model_type]
-
-    def _get_ub_cfg_override(self) -> str:
-        """
-        Spawn the script to search UB configuration file
-        """
-        tp_size = self.stage_cfg.model.get("tensor_model_parallel_size")
-        hidden_size = self.stage_cfg.model.get("hidden_size")
-        mb_size = self.stage_cfg.model.get("micro_batch_size")
-        seqlen = self.stage_cfg.model.get("encoder_seq_length")
-        cfg_name = f"ub_cfg_\\${{gpu_name:}}_h{hidden_size}_tp{tp_size}_mbs{mb_size}_seqlen{seqlen}"
-        return cfg_name
 
 
 class FineTuning(NeMoStage):
@@ -914,6 +898,8 @@ class FineTuning(NeMoStage):
                     / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "llama": self._nemo_code_path
                      / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            "code_llama": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "t5": self._nemo_code_path
                   / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "mt5": self._nemo_code_path
@@ -1464,6 +1450,8 @@ class NeMoEvaluation(NeMoStage):
             "adapter_gpt3": self._nemo_code_path
                             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_eval.py",
             "peft_llama": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            "code_llama": self._nemo_code_path
                           / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
             "peft_falcon": self._nemo_code_path
                            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
