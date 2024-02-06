@@ -27,9 +27,6 @@ trainingConfig:
   # Insert the dnsPolicy #
   dnsPolicy: "nil"
 
-  # Specify the namespace
-  namespace: "default"
-
 critic:
   numGPUs: rlhf_ppo.critic.trainer.devices
   nodes: rlhf_ppo.critic.trainer.num_nodes

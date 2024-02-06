@@ -30,12 +30,12 @@ spec:
               - "/opt/NeMo-Aligner/examples/nlp/gpt/train_gpt_ppo_actor.py"
               - "--config-path=/config"
               - "--config-name=config_actor.yaml"
-              - "remote_critic_rm.critic.ip={{ .Release.Name }}-critic-worker-0.{{ $config.namespace }}.svc.cluster.local"
+              - "remote_critic_rm.critic.ip={{ .Release.Name }}-critic-worker-0.{{ .Release.namespace }}.svc.cluster.local"
               - "remote_critic_rm.critic.port=5567"
             {{ else }}
             command: ["bash", "-c"]
             args:
-              - "wandb login {{ $config.wandbKey }} && torchrun --nnodes={{ .Values.actor.nodes }} --rdzv-backend=c10d --rdzv-endpoint={{ .Release.Name }}-critic-0 --nproc_per_node={{ .Values.actor.numGPUs }} /opt/NeMo-Aligner/examples/nlp/gpt/train_gpt_ppo_actor.py --config-path=/config --config-name=config_actor.yaml remote_critic_rm.critic.ip={{ .Release.Name }}-critic-worker-0.{{ $config.namespace }}.svc.cluster.local remote_critic_rm.critic.port=5567"
+              - "wandb login {{ $config.wandbKey }} && torchrun --nnodes={{ .Values.actor.nodes }} --rdzv-backend=c10d --rdzv-endpoint={{ .Release.Name }}-critic-0 --nproc_per_node={{ .Values.actor.numGPUs }} /opt/NeMo-Aligner/examples/nlp/gpt/train_gpt_ppo_actor.py --config-path=/config --config-name=config_actor.yaml remote_critic_rm.critic.ip={{ .Release.Name }}-critic-worker-0.{{ .Release.namespace }}.svc.cluster.local remote_critic_rm.critic.port=5567"
             {{ end }}
             imagePullPolicy: {{ .Values.image.pullPolicy }}
             securityContext:
