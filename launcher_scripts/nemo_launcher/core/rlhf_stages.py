@@ -111,9 +111,9 @@ class RLHFPPO(NeMoStage):
         setup = None
         env_vars = self.get_env_vars()
         for i in range(3):
-            env_vars[
-                f"HETJOB{i}_HOST"
-            ] = f"$(scontrol show hostnames=$SLURM_JOB_NODELIST_HET_GROUP_{i} | head -n1)"
+            env_vars[f"HETJOB{i}_HOST"] = (
+                f"$(scontrol show hostnames=$SLURM_JOB_NODELIST_HET_GROUP_{i} | head -n1)"
+            )
         if env_vars:
             setup = [f"export {k}={v}" for k, v in env_vars.items()]
 
@@ -247,10 +247,14 @@ class RLHFPPO(NeMoStage):
         """
         chart_file = os.path.join(template_root, "Chart.yaml")
         template_file_critic = os.path.join(template_root, "rlhf-ppo-critic.yaml")
-        rlhf_ppo_critic_path = Path(job_path.folder / "k8s_template" / "templates" / "rlhf-ppo-critic.yaml")
+        rlhf_ppo_critic_path = Path(
+            job_path.folder / "k8s_template" / "templates" / "rlhf-ppo-critic.yaml"
+        )
 
         template_file_actor = os.path.join(template_root, "rlhf-ppo-actor.yaml")
-        rlhf_ppo_actor_path = Path(job_path.folder / "k8s_template" / "templates" / "rlhf-ppo-actor.yaml")
+        rlhf_ppo_actor_path = Path(
+            job_path.folder / "k8s_template" / "templates" / "rlhf-ppo-actor.yaml"
+        )
         rlhf_ppo_actor_path.parent.mkdir(parents=True, exist_ok=True)
 
         config_path = Path(job_path.folder / "k8s_template" / "config")
