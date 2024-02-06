@@ -316,7 +316,9 @@ class Export(NemoMegatronStage):
         model_cfg = cfg.export.model
         infer_cfg = cfg.export.infer
 
-        converter_path = NEMO_PATH / "examples/multimodal/generative/stable_diffusion/sd_export.py"
+        converter_path = (
+            NEMO_PATH / "examples/multimodal/generative/stable_diffusion/sd_export.py"
+        )
         infer_args = " \\\n".join([f"infer.{k}={v}" for k, v in infer_cfg.items()])
         convert_cmd = (
             f"python -u {converter_path} \\\n"
@@ -324,7 +326,9 @@ class Export(NemoMegatronStage):
             f" trainer.precision={model_cfg.precision}"
             f" {infer_args}"
         )
-        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
+        return [
+            (f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)
+        ]
 
     def _get_dreambooth_conversion_cmds(self, cfg):
         """Generate export commands for sd models"""
@@ -332,7 +336,9 @@ class Export(NemoMegatronStage):
         model_cfg = cfg.export.model
         infer_cfg = cfg.export.infer
 
-        converter_path = NEMO_PATH / "examples/multimodal/generative/dreambooth/dreambooth_export.py"
+        converter_path = (
+            NEMO_PATH / "examples/multimodal/generative/dreambooth/dreambooth_export.py"
+        )
         infer_args = " \\\n".join([f"infer.{k}={v}" for k, v in infer_cfg.items()])
         convert_cmd = (
             f"python -u {converter_path} \\\n"
@@ -340,7 +346,9 @@ class Export(NemoMegatronStage):
             f" trainer.precision={model_cfg.precision}"
             f" {infer_args}"
         )
-        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
+        return [
+            (f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)
+        ]
 
     def _get_instruct_pix2pix_conversion_cmds(self, cfg):
         """Generate export commands for sd models"""
@@ -348,7 +356,10 @@ class Export(NemoMegatronStage):
         model_cfg = cfg.export.model
         edit_cfg = cfg.export.edit
 
-        converter_path = NEMO_PATH / "examples/multimodal/generative/instruct_pix2pix/sd_edit_export.py"
+        converter_path = (
+            NEMO_PATH
+            / "examples/multimodal/generative/instruct_pix2pix/sd_edit_export.py"
+        )
         edit_args = " \\\n".join([f"edit.{k}={v}" for k, v in edit_cfg.items()])
         convert_cmd = (
             f"python -u {converter_path} \\\n"
@@ -356,14 +367,18 @@ class Export(NemoMegatronStage):
             f" trainer.precision={model_cfg.precision}"
             f" {edit_args}"
         )
-        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
+        return [
+            (f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)
+        ]
 
     def _get_megatron_clip_conversion_cmds(self, cfg):
         """Generate export commands for sd models"""
         run_cfg = cfg.export.run
         model_cfg = cfg.export.model
         infer_cfg = cfg.export.infer
-        converter_path = NEMO_PATH / "examples/multimodal/foundation/clip/megatron_clip_export.py"
+        converter_path = (
+            NEMO_PATH / "examples/multimodal/foundation/clip/megatron_clip_export.py"
+        )
         infer_args = " \\\n".join([f"infer.{k}={v}" for k, v in infer_cfg.items()])
 
         convert_cmd = (
@@ -372,13 +387,18 @@ class Export(NemoMegatronStage):
             f" trainer.precision={model_cfg.precision} \\\n"
             f" {infer_args}"
         )
-        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
+        return [
+            (f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)
+        ]
 
     def _get_megatron_nsfw_conversion_cmds(self, cfg):
         """Generate export commands for sd models"""
         model_cfg = cfg.export.model
         infer_cfg = cfg.export.infer
-        converter_path = NEMO_PATH / "examples/multimodal/content_filtering/nsfw/megatron_nsfw_export.py"
+        converter_path = (
+            NEMO_PATH
+            / "examples/multimodal/content_filtering/nsfw/megatron_nsfw_export.py"
+        )
         infer_args = " \\\n".join([f"infer.{k}={v}" for k, v in infer_cfg.items()])
 
         convert_cmd = (
@@ -387,14 +407,19 @@ class Export(NemoMegatronStage):
             f" trainer.precision={model_cfg.precision} \\\n"
             f" {infer_args}"
         )
-        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
+        return [
+            (f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)
+        ]
 
     def _get_megatron_vit_conversion_cmds(self, cfg):
         """Generate export commands for sd models"""
         run_cfg = cfg.export.run
         model_cfg = cfg.export.model
         infer_cfg = cfg.export.infer
-        converter_path = NEMO_PATH / "examples/vision/vision_transformer/megatron_vit_classification_export.py"
+        converter_path = (
+            NEMO_PATH
+            / "examples/vision/vision_transformer/megatron_vit_classification_export.py"
+        )
         infer_args = " \\\n".join([f"infer.{k}={v}" for k, v in infer_cfg.items()])
 
         convert_cmd = (
@@ -403,26 +428,38 @@ class Export(NemoMegatronStage):
             f" trainer.precision={model_cfg.precision} \\\n"
             f" {infer_args}"
         )
-        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
+        return [
+            (f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)
+        ]
 
     def _get_imagen_conversion_cmds(self, cfg):
         """Generate export commands for imagen models"""
         run_cfg = cfg.export.run
         model_cfg = cfg.export.model
-        unet_args = " ".join([f"customized_model.{k}={v}" for k, v in model_cfg.customized_model.items()])
+        unet_args = " ".join(
+            [f"customized_model.{k}={v}" for k, v in model_cfg.customized_model.items()]
+        )
         del model_cfg.customized_model
         model_args = " ".join([f"{k}={v}" for k, v in model_cfg.items()])
-        converter_path = NEMO_PATH / "examples/multimodal/generative/imagen/imagen_export.py"
-        convert_cmd = f"python -u {converter_path} \\\n" f" {model_args}" f" {unet_args}"
+        converter_path = (
+            NEMO_PATH / "examples/multimodal/generative/imagen/imagen_export.py"
+        )
+        convert_cmd = (
+            f"python -u {converter_path} \\\n" f" {model_args}" f" {unet_args}"
+        )
         print(convert_cmd)
-        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
+        return [
+            (f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)
+        ]
 
     def _get_controlnet_conversion_cmds(self, cfg):
         """Generate export commands for controlnet models"""
         model_cfg = cfg.export.model
         infer_cfg = cfg.export.infer
 
-        converter_path = NEMO_PATH / "examples/multimodal/generative/controlnet/controlnet_export.py"
+        converter_path = (
+            NEMO_PATH / "examples/multimodal/generative/controlnet/controlnet_export.py"
+        )
         infer_args = " \\\n".join([f"infer.{k}={v}" for k, v in infer_cfg.items()])
         convert_cmd = (
             f"python -u {converter_path} \\\n"
@@ -430,14 +467,18 @@ class Export(NemoMegatronStage):
             f" trainer.precision={model_cfg.precision}"
             f" {infer_args}"
         )
-        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
+        return [
+            (f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)
+        ]
 
     def _get_neva_conversion_cmds(self, cfg):
         """Generate export commands for controlnet models"""
         model_cfg = cfg.export.model
         infer_cfg = cfg.export.infer
 
-        converter_path = NEMO_PATH / "examples/multimodal/generative/mllm/neva_export.py"
+        converter_path = (
+            NEMO_PATH / "examples/multimodal/generative/mllm/neva_export.py"
+        )
         infer_args = " \\\n".join([f"infer.{k}={v}" for k, v in infer_cfg.items()])
         convert_cmd = (
             f"python -u {converter_path} \\\n"
@@ -445,4 +486,6 @@ class Export(NemoMegatronStage):
             f" model.precision={model_cfg.precision}"
             f" {infer_args}"
         )
-        return [(f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)]
+        return [
+            (f"export PYTHONPATH={NEMO_PATH}:${{PYTHONPATH}} && \\\n" + convert_cmd)
+        ]

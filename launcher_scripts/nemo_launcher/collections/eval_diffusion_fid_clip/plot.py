@@ -17,31 +17,48 @@ import pandas as pd
 def plot_fid_vs_clip(fid_scores_csv, clip_scores_csv, save_path):
     fid_scores = pd.read_csv(fid_scores_csv)
     clip_scores = pd.read_csv(clip_scores_csv)
-    merged_data = pd.merge(fid_scores, clip_scores, on='cfg')
-    merged_data.sort_values('cfg', inplace=True)
+    merged_data = pd.merge(fid_scores, clip_scores, on="cfg")
+    merged_data.sort_values("cfg", inplace=True)
     merged_data.reset_index(inplace=True)
     fig, ax = plt.subplots()
-    ax.plot(merged_data['clip_score'], merged_data['fid'], marker='o', linestyle='-')  # Connect points with a line
+    ax.plot(
+        merged_data["clip_score"], merged_data["fid"], marker="o", linestyle="-"
+    )  # Connect points with a line
 
-    for i, txt in enumerate(merged_data['cfg']):
-        ax.annotate(txt, (merged_data['clip_score'][i], merged_data['fid'][i]))
+    for i, txt in enumerate(merged_data["cfg"]):
+        ax.annotate(txt, (merged_data["clip_score"][i], merged_data["fid"][i]))
 
-    ax.set_xlabel('CLIP Score')
-    ax.set_ylabel('FID')
-    ax.set_title('FID vs CLIP Score')
+    ax.set_xlabel("CLIP Score")
+    ax.set_ylabel("FID")
+    ax.set_title("FID vs CLIP Score")
 
     # Add a caption with cfg values range
     caption = f"Sweeped CFG values: {list(merged_data['cfg'])}"
-    fig.text(0.5, -0.05, caption, ha='center')
+    fig.text(0.5, -0.05, caption, ha="center")
 
-    plt.savefig(save_path, format='pdf', bbox_inches='tight')
+    plt.savefig(save_path, format="pdf", bbox_inches="tight")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--fid_scores_csv', required=True, type=str, help='Path to the FID scores CSV file')
-    parser.add_argument('--clip_scores_csv', required=True, type=str, help='Path to the CLIP scores CSV file')
-    parser.add_argument('--output_path', required=True, type=str, help='Path to save the plot as a PDF file')
+    parser.add_argument(
+        "--fid_scores_csv",
+        required=True,
+        type=str,
+        help="Path to the FID scores CSV file",
+    )
+    parser.add_argument(
+        "--clip_scores_csv",
+        required=True,
+        type=str,
+        help="Path to the CLIP scores CSV file",
+    )
+    parser.add_argument(
+        "--output_path",
+        required=True,
+        type=str,
+        help="Path to save the plot as a PDF file",
+    )
     args = parser.parse_args()
 
     plot_fid_vs_clip(args.fid_scores_csv, args.clip_scores_csv, args.output_path)

@@ -39,7 +39,7 @@ def hparams_override(cfg):
             import yaml
 
             conf_dict = OmegaConf.to_container(conf, resolve=True)
-            additional_conf_str = '''
+            additional_conf_str = """
             precision: 32
             micro_batch_size: 2
             global_batch_size: 2
@@ -58,7 +58,7 @@ def hparams_override(cfg):
                 name: WarmupHoldPolicy
                 warmup_steps: 10000
                 hold_steps: 10000000000000
-            '''
+            """
             additional_conf_dict = yaml.safe_load(additional_conf_str)
             conf_dict["cfg"].update(additional_conf_dict)
             conf = OmegaConf.create(conf_dict)

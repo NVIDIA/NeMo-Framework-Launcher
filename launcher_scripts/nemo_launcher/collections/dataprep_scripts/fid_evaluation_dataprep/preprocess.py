@@ -63,7 +63,9 @@ def preprocess_one_image(input_url, output_url=None):
     im = im.resize((256, 256), resample=Resampling.BICUBIC)
     if output_url is None:
         # follow existing paths
-        output_url = input_url.replace("val2014/COCO_val2014_", "coco2014_val/images_256/")
+        output_url = input_url.replace(
+            "val2014/COCO_val2014_", "coco2014_val/images_256/"
+        )
     im.save(output_url, quality=95)
 
 
@@ -98,8 +100,8 @@ def preprocess_captions(root_dir):
 
     # write each caption to a file
     for cap_id in tqdm(caption_ids_30k):
-        with open(os.path.join(output_dir, f"{cap_id:012d}.txt"), 'w') as f:
-            f.write(coco_caps.anns[cap_id]['caption'])
+        with open(os.path.join(output_dir, f"{cap_id:012d}.txt"), "w") as f:
+            f.write(coco_caps.anns[cap_id]["caption"])
 
 
 @hydra.main(config_path="conf", config_name="config", version_base="1.2")

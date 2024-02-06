@@ -38,16 +38,22 @@ def main(cfg):
     if num_processes <= 0:
         num_processes = int(os.environ.get("SLURM_CPUS_ON_NODE"))
 
-    parquet_file_list = glob.glob(os.path.join(download_parquet_dir, "**", parquet_pattern), recursive=True)
+    parquet_file_list = glob.glob(
+        os.path.join(download_parquet_dir, "**", parquet_pattern), recursive=True
+    )
     if len(parquet_file_list) != num_tasks:
         print(
             f"WARNING: Number of slurm tasks ({num_tasks}) must equal to the number of parquet files "
             f"after subpartitioning ({len(parquet_file_list)})"
         )
-        print("WARNING: If you continue executing the script, image data may not be downloaded completely.")
+        print(
+            "WARNING: If you continue executing the script, image data may not be downloaded completely."
+        )
 
     parquet_file_name = sorted(parquet_file_list)[task_id]
-    output_folder_path = os.path.join(download_images_dir, os.path.basename(parquet_file_name))
+    output_folder_path = os.path.join(
+        download_images_dir, os.path.basename(parquet_file_name)
+    )
     os.makedirs(output_folder_path, exist_ok=True)
 
     img2dataset_kwargs = {

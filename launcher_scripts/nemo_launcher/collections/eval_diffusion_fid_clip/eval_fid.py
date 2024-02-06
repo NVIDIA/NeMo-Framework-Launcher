@@ -33,12 +33,14 @@ import torch
 from compute_fid import compute_fid_data
 from fid_dataset import CustomDataset
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Argument parsing
     parser = argparse.ArgumentParser()
-    parser.add_argument('--coco_images_path', default='/coco2014/coco2014_val/images_256', type=str)
-    parser.add_argument('--fid_images_path', default=None, type=str)
-    parser.add_argument('--output_path', default='./fid_scores.csv', type=str)
+    parser.add_argument(
+        "--coco_images_path", default="/coco2014/coco2014_val/images_256", type=str
+    )
+    parser.add_argument("--fid_images_path", default=None, type=str)
+    parser.add_argument("--output_path", default="./fid_scores.csv", type=str)
     args = parser.parse_args()
 
     # Set paths for synthetic images and real images
@@ -52,8 +54,8 @@ if __name__ == '__main__':
     )
 
     # Create output CSV file
-    with open(args.output_path, 'w', newline='') as csvfile:
-        fieldnames = ['cfg', 'fid']
+    with open(args.output_path, "w", newline="") as csvfile:
+        fieldnames = ["cfg", "fid"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -64,12 +66,16 @@ if __name__ == '__main__':
                 # Create dataset and data loader for synthetic images in subfolder
                 synthetic_dataset = CustomDataset(subfolder_path, target_size=256)
                 loader_synthetic = torch.utils.data.DataLoader(
-                    synthetic_dataset, batch_size=32, num_workers=0, pin_memory=True, drop_last=False
+                    synthetic_dataset,
+                    batch_size=32,
+                    num_workers=0,
+                    pin_memory=True,
+                    drop_last=False,
                 )
 
                 # Compute FID score between synthetic images in subfolder and real images
                 fid = compute_fid_data(
-                    './',
+                    "./",
                     loader_real,
                     loader_synthetic,
                     key_a=0,
@@ -77,11 +83,13 @@ if __name__ == '__main__':
                     sample_size=None,
                     is_video=False,
                     few_shot_video=False,
-                    network='tf_inception',
-                    interpolation_mode='bilinear',
+                    network="tf_inception",
+                    interpolation_mode="bilinear",
                 )
 
-                print(f"The FID score between {subfolder_path} and {real_path} is {fid}")
+                print(
+                    f"The FID score between {subfolder_path} and {real_path} is {fid}"
+                )
 
                 # Write FID score to output CSV file
-                writer.writerow({'cfg': subfolder, 'fid': fid})
+                writer.writerow({"cfg": subfolder, "fid": fid})

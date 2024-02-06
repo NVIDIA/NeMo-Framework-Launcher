@@ -10,11 +10,11 @@ from torchvision.io import ImageReadMode, read_image
 
 
 def _pil_interp(method):
-    if method == 'bicubic':
+    if method == "bicubic":
         return Image.BICUBIC
-    elif method == 'lanczos':
+    elif method == "lanczos":
         return Image.LANCZOS
-    elif method == 'hamming':
+    elif method == "hamming":
         return Image.HAMMING
     else:
         # default bilinear, do we want to allow nearest?
@@ -30,7 +30,12 @@ def _size_tuple(size):
 
 
 class CenterCropResize:
-    def __init__(self, target_size: int, interpolation: str = 'bilinear', fill_color: tuple = (0, 0, 0)):
+    def __init__(
+        self,
+        target_size: int,
+        interpolation: str = "bilinear",
+        fill_color: tuple = (0, 0, 0),
+    ):
         self.target_size = _size_tuple(target_size)
         self.interpolation = interpolation
         self.fill_color = fill_color
@@ -50,7 +55,11 @@ class CenterCropResize:
 class CustomDataset(data.Dataset):
     def __init__(self, root, target_size=None):
         self.root = root
-        self.files = [f for f in os.listdir(self.root) if os.path.isfile(os.path.join(self.root, f))]
+        self.files = [
+            f
+            for f in os.listdir(self.root)
+            if os.path.isfile(os.path.join(self.root, f))
+        ]
         self.transform = transforms.ToTensor()
         self.target_size = target_size
 
@@ -59,9 +68,11 @@ class CustomDataset(data.Dataset):
 
     def __getitem__(self, index):
         file = self.files[index]
-        image = Image.open(os.path.join(self.root, file)).convert('RGB')
+        image = Image.open(os.path.join(self.root, file)).convert("RGB")
         if self.target_size is not None:
-            image = image.resize((self.target_size, self.target_size), resample=Image.BICUBIC)
+            image = image.resize(
+                (self.target_size, self.target_size), resample=Image.BICUBIC
+            )
         image = self.transform(image)
         image = 2 * image - 1
         return image, file
@@ -72,8 +83,8 @@ class CocoDataset(data.Dataset):
         self.root = root
         self.coco = None
         self.captions = captions
-        self.img_ids = [x['image_id'] for x in self.captions]
-        self.has_annotations = 'image_info' not in ann_file
+        self.img_ids = [x["image_id"] for x in self.captions]
+        self.has_annotations = "image_info" not in ann_file
         self.transforms = [transforms.ToTensor()]
         if transform is not None:
             self.transforms.append(transform)
@@ -85,11 +96,11 @@ class CocoDataset(data.Dataset):
     def _load_annotations(self, ann_file):
         assert self.coco is None
         self.coco = COCO(ann_file)
-        img_ids_with_ann = set(_['image_id'] for _ in self.coco.anns.values())
+        img_ids_with_ann = set(_["image_id"] for _ in self.coco.anns.values())
         for img_id in self.img_ids:
             info = self.coco.loadImgs([img_id])[0]
             valid_annotation = not self.has_annotations or img_id in img_ids_with_ann
-            if valid_annotation and min(info['width'], info['height']) >= 32:
+            if valid_annotation and min(info["width"], info["height"]) >= 32:
                 self.img_infos.append(info)
             else:
                 self.img_ids_invalid.append(img_id)
@@ -106,8 +117,8 @@ class CocoDataset(data.Dataset):
         img_id = self.img_ids[index]
         img_info = self.img_infos[index]
         cap = self.captions[index]
-        path = img_info['file_name']
-        image = Image.open(os.path.join(self.root, path)).convert('RGB')
+        path = img_info["file_name"]
+        image = Image.open(os.path.join(self.root, path)).convert("RGB")
         if self.target_size is not None:
             image = image.resize((512, 512))
         image = self._compose(image)

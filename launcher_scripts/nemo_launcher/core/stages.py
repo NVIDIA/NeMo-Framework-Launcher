@@ -79,8 +79,8 @@ class NemoMegatronStage:
         job_path = self.get_job_path()
 
         if (
-                self.cfg.get("training").get("model").get("rampup_batch_size")
-                and self.stage_name == "training"
+            self.cfg.get("training").get("model").get("rampup_batch_size")
+            and self.stage_name == "training"
         ):
             gpus = self.stage_cfg.get("trainer").get("devices")
             self._find_optimal_nodes(self.cfg, gpus)
@@ -124,7 +124,7 @@ class NemoMegatronStage:
 
     @staticmethod
     def save_stage_hydra_config(
-            stage_cfg: OmegaConf, job_path: JobPaths, cfg: OmegaConf
+        stage_cfg: OmegaConf, job_path: JobPaths, cfg: OmegaConf
     ) -> Path:
         """
         Interpolate and save hydra config file for current stage
@@ -191,7 +191,7 @@ class NemoMegatronStage:
         ]
 
     def _make_k8s_spec_file(
-            self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
+        self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
     ):
         """Create a yaml spec file for kubernetes jobs"""
         raise NotImplementedError
@@ -341,7 +341,7 @@ class NemoMegatronStage:
                 }
             )
             cluster_parameters["job_name"] = (
-                    job_name_prefix + cluster_parameters["job_name"]
+                job_name_prefix + cluster_parameters["job_name"]
             )
         elif cluster == "bcp":
             cluster_parameters.update(
@@ -399,9 +399,9 @@ class NemoMegatronStage:
                 for nodes in range(1, prev + 1):
                     dp = (gpus * nodes) // (tp * pp)
                     if (
-                            b % (mbs * dp) == 0
-                            and b % (mbs * gpus * nodes) == 0
-                            and nodes <= prev
+                        b % (mbs * dp) == 0
+                        and b % (mbs * gpus * nodes) == 0
+                        and nodes <= prev
                     ):
                         optimal_lst.append(nodes)
 
@@ -531,10 +531,10 @@ class NemoMegatronStage:
         """ Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel """
         vpp = self.cfg.training.model.get("virtual_pipeline_model_parallel_size")
         if (
-                self.cfg.training.model.get("overlap_p2p_comm", False)
-                and self.cfg.training.model.get("pipeline_model_parallel_size") > 1
-                and vpp is not None
-                and vpp > 1
+            self.cfg.training.model.get("overlap_p2p_comm", False)
+            and self.cfg.training.model.get("pipeline_model_parallel_size") > 1
+            and vpp is not None
+            and vpp > 1
         ):
             get_ln_sm_margin_command = (
                 f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/conditional_cfgs.py'} "
@@ -547,8 +547,8 @@ class NemoMegatronStage:
     def _skip_ag_overlap(self) -> str:
         """ Skip TP-AllGather overlap with ring-exchange at (1) bf16 and (2) PP > 1 """
         if (
-                self.cfg.training.model.get("ub_tp_comm_overlap", False)
-                and self.cfg.training.model.get("pipeline_model_parallel_size") > 1
+            self.cfg.training.model.get("ub_tp_comm_overlap", False)
+            and self.cfg.training.model.get("pipeline_model_parallel_size") > 1
         ):
             use_fp8 = self.cfg.training.model.get("fp8", False)
             get_ag_overlap_command = (
@@ -695,7 +695,7 @@ class NeMoStage(NemoMegatronStage):
         return wandb_api_key
 
     def _make_k8s_spec_file(
-            self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
+        self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
     ):
         """
         Create a spec file for a Kubernetes training job.
@@ -788,8 +788,8 @@ class Training(NeMoStage):
         if self.cluster == "bcp":
             hydra_override += ["+rank=\${RANK}"]
         if (
-                choice_model_type in __LANGUAGE_MODELS_LIST__
-                and self.stage_cfg.model.data.get("data_prefix", None) is None
+            choice_model_type in __LANGUAGE_MODELS_LIST__
+            and self.stage_cfg.model.data.get("data_prefix", None) is None
         ):
             preprocessed_dir = self.stage_cfg.run.get("preprocessed_dir")
             blending_alpha = self.stage_cfg.run.get("blending_alpha")
@@ -819,28 +819,36 @@ class Training(NeMoStage):
         """
         model_type_to_code_path = {
             "t5": self._nemo_code_path
-                  / "examples/nlp/language_modeling/megatron_t5_pretraining.py",
+            / "examples/nlp/language_modeling/megatron_t5_pretraining.py",
             "mt5": self._nemo_code_path
-                   / "examples/nlp/language_modeling/megatron_t5_pretraining.py",
+            / "examples/nlp/language_modeling/megatron_t5_pretraining.py",
             "gpt3": self._nemo_code_path
-                    / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "llama": self._nemo_code_path
-                     / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "bert": self._nemo_code_path
-                    / "examples/nlp/language_modeling/megatron_bert_pretraining.py",
+            / "examples/nlp/language_modeling/megatron_bert_pretraining.py",
             "falcon": self._nemo_code_path
-                      / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
-            "vit": self._nemo_code_path / "examples/vision/vision_transformer/megatron_vit_classification_pretrain.py",
-            "clip": self._nemo_code_path / "examples/multimodal/vision_language_foundation/clip/megatron_clip_pretrain.py",
-            "nsfw": self._nemo_code_path / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
-            "stable_diffusion": self._nemo_code_path / "examples/multimodal/text_to_image/stable_diffusion/sd_train.py",
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "vit": self._nemo_code_path
+            / "examples/vision/vision_transformer/megatron_vit_classification_pretrain.py",
+            "clip": self._nemo_code_path
+            / "examples/multimodal/vision_language_foundation/clip/megatron_clip_pretrain.py",
+            "nsfw": self._nemo_code_path
+            / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
+            "stable_diffusion": self._nemo_code_path
+            / "examples/multimodal/text_to_image/stable_diffusion/sd_train.py",
             "instruct_pix2pix": self._nemo_code_path
-                                / "examples/multimodal/text_to_image/instruct_pix2pix/sd_finetune.py",
-            "imagen": self._nemo_code_path / "examples/multimodal/text_to_image/imagen/imagen_training.py",
-            "dreambooth": self._nemo_code_path / "examples/multimodal/text_to_image/dreambooth/dreambooth.py",
-            "controlnet": self._nemo_code_path / "examples/multimodal/text_to_image/controlnet/controlnet_train.py",
+            / "examples/multimodal/text_to_image/instruct_pix2pix/sd_finetune.py",
+            "imagen": self._nemo_code_path
+            / "examples/multimodal/text_to_image/imagen/imagen_training.py",
+            "dreambooth": self._nemo_code_path
+            / "examples/multimodal/text_to_image/dreambooth/dreambooth.py",
+            "controlnet": self._nemo_code_path
+            / "examples/multimodal/text_to_image/controlnet/controlnet_train.py",
             "nerf": self._nemo_code_path / "examples/multimodal/x_to_nerf/nerf/main.py",
-            "neva": self._nemo_code_path / "examples/multimodal/multimodal_llm/neva/neva_pretrain.py",
+            "neva": self._nemo_code_path
+            / "examples/multimodal/multimodal_llm/neva/neva_pretrain.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -865,8 +873,8 @@ class FineTuning(NeMoStage):
 
             # GLUE for internal use
             download_glue_script_path = (
-                    self._launcher_scripts_path
-                    / "nemo_launcher/utils/data_utils/download_glue.py"
+                self._launcher_scripts_path
+                / "nemo_launcher/utils/data_utils/download_glue.py"
             )
             if download_glue_script_path.exists():
                 from nemo_launcher.utils.data_utils.download_glue import (
@@ -881,7 +889,9 @@ class FineTuning(NeMoStage):
 
                 # Prepare dataset for squad
                 if task_name in ["squad", "xquad"]:
-                    prepare_squad_for_fine_tuning(data_dir=os.path.join(data_dir, "squad_data"))
+                    prepare_squad_for_fine_tuning(
+                        data_dir=os.path.join(data_dir, "squad_data")
+                    )
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
         """
@@ -895,20 +905,23 @@ class FineTuning(NeMoStage):
 
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path
-                    / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "llama": self._nemo_code_path
-                     / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "code_llama": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "t5": self._nemo_code_path
-                  / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
+            / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "mt5": self._nemo_code_path
-                   / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
+            / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "falcon": self._nemo_code_path
-                      / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
-            "vit": self._nemo_code_path / "examples/vision/vision_transformer/megatron_vit_classification_finetune.py",
-            "neva": self._nemo_code_path / "examples/multimodal/multimodal_llm/neva/neva_finetune.py",
-            "nsfw": self._nemo_code_path / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            "vit": self._nemo_code_path
+            / "examples/vision/vision_transformer/megatron_vit_classification_finetune.py",
+            "neva": self._nemo_code_path
+            / "examples/multimodal/multimodal_llm/neva/neva_finetune.py",
+            "nsfw": self._nemo_code_path
+            / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -934,7 +947,9 @@ class PEFT(NeMoStage):
 
             # Prepare dataset for squad
             if task_name in ["squad", "xquad"]:
-                prepare_squad_for_fine_tuning(data_dir=os.path.join(data_dir, "squad_data"))
+                prepare_squad_for_fine_tuning(
+                    data_dir=os.path.join(data_dir, "squad_data")
+                )
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
         """
@@ -952,14 +967,15 @@ class PEFT(NeMoStage):
             )
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path
-                    / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
             "llama": self._nemo_code_path
-                     / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
             "t5": self._nemo_code_path
-                  / "examples/nlp/language_modeling/tuning/megatron_t5_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_t5_peft_tuning.py",
             "falcon": self._nemo_code_path
-                      / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
-            "neva": self._nemo_code_path / "examples/multimodal/multimodal_llm/neva/neva_peft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            "neva": self._nemo_code_path
+            / "examples/multimodal/multimodal_llm/neva/neva_peft.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -997,13 +1013,13 @@ class PromptLearning(NeMoStage):
         """
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path
-                    / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
+            / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
             "llama": self._nemo_code_path
-                     / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
+            / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
             "t5": self._nemo_code_path
-                  / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
+            / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
             "mt5": self._nemo_code_path
-                   / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
+            / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1025,11 +1041,11 @@ class AdapterLearning(PromptLearning):
         """
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path
-                    / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
             "llama": self._nemo_code_path
-                     / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
             "t5": self._nemo_code_path
-                  / "examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1051,11 +1067,11 @@ class IA3Learning(PromptLearning):
         """
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path
-                    / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
             "llama": self._nemo_code_path
-                     / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
             "t5": self._nemo_code_path
-                  / "examples/nlp/language_modeling/tuning/megatron_t5_ia3_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_t5_ia3_tuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1076,16 +1092,24 @@ class FWInference(NeMoStage):
         :rtype: Path
         """
         model_type_to_code_path = {
-            "vit": self._nemo_code_path / "examples/vision/vision_transformer/megatron_vit_classification_infer.py",
-            "clip": self._nemo_code_path / "examples/multimodal/vision_language_foundation/clip/megatron_clip_infer.py",
-            "nsfw": self._nemo_code_path / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_infer.py",
-            "stable_diffusion": self._nemo_code_path / "examples/multimodal/text_to_image/stable_diffusion/sd_infer.py",
+            "vit": self._nemo_code_path
+            / "examples/vision/vision_transformer/megatron_vit_classification_infer.py",
+            "clip": self._nemo_code_path
+            / "examples/multimodal/vision_language_foundation/clip/megatron_clip_infer.py",
+            "nsfw": self._nemo_code_path
+            / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_infer.py",
+            "stable_diffusion": self._nemo_code_path
+            / "examples/multimodal/text_to_image/stable_diffusion/sd_infer.py",
             "instruct_pix2pix": self._nemo_code_path
-                                / "examples/multimodal/text_to_image/instruct_pix2pix/sd_edit_cli.py",
-            "dreambooth": self._nemo_code_path / "examples/multimodal/text_to_image/dreambooth/dreambooth_infer.py",
-            "imagen": self._nemo_code_path / "examples/multimodal/text_to_image/imagen/imagen_infer.py",
-            "controlnet": self._nemo_code_path / "examples/multimodal/text_to_image/controlnet/controlnet_infer.py",
-            "neva": self._nemo_code_path / "examples/multimodal/multimodal_llm/neva/neva_evaluation.py",
+            / "examples/multimodal/text_to_image/instruct_pix2pix/sd_edit_cli.py",
+            "dreambooth": self._nemo_code_path
+            / "examples/multimodal/text_to_image/dreambooth/dreambooth_infer.py",
+            "imagen": self._nemo_code_path
+            / "examples/multimodal/text_to_image/imagen/imagen_infer.py",
+            "controlnet": self._nemo_code_path
+            / "examples/multimodal/text_to_image/controlnet/controlnet_infer.py",
+            "neva": self._nemo_code_path
+            / "examples/multimodal/multimodal_llm/neva/neva_evaluation.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1148,7 +1172,7 @@ class Conversion(NemoMegatronStage):
         )
 
     def _make_k8s_spec_file(
-            self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
+        self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
     ):
         """
         Create a spec file for a Kubernetes conversion job.
@@ -1162,8 +1186,8 @@ class Conversion(NemoMegatronStage):
             values_template = OmegaConf.load(value_file)
 
         num_gpus = (
-                self.cfg.conversion.model.pipeline_model_parallel_size
-                * self.cfg.conversion.model.tensor_model_parallel_size
+            self.cfg.conversion.model.pipeline_model_parallel_size
+            * self.cfg.conversion.model.tensor_model_parallel_size
         )
 
         values_template.image.trainingImage = cluster_parameters["container_image"]
@@ -1239,22 +1263,29 @@ class Conversion(NemoMegatronStage):
             checkpoint_folder=model_cfg.get("checkpoint_folder"),
             checkpoint_name=model_cfg.get("checkpoint_name"),
             tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size", 1),
-            pipeline_model_parallel_size=model_cfg.get("pipeline_model_parallel_size", 1),
+            pipeline_model_parallel_size=model_cfg.get(
+                "pipeline_model_parallel_size", 1
+            ),
         )
         command_groups[-1] += [f"export CKPT_NAME=$({checkpoint_search_command})"]
 
         nemo_file_name = run_cfg.get("nemo_file_name")
         hparams_override_file = (
-                self.get_job_path().results_folder / "hparams_override.yaml"
+            self.get_job_path().results_folder / "hparams_override.yaml"
         )
         nemo_file_path = self.get_job_path().results_folder / nemo_file_name
 
         if choice_model_type in __LANGUAGE_MODELS_LIST__:
-            code_path = self._nemo_code_path / "examples/nlp/language_modeling/megatron_ckpt_to_nemo.py"
+            code_path = (
+                self._nemo_code_path
+                / "examples/nlp/language_modeling/megatron_ckpt_to_nemo.py"
+            )
         elif choice_model_type in __VISION_MODELS_LIST__:
             code_path = self._nemo_code_path / "examples/vision/convert_ckpt_to_nemo.py"
         elif choice_model_type in __MULTIMODAL_MODELS_LIST__:
-            code_path = self._nemo_code_path / "examples/multimodal/convert_ckpt_to_nemo.py"
+            code_path = (
+                self._nemo_code_path / "examples/multimodal/convert_ckpt_to_nemo.py"
+            )
         else:
             raise ValueError(f"Model type: {choice_model_type} not recognized")
 
@@ -1267,7 +1298,9 @@ class Conversion(NemoMegatronStage):
             hparams_file=hparams_override_file,
             nemo_file_path=nemo_file_path,
             tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size", 1),
-            pipeline_model_parallel_size=model_cfg.get("pipeline_model_parallel_size", 1),
+            pipeline_model_parallel_size=model_cfg.get(
+                "pipeline_model_parallel_size", 1
+            ),
         )
         if model_cfg.get("pipeline_model_parallel_split_rank") is not None:
             args += create_args_list(
@@ -1309,7 +1342,10 @@ class ExternalConversion(NemoMegatronStage):
         """
         choice_model_type, choice_name = self.get_stage_config_choice()
         if choice_model_type == "clip":
-            code_path = self._nemo_code_path / "examples/multimodal/vision_language_foundation/clip/convert_external_clip_to_nemo.py"
+            code_path = (
+                self._nemo_code_path
+                / "examples/multimodal/vision_language_foundation/clip/convert_external_clip_to_nemo.py"
+            )
         else:
             raise NotImplementedError(
                 f"Model type `{choice_model_type}` doesn't support conversion from external source."
@@ -1328,7 +1364,9 @@ class ExternalConversion(NemoMegatronStage):
             hparams_file=model_cfg.get("hparams_file"),
             nemo_file_path=nemo_file_path,
             tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size", 1),
-            pipeline_model_parallel_size=model_cfg.get("pipeline_model_parallel_size", 1),
+            pipeline_model_parallel_size=model_cfg.get(
+                "pipeline_model_parallel_size", 1
+            ),
         )
         args += ["--bcp"] if self.cluster == "bcp" else []
 
@@ -1367,16 +1405,16 @@ class NeMoEvaluation(NeMoStage):
 
         choice_model_type, choice_name = self.get_stage_config_choice()
         if any(
-                [
-                    choice_model_type.startswith(type)
-                    for type in ["prompt", "ia3", "adapter"]
-                ]
+            [
+                choice_model_type.startswith(type)
+                for type in ["prompt", "ia3", "adapter"]
+            ]
         ):
             pred_file_path = self.stage_cfg.get("pred_file_path")
             ground_truth_file_path = self.stage_cfg.get("ground_truth_file_path")
             code_path = (
-                    self._launcher_scripts_path
-                    / "nemo_launcher/collections/metric_calculation/squad_metric_calc.py"
+                self._launcher_scripts_path
+                / "nemo_launcher/collections/metric_calculation/squad_metric_calc.py"
             )
             args = create_args_list(
                 pred=pred_file_path, ground_truth=ground_truth_file_path,
@@ -1393,22 +1431,22 @@ class NeMoEvaluation(NeMoStage):
                 "output_file_path_prefix"
             )
             pred_file_path = (
-                    output_file_path_prefix
-                    + "_validation_dataloader0_inputs_preds_labels.jsonl"
+                output_file_path_prefix
+                + "_validation_dataloader0_inputs_preds_labels.jsonl"
             )
             ground_truth_file_path = self.stage_cfg.model.data.validation_ds.get(
                 "ground_truth_file_path"
             )
             code_path = (
-                    self._launcher_scripts_path
-                    / "nemo_launcher/collections/metric_calculation/fine_tuning_metric_calc.py"
+                self._launcher_scripts_path
+                / "nemo_launcher/collections/metric_calculation/fine_tuning_metric_calc.py"
             )
             args = create_args_list(
                 replace_underscore=False,
                 pred_file=pred_file_path,
                 target_file=ground_truth_file_path,
                 squad_eval_script_path=self._launcher_scripts_path
-                                       / "nemo_launcher/collections/metric_calculation/squad_metric_calc.py",
+                / "nemo_launcher/collections/metric_calculation/squad_metric_calc.py",
             )
             calculation_command = [f"python3 {code_path}", *args]
             calculation_command = " \\\n  ".join(calculation_command)
@@ -1434,29 +1472,31 @@ class NeMoEvaluation(NeMoStage):
             )
         model_type_to_code_path = {
             "t5": self._nemo_code_path
-                  / "examples/nlp/language_modeling/megatron_t5_seq2seq_eval.py",
+            / "examples/nlp/language_modeling/megatron_t5_seq2seq_eval.py",
             "mt5": self._nemo_code_path
-                   / "examples/nlp/language_modeling/megatron_t5_seq2seq_eval.py",
+            / "examples/nlp/language_modeling/megatron_t5_seq2seq_eval.py",
             "prompt_t5": self._nemo_code_path
-                         / "examples/nlp/language_modeling/megatron_t5_prompt_learning_eval.py",
+            / "examples/nlp/language_modeling/megatron_t5_prompt_learning_eval.py",
             "prompt_mt5": self._nemo_code_path
-                          / "examples/nlp/language_modeling/megatron_t5_prompt_learning_eval.py",
+            / "examples/nlp/language_modeling/megatron_t5_prompt_learning_eval.py",
             "ia3_t5": self._nemo_code_path
-                      / "examples/nlp/language_modeling/tuning/megatron_t5_ia3_eval.py",
+            / "examples/nlp/language_modeling/tuning/megatron_t5_ia3_eval.py",
             "ia3_gpt3": self._nemo_code_path
-                        / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_eval.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_eval.py",
             "adapter_t5": self._nemo_code_path
-                          / "examples/nlp/language_modeling/tuning/megatron_t5_adapter_eval.py",
+            / "examples/nlp/language_modeling/tuning/megatron_t5_adapter_eval.py",
             "adapter_gpt3": self._nemo_code_path
-                            / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_eval.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_eval.py",
             "peft_llama": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
             "code_llama": self._nemo_code_path
-                          / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
             "peft_falcon": self._nemo_code_path
-                           / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
-            "vit": self._nemo_code_path / "examples/vision/vision_transformer/megatron_vit_classification_evaluate.py",
-            "clip": self._nemo_code_path / "examples/multimodal/vision_language_foundation/clip/megatron_clip_imagenet_zeroshot.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            "vit": self._nemo_code_path
+            / "examples/vision/vision_transformer/megatron_vit_classification_evaluate.py",
+            "clip": self._nemo_code_path
+            / "examples/multimodal/vision_language_foundation/clip/megatron_clip_imagenet_zeroshot.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1487,16 +1527,16 @@ class EvalHarnessEvaluation(NemoMegatronStage):
         tasks = run_cfg.get("tasks")
 
         code_path = (
-                self._launcher_scripts_path
-                / "nemo_launcher/collections/eval_harness/download.py"
+            self._launcher_scripts_path
+            / "nemo_launcher/collections/eval_harness/download.py"
         )
-        args = create_args_list(tasks=tasks, cache_dir=cache_dir, )
+        args = create_args_list(tasks=tasks, cache_dir=cache_dir,)
         download_command = [f"python3 {code_path}", *args]
         download_command_string = " \\\n  ".join(download_command)
         return download_command_string
 
     def _make_k8s_spec_file(
-            self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
+        self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
     ):
         """
         Create a spec file for a Kubernetes conversion job.
@@ -1510,8 +1550,8 @@ class EvalHarnessEvaluation(NemoMegatronStage):
             values_template = OmegaConf.load(value_file)
 
         num_gpus = (
-                self.cfg.evaluation.model.pipeline_model_parallel_size
-                * self.cfg.evaluation.model.tensor_model_parallel_size
+            self.cfg.evaluation.model.pipeline_model_parallel_size
+            * self.cfg.evaluation.model.tensor_model_parallel_size
         )
 
         values_template.image.trainingImage = cluster_parameters["container_image"]
@@ -1626,8 +1666,8 @@ class EvalHarnessEvaluation(NemoMegatronStage):
         model_cfg = self.stage_cfg.get("model")
 
         code_path = (
-                self._launcher_scripts_path
-                / "nemo_launcher/collections/eval_harness/evaluate.py"
+            self._launcher_scripts_path
+            / "nemo_launcher/collections/eval_harness/evaluate.py"
         )
         args = create_args_list(
             replace_underscore=False,
@@ -1700,10 +1740,15 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             sub_stages += ["plot"]
         return sub_stages
 
-    def _make_sub_stage_command(self, stage_cfg_path: Path, sub_stage: str) -> List[str]:
+    def _make_sub_stage_command(
+        self, stage_cfg_path: Path, sub_stage: str
+    ) -> List[str]:
         """Make a command of the specified sub-stage"""
 
-        eval_diffusion_path = self._launcher_scripts_path / "nemo_launcher/collections/eval_diffusion_fid_clip"
+        eval_diffusion_path = (
+            self._launcher_scripts_path
+            / "nemo_launcher/collections/eval_diffusion_fid_clip"
+        )
         stage_to_code_path = {
             "fid": eval_diffusion_path / "eval_fid.py",
             "clip": eval_diffusion_path / "compute_clip_score.py",
@@ -1712,11 +1757,13 @@ class DiffusionModelEvaluation(NemoMegatronStage):
         choice_model_type, choice_name = self.get_stage_config_choice()
         if choice_model_type == "stable_diffusion":
             stage_to_code_path["generate"] = (
-                    self._nemo_code_path / "examples/multimodal/text_to_image/stable_diffusion/generate_fid_images.py"
+                self._nemo_code_path
+                / "examples/multimodal/text_to_image/stable_diffusion/generate_fid_images.py"
             )
         elif choice_model_type == "imagen":
             stage_to_code_path["generate"] = (
-                    self._nemo_code_path / "examples/multimodal/text_to_image/imagen/generate_fid_images.py"
+                self._nemo_code_path
+                / "examples/multimodal/text_to_image/imagen/generate_fid_images.py"
             )
 
         code_path = stage_to_code_path[sub_stage]
@@ -1733,22 +1780,32 @@ class DiffusionModelEvaluation(NemoMegatronStage):
                 replace_underscore=False,
                 coco_images_path=stage_cfg.fid.coco_images_path,
                 fid_images_path=stage_cfg.fid.save_path,
-                output_path=os.path.join(stage_cfg.run.get("results_dir", "."), "fid_scores.csv"),
+                output_path=os.path.join(
+                    stage_cfg.run.get("results_dir", "."), "fid_scores.csv"
+                ),
             )
         elif sub_stage == "clip":
             args = create_args_list(
                 replace_underscore=False,
                 captions_path=stage_cfg.fid.coco_captions_path,
                 fid_images_path=stage_cfg.fid.save_path,
-                output_path=os.path.join(stage_cfg.run.get("results_dir", "."), "clip_scores.csv"),
+                output_path=os.path.join(
+                    stage_cfg.run.get("results_dir", "."), "clip_scores.csv"
+                ),
                 clip_version=stage_cfg.clip_version,
             )
         elif sub_stage == "plot":
             args = create_args_list(
                 replace_underscore=False,
-                fid_scores_csv=os.path.join(stage_cfg.run.get("results_dir", "."), "fid_scores.csv"),
-                clip_scores_csv=os.path.join(stage_cfg.run.get("results_dir", "."), "clip_scores.csv"),
-                output_path=os.path.join(stage_cfg.run.get("results_dir", "."), "fid_clip_plot.pdf"),
+                fid_scores_csv=os.path.join(
+                    stage_cfg.run.get("results_dir", "."), "fid_scores.csv"
+                ),
+                clip_scores_csv=os.path.join(
+                    stage_cfg.run.get("results_dir", "."), "clip_scores.csv"
+                ),
+                output_path=os.path.join(
+                    stage_cfg.run.get("results_dir", "."), "fid_clip_plot.pdf"
+                ),
             )
 
         sub_stage_command = [f"python3 -u {code_path}", *args]
@@ -1772,7 +1829,9 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             job_path = self.get_job_path(sub_stage)
             job_path.folder.mkdir(parents=True, exist_ok=True)
 
-            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(self.stage_cfg, job_path)
+            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
+                self.stage_cfg, job_path
+            )
             if job_id:
                 dependency = f"afterok:{job_id}"
                 self.stage_cfg["run"]["dependency"] = dependency
@@ -1783,12 +1842,16 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             # Make command groups
             command_groups = self.make_stage_command_groups(stage_cfg_path, sub_stage)
             # Create launcher
-            launcher = AutoLauncher(folder=job_path.folder, cluster=self.cluster, **cluster_parameters, )
+            launcher = AutoLauncher(
+                folder=job_path.folder, cluster=self.cluster, **cluster_parameters,
+            )
             job_id = launcher.launch(command_groups=command_groups)
 
         return job_id
 
-    def make_stage_command_groups(self, stage_cfg_path: Path, sub_stage: Optional[str] = None, ) -> List[List[str]]:
+    def make_stage_command_groups(
+        self, stage_cfg_path: Path, sub_stage: Optional[str] = None,
+    ) -> List[List[str]]:
         """
         Make the command groups for current stage
         Command groups is a list of command group. A command group is defined as:
@@ -1825,7 +1888,9 @@ class DiffusionModelEvaluation(NemoMegatronStage):
         stage_cfg = self.stage_cfg
         run_cfg = stage_cfg.get("run")
 
-        node_array_size = run_cfg.get("node_array_size") if sub_stage in ["generate"] else 1
+        node_array_size = (
+            run_cfg.get("node_array_size") if sub_stage in ["generate"] else 1
+        )
         array = f"0-{node_array_size - 1}"
         if sub_stage == "generate":
             ntasks_per_node = run_cfg.get("ntasks_per_node")
@@ -1851,7 +1916,9 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             }
         return {}
 
-    def _make_cluster_parameters(self, cluster: str, sub_stage: Optional[str] = None, ) -> Dict:
+    def _make_cluster_parameters(
+        self, cluster: str, sub_stage: Optional[str] = None,
+    ) -> Dict:
         """
         Make a cluster-specific parameters for jobs on different clusters.
         Current clusters include bcm(slurm), bcp and interactive.
@@ -1872,7 +1939,9 @@ class DiffusionModelEvaluation(NemoMegatronStage):
         dependency = run_cfg.get("dependency")
 
         env_vars = self.get_env_vars()
-        env_vars["PYTHONPATH"] = f"{self._launcher_scripts_path}:${{PYTHONPATH}}"  # Required by pile download
+        env_vars[
+            "PYTHONPATH"
+        ] = f"{self._launcher_scripts_path}:${{PYTHONPATH}}"  # Required by pile download
         env_vars["NGC_ARRAY_TYPE"] = "MPIJob"  # Required by BCP
         setup = [f"export {k}={v}" for k, v in env_vars.items()]
 
@@ -1882,7 +1951,7 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             "time": time_limit,
             "setup": setup,
         }
-        private_parameters = self._make_private_cluster_parameters(cluster, sub_stage, )
+        private_parameters = self._make_private_cluster_parameters(cluster, sub_stage,)
         if cluster == "bcm":
             cluster_cfg = cfg.get("cluster")
             slurm_cfg = {**copy.deepcopy(cluster_cfg)}
@@ -1892,12 +1961,14 @@ class DiffusionModelEvaluation(NemoMegatronStage):
                 "dependency": dependency,
             }
             cluster_parameters.update(
-                {**shared_parameters, **private_parameters, }
+                {**shared_parameters, **private_parameters,}
             )
-            cluster_parameters["job_name"] = job_name_prefix + cluster_parameters["job_name"]
+            cluster_parameters["job_name"] = (
+                job_name_prefix + cluster_parameters["job_name"]
+            )
         elif cluster == "bcp":
             cluster_parameters.update(
-                {**shared_parameters, **private_parameters, }
+                {**shared_parameters, **private_parameters,}
             )
         elif cluster == "interactive":
             raise ValueError("Data preparation is not supported in interactive mode.")
@@ -1939,7 +2010,7 @@ def _hydra_interpolation(cfg: OmegaConf) -> None:
 
 
 def create_args_list(
-        hydra: bool = False, replace_underscore: bool = True, **kwargs: Any,
+    hydra: bool = False, replace_underscore: bool = True, **kwargs: Any,
 ) -> List[str]:
     """
     An easy tool function to convert arguments into a list of argument strings.
@@ -1959,7 +2030,9 @@ def create_args_list(
                 # remove quotes around keys if the argument is a dict
                 # (https://hydra.cc/docs/advanced/override_grammar/basic/)
                 # For example, dict {"a":10, "b":20} will become string "'{a:10,b:20}'"
-                data = ",".join(f"{inner_key}:{inner_val}" for inner_key, inner_val in v.items())
+                data = ",".join(
+                    f"{inner_key}:{inner_val}" for inner_key, inner_val in v.items()
+                )
                 args.append(f"'{k}={{{data}}}'")
             elif isinstance(v, list) or isinstance(v, omegaconf.listconfig.ListConfig):
                 data = ",".join(v)
@@ -2057,7 +2130,7 @@ class ConversionHF2NeMo(NeMoStage):
         )
 
     def _make_k8s_spec_file(
-            self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
+        self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
     ):
         """
         Create a spec file for a Kubernetes conversion job.
@@ -2071,8 +2144,8 @@ class ConversionHF2NeMo(NeMoStage):
             values_template = OmegaConf.load(value_file)
 
         num_gpus = (
-                self.cfg.conversion.model.pipeline_model_parallel_size
-                * self.cfg.conversion.model.tensor_model_parallel_size
+            self.cfg.conversion.model.pipeline_model_parallel_size
+            * self.cfg.conversion.model.tensor_model_parallel_size
         )
 
         values_template.image.trainingImage = cluster_parameters["container_image"]
@@ -2145,8 +2218,8 @@ class ConversionHF2NeMo(NeMoStage):
         nemo_file_name = run_cfg.get("nemo_file_name")
         nemo_file_path = self.get_job_path().results_folder / nemo_file_name
         code_path = (
-                self._nemo_code_path
-                / "scripts/nlp_language_modeling/convert_hf_llama_to_nemo.py"
+            self._nemo_code_path
+            / "scripts/nlp_language_modeling/convert_hf_llama_to_nemo.py"
         )
         args = create_args_list(
             in_file=run_cfg.get("huggingface_ckpt_path"),

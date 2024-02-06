@@ -879,7 +879,9 @@ class MultimodalDataPreparation(DataStage):
         sub_stages = []
 
         for name in self.sub_stage_names:
-            if self.stage_cfg.get(name) and self.stage_cfg.get(name).get("enable", False):
+            if self.stage_cfg.get(name) and self.stage_cfg.get(name).get(
+                "enable", False
+            ):
                 sub_stages.append(name)
         return sub_stages
 
@@ -922,7 +924,9 @@ class MultimodalDataPreparation(DataStage):
                 node_array_size = len(
                     glob.glob(
                         os.path.join(
-                            stage_cfg.download_parquet.output_dir, "**", stage_cfg.download_parquet.parquet_pattern
+                            stage_cfg.download_parquet.output_dir,
+                            "**",
+                            stage_cfg.download_parquet.parquet_pattern,
                         ),
                         recursive=True,
                     )
@@ -963,8 +967,14 @@ class MultimodalDataPreparation(DataStage):
     def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
         """Make a command of the specified sub-stage"""
 
-        dataprep_path = self._launcher_scripts_path / "nemo_launcher/collections/dataprep_scripts/multimodal_dataprep"
-        stage_to_code_path = {sub_stage: dataprep_path / f"{sub_stage}.py" for sub_stage in self.sub_stage_names}
+        dataprep_path = (
+            self._launcher_scripts_path
+            / "nemo_launcher/collections/dataprep_scripts/multimodal_dataprep"
+        )
+        stage_to_code_path = {
+            sub_stage: dataprep_path / f"{sub_stage}.py"
+            for sub_stage in self.sub_stage_names
+        }
         code_path = stage_to_code_path[sub_stage]
         cfg = self.stage_cfg
         if sub_stage == "download_parquet":
@@ -972,7 +982,9 @@ class MultimodalDataPreparation(DataStage):
                 hydra=True,
                 dataset_repo_id=cfg.get("dataset_repo_id"),
                 output_dir=cfg.download_parquet.get("output_dir"),
-                parquet_subpartitions=cfg.download_parquet.get("parquet_subpartitions", 1),
+                parquet_subpartitions=cfg.download_parquet.get(
+                    "parquet_subpartitions", 1
+                ),
                 parquet_pattern=cfg.download_parquet.get("parquet_pattern"),
             )
         elif sub_stage == "download_images":
@@ -981,9 +993,13 @@ class MultimodalDataPreparation(DataStage):
                 input_dir=cfg.download_images.get("input_dir"),
                 output_dir=cfg.download_images.get("output_dir"),
                 parquet_pattern=cfg.download_images.get("parquet_pattern"),
-                download_num_processes=cfg.download_images.get("download_num_processes"),
+                download_num_processes=cfg.download_images.get(
+                    "download_num_processes"
+                ),
                 download_num_threads=cfg.download_images.get("download_num_threads"),
-                img2dataset_additional_arguments=cfg.download_images.get("img2dataset_additional_arguments"),
+                img2dataset_additional_arguments=cfg.download_images.get(
+                    "img2dataset_additional_arguments"
+                ),
             )
         elif sub_stage == "reorganize_tar":
             args = create_args_list(
@@ -1037,7 +1053,7 @@ class FIDEvaluationDataPreparation(DataStage):
         :return: a list of sub-stage names which are required to run
         :rtype: List[str]
         """
-        return ['preprocess']
+        return ["preprocess"]
 
     def setup_folder_and_data(self) -> None:
         """Setup job/data folders for each substage"""
@@ -1047,13 +1063,17 @@ class FIDEvaluationDataPreparation(DataStage):
         dataset_output_root = self.stage_cfg.dataset_output_root
         if os.path.exists(dataset_output_root):
             print(f"WARNING: dataset_output_root already exists")
-            response = ''
-            while response.lower() not in ['y', 'n']:
-                response = input(f"Do you want to wipe everything at {dataset_output_root}? [y/n] \n>>> ")
-            if response.lower() == 'y':
+            response = ""
+            while response.lower() not in ["y", "n"]:
+                response = input(
+                    f"Do you want to wipe everything at {dataset_output_root}? [y/n] \n>>> "
+                )
+            if response.lower() == "y":
                 shutil.rmtree(dataset_output_root)
             else:
-                print("Not removing existing folder. Subsequent processing may produce inaccurate results.")
+                print(
+                    "Not removing existing folder. Subsequent processing may produce inaccurate results."
+                )
         os.makedirs(dataset_output_root, exist_ok=True)
 
     def _make_private_cluster_parameters(self, cluster: str, sub_stage: str) -> Dict:
@@ -1087,12 +1107,13 @@ class FIDEvaluationDataPreparation(DataStage):
         """Make a command of the specified sub-stage"""
 
         dataprep_path = (
-            self._launcher_scripts_path / "nemo_launcher/collections/dataprep_scripts/fid_evaluation_dataprep"
+            self._launcher_scripts_path
+            / "nemo_launcher/collections/dataprep_scripts/fid_evaluation_dataprep"
         )
         cfg = self.stage_cfg
 
         if sub_stage == "preprocess":
-            code_path = dataprep_path / f'preprocess.py'
+            code_path = dataprep_path / f"preprocess.py"
             args = create_args_list(
                 hydra=True,
                 root_dir=cfg.dataset_output_root,

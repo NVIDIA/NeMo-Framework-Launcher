@@ -10,7 +10,7 @@ from TFinception_V3 import InceptionV3, SwAV, TFInceptionV3, Vgg16
 from torch import nn
 
 
-def network_init(network='inception'):
+def network_init(network="inception"):
     # inception = inception_v3(pretrained=True, transform_input=False)
     # inception = inception.to('cuda')
     # inception.eval()
@@ -22,15 +22,15 @@ def network_init(network='inception'):
         # noinspection PyUnresolvedReferences
         torch.distributed.barrier()
 
-    if network == 'tf_inception':
+    if network == "tf_inception":
         model = TFInceptionV3()
-    elif network == 'inception':
+    elif network == "inception":
         model = InceptionV3()
-    elif network == 'vgg16':
+    elif network == "vgg16":
         model = Vgg16()
-    elif network == 'swav':
+    elif network == "swav":
         model = SwAV()
-    elif network == 'clean_inception':
+    elif network == "clean_inception":
         model = CleanInceptionV3()
     else:
         raise NotImplementedError(f'Network "{network}" is not supported!')
@@ -41,7 +41,7 @@ def network_init(network='inception'):
         # noinspection PyUnresolvedReferences
         dist.barrier()
 
-    model = model.to('cuda').eval()
+    model = model.to("cuda").eval()
     return model
 
 
@@ -54,13 +54,20 @@ def _calculate_frechet_distance(act_1, act_2, eps=1e-6):
     mu2 = np.atleast_1d(mu2)
     sigma1 = np.atleast_2d(sigma1)
     sigma2 = np.atleast_2d(sigma2)
-    assert mu1.shape == mu2.shape, 'Training and test mean vectors have different lengths'
-    assert sigma1.shape == sigma2.shape, 'Training and test covariances have different dimensions'
+    assert (
+        mu1.shape == mu2.shape
+    ), "Training and test mean vectors have different lengths"
+    assert (
+        sigma1.shape == sigma2.shape
+    ), "Training and test covariances have different dimensions"
     diff = mu1 - mu2
     # Product might be almost singular
     covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
     if not np.isfinite(covmean).all():
-        msg = ('fid calculation produces singular product; ' 'adding %s to diagonal of cov estimates') % eps
+        msg = (
+            "fid calculation produces singular product; "
+            "adding %s to diagonal of cov estimates"
+        ) % eps
         print(msg)
         offset = np.eye(sigma1.shape[0]) * eps
         covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
@@ -69,11 +76,13 @@ def _calculate_frechet_distance(act_1, act_2, eps=1e-6):
     if np.iscomplexobj(covmean):
         if not np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3):
             m = np.max(np.abs(covmean.imag))
-            print('Imaginary component {}'.format(m))
+            print("Imaginary component {}".format(m))
             # raise ValueError('Imaginary component {}'.format(m))
         covmean = covmean.real
     tr_covmean = np.trace(covmean)
-    return {"FID": (diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean)}
+    return {
+        "FID": (diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean)
+    }
 
 
 def is_master():
@@ -104,7 +113,7 @@ def load_or_compute_activations(
     preprocess=None,
     is_video=False,
     few_shot_video=False,
-    network='inception',
+    network="inception",
     **kwargs,
 ):
     r"""Load mean and covariance from saved npy file if exists. Otherwise, compute the mean and covariance.
@@ -125,20 +134,36 @@ def load_or_compute_activations(
     """
     if act_path is not None and os.path.exists(act_path):
         # Loading precomputed activations.
-        print('Load activations from {}'.format(act_path))
-        act = torch.load(act_path, map_location='cpu').cuda()
+        print("Load activations from {}".format(act_path))
+        act = torch.load(act_path, map_location="cpu").cuda()
     else:
         # Compute activations.
         if is_video:
             act = get_video_activations(
-                data_loader, key_real, key_fake, generator, sample_size, preprocess, few_shot_video, network, **kwargs
+                data_loader,
+                key_real,
+                key_fake,
+                generator,
+                sample_size,
+                preprocess,
+                few_shot_video,
+                network,
+                **kwargs,
             )
         else:
             act = get_activations(
-                data_loader, key_real, key_fake, generator, sample_size, preprocess, True, network, **kwargs
+                data_loader,
+                key_real,
+                key_fake,
+                generator,
+                sample_size,
+                preprocess,
+                True,
+                network,
+                **kwargs,
             )
         if act_path is not None and is_local_master():
-            print('Save activations to {}'.format(act_path))
+            print("Save activations to {}".format(act_path))
             if not os.path.exists(os.path.dirname(act_path)):
                 os.makedirs(os.path.dirname(act_path), exist_ok=True)
             torch.save(act, act_path)
@@ -150,8 +175,8 @@ def compute_fid(
     fid_path,
     data_loader,
     net_G,
-    key_real='images',
-    key_fake='fake_images',
+    key_real="images",
+    key_fake="fake_images",
     sample_size=None,
     preprocess=None,
     return_act=False,
@@ -177,8 +202,8 @@ def compute_fid(
     Returns:
         (float): FID value.
     """
-    print('Computing FID.')
-    act_path = os.path.join(os.path.dirname(fid_path), 'activations_real.npy')
+    print("Computing FID.")
+    act_path = os.path.join(os.path.dirname(fid_path), "activations_real.npy")
     # Get the fake mean and covariance.
     fake_act = load_or_compute_activations(
         None,
@@ -246,14 +271,16 @@ def to_device(data, device):
         data (dict, list, or tensor): Input data.
         device (str): 'cpu' or 'cuda'.
     """
-    assert device in ['cpu', 'cuda']
+    assert device in ["cpu", "cuda"]
     string_classes = (str, bytes)
     if isinstance(data, torch.Tensor):
         data = data.to(torch.device(device))
         return data
     elif isinstance(data, collections.abc.Mapping):
         return type(data)({key: to_device(data[key], device) for key in data})
-    elif isinstance(data, collections.abc.Sequence) and not isinstance(data, string_classes):
+    elif isinstance(data, collections.abc.Sequence) and not isinstance(
+        data, string_classes
+    ):
         return type(data)([to_device(d, device) for d in data])
     else:
         return data
@@ -265,7 +292,7 @@ def to_cuda(data):
     Args:
         data (dict, list, or tensor): Input data.
     """
-    return to_device(data, 'cuda')
+    return to_device(data, "cuda")
 
 
 @torch.no_grad()
@@ -277,7 +304,7 @@ def get_activations(
     sample_size=None,
     preprocess=None,
     align_corners=True,
-    network='inception',
+    network="inception",
     **kwargs,
 ):
     r"""Compute activation values and pack them in a list.
@@ -311,7 +338,7 @@ def get_activations(
                 images = images / 255.0  # convert RGB to (0,1)
         else:
             # Compute the generated image.
-            text = data[1]['caption']  ### input is captions
+            text = data[1]["caption"]  ### input is captions
             net_G_output = generator(text, **kwargs)
             images = net_G_output
         # Clamp the image for models that do not set the output to between
@@ -320,7 +347,10 @@ def get_activations(
         y = model(images, align_corners=align_corners)
         # y = network_forward(model, images, align_corners=align_corners)
         batch_y.append(y)
-        if sample_size is not None and data_loader.batch_size * world_size * (it + 1) >= sample_size:
+        if (
+            sample_size is not None
+            and data_loader.batch_size * world_size * (it + 1) >= sample_size
+        ):
             # Reach the number of samples we need.
             break
 
@@ -336,12 +366,12 @@ def compute_fid_data(
     folder_to_store_real_act,
     data_loader_a,
     data_loader_b,
-    key_a='images',
-    key_b='images',
+    key_a="images",
+    key_b="images",
     sample_size=None,
     is_video=False,
     few_shot_video=False,
-    network='inception',
+    network="inception",
     **kwargs,
 ):
     r"""Compute the fid score between two datasets.
@@ -359,11 +389,13 @@ def compute_fid_data(
     Returns:
         (float): FID value.
     """
-    print('Computing FID.')
+    print("Computing FID.")
     if folder_to_store_real_act is None:
         path_a = None
     else:
-        path_a = os.path.join(os.path.dirname(folder_to_store_real_act), 'activations_a.npy')
+        path_a = os.path.join(
+            os.path.dirname(folder_to_store_real_act), "activations_a.npy"
+        )
     # min_data_size = min(len(data_loader_a.dataset), len(data_loader_b.dataset))
     # sample_size = min_data_size if sample_size is None else min(sample_size, min_data_size)
 
