@@ -39,7 +39,7 @@ def _inject_model_parallel_rank(
         return filepath
 
 
-@hydra.main(config_path="conf", config_name="checkpoint_search")
+@hydra.main(config_path="conf", config_name="checkpoint_search", version_base="1.2")
 def checkpoint_search(cfg):
     """
     Search in the checkpoint folder for the latest checkpoint or a regex name.
@@ -49,8 +49,8 @@ def checkpoint_search(cfg):
     # Checkpoint search
     checkpoint_folder = cfg.checkpoint_folder
     checkpoint_name = cfg.checkpoint_name
-    tensor_model_parallel_size = cfg.tensor_model_parallel_size
-    pipeline_model_parallel_size = cfg.pipeline_model_parallel_size
+    tensor_model_parallel_size = cfg.get("tensor_model_parallel_size", 1)
+    pipeline_model_parallel_size = cfg.get("pipeline_model_parallel_size", 1)
 
     dist_ckpt = False
     # Every distributed checkpoint saves a 'common.pt' file
@@ -75,6 +75,15 @@ def checkpoint_search(cfg):
             )
             checkpoint_list = glob.glob(checkpoints)
 
+        latest_checkpoint = max(checkpoint_list, key=os.path.getctime)
+        checkpoint_name = os.path.basename(latest_checkpoint)
+
+    if checkpoint_name == "latest-EMA":
+        checkpoints = os.path.join(checkpoint_folder, "*-EMA.ckpt")
+        checkpoints = _inject_model_parallel_rank(
+            checkpoints, tensor_model_parallel_size, pipeline_model_parallel_size
+        )
+        checkpoint_list = glob.glob(checkpoints)
         latest_checkpoint = max(checkpoint_list, key=os.path.getctime)
         checkpoint_name = os.path.basename(latest_checkpoint)
 

@@ -1,0 +1,37 @@
+run:
+  name: fw_inference_${.model_train_name}
+  time_limit: "04:00:00"
+  dependency: "singleton"
+  model_train_name: stable_diffusion_860m_res_256_pretrain
+  results_dir: ${base_results_dir}/${.model_train_name}/${.name}
+
+infer:
+  unconditional_guidance_scale: 7.5
+  num_images_per_prompt: 4
+  height: 512
+  width: 512
+  down_factor: 8
+  inference_steps: 50
+  sampler_type: 'PLMS'
+  eta: 0
+  output_type: 'pil'
+  save_to_file: True
+  out_path: ${fw_inference.run.results_dir}
+  seed: 123
+  batch_size: 4
+  prompts:
+    - 'A photo of a Shiba Inu dog with a backpack riding a bike. It is wearing sunglasses and a beach hat.'
+    - 'A cute corgi lives in a house made out of sushi.'
+    - 'A high contrast portrait of a very happy fuzzy panda dressed as a chef in a high end kitchen making dough. There is a painting of flowers on the wall behind him.'
+    - 'A brain riding a rocketship heading towards the moon.'
+
+trainer:
+  devices: 1
+  num_nodes: 1
+  accelerator: gpu
+  precision: 16
+  logger: False # logger provided by exp_manager
+
+model:
+  restore_from_path: ${base_results_dir}/${fw_inference.run.model_train_name}/convert_nemo/results/nemo_stable_diffusion.nemo  # Path to a trained CLIP .nemo file
+  precision: ${fw_inference.trainer.precision}
