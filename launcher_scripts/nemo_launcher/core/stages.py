@@ -17,13 +17,10 @@ import functools
 import glob
 import json
 import logging
+import omegaconf
 import os
 import re
 import shutil
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-import omegaconf
 from nemo_launcher.core.launchers import AutoLauncher
 from nemo_launcher.utils.data_utils.prepare_squad import (
     prepare_squad_for_fine_tuning,
@@ -31,6 +28,21 @@ from nemo_launcher.utils.data_utils.prepare_squad import (
 )
 from nemo_launcher.utils.job_utils import JobPaths
 from omegaconf import DictConfig, OmegaConf
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+__LANGUAGE_MODELS_LIST__ = ["gpt3", "t5", "mt5", "bert", "llama", "falcon"]
+__VISION_MODELS_LIST__ = ["vit"]
+__MULTIMODAL_MODELS_LIST__ = [
+    "clip",
+    "stable_diffusion",
+    "instruct_pix2pix",
+    "dreambooth",
+    "imagen",
+    "controlnet",
+    "nsfw",
+    "neva",
+]
 
 
 class NemoMegatronStage:
@@ -504,7 +516,7 @@ class NemoMegatronStage:
         return ""
 
     @functools.lru_cache()
-    def get_job_path(self, sub_stage: Optional = None) -> JobPaths:
+    def get_job_path(self, sub_stage: Optional[str] = None) -> JobPaths:
         """Fetch a JobPaths object for current stage"""
         run_cfg = self.stage_cfg.get("run")
         results_dir = Path(
@@ -775,7 +787,10 @@ class Training(NeMoStage):
         choice_model_type, choice_name = self.get_stage_config_choice()
         if self.cluster == "bcp":
             hydra_override += ["+rank=\${RANK}"]
-        if self.stage_cfg.model.data.get("data_prefix", None) is None:
+        if (
+            choice_model_type in __LANGUAGE_MODELS_LIST__
+            and self.stage_cfg.model.data.get("data_prefix", None) is None
+        ):
             preprocessed_dir = self.stage_cfg.run.get("preprocessed_dir")
             blending_alpha = self.stage_cfg.run.get("blending_alpha")
             auto_blend_command = (
@@ -835,7 +850,11 @@ class Training(NeMoStage):
             / "examples/multimodal/text_to_image/controlnet/controlnet_train.py",
             "nerf": self._nemo_code_path / "examples/multimodal/x_to_nerf/nerf/main.py",
             "neva": self._nemo_code_path
+<<<<<<< HEAD
             / "examples/multimodal/multimodal_llm/neva/neva_pretrain.py",        
+=======
+            / "examples/multimodal/multimodal_llm/neva/neva_pretrain.py",
+>>>>>>> master
         }
         return model_type_to_code_path[model_type]
 
@@ -851,30 +870,34 @@ class FineTuning(NeMoStage):
     def setup_folder_and_data(self) -> None:
         """Setup job/data folders and fine-tuning/prompt-learning dataset"""
         super().setup_folder_and_data()
+        choice_model_type, choice_name = self.get_stage_config_choice()
 
-        # Prepare fine-tuning dataset
-        data_dir = self.cfg.get("data_dir")
-        task_name = self.stage_cfg.run.get("task_name")
+        if choice_model_type in __LANGUAGE_MODELS_LIST__:
+            # Prepare fine-tuning dataset
+            data_dir = self.cfg.get("data_dir")
+            task_name = self.stage_cfg.run.get("task_name")
 
-        # GLUE for internal use
-        download_glue_script_path = (
-            self._launcher_scripts_path
-            / "nemo_launcher/utils/data_utils/download_glue.py"
-        )
-        if download_glue_script_path.exists():
-            from nemo_launcher.utils.data_utils.download_glue import (
-                TASKS_LOWER,
-                download_glue,
+            # GLUE for internal use
+            download_glue_script_path = (
+                self._launcher_scripts_path
+                / "nemo_launcher/utils/data_utils/download_glue.py"
             )
-
-            if task_name in TASKS_LOWER:
-                download_glue(
-                    data_dir=os.path.join(data_dir, "glue_data"), tasks=task_name
+            if download_glue_script_path.exists():
+                from nemo_launcher.utils.data_utils.download_glue import (
+                    TASKS_LOWER,
+                    download_glue,
                 )
 
-        # Prepare dataset for squad
-        if task_name in ["squad", "xquad"]:
-            prepare_squad_for_fine_tuning(data_dir=os.path.join(data_dir, "squad_data"))
+                if task_name in TASKS_LOWER:
+                    download_glue(
+                        data_dir=os.path.join(data_dir, "glue_data"), tasks=task_name
+                    )
+
+                # Prepare dataset for squad
+                if task_name in ["squad", "xquad"]:
+                    prepare_squad_for_fine_tuning(
+                        data_dir=os.path.join(data_dir, "squad_data")
+                    )
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
         """
@@ -899,6 +922,12 @@ class FineTuning(NeMoStage):
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "falcon": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            "vit": self._nemo_code_path
+            / "examples/vision/vision_transformer/megatron_vit_classification_finetune.py",
+            "neva": self._nemo_code_path
+            / "examples/multimodal/multimodal_llm/neva/neva_finetune.py",
+            "nsfw": self._nemo_code_path
+            / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -915,14 +944,18 @@ class PEFT(NeMoStage):
         """Setup job/data folders and fine-tuning/prompt-learning dataset"""
         # Setup folders
         super().setup_folder_and_data()
+        choice_model_type, choice_name = self.get_stage_config_choice()
 
-        # Prepare prompt learning dataset
-        data_dir = self.cfg.get("data_dir")
-        task_name = self.stage_cfg.run.get("task_name")
+        if choice_model_type in __LANGUAGE_MODELS_LIST__:
+            # Prepare prompt learning dataset
+            data_dir = self.cfg.get("data_dir")
+            task_name = self.stage_cfg.run.get("task_name")
 
-        # Prepare dataset for squad
-        if task_name in ["squad", "xquad"]:
-            prepare_squad_for_fine_tuning(data_dir=os.path.join(data_dir, "squad_data"))
+            # Prepare dataset for squad
+            if task_name in ["squad", "xquad"]:
+                prepare_squad_for_fine_tuning(
+                    data_dir=os.path.join(data_dir, "squad_data")
+                )
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
         """
@@ -947,6 +980,8 @@ class PEFT(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_t5_peft_tuning.py",
             "falcon": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            "neva": self._nemo_code_path
+            / "examples/multimodal/multimodal_llm/neva/neva_peft.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1047,6 +1082,44 @@ class IA3Learning(PromptLearning):
         return model_type_to_code_path[model_type]
 
 
+class FWInference(NeMoStage):
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "fw_inference"
+        self.stage_cfg = cfg.get("fw_inference")
+
+    def _get_nemo_code_path(self, model_type: str) -> Path:
+        """
+        Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
+        For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
+
+        :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
+        :return: path current stage's essential nemo scripts code
+        :rtype: Path
+        """
+        model_type_to_code_path = {
+            "vit": self._nemo_code_path
+            / "examples/vision/vision_transformer/megatron_vit_classification_infer.py",
+            "clip": self._nemo_code_path
+            / "examples/multimodal/vision_language_foundation/clip/megatron_clip_infer.py",
+            "nsfw": self._nemo_code_path
+            / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_infer.py",
+            "stable_diffusion": self._nemo_code_path
+            / "examples/multimodal/text_to_image/stable_diffusion/sd_infer.py",
+            "instruct_pix2pix": self._nemo_code_path
+            / "examples/multimodal/text_to_image/instruct_pix2pix/sd_edit_cli.py",
+            "dreambooth": self._nemo_code_path
+            / "examples/multimodal/text_to_image/dreambooth/dreambooth_infer.py",
+            "imagen": self._nemo_code_path
+            / "examples/multimodal/text_to_image/imagen/imagen_infer.py",
+            "controlnet": self._nemo_code_path
+            / "examples/multimodal/text_to_image/controlnet/controlnet_infer.py",
+            "neva": self._nemo_code_path
+            / "examples/multimodal/multimodal_llm/neva/neva_evaluation.py",
+        }
+        return model_type_to_code_path[model_type]
+
+
 class Conversion(NemoMegatronStage):
     """Stage class of converting training checkpoints to .nemo format"""
 
@@ -1062,11 +1135,19 @@ class Conversion(NemoMegatronStage):
         :return: command string for hparams override with the script in collections
         :rtype: str
         """
+        choice_model_type, choice_name = self.get_stage_config_choice()
         model_cfg = self.stage_cfg.get("model")
-        hparams_file = model_cfg.get("hparams_file")
-        vocab_file = model_cfg.get("vocab_file")
-        merge_file = model_cfg.get("merge_file")
-        tokenizer_model = model_cfg.get("tokenizer_model")
+
+        if choice_model_type not in __LANGUAGE_MODELS_LIST__ + ["stable_diffusion"]:
+            hparams_file = model_cfg.get("hparams_file")
+            output_path = self.get_job_path().results_folder
+            hparams_override = output_path / "hparams_override.yaml"
+            return [f"cp {hparams_file} {hparams_override}"]
+
+        hparams_file = model_cfg.get("hparams_file", "null")
+        vocab_file = model_cfg.get("vocab_file", "null")
+        merge_file = model_cfg.get("merge_file", "null")
+        tokenizer_model = model_cfg.get("tokenizer_model", "null")
         override_configs = {
             "hparams_file": hparams_file,
             "output_path": self.get_job_path().results_folder,
@@ -1178,6 +1259,8 @@ class Conversion(NemoMegatronStage):
         :return: command groups for current stage
         :rtype: List[List[str]]
         """
+        choice_model_type, choice_name = self.get_stage_config_choice()
+
         command_groups = [[], []]
         command_groups[0] += self._make_hparams_override_command()
         run_cfg = self.stage_cfg.get("run")
@@ -1185,8 +1268,10 @@ class Conversion(NemoMegatronStage):
         checkpoint_search_command = self._make_checkpoint_search_command(
             checkpoint_folder=model_cfg.get("checkpoint_folder"),
             checkpoint_name=model_cfg.get("checkpoint_name"),
-            tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size"),
-            pipeline_model_parallel_size=model_cfg.get("pipeline_model_parallel_size"),
+            tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size", 1),
+            pipeline_model_parallel_size=model_cfg.get(
+                "pipeline_model_parallel_size", 1
+            ),
         )
         command_groups[-1] += [f"export CKPT_NAME=$({checkpoint_search_command})"]
 
@@ -1195,10 +1280,21 @@ class Conversion(NemoMegatronStage):
             self.get_job_path().results_folder / "hparams_override.yaml"
         )
         nemo_file_path = self.get_job_path().results_folder / nemo_file_name
-        code_path = (
-            self._nemo_code_path
-            / "examples/nlp/language_modeling/megatron_ckpt_to_nemo.py"
-        )
+
+        if choice_model_type in __LANGUAGE_MODELS_LIST__:
+            code_path = (
+                self._nemo_code_path
+                / "examples/nlp/language_modeling/megatron_ckpt_to_nemo.py"
+            )
+        elif choice_model_type in __VISION_MODELS_LIST__:
+            code_path = self._nemo_code_path / "examples/vision/convert_ckpt_to_nemo.py"
+        elif choice_model_type in __MULTIMODAL_MODELS_LIST__:
+            code_path = (
+                self._nemo_code_path / "examples/multimodal/convert_ckpt_to_nemo.py"
+            )
+        else:
+            raise ValueError(f"Model type: {choice_model_type} not recognized")
+
         args = create_args_list(
             replace_underscore=False,
             gpus_per_node=run_cfg.get("ntasks_per_node"),
@@ -1207,8 +1303,10 @@ class Conversion(NemoMegatronStage):
             checkpoint_name="\${CKPT_NAME}",
             hparams_file=hparams_override_file,
             nemo_file_path=nemo_file_path,
-            tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size"),
-            pipeline_model_parallel_size=model_cfg.get("pipeline_model_parallel_size"),
+            tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size", 1),
+            pipeline_model_parallel_size=model_cfg.get(
+                "pipeline_model_parallel_size", 1
+            ),
         )
         if model_cfg.get("pipeline_model_parallel_split_rank") is not None:
             args += create_args_list(
@@ -1228,10 +1326,68 @@ class Conversion(NemoMegatronStage):
         return command_groups
 
 
+class ExternalConversion(NemoMegatronStage):
+    """Stage class of converting external checkpoints to .nemo format"""
+
+    def setup_stage_vars(self, cfg: OmegaConf):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "external_conversion"
+        self.stage_cfg = cfg.get("external_conversion")
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """
+        Make the command groups for current stage
+        Command groups is a list of command group. A command group is defined as:
+              0. Command group is a list of command strings
+              1. Each command group occupies one bcprun, srun or bash
+              2. Each command group eventually has multiple commands connected by ";"
+
+        :param Path stage_cfg_path: path to interpolated and saved configuration
+        :return: command groups for current stage
+        :rtype: List[List[str]]
+        """
+        choice_model_type, choice_name = self.get_stage_config_choice()
+        if choice_model_type == "clip":
+            code_path = (
+                self._nemo_code_path
+                / "examples/multimodal/vision_language_foundation/clip/convert_external_clip_to_nemo.py"
+            )
+        else:
+            raise NotImplementedError(
+                f"Model type `{choice_model_type}` doesn't support conversion from external source."
+            )
+
+        command_groups = [[]]
+        run_cfg = self.stage_cfg.get("run")
+        model_cfg = self.stage_cfg.get("model")
+        nemo_file_name = run_cfg.get("nemo_file_name")
+        nemo_file_path = self.get_job_path().results_folder / nemo_file_name
+        args = create_args_list(
+            replace_underscore=False,
+            gpus_per_node=run_cfg.get("ntasks_per_node"),
+            arch=model_cfg.get("arch"),
+            version=model_cfg.get("version"),
+            hparams_file=model_cfg.get("hparams_file"),
+            nemo_file_path=nemo_file_path,
+            tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size", 1),
+            pipeline_model_parallel_size=model_cfg.get(
+                "pipeline_model_parallel_size", 1
+            ),
+        )
+        args += ["--bcp"] if self.cluster == "bcp" else []
+
+        core_command = [f"python3 -u {code_path}", *args]
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
 class NeMoEvaluation(NeMoStage):
     """
-        Stage class of gpt3/t5/mt5 evaluation with NeMo scripts
-        Including: fine-tuning eval, prompt-learning eval, adapter/ia3 learning eval
+    Stage class of gpt3/t5/mt5 evaluation with NeMo scripts
+    Including: fine-tuning eval, prompt-learning eval, adapter/ia3 learning eval
     """
 
     def setup_stage_vars(self, cfg):
@@ -1343,6 +1499,10 @@ class NeMoEvaluation(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
             "peft_falcon": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            "vit": self._nemo_code_path
+            / "examples/vision/vision_transformer/megatron_vit_classification_evaluate.py",
+            "clip": self._nemo_code_path
+            / "examples/multimodal/vision_language_foundation/clip/megatron_clip_imagenet_zeroshot.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1555,6 +1715,273 @@ class EvalHarnessEvaluation(NemoMegatronStage):
         return command_groups
 
 
+class DiffusionModelEvaluation(NemoMegatronStage):
+    """
+    DiffusionModelEvaluation is class for evaluating generative diffusion models.
+    It can hold multiple sub-stages. For example, generation and gathering.
+    They have dependencies on each other and will be launched one by one.
+    """
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "evaluation"
+        self.stage_cfg = cfg.get("evaluation")
+
+    def _make_sub_stages(self) -> List[str]:
+        """
+        Create a list of sub-stage names which are required to run in current data stage.
+        Based on the input config, some of sub stages may not need to run.
+
+        :return: a list of sub-stage names which are required to run
+        :rtype: List[str]
+        """
+        sub_stages = []
+        if self.stage_cfg.get("generate_images", False):
+            sub_stages += ["generate"]
+        if self.stage_cfg.get("compute_fid_scores", False):
+            sub_stages += ["fid"]
+        if self.stage_cfg.get("compute_clip_scores", False):
+            sub_stages += ["clip"]
+        if self.stage_cfg.get("plot_fid_clip", False):
+            sub_stages += ["plot"]
+        return sub_stages
+
+    def _make_sub_stage_command(
+        self, stage_cfg_path: Path, sub_stage: str
+    ) -> List[str]:
+        """Make a command of the specified sub-stage"""
+
+        eval_diffusion_path = (
+            self._launcher_scripts_path
+            / "nemo_launcher/collections/eval_diffusion_fid_clip"
+        )
+        stage_to_code_path = {
+            "fid": eval_diffusion_path / "eval_fid.py",
+            "clip": eval_diffusion_path / "compute_clip_score.py",
+            "plot": eval_diffusion_path / "plot.py",
+        }
+        choice_model_type, choice_name = self.get_stage_config_choice()
+        if choice_model_type == "stable_diffusion":
+            stage_to_code_path["generate"] = (
+                self._nemo_code_path
+                / "examples/multimodal/text_to_image/stable_diffusion/generate_fid_images.py"
+            )
+        elif choice_model_type == "imagen":
+            stage_to_code_path["generate"] = (
+                self._nemo_code_path
+                / "examples/multimodal/text_to_image/imagen/generate_fid_images.py"
+            )
+
+        code_path = stage_to_code_path[sub_stage]
+
+        args = []
+        stage_cfg = self.stage_cfg
+        if sub_stage == "generate":
+            args = [
+                f"--config-path={stage_cfg_path.parents[0]}",
+                f"--config-name={stage_cfg_path.name}",
+            ]
+        elif sub_stage == "fid":
+            args = create_args_list(
+                replace_underscore=False,
+                coco_images_path=stage_cfg.fid.coco_images_path,
+                fid_images_path=stage_cfg.fid.save_path,
+                output_path=os.path.join(
+                    stage_cfg.run.get("results_dir", "."), "fid_scores.csv"
+                ),
+            )
+        elif sub_stage == "clip":
+            args = create_args_list(
+                replace_underscore=False,
+                captions_path=stage_cfg.fid.coco_captions_path,
+                fid_images_path=stage_cfg.fid.save_path,
+                output_path=os.path.join(
+                    stage_cfg.run.get("results_dir", "."), "clip_scores.csv"
+                ),
+                clip_version=stage_cfg.clip_version,
+            )
+        elif sub_stage == "plot":
+            args = create_args_list(
+                replace_underscore=False,
+                fid_scores_csv=os.path.join(
+                    stage_cfg.run.get("results_dir", "."), "fid_scores.csv"
+                ),
+                clip_scores_csv=os.path.join(
+                    stage_cfg.run.get("results_dir", "."), "clip_scores.csv"
+                ),
+                output_path=os.path.join(
+                    stage_cfg.run.get("results_dir", "."), "fid_clip_plot.pdf"
+                ),
+            )
+
+        sub_stage_command = [f"python3 -u {code_path}", *args]
+        sub_stage_command = " \\\n  ".join(sub_stage_command)
+        return [sub_stage_command]
+
+    def run(self) -> str:
+        """
+        Run current stage including all of the substages, returns job id on slurm based system otherwise empty string
+
+        :return: job id on slurm based system otherwise empty string
+        :rtype: str
+        """
+        # Setup folders and datasets
+        self.setup_folder_and_data()
+
+        sub_stages = self._make_sub_stages()
+        job_id = ""
+        for sub_stage in sub_stages:
+            # Save stage hydra config
+            job_path = self.get_job_path(sub_stage)
+            job_path.folder.mkdir(parents=True, exist_ok=True)
+
+            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
+                self.stage_cfg, job_path
+            )
+            if job_id:
+                dependency = f"afterok:{job_id}"
+                self.stage_cfg["run"]["dependency"] = dependency
+
+            # Make cluster parameters
+            cluster_parameters = self._make_cluster_parameters(self.cluster, sub_stage)
+
+            # Make command groups
+            command_groups = self.make_stage_command_groups(stage_cfg_path, sub_stage)
+            # Create launcher
+            launcher = AutoLauncher(
+                folder=job_path.folder, cluster=self.cluster, **cluster_parameters,
+            )
+            job_id = launcher.launch(command_groups=command_groups)
+
+        return job_id
+
+    def make_stage_command_groups(
+        self, stage_cfg_path: Path, sub_stage: Optional[str] = None,
+    ) -> List[List[str]]:
+        """
+        Make the command groups for current stage
+        Command groups is a list of command group. A command group is defined as:
+              0. Command group is a list of command strings
+              1. Each command group occupies one bcprun, srun or bash
+              2. Each command group eventually has multiple commands connected by ";"
+
+        :param Path stage_cfg_path: path to interpolated and saved configuration
+        :param Optional sub_stage: current sub_stage name
+        :return: command groups for current stage
+        :rtype: List[List[str]]
+        """
+
+        command_groups = [[]]
+
+        command_groups[0] += self._make_sub_stage_command(stage_cfg_path, sub_stage)
+        command_groups = clean_command_groups(command_groups)
+        return command_groups
+
+    def _make_private_cluster_parameters(self, cluster: str, sub_stage: str) -> Dict:
+        """
+        A simplifying function to make cluster parameters specific to each cluster type.
+        Shared cluster parameters are handled in _make_cluster_parameters.
+        This is function is introduced because for different dataset preparation the required slurm params are different,
+            but the shared parameters are always the same. As a result, one only needs to override private parameters
+            for different DataStage.
+
+        :param str cluster: cluster type
+        :param str sub_stage: current sub_stage name
+        :return: a dictionary of private cluster parameters, e.g. `bcp_preproc_npernode`
+        :rtype: Dict
+        """
+        cfg = self.cfg
+        stage_cfg = self.stage_cfg
+        run_cfg = stage_cfg.get("run")
+
+        node_array_size = (
+            run_cfg.get("node_array_size") if sub_stage in ["generate"] else 1
+        )
+        array = f"0-{node_array_size - 1}"
+        if sub_stage == "generate":
+            ntasks_per_node = run_cfg.get("ntasks_per_node")
+        else:
+            ntasks_per_node = 1
+
+        container_image = cfg.get("container")
+        container_mounts = self._make_container_mounts_string()
+
+        if cluster == "bcm":
+            return {
+                "nodes": 1,
+                "array": f"{array}%{node_array_size}",
+                "container_image": container_image,
+                "container_mounts": container_mounts,
+                "ntasks_per_node": ntasks_per_node,
+            }
+        if cluster == "bcp":
+            return {
+                "nodes": node_array_size,
+                "ntasks_per_node": ntasks_per_node,
+                "bcp_launcher": "'mpirun --allow-run-as-root'",
+            }
+        return {}
+
+    def _make_cluster_parameters(
+        self, cluster: str, sub_stage: Optional[str] = None,
+    ) -> Dict:
+        """
+        Make a cluster-specific parameters for jobs on different clusters.
+        Current clusters include bcm(slurm), bcp and interactive.
+        For example for bcm, it will return slurm parameters:
+            {'job_name': 'some_name', 'nodes': 2, 'ntasks_per_node': 8, ...}
+
+        :param str cluster: i.e. `bcm`, `bcp`, `interactive`, etc.
+        :param Optional sub_stage: current sub_stage name
+        :return: a dictionary of cluster parameters, e.g. `ntasks_per_node`
+        :rtype: Dict
+        """
+        cfg = self.cfg
+        stage_cfg = self.stage_cfg
+
+        run_cfg = stage_cfg.get("run")
+        job_name = run_cfg.get("name")
+        time_limit = run_cfg.get("time_limit")
+        dependency = run_cfg.get("dependency")
+
+        env_vars = self.get_env_vars()
+        env_vars[
+            "PYTHONPATH"
+        ] = f"{self._launcher_scripts_path}:${{PYTHONPATH}}"  # Required by pile download
+        env_vars["NGC_ARRAY_TYPE"] = "MPIJob"  # Required by BCP
+        setup = [f"export {k}={v}" for k, v in env_vars.items()]
+
+        cluster_parameters = {}
+        shared_parameters = {
+            "job_name": job_name,
+            "time": time_limit,
+            "setup": setup,
+        }
+        private_parameters = self._make_private_cluster_parameters(cluster, sub_stage,)
+        if cluster == "bcm":
+            cluster_cfg = cfg.get("cluster")
+            slurm_cfg = {**copy.deepcopy(cluster_cfg)}
+            job_name_prefix = slurm_cfg.pop("job_name_prefix")
+            cluster_parameters = {
+                **slurm_cfg,
+                "dependency": dependency,
+            }
+            cluster_parameters.update(
+                {**shared_parameters, **private_parameters,}
+            )
+            cluster_parameters["job_name"] = (
+                job_name_prefix + cluster_parameters["job_name"]
+            )
+        elif cluster == "bcp":
+            cluster_parameters.update(
+                {**shared_parameters, **private_parameters,}
+            )
+        elif cluster == "interactive":
+            raise ValueError("Data preparation is not supported in interactive mode.")
+
+        return cluster_parameters
+
+
 def clean_command_groups(command_groups: List[List[str]]) -> List[List[str]]:
     """
     Remove empty command group in command groups
@@ -1605,7 +2032,19 @@ def create_args_list(
     args = []
     for k, v in kwargs.items():
         if hydra:
-            args.append(f"{k}={v}")
+            if isinstance(v, dict) or isinstance(v, omegaconf.dictconfig.DictConfig):
+                # remove quotes around keys if the argument is a dict
+                # (https://hydra.cc/docs/advanced/override_grammar/basic/)
+                # For example, dict {"a":10, "b":20} will become string "'{a:10,b:20}'"
+                data = ",".join(
+                    f"{inner_key}:{inner_val}" for inner_key, inner_val in v.items()
+                )
+                args.append(f"'{k}={{{data}}}'")
+            elif isinstance(v, list) or isinstance(v, omegaconf.listconfig.ListConfig):
+                data = ",".join(v)
+                args.append(f"'{k}=[{data}]'")
+            else:
+                args.append(f"{k}={v}")
         else:
             # use "store_true" to add keys only args
             if replace_underscore:
