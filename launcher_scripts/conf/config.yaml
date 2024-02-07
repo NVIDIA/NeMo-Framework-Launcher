@@ -34,6 +34,7 @@ stages:
   #- conversion_hf2nemo
   #- prompt_learning
   #- adapter_learning
+  #- peft
   #- ia3_learning
   #- evaluation
   #- export
