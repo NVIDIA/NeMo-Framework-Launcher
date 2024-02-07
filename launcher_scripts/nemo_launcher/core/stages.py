@@ -97,9 +97,7 @@ class NemoMegatronStage:
         command_groups = self.make_stage_command_groups(stage_cfg_path)
         # Create launcher
         launcher = AutoLauncher(
-            folder=job_path.folder,
-            cluster=self.cluster,
-            **cluster_parameters,
+            folder=job_path.folder, cluster=self.cluster, **cluster_parameters,
         )
         job_id = launcher.launch(command_groups=command_groups)
 
@@ -954,8 +952,7 @@ class PromptLearning(NeMoStage):
         # Prepare squad dataset
         if task_name == "squad":
             prepare_squad_for_prompt_learning(
-                os.path.join(data_dir, "prompt_data"),
-                self._launcher_scripts_path,
+                os.path.join(data_dir, "prompt_data"), self._launcher_scripts_path,
             )
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
@@ -1252,8 +1249,7 @@ class NeMoEvaluation(NeMoStage):
                 / "nemo_launcher/collections/metric_calculation/squad_metric_calc.py"
             )
             args = create_args_list(
-                pred=pred_file_path,
-                ground_truth=ground_truth_file_path,
+                pred=pred_file_path, ground_truth=ground_truth_file_path,
             )
             split_string = self.stage_cfg.get("split_string", None)
             if split_string:
@@ -1362,10 +1358,7 @@ class EvalHarnessEvaluation(NemoMegatronStage):
             self._launcher_scripts_path
             / "nemo_launcher/collections/eval_harness/download.py"
         )
-        args = create_args_list(
-            tasks=tasks,
-            cache_dir=cache_dir,
-        )
+        args = create_args_list(tasks=tasks, cache_dir=cache_dir,)
         download_command = [f"python3 {code_path}", *args]
         download_command_string = " \\\n  ".join(download_command)
         return download_command_string
@@ -1578,9 +1571,7 @@ def _hydra_interpolation(cfg: OmegaConf) -> None:
 
 
 def create_args_list(
-    hydra: bool = False,
-    replace_underscore: bool = True,
-    **kwargs: Any,
+    hydra: bool = False, replace_underscore: bool = True, **kwargs: Any,
 ) -> List[str]:
     """
     An easy tool function to convert arguments into a list of argument strings.
