@@ -816,7 +816,27 @@ class Training(NeMoStage):
             "falcon": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "retro": self._nemo_code_path
-            / "examples/nlp/language_modeling/megatron_retro_pretraining.py",        }
+            / "examples/nlp/language_modeling/megatron_retro_pretraining.py",        
+            "vit": self._nemo_code_path
+            / "examples/vision/vision_transformer/megatron_vit_classification_pretrain.py",
+            "clip": self._nemo_code_path
+            / "examples/multimodal/vision_language_foundation/clip/megatron_clip_pretrain.py",
+            "nsfw": self._nemo_code_path
+            / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
+            "stable_diffusion": self._nemo_code_path
+            / "examples/multimodal/text_to_image/stable_diffusion/sd_train.py",
+            "instruct_pix2pix": self._nemo_code_path
+            / "examples/multimodal/text_to_image/instruct_pix2pix/sd_finetune.py",
+            "imagen": self._nemo_code_path
+            / "examples/multimodal/text_to_image/imagen/imagen_training.py",
+            "dreambooth": self._nemo_code_path
+            / "examples/multimodal/text_to_image/dreambooth/dreambooth.py",
+            "controlnet": self._nemo_code_path
+            / "examples/multimodal/text_to_image/controlnet/controlnet_train.py",
+            "nerf": self._nemo_code_path / "examples/multimodal/x_to_nerf/nerf/main.py",
+            "neva": self._nemo_code_path
+            / "examples/multimodal/multimodal_llm/neva/neva_pretrain.py",        
+        }
         return model_type_to_code_path[model_type]
 
 
