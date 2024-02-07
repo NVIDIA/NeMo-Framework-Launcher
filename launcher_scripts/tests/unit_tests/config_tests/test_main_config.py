@@ -13,6 +13,8 @@ class TestConfig:
           - training: gpt3/5b
           - conversion: gpt3/convert_gpt3
           - conversion_hf2nemo: hf_llama2/convert_llama2_nemo
+          - fw_inference: null
+          - external_conversion: null
           - fine_tuning: null
           - peft: null
           - prompt_learning: null
@@ -96,6 +98,8 @@ class TestConfig:
         rlhf_ppo_config: ${hydra:runtime.choices.rlhf_ppo}
         steerlm_reg_config : ${hydra:runtime.choices.steerlm_reg}
         conversion_hf2nemo_config: ${hydra:runtime.choices.conversion_hf2nemo}
+        fw_inference_config: ${hydra:runtime.choices.fw_inference}
+        external_conversion_config: ${hydra:runtime.choices.external_conversion}
         """
         expected = OmegaConf.create(s)
         assert (

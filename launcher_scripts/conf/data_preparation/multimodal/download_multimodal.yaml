@@ -1,0 +1,72 @@
+run:
+  name: download_multimodal
+  results_dir: ${base_results_dir}/${.name}
+  time_limit: "4:00:00"
+  dependency: "singleton"
+  bcp_preproc_npernode: 2  # 2 should be safe to use and x2 times faster.
+
+dataset_repo_id: ???  # huggingface dataset repo id, in the format of {user_or_company}/{dataset_name}
+#  See https://huggingface.co/datasets?task_categories=task_categories:text-to-image&sort=downloads
+dataset_output_root: ${data_dir}/your_dataset_name
+
+download_parquet:
+  enable: True
+  output_dir: ${..dataset_output_root}/parquet
+  parquet_subpartitions: 3  # increase the number of partitions to reduce the download time of each job
+  parquet_pattern: "*.parquet"  # files to be included in the hugging face repo
+
+download_images:
+  enable: True
+  parquet_pattern: ${..download_parquet.parquet_pattern}
+  input_dir: ${..download_parquet.output_dir}
+  output_dir: ${..dataset_output_root}/tarfiles_raw
+  num_parquets_downloaded: 1  # Number of parquet files in hugging face repo.
+  # To fill in this parameter, go to the hugging face repo -> Files and versions -> count the number of parquet files
+  # in all directories.
+  # Only used if download_images is queued as a dependency before download_parquet finishes.
+  # Otherwise script will automatically count the number of parquet files downloaded.
+  # Note that node_array_size for this stage will be parquet_subpartitions x num_parquets_downloaded
+  download_num_processes: -1  # set to number of CPUs in the job (-1 defaults to slurm cpus_per_task)
+  download_num_threads: 64  # tune by monitoring CPU usage
+  img2dataset_additional_arguments: # see https://github.com/rom1504/img2dataset for complete list of parameters
+    encode_quality: 95  # jpeg compression quality (100 is best, but still lossy)
+    resize_mode: no  # optionally resize after downloading to save disk space
+    # you can also override these arguments to suit your own needs:
+    # input_format (default is parquet), caption_col (default is TEXT), url_col (default is URL)
+    # see https://github.com/rom1504/img2dataset/tree/main/dataset_examples for some examples
+
+reorganize_tar:
+  enable: True
+  input_dir: ${..download_images.output_dir}
+  output_dir: ${..dataset_output_root}/tarfiles_reorganized
+  node_array_size: 2  # increase the number of concurrent jobs to reduce the time for each job
+  tar_chunk_size: 1000  # number of training examples in each output tar file
+  file_ext_in_tar: # target extensions in each
+    - .jpg
+    - .txt
+
+precache_encodings:
+  enable: True
+  input_dir: ${..reorganize_tar.output_dir}
+  output_dir: ${..dataset_output_root}/tarfiles_precached
+  tar_chunk_size: ${..reorganize_tar.tar_chunk_size}
+  node_array_size: 4  # increase the number of concurrent jobs to reduce the time for each job
+  precache_config_path: ${launcher_scripts_path}/conf/data_preparation/multimodal/precache_sd.yaml
+
+generate_wdinfo:
+  enable: True
+  input_dir: ${..precache_encodings.output_dir}
+  # use ${..precache_encodings.output_dir} if you're doing precaching, otherwise use ${..reorganize_tar.output_dir}
+  tar_chunk_size: ${..precache_encodings.tar_chunk_size}
+  file_ext_in_tar:
+    - .pickle
+  output_wdinfo_path: ${..dataset_output_root}/wdinfo.pkl
+
+merge_source_tar:
+  enable: False
+  append_tar_dir: ${..precache_encodings.output_dir}
+  source_dir: ${..precache_encodings.input_dir}
+  source_extensions:  # objects in the source tar files that are to be added to the precached tar files
+    - .json
+    - .txt
+  node_array_size: 1  # increase the number of jobs to reduce the time for each job
