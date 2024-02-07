@@ -528,7 +528,7 @@ class NemoMegatronStage:
 
     @property
     def _set_ln_sm_margin(self) -> str:
-        """ Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel """
+        """Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel"""
         vpp = self.cfg.training.model.get("virtual_pipeline_model_parallel_size")
         if (
             self.cfg.training.model.get("overlap_p2p_comm", False)
@@ -545,7 +545,7 @@ class NemoMegatronStage:
 
     @property
     def _skip_ag_overlap(self) -> str:
-        """ Skip TP-AllGather overlap with ring-exchange at (1) bf16 and (2) PP > 1 """
+        """Skip TP-AllGather overlap with ring-exchange at (1) bf16 and (2) PP > 1"""
         if (
             self.cfg.training.model.get("ub_tp_comm_overlap", False)
             and self.cfg.training.model.get("pipeline_model_parallel_size") > 1
@@ -719,6 +719,9 @@ class NeMoStage(NemoMegatronStage):
             "ib_resource_name"
         ]
         values_template.trainingConfig.ibCount = cluster_parameters["ib_count"]
+        values_template.trainingConfig.ibNetworkAnnotation = cluster_parameters[
+            "ib_network_annotation"
+        ]
         values_template.trainingConfig.envVars = cluster_parameters["env_vars"]
 
         if cluster_parameters["dns_policy"] is not None:
