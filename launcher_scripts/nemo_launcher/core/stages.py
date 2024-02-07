@@ -850,11 +850,7 @@ class Training(NeMoStage):
             / "examples/multimodal/text_to_image/controlnet/controlnet_train.py",
             "nerf": self._nemo_code_path / "examples/multimodal/x_to_nerf/nerf/main.py",
             "neva": self._nemo_code_path
-<<<<<<< HEAD
-            / "examples/multimodal/multimodal_llm/neva/neva_pretrain.py",        
-=======
             / "examples/multimodal/multimodal_llm/neva/neva_pretrain.py",
->>>>>>> master
         }
         return model_type_to_code_path[model_type]
 
