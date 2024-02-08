@@ -47,12 +47,23 @@ exp_manager:
     monitor: val_loss
     save_top_k: 1
     mode: min
-    save_nemo_on_train_end: False 
-    filename: 'megatron_gpt_sft--{${exp_manager.checkpoint_callback_params.monitor}:.3f}-{step}-{consumed_samples}'
+    save_nemo_on_train_end: True 
+    filename: 'steerlm_gpt_sft'
     model_parallel_size: 8 #${model.tensor_model_parallel_size}
     save_best_model: True  # need to keep this false otherwise it will create multiple last.ckpt files because restore reset the previous best model
 
 model:
+  steerlm:
+  steerable_attributes :       
+    quality: 4
+    toxicity: 0
+    humor: 0
+    creativity: 0
+    helpfulness: 4
+    correctness: 4 
+    coherence: 4
+    complexity: 
+    verbosity: 4
   seed: 1234
   tensor_model_parallel_size: 8 # intra-layer model parallelism
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
