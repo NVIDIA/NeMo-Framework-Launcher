@@ -89,6 +89,7 @@ STR2STAGECLASS = {
             "peft_falcon",
             "vit",
             "clip",
+            "peft_baichuan2",
         ],
         DiffusionModelEvaluation: ["stable_diffusion", "imagen"],
     },

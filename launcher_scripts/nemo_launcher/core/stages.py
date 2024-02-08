@@ -31,7 +31,7 @@ from omegaconf import DictConfig, OmegaConf
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-__LANGUAGE_MODELS_LIST__ = ["gpt3", "t5", "mt5", "bert", "llama", "falcon"]
+__LANGUAGE_MODELS_LIST__ = ["gpt3", "t5", "mt5", "bert", "llama", "falcon", "baichuan2"]
 __VISION_MODELS_LIST__ = ["vit"]
 __MULTIMODAL_MODELS_LIST__ = [
     "clip",
@@ -929,6 +929,8 @@ class FineTuning(NeMoStage):
             / "examples/multimodal/multimodal_llm/neva/neva_finetune.py",
             "nsfw": self._nemo_code_path
             / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
+            "baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1582,6 +1584,8 @@ class NeMoEvaluation(NeMoStage):
             "code_llama": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
             "peft_falcon": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            "peft_baichuan2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
             "vit": self._nemo_code_path
             / "examples/vision/vision_transformer/megatron_vit_classification_evaluate.py",
