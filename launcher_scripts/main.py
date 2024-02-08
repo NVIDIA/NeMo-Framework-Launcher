@@ -73,7 +73,7 @@ STR2STAGECLASS = {
             "llama",
             "prompt_llama",
             "falcon",
-            "baichuan2"
+            "baichuan2",
         ],
         NeMoEvaluation: [
             "t5",
