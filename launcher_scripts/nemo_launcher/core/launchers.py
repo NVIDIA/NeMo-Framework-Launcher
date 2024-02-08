@@ -549,7 +549,9 @@ class K8SLauncher(Launcher):
             sub_command = "template"
         else:
             sub_command = "install"
-        return f"#!/bin/bash\nhelm {sub_command} {job_name} {helm_charts}\n"
+        # Apply a timeout of 15min in case images take a long time to bring up
+        # or pre-install hooks take a while
+        return f"#!/bin/bash\nhelm {sub_command} --timeout=15m --wait {job_name} {helm_charts}\n"
 
 
 @functools.lru_cache()
