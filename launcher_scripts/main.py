@@ -25,6 +25,7 @@ from nemo_launcher.core.data_stages import (
     MC4DataPreparation,
     MultimodalDataPreparation,
     PileDataPreparation,
+    SlimPajamaDataPreparation,
     SteerLMDataPreparation,
 )
 from nemo_launcher.core.export_stages import Export
@@ -93,6 +94,7 @@ STR2STAGECLASS = {
     },
     "data_preparation": {
         PileDataPreparation: ["gpt3", "t5", "bert", "llama", "falcon"],
+        SlimPajamaDataPreparation: ["gpt"],
         MC4DataPreparation: ["mt5"],
         SteerLMDataPreparation: ["steerlm"],
         CustomDataPreparation: ["generic"],
