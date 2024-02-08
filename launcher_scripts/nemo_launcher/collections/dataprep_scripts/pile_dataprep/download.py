@@ -19,7 +19,7 @@ import hydra
 import nemo_launcher.utils.file_utils as utils
 
 
-@hydra.main(config_path="conf", config_name="config")
+@hydra.main(config_path="conf", config_name="config", version_base="1.2")
 def main(cfg):
     """Function to download the pile dataset files on BCM.
 
