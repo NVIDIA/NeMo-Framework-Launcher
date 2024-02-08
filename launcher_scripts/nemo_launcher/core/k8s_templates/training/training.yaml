@@ -1,4 +1,7 @@
 {{ $config := .Values.trainingConfig }}
+{{ $ibResourceName := .Values.trainingConfig.ibResourceName }}
+{{ $ibNetworkAnnotation := .Values.trainingConfig.ibNetworkAnnotation }}
+{{ $ibCount := .Values.trainingConfig.ibCount }}
 
 apiVersion: kubeflow.org/v1
 kind: PyTorchJob
@@ -11,6 +14,11 @@ spec:
     Worker:
       replicas: {{ .Values.image.nodes }}
       template:
+        {{- if $ibNetworkAnnotation }}
+        metadata:
+          annotations:
+            k8s.v1.cni.cncf.io/networks: {{ $ibNetworkAnnotation }}
+        {{- end }}
         spec:
           containers:
           - name: pytorch
@@ -42,10 +50,22 @@ spec:
             resources:
               requests:
                 nvidia.com/gpu: {{ .Values.image.numGPUs }}
-                {{ $config.ibResourceName }}: {{ $config.ibCount }}
+                {{- if and (kindIs "slice" $ibResourceName) (kindIs "slice" $ibCount) }}
+                {{- range $i, $val := $ibResourceName }}
+                {{ $val }}: {{ index $ibCount $i }}
+                {{- end }}
+                {{- else }}
+                {{ $ibResourceName }}: {{ $ibCount }}
+                {{- end }}
               limits:
                 nvidia.com/gpu: {{ .Values.image.numGPUs }}
-                {{ $config.ibResourceName }}: {{ $config.ibCount }}
+                {{- if and (kindIs "slice" $ibResourceName) (kindIs "slice" $ibCount) }}
+                {{- range $i, $val := $ibResourceName }}
+                {{ $val }}: {{ index $ibCount $i }}
+                {{- end }}
+                {{- else }}
+                {{ $ibResourceName }}: {{ $ibCount }}
+                {{- end }}
             volumeMounts:
             - mountPath: {{ $config.NFSPath }}
               name: workspace
