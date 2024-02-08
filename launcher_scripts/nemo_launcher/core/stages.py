@@ -892,11 +892,11 @@ class FineTuning(NeMoStage):
                         data_dir=os.path.join(data_dir, "glue_data"), tasks=task_name
                     )
 
-                # Prepare dataset for squad
-                if task_name in ["squad", "xquad"]:
-                    prepare_squad_for_fine_tuning(
-                        data_dir=os.path.join(data_dir, "squad_data")
-                    )
+            # Prepare dataset for squad
+            if task_name in ["squad", "xquad"]:
+                prepare_squad_for_fine_tuning(
+                    data_dir=os.path.join(data_dir, "squad_data")
+                )
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
         """
