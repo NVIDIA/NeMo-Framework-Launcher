@@ -1,0 +1,71 @@
+run:
+  name: eval_${.task_name}_${.model_train_name}
+  time_limit: "04:00:00"
+  dependency: "singleton"
+  model_train_name: imagen_base500m_sr600m
+  task_name: "fid_clip"  # Rename this name to be more clear
+  results_dir: ${base_results_dir}/${.model_train_name}/${.name}
+  node_array_size: 8 # Need to be set to `len(classifier_free_guidance) * nnodes_per_cfg`
+  ntasks_per_node: 8 # Number of gpus per node in preprocessing step.
+
+generate_images: True
+compute_fid_scores: True
+compute_clip_scores: True
+plot_fid_clip: True
+clip_version: ViT-g-14
+
+fid:
+  classifier_free_guidance:
+    - 1
+    - 1.5
+    - 2
+    - 2.5
+    - 3
+    - 3.5
+    - 4
+    - 5
+  nnodes_per_cfg: 1
+  ntasks_per_node: ${evaluation.run.ntasks_per_node}
+  local_task_id: null
+  num_images_to_eval: 30000
+  coco_captions_path: ${data_dir}/fid_evaluation/coco2014/coco2014_val_sampled_30k/captions
+  coco_images_path: ${data_dir}/fid_evaluation/coco2014/coco2014_val/images_256
+  save_path: ${evaluation.run.results_dir}/generated_images
+  ncaptions_per_batch: 16
+  save_all_res: False
+  save_text: False
+
+infer:
+  num_images_per_promt: 1 # The number of images generated for each promt text
+  model_name: null # Avaliable model_name defined in pretrained_models.yaml
+  run_ema_model: True # Whether load the reg/ema model when using pretrained models
+  customized_model: # Mutually exclusive with model_name
+    base_ckpt: path/to/base64.nemo 
+    sr256_ckpt: path/to/sr256.nemo 
+    sr1024_ckpt: null # FID numbers are typically evaluated at 256x256 resolution.
+  target_resolution: 256 # in [64, 256, 1024]
+  inference_precision: '32' # [16, 32, AMP]
+  thresholding_method: 'dynamic'
+  record_time: True # Whether to record inference time meta
+  encoder_path: /path/to/t5/folder # Set to null if you wish to download encoders on the fly
+  samplings:
+    -
+      step: 30
+    -
+      step: 20
+
+trainer:
+  devices: ${evaluation.run.ntasks_per_node}
+  num_nodes: 1
+  accelerator: gpu
+  precision: 32
+  logger: False # logger provided by exp_manager
+
+models:
+  -
+    restore_from_path: ${evaluation.infer.customized_model.base_ckpt}
+  -
+    restore_from_path: ${evaluation.infer.customized_model.sr256_ckpt}
+  -
+    restore_from_path: ${evaluation.infer.customized_model.sr1024_ckpt}
+  
