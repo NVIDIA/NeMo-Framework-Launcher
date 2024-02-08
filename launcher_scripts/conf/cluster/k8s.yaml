@@ -1,7 +1,24 @@
-pull_secret: null  # Kubernetes secret for the container registry to pull private containers.
+pull_secret: ngc-registry  # Kubernetes secret for the container registry to pull private containers.
 shm_size: 512Gi  # Amount of system memory to allocate in Pods. Should end in "Gi" for gigabytes.
+volumes:
+  nfs:
+    server: ${...nfs_server}
+    path: ${...nfs_path}  # path is mirrored into pod
+  # Only suitable for 1 node clusters where all workers have this path mounted/available
+  hostPath:
+    # Path on the host
+    path: null  # path is mirrored into pod
+    # https://kubernetes.io/docs/concepts/storage/volumes/#hostpath-volume-types
+    # Directory = errors if does not exist
+    type: "Directory"
+  persistentVolumeClaim:
+    # This claim should be created before running
+    claimName: null
+    subPath: null  # path is mirrored into pod (no leading slash b/c relative to root)
+# NOTE: These args will soon be deprecated
 nfs_server: null  # Hostname or IP address for the NFS server where data is stored.
 nfs_path: null  # Path to store data in the NFS server.
-ib_resource_name: "nvidia.com/hostdev"  # Specify the resource name for IB devices according to kubernetes, such as "nvidia.com/hostdev" for Mellanox IB adapters.
-ib_count: "8"  # Specify the number of IB devices to include per node in each pod.
+ib_resource_name: "nvidia.com/hostdev"  # Specify the resource name for IB devices according to kubernetes, such as "nvidia.com/hostdev" for Mellanox IB adapters. Can also be a list, but must be same length as ib_count
+ib_count: "8"  # Specify the number of IB devices to include per node in each pod. Can also be a list, but must be same length as ib_resource_name
+ib_network_annotation: ""  # Specify the networks as comma separated values
 dns_policy: null  # Specify a dnsPolicy to use in all pods, if necessary

@@ -1,0 +1,24 @@
+run:
+  name: eval_${.task_name}_${.model_train_name}
+  time_limit: "04:00:00"
+  dependency: "singleton"
+  model_train_name: vit_B_16
+  task_name: "imagenet_val"  # Rename this name to be more clear
+  fine_tuning_dir: ${base_results_dir}/${.model_train_name}/imagenet_1k
+  results_dir: ${base_results_dir}/${.model_train_name}/${.name}
+
+trainer:
+  devices: 1
+  num_nodes: 1
+  accelerator: gpu
+  logger: False # logger provided by exp_manager
+  precision: bf16 # 16, 32, or bf16
+
+model:
+  restore_from_path: ${evaluation.run.fine_tuning_dir}/results/checkpoints/nemo_vit_classification.nemo  # Path to a trained vit .nemo file
+  precision: ${evaluation.trainer.precision}
+  micro_batch_size: 512 # we only supports DP=1 eval at the moment, GBS=MBS
+
+  data:
+    num_workers: 8
+    imagenet_val: ${data_dir}/imagenet_1k/val # path to imagenet val folder

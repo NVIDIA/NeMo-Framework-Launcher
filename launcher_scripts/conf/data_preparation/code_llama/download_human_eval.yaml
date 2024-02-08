@@ -1,0 +1,10 @@
+run:
+  name: download_human_eval
+  results_dir: ${base_results_dir}/${.name}
+  time_limit: "4:00:00"
+  dependency: "singleton"
+  array: ${..file_numbers}
+
+human_eval_url: "https://github.com/openai/human-eval/raw/master/data/HumanEval.jsonl.gz"  # Source URL to download The human_eval data.
+split_string: "0.7,0.2,0.1" #The ratio to split into train/test/validation
+output_dir: ${data_dir}/human_eval #Output to write train.jsonl /test.jsonl /validation.jsonl file
