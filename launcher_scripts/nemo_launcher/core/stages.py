@@ -831,6 +831,8 @@ class Training(NeMoStage):
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "llama": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "nemotron": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "bert": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_bert_pretraining.py",
             "falcon": self._nemo_code_path
