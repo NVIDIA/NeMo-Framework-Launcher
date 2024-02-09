@@ -1,0 +1,13 @@
+run:
+  name: steerlm_dataset_prep1
+  results_dir: ${base_results_dir}/${.name}
+  time_limit: "4:00:00"
+  dependency: "singleton"
+  node_array_size: 1
+  bcp_preproc_npernode: 1 # 2 should be safe to use and x2 times faster.
+
+prep_stage : "1" # make sure wrap in string type
+dataset: helpsteer # either openassistant or helpsteer
+output_dir: "${data_dir}/steerlm/"  # specify output_directory of the downloaded and preprocessed data
+preprocess_data: True  # True to preprocess the data from a jsonl file, False otherwise.
+

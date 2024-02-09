@@ -1,0 +1,20 @@
+run:
+  name: fw_inference_${.model_train_name}
+  time_limit: "04:00:00"
+  dependency: "singleton"
+  model_train_name: clip_vit_B_32
+  results_dir: ${base_results_dir}/${.model_train_name}/${.name}
+
+image_path: ??? # Path to a image for inference
+texts: ??? # List of texts to compute similarity
+
+trainer:
+  devices: 1
+  num_nodes: 1
+  accelerator: gpu
+  logger: False # logger provided by exp_manager
+  precision: bf16 # 16, 32, or bf16
+
+model:
+  restore_from_path: ${base_results_dir}/${fw_inference.run.model_train_name}/results/checkpoints/nemo_clip.nemo  # Path to a trained CLIP .nemo file
+  precision: ${fw_inference.trainer.precision}

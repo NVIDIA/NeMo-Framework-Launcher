@@ -161,7 +161,6 @@ RUN curl https://pyenv.run | bash && \
 
 # pip install required python packages
 RUN pip install --no-cache-dir wandb==0.15.3 \
-        'best_download>=0.0.6' \
         black==20.8b1 \
         'click>=8.0.1' \
         'datasets>=1.2.1' \
@@ -172,7 +171,6 @@ RUN pip install --no-cache-dir wandb==0.15.3 \
         'numexpr>=2.7.2' \
         pybind11==2.8.0 \
         pycountry==20.7.3 \
-        pytablewriter==0.58.0 \
         pytest==6.2.5 \
         sacrebleu==1.5.0 \
         'scikit-learn>=0.24.1' \

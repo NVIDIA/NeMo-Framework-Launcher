@@ -13,7 +13,11 @@
 # limitations under the License.
 
 import copy
+import glob
 import os
+import random
+import gzip
+import json
 import shutil
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -42,6 +46,9 @@ class DataStage(NemoMegatronStage):
         self.stage_cfg = cfg.get("data_preparation")
 
     def _make_sub_stages(self):
+        raise NotImplementedError
+
+    def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
         raise NotImplementedError
 
     def run(self) -> str:
@@ -474,7 +481,7 @@ class MC4DataPreparation(DataStage):
             if sub_stage in ["download", "preprocess"]
             else 1
         )
-        array = f"0-{node_array_size-1}"
+        array = f"0-{node_array_size - 1}"
         if sub_stage == "preprocess":
             ntasks_per_node = run_cfg.get("workers_per_node")
             cpus_per_task = run_cfg.get("cpus_per_node") // ntasks_per_node
@@ -748,13 +755,21 @@ class SteerLMDataPreparation(DataStage):
         :rtype: List[str]
         """
         sub_stages = []
-        if self.stage_cfg.get("dataset") == "openassistant":
-            task_name = "preprocess_openassistant"
-        elif self.stage_cfg.get("dataset") == "helpsteer":
-            task_name = "preprocess_helpsteer"
+        if self.stage_cfg.get("prep_stage") == "1":
+            if self.stage_cfg.get("dataset") == "openassistant":
+                task_name = "preprocess_openassistant"
+            elif self.stage_cfg.get("dataset") == "helpsteer":
+                task_name = "preprocess_helpsteer"
+            else:
+                print(
+                    "Currently SteerLM support only openassistand / helpsteer dataset"
+                )
+        elif self.stage_cfg.get("prep_stage") == "2":
+            task_name = "process_to_regression_format"
         else:
-            print("Currently SteerLM support only openassistand / helpsteer dataset")
-
+            print(
+                "Refer to NeMo-Aligner for data preparation support: https://github.com/NVIDIA/NeMo-Aligner/blob/main/docs/user-guide/SteerLM.rst#step-2-download-and-preprocess-data-for-attribute-prediction-modelling"
+            )
         if self.stage_cfg.get("preprocess_data", False):
             sub_stages += [task_name]
         return sub_stages
@@ -815,11 +830,368 @@ class SteerLMDataPreparation(DataStage):
             "preprocess_openassistant": data_prep_script
             / "preprocess_openassistant_data.py",
             "preprocess_helpsteer": data_prep_script / "preprocess_helpsteer_data.py",
+            "process_to_regression_format": data_prep_script
+            / "process_to_regression_format.py",
         }
         choice_model_type, choice_name = self.get_stage_config_choice()
-        output_dir = self.stage_cfg.get("output_dir")
+        if choice_name == "steerlm_data_prep2_reg":
+            input_file = self.stage_cfg.get("input_dataset")
+            output_file = self.stage_cfg.get("output_dir")
+            args = create_args_list(
+                input_file=input_file, output_file=output_file, replace_underscore=True
+            )
+        else:
+            output_dir = self.stage_cfg.get("output_dir")
+            args = create_args_list(
+                output_directory=output_dir, replace_underscore=False
+            )
         code_path = stage_to_code_path[sub_stage]
-        args = create_args_list(output_directory=output_dir, replace_underscore=False)
         sub_stage_command = [f"python3 -u {code_path}", *args]
         sub_stage_command = " ".join(sub_stage_command)
         return [sub_stage_command]
+
+
+class MultimodalDataPreparation(DataStage):
+    """
+    DataStage for preparing a multimodal dataset from huggingface
+    Examples include kakaobrain/coyo-700m, laion/laion2B-en-aesthetic and ChristophSchuhmann/improved_aesthetics_5plus
+    """
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.sub_stage_names = [
+            "download_parquet",
+            "download_images",
+            "reorganize_tar",
+            "precache_encodings",
+            "generate_wdinfo",
+            "merge_source_tar",
+        ]
+
+    def _make_sub_stages(self) -> List[str]:
+        """
+        Create a list of sub-stage names which are required to run in current data stage.
+        Based on the input config, some of sub stages may not need to run.
+
+        :return: a list of sub-stage names which are required to run
+        :rtype: List[str]
+        """
+        sub_stages = []
+
+        for name in self.sub_stage_names:
+            if self.stage_cfg.get(name) and self.stage_cfg.get(name).get(
+                "enable", False
+            ):
+                sub_stages.append(name)
+        return sub_stages
+
+    def setup_folder_and_data(self) -> None:
+        """Setup job/data folders for each substage"""
+        job_path = self.get_job_path()
+        job_path.folder.mkdir(parents=True, exist_ok=True)
+
+        data_cfg = self.stage_cfg
+        for sub_stage in self.sub_stage_names:
+            if (
+                data_cfg.get(sub_stage)
+                and data_cfg.get(sub_stage).get("enable", False)
+                and data_cfg.get(sub_stage).get("output_dir", False)
+            ):
+                os.makedirs(data_cfg.get(sub_stage).output_dir, exist_ok=True)
+
+    def _make_private_cluster_parameters(self, cluster: str, sub_stage: str) -> Dict:
+        """
+        A simplifying function to make cluster parameters specific to each cluster type.
+        Shared cluster parameters are handled in _make_cluster_parameters.
+        This is function is introduced because for different dataset preparation the required slurm params are different,
+            but the shared parameters are always the same. As a result, one only needs to override private parameters
+            for different DataStage.
+
+        :param str cluster: cluster type
+        :param str sub_stage: current sub_stage name
+        :return: a dictionary of private cluster parameters, e.g. `bcp_preproc_npernode`
+        :rtype: Dict
+        """
+        cfg = self.cfg
+        stage_cfg = self.stage_cfg
+
+        container_image = cfg.get("container")
+        container_mounts = self._make_container_mounts_string()
+
+        if cluster == "bcm":
+            ntasks_per_node = 1
+            if sub_stage == "download_images":
+                node_array_size = len(
+                    glob.glob(
+                        os.path.join(
+                            stage_cfg.download_parquet.output_dir,
+                            "**",
+                            stage_cfg.download_parquet.parquet_pattern,
+                        ),
+                        recursive=True,
+                    )
+                )
+                if node_array_size == 0:
+                    node_array_size = stage_cfg.download_images.get(
+                        "num_parquets_downloaded"
+                    ) * stage_cfg.download_parquet.get("parquet_subpartitions")
+            elif sub_stage in ["reorganize_tar", "merge_source_tar"]:
+                node_array_size = stage_cfg.get(sub_stage).get("node_array_size", 1)
+            elif sub_stage == "precache_encodings":
+                node_array_size = stage_cfg.precache_encodings.get("node_array_size", 1)
+                ntasks_per_node = 8
+            else:  # download_parquet, generate_wdinfo
+                node_array_size = 1
+
+            max_simultaneous_jobs = 50
+            if isinstance(node_array_size, str) and "-" in node_array_size:
+                # for advance usage: resuming an interrupted node array job
+                node_array_start, node_array_end = node_array_size.split("-")
+                node_array_size = int(node_array_end) - int(node_array_start) + 1
+                array = f"{node_array_start}-{node_array_end}%{min(max_simultaneous_jobs, node_array_size)}"
+            elif node_array_size > 1:
+                array = f"0-{node_array_size - 1}%{min(max_simultaneous_jobs, node_array_size)}"
+            else:
+                array = None
+
+            return {
+                "nodes": 1,
+                "array": array,
+                "container_image": container_image,
+                "container_mounts": container_mounts,
+                "ntasks_per_node": ntasks_per_node,
+            }
+        else:  # will support bcp later
+            raise NotImplementedError
+
+    def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
+        """Make a command of the specified sub-stage"""
+
+        dataprep_path = (
+            self._launcher_scripts_path
+            / "nemo_launcher/collections/dataprep_scripts/multimodal_dataprep"
+        )
+        stage_to_code_path = {
+            sub_stage: dataprep_path / f"{sub_stage}.py"
+            for sub_stage in self.sub_stage_names
+        }
+        code_path = stage_to_code_path[sub_stage]
+        cfg = self.stage_cfg
+        if sub_stage == "download_parquet":
+            args = create_args_list(
+                hydra=True,
+                dataset_repo_id=cfg.get("dataset_repo_id"),
+                output_dir=cfg.download_parquet.get("output_dir"),
+                parquet_subpartitions=cfg.download_parquet.get(
+                    "parquet_subpartitions", 1
+                ),
+                parquet_pattern=cfg.download_parquet.get("parquet_pattern"),
+            )
+        elif sub_stage == "download_images":
+            args = create_args_list(
+                hydra=True,
+                input_dir=cfg.download_images.get("input_dir"),
+                output_dir=cfg.download_images.get("output_dir"),
+                parquet_pattern=cfg.download_images.get("parquet_pattern"),
+                download_num_processes=cfg.download_images.get(
+                    "download_num_processes"
+                ),
+                download_num_threads=cfg.download_images.get("download_num_threads"),
+                img2dataset_additional_arguments=cfg.download_images.get(
+                    "img2dataset_additional_arguments"
+                ),
+            )
+        elif sub_stage == "reorganize_tar":
+            args = create_args_list(
+                hydra=True,
+                input_dir=cfg.reorganize_tar.get("input_dir"),
+                output_dir=cfg.reorganize_tar.get("output_dir"),
+                file_ext_in_tar=cfg.reorganize_tar.get("file_ext_in_tar"),
+                tar_chunk_size=cfg.reorganize_tar.get("tar_chunk_size"),
+            )
+        elif sub_stage == "precache_encodings":
+            args = create_args_list(
+                hydra=True,
+                input_dir=cfg.precache_encodings.get("input_dir"),
+                output_dir=cfg.precache_encodings.get("output_dir"),
+                tar_chunk_size=cfg.precache_encodings.get("tar_chunk_size"),
+                precache_config_path=cfg.precache_encodings.get("precache_config_path"),
+            )
+        elif sub_stage == "generate_wdinfo":
+            args = create_args_list(
+                hydra=True,
+                input_dir=cfg.generate_wdinfo.get("input_dir"),
+                output_wdinfo_path=cfg.generate_wdinfo.get("output_wdinfo_path"),
+                tar_chunk_size=cfg.generate_wdinfo.get("tar_chunk_size"),
+                file_ext_in_tar=cfg.generate_wdinfo.get("file_ext_in_tar"),
+            )
+        elif sub_stage == "merge_source_tar":
+            args = create_args_list(
+                hydra=True,
+                append_tar_dir=cfg.merge_source_tar.get("append_tar_dir"),
+                source_dir=cfg.merge_source_tar.get("source_dir"),
+                source_extensions=cfg.merge_source_tar.get("source_extensions"),
+            )
+        else:
+            raise ValueError("Invalid sub_stage:", sub_stage)
+
+        sub_stage_command = [f"python3 -u {code_path}", *args]
+        sub_stage_command = " \\\n  ".join(sub_stage_command)
+        return [sub_stage_command]
+
+
+class FIDEvaluationDataPreparation(DataStage):
+    """
+    DataStage for preparing COCO2014 validation set which is used for FID evaluation of multimodal models
+    """
+
+    def _make_sub_stages(self) -> List[str]:
+        """
+        Create a list of sub-stage names which are required to run in current data stage.
+        Based on the input config, some of sub stages may not need to run.
+
+        :return: a list of sub-stage names which are required to run
+        :rtype: List[str]
+        """
+        return ["preprocess"]
+
+    def setup_folder_and_data(self) -> None:
+        """Setup job/data folders for each substage"""
+        job_path = self.get_job_path()
+        job_path.folder.mkdir(parents=True, exist_ok=True)
+
+        dataset_output_root = self.stage_cfg.dataset_output_root
+        if os.path.exists(dataset_output_root):
+            print(f"WARNING: dataset_output_root already exists")
+            response = ""
+            while response.lower() not in ["y", "n"]:
+                response = input(
+                    f"Do you want to wipe everything at {dataset_output_root}? [y/n] \n>>> "
+                )
+            if response.lower() == "y":
+                shutil.rmtree(dataset_output_root)
+            else:
+                print(
+                    "Not removing existing folder. Subsequent processing may produce inaccurate results."
+                )
+        os.makedirs(dataset_output_root, exist_ok=True)
+
+    def _make_private_cluster_parameters(self, cluster: str, sub_stage: str) -> Dict:
+        """
+        A simplifying function to make cluster parameters specific to each cluster type.
+        Shared cluster parameters are handled in _make_cluster_parameters.
+        This is function is introduced because for different dataset preparation the required slurm params are different,
+            but the shared parameters are always the same. As a result, one only needs to override private parameters
+            for different DataStage.
+
+        :param str cluster: cluster type
+        :param str sub_stage: current sub_stage name
+        :return: a dictionary of private cluster parameters, e.g. `bcp_preproc_npernode`
+        :rtype: Dict
+        """
+        container_image = self.cfg.get("container")
+        container_mounts = self._make_container_mounts_string()
+
+        if cluster == "bcm":
+            return {
+                "nodes": 1,
+                "array": None,
+                "container_image": container_image,
+                "container_mounts": container_mounts,
+                "ntasks_per_node": 1,
+            }
+        else:  # will support bcp later
+            raise NotImplementedError
+
+    def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
+        """Make a command of the specified sub-stage"""
+
+        dataprep_path = (
+            self._launcher_scripts_path
+            / "nemo_launcher/collections/dataprep_scripts/fid_evaluation_dataprep"
+        )
+        cfg = self.stage_cfg
+
+        if sub_stage == "preprocess":
+            code_path = dataprep_path / f"preprocess.py"
+            args = create_args_list(
+                hydra=True,
+                root_dir=cfg.dataset_output_root,
+                num_processes=cfg.num_processes,
+                preprocess_images=cfg.preprocess_images,
+                preprocess_captions=cfg.preprocess_captions,
+            )
+            sub_stage_command = [f"python3 -u {code_path}", *args]
+            sub_stage_command = " \\\n  ".join(sub_stage_command)
+        else:
+            raise NotImplementedError
+        return [sub_stage_command]
+
+
+class HumanEvalDataPreparation(DataStage):
+    """DataStage for preparing a customized dataset"""
+
+    def _make_sub_stages(self) -> List[str]:
+        """There is no sub-stages needed for HumanEval dataset"""
+        return []
+
+    def setup_folder_and_data(self) -> None:
+        """Setup job/data folders for HumanEval dataset"""
+        job_path = self.get_job_path()
+        job_path.folder.mkdir(parents=True, exist_ok=True)
+
+        data_cfg = self.stage_cfg
+        human_eval_url = data_cfg.get("human_eval_url")
+        output_dir = data_cfg.get("output_dir")
+        split_string = data_cfg.get("split_string")
+
+        os.makedirs(output_dir, exist_ok=True)
+
+        assert output_dir is not None, "output_dir must be a valid path."
+        filename = download_single_file(url=human_eval_url, save_dir=output_dir)
+
+        output_data = self.read_data_into_list(filename)
+
+        random.shuffle(output_data)
+        data_splits = [float(split) for split in split_string.split(",")]
+        assert (
+            abs(sum(data_splits) - 1) < 1e-9
+        ), "The values in the split string should sum to one."
+        assert (
+            len(data_splits) == 3
+        ), "Need 3 values, (train,test,validation) in split string"
+        num_samples_in_train = int(len(output_data) * data_splits[0])
+        num_samples_in_test = int(len(output_data) * data_splits[1])
+        num_samples_in_validation = int(len(output_data) * data_splits[2])
+        train = output_data[:num_samples_in_train]
+        test = output_data[
+            num_samples_in_train : num_samples_in_train + num_samples_in_test
+        ]
+        validation = output_data[-num_samples_in_validation:]
+
+        with open(f"{output_dir}/train.jsonl", "w") as f:
+            for entry in train:
+                json.dump(entry, f)
+                f.write("\n")
+
+        with open(f"{output_dir}/test.jsonl", "w") as f:
+            for entry in test:
+                json.dump(entry, f)
+                f.write("\n")
+
+        with open(f"{output_dir}/validation.jsonl", "w") as f:
+            for entry in validation:
+                json.dump(entry, f)
+                f.write("\n")
+
+    def read_data_into_list(self, filename):
+        output_data = []
+        with gzip.open(filename, "r") as fin:
+            for line in fin:
+                input_json_obj = json.loads(line)
+                processed_json_obj = {
+                    "input": input_json_obj["prompt"],
+                    "output": input_json_obj["canonical_solution"],
+                }
+                output_data.append(processed_json_obj)
+        return output_data

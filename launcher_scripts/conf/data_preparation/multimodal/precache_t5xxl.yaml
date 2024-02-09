@@ -1,0 +1,24 @@
+batch_size_per_GPU: 64  # as much as it can fit in your GPU memory
+dataloader_num_workers: 16
+save_original_in_tar: #[video]
+encodings: # see README for instructions
+  - modality: text
+    extension: text
+    key: t5xxl
+    precision: 16
+    store_pad_tokens: False
+    encoder_config:
+      cls: encoders.t5encoder.T5Encoder
+      max_seq_len: 64  # see webvid caption length distribution (mostly less than 40 words)
+      encoder_path: /path/to/encoders # contains t5xxl-encoder.bin
+#  - modality: video
+#    extension: mp4
+
+lightning:
+  devices: 8
+  num_nodes: 1
+  max_epochs: 1  # important for caching
+  precision: 16
+  accelerator: gpu
+  enable_checkpointing: False
+  strategy: ddp

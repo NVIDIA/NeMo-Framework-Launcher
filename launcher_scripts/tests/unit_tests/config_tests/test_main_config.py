@@ -9,10 +9,12 @@ class TestConfig:
           - _self_
           - cluster: bcm  # Set to bcm for BCM and BCP clusters. Set to k8s for a k8s cluster.
           - data_curation: common_crawl/curate_common_crawl
-          - data_preparation: gpt3/download_gpt3_pile #steerlm/steerlm_data_prep 
+          - data_preparation: gpt3/download_gpt3_pile #steerlm/steerlm_data_prep1 or steerlm/steerlm_data_prep2_reg
           - training: gpt3/5b
           - conversion: gpt3/convert_gpt3
           - conversion_hf2nemo: hf_llama2/convert_llama2_nemo
+          - fw_inference: null
+          - external_conversion: null
           - fine_tuning: null
           - peft: null
           - prompt_learning: null
@@ -67,6 +69,8 @@ class TestConfig:
           TRANSFORMERS_OFFLINE: 1
           TORCH_NCCL_AVOID_RECORD_STREAMS: 1
           NCCL_NVLS_ENABLE: 0
+          NVTE_DP_AMAX_REDUCE_INTERVAL: 0 # Diable FP8 AMAX reduction in the data-parallel domain
+          NVTE_ASYNC_AMAX_REDUCTION: 1 # Enable asynchronous FP8 AMAX reduction
         
         # GPU Mapping
         numa_mapping:
@@ -94,6 +98,8 @@ class TestConfig:
         rlhf_ppo_config: ${hydra:runtime.choices.rlhf_ppo}
         steerlm_reg_config : ${hydra:runtime.choices.steerlm_reg}
         conversion_hf2nemo_config: ${hydra:runtime.choices.conversion_hf2nemo}
+        fw_inference_config: ${hydra:runtime.choices.fw_inference}
+        external_conversion_config: ${hydra:runtime.choices.external_conversion}
         """
         expected = OmegaConf.create(s)
         assert (
