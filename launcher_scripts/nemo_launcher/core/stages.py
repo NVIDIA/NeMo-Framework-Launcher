@@ -837,6 +837,8 @@ class Training(NeMoStage):
             / "examples/nlp/language_modeling/megatron_bert_pretraining.py",
             "falcon": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "retro": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_retro_pretraining.py",
             "vit": self._nemo_code_path
             / "examples/vision/vision_transformer/megatron_vit_classification_pretrain.py",
             "clip": self._nemo_code_path
@@ -894,11 +896,11 @@ class FineTuning(NeMoStage):
                         data_dir=os.path.join(data_dir, "glue_data"), tasks=task_name
                     )
 
-                # Prepare dataset for squad
-                if task_name in ["squad", "xquad"]:
-                    prepare_squad_for_fine_tuning(
-                        data_dir=os.path.join(data_dir, "squad_data")
-                    )
+            # Prepare dataset for squad
+            if task_name in ["squad", "xquad"]:
+                prepare_squad_for_fine_tuning(
+                    data_dir=os.path.join(data_dir, "squad_data")
+                )
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
         """
