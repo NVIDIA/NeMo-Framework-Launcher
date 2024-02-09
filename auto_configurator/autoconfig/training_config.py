@@ -89,7 +89,10 @@ def generate_grid_search_configs(
         else base_cfg["model"]["encoder"]["num_layers"]
     )
 
-    act_method = base_cfg["model"].get("activations_checkpoint_method", "None")
+    if model_name in ["gpt3", "bert", "llama"]:
+        act_method = base_cfg["model"].get("activations_checkpoint_method", "None")
+    else:
+        act_method = base_cfg["model"]["encoder"].get("activations_checkpoint_method", "None")
 
     (
         tp_list,
@@ -240,11 +243,6 @@ def _set_activations_checkpoint_params(
                 min_layers_per_pipe, max_layers_per_pipe + 1, interval_layers_per_pipe
             )
 
-    #(
-    #    act_ckpt_layers,
-    #    num_micro_batches_partial_act_ckpt,
-    #    act_ckpt_layers_per_pipeline,
-    #) = (None, None, None)
     return (
         virtual_pipelines,
         act_ckpt_layers,
