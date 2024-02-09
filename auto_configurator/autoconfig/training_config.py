@@ -92,7 +92,9 @@ def generate_grid_search_configs(
     if model_name in ["gpt3", "bert", "llama"]:
         act_method = base_cfg["model"].get("activations_checkpoint_method", "None")
     else:
-        act_method = base_cfg["model"]["encoder"].get("activations_checkpoint_method", "None")
+        act_method = base_cfg["model"]["encoder"].get(
+            "activations_checkpoint_method", "None"
+        )
 
     (
         tp_list,
