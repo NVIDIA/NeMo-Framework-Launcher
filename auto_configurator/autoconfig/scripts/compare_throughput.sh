@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH -p None
+#SBATCH --job-name=nemo_megatron_autoconfig:latency_measure
+#SBATCH --mem=0
+#SBATCH --exclusive
+#SBATCH --time=10:00
+
+srun --container-image nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.11 --container-mounts /home/dpykhtar/NeMo-Megatron-Launcher/auto_configurator:/home/dpykhtar/NeMo-Megatron-Launcher/auto_configurator,/home/dpykhtar/autoconf:/home/dpykhtar/autoconf --no-container-mount-home -o /home/dpykhtar/autoconf/t5/0.22b_80gb/final_result/compare_throughput_0.22b_1nodes-%j.log -e /home/dpykhtar/autoconf/t5/0.22b_80gb/final_result/compare_throughput_0.22b_1nodes-%j.error  sh -c 'HYDRA_FULL_ERROR=1 python3 -u /home/dpykhtar/NeMo-Megatron-Launcher/auto_configurator/autoconfig/scripts/compare_throughput.py auto_configurator_path=/home/dpykhtar/NeMo-Megatron-Launcher/auto_configurator search_config.train_settings.model_size_in_b=0.22 search_config=t5/0.22b search_config_value=t5/0.22b +nodes=1 base_results_dir=/home/dpykhtar/autoconf search_config=t5/0.22b \
+  run_training_hp_search=True \
+  run_inference_hp_search=True \
+  cluster_type=bcm \
+  auto_configurator_path=/home/dpykhtar/NeMo-Megatron-Launcher/auto_configurator \
+  launcher_scripts_path=/home/dpykhtar/NeMo-Megatron-Launcher/auto_configurator/../launcher_scripts \
+  base_results_dir=/home/dpykhtar/autoconf \
+  data_dir=/home/dpykhtar \
+  container_mounts=[None] \
+  wandb.enable=False \
+  wandb.api_key_file=null \
+  wandb.project=nemo-megatron-autoconfig \
+  search_config_value=t5/0.22b \
+  cluster.partition=null \
+  cluster.account=null \
+  cluster.exclusive=True \
+  cluster.gpus_per_task=null \
+  cluster.gpus_per_node=8 \
+  cluster.mem=0 \
+  cluster.job_name_prefix=nemo_megatron_autoconfig: \
+  cluster.srun_args=['--no-container-mount-home'] \
+  search_config.train_settings.model_size_in_b=0.22 \
+  search_config.train_settings.num_nodes=1 \
+  search_config.train_settings.gpus_per_node=8 \
+  search_config.train_settings.gpu_memory_gb=80 \
+  search_config.train_settings.max_training_days=4 \
+  search_config.train_settings.limit_search_runs=100 \
+  search_config.train_settings.output_top_n=10 \
+  search_config.train_settings.max_steps_per_run=50 \
+  search_config.train_settings.max_minutes_per_run=10 \
+  search_config.train_settings.tflops_per_gpu=140 \
+  search_config.train_settings.num_tokens_in_b=1000 \
+  search_config.train_settings.vocab_size=29000 \
+  search_config.train_settings.seq_length=512 \
+  search_config.train_settings.custom_config=null \
+  search_config.train_settings.logs=/home/dpykhtar/autoconf/t5/0.22b_80gb \
+  search_config.train_settings.tensor_parallel_sizes=[1] \
+  search_config.train_settings.pipeline_parallel_sizes=[1] \
+  search_config.train_settings.min_model_parallel_size=auto \
+  search_config.train_settings.max_model_parallel_size=auto \
+  search_config.train_settings.micro_batch_sizes=[64] \
+  search_config.train_settings.act_ckpt_layers=auto '
+
+set +x
