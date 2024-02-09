@@ -398,7 +398,6 @@ def modify_cfg(
         if model_name in ["gpt3", "bert", "llama"]:
             new_cfg["model"]["activations_checkpoint_num_layers"] = act
         else:
-            print(act)
             new_cfg["model"]["encoder"]["activations_checkpoint_num_layers"] = act // 2
             new_cfg["model"]["decoder"]["activations_checkpoint_num_layers"] = act // 2
 
