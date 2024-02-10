@@ -833,6 +833,8 @@ class Training(NeMoStage):
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "baichuan2": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "nemotron": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "bert": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_bert_pretraining.py",
             "falcon": self._nemo_code_path
@@ -1925,7 +1927,7 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             job_path.folder.mkdir(parents=True, exist_ok=True)
 
             stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
-                self.stage_cfg, job_path
+                self.stage_cfg, job_path, self.cfg
             )
             if job_id:
                 dependency = f"afterok:{job_id}"

@@ -32,7 +32,7 @@ exp_manager:
   explicit_log_dir: ${training.run.results_dir}/results
   exp_dir: null
   name: megatron_llama
-  create_wandb_logger: true
+  create_wandb_logger: false
   wandb_logger_kwargs:
     project: nemo_llama_pretrain
     name: ${training.run.name}
@@ -132,7 +132,9 @@ model:
   fp8_amax_history_len: 1
   fp8_amax_compute_algo: most_recent
   use_emha: false
-  ub_tp_comm_overlap: false
+  ub_tp_comm_overlap: true
+  tp_comm_atomic_ag: False
+  tp_comm_atomic_rs: False
   use_flash_attention: true
   overlap_p2p_comm: true
   batch_p2p_comm: false
