@@ -69,8 +69,7 @@ model:
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
   save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training.
   sync_batch_comm: False
-  overlap_p2p_comm: True
-  batch_p2p_comm: False
+  overlap_p2p_comm: False
   ub_tp_comm_overlap: False
   tp_comm_atomic_ag: False
   tp_comm_atomic_rs: False
