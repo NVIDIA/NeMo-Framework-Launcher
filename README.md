@@ -65,6 +65,12 @@ cd NeMo-Megatron-Launcher
 pip install -e .
 ```
 
+### Development Dependencies
+To install the test, lint dependencies:
+```sh
+pip install -e '.[lint,test]'
+```
+
 ## Usage
 
 The best way to get started with the NeMo Framework Launcher is go through 
