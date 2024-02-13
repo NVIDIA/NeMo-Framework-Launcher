@@ -71,6 +71,7 @@ class TestConfig:
           NCCL_NVLS_ENABLE: 0
           NVTE_DP_AMAX_REDUCE_INTERVAL: 0 # Diable FP8 AMAX reduction in the data-parallel domain
           NVTE_ASYNC_AMAX_REDUCTION: 1 # Enable asynchronous FP8 AMAX reduction
+          NVTE_FUSED_ATTN: 0
         
         # GPU Mapping
         numa_mapping:
