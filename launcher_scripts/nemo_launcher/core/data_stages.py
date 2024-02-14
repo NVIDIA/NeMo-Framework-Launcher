@@ -458,8 +458,8 @@ class SlimPajamaDataPreparation(DataStage):
             workers_per_node = run_cfg.get("workers_per_node", 1)
             preprocess_worker_mapping = data_cfg.get("preprocess_worker_mapping")
 
-            files = glob.glob('train_chunk_[0-9]*.jsonl', root_dir=self._data_dir)
-            dataset_files = [os.path.join(self._data_dir,file) for file in files]
+            files = glob.glob("train_chunk_[0-9]*.jsonl", root_dir=self._data_dir)
+            dataset_files = [os.path.join(self._data_dir, file) for file in files]
             # Sort list of files in directory by size
             sorted_files = sorted(dataset_files, key=lambda x: os.stat(x).st_size)
             file_sizes = [os.stat(x).st_size for x in sorted_files]
@@ -481,7 +481,7 @@ class SlimPajamaDataPreparation(DataStage):
                 print(
                     f"{i + 1:>4d} "
                     f"{distributed_size[i]:>7.2f}GB  "
-                    f"{','.join([os.path.basename(file) for file in distributed_files[i]]):s}"
+                    f"{",".join([os.path.basename(file) for file in distributed_files[i]]):s}"
                 )
 
         if download_tokenizer_url is not None:
@@ -545,7 +545,9 @@ class SlimPajamaDataPreparation(DataStage):
         # Change parameters for the preprocess job
         if sub_stage == "preprocess":
             parameters["ntasks_per_node"] = run_cfg.get("workers_per_node")
-            parameters["cpus_per_task"] = run_cfg.get("cpus_per_node") // parameters["ntasks_per_node"]
+            parameters["cpus_per_task"] = (
+                run_cfg.get("cpus_per_node") // parameters["ntasks_per_node"]
+            )
         return parameters
 
     def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
@@ -559,7 +561,7 @@ class SlimPajamaDataPreparation(DataStage):
             "download": prep_path / "download.py",
             "extract": prep_path / "extract.py",
             "concat": prep_path / "concat.sh",
-            "preprocess": prep_path / "preprocess.py"
+            "preprocess": prep_path / "preprocess.py",
         }
         choice_model_type, choice_name = self.get_stage_config_choice()
 
@@ -567,7 +569,9 @@ class SlimPajamaDataPreparation(DataStage):
         # Return special command for the concat stage
         args = []
         if sub_stage == "concat":
-            return [f'bash {code_path} "{self._data_dir}" {self.stage_cfg.get("rm_extracted")}']
+            return [
+                f'bash {code_path} "{self._data_dir}" {self.stage_cfg.get("rm_extracted")}'
+            ]
         elif sub_stage == "preprocess":
             run_cfg = self.stage_cfg.get("run")
             args = create_args_list(
@@ -602,7 +606,7 @@ class SlimPajamaDataPreparation(DataStage):
                 merges_save_dir=self.stage_cfg.get("merges_save_dir"),
             )
         else:
-            print('Unkown Stage, quitting')
+            print("Unknown Stage, quitting")
             return
         sub_stage_command = [f"python3 -u {code_path}", *args]
         sub_stage_command = " \\\n  ".join(sub_stage_command)
