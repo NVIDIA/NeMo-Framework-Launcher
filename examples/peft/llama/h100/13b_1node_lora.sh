@@ -38,8 +38,10 @@ python3 ${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts/main.py \
     ~peft.model.optim.contiguous_param_buffer \
     ~peft.model.optim.contiguous_grad_buffer \
     peft.model.data.train_ds.file_names=${TRAIN_DS} \
+    peft.model.data.train_ds.packed_sequence=true \
+    peft.model.data.train_ds.pad_to_max_length=true \
     peft.model.data.train_ds.concat_sampling_probabilities=[1.0] \
-    peft.model.data.train_ds.max_seq_length=2048 \
+    peft.model.data.train_ds.max_seq_length=4096 \
     peft.model.data.validation_ds.file_names=${VALID_DS} \
     ${EXTRA_ARGS}
 
