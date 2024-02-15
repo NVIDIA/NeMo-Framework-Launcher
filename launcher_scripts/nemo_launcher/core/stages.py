@@ -817,6 +817,8 @@ class Training(NeMoStage):
             / "examples/nlp/language_modeling/megatron_bert_pretraining.py",
             "falcon": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "chatglm": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -882,6 +884,8 @@ class FineTuning(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "baichuan2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            "chatglm": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -932,6 +936,8 @@ class PEFT(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_t5_peft_tuning.py",
             "falcon": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            "chatglm": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -978,6 +984,8 @@ class PromptLearning(NeMoStage):
             / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
             "mt5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
+            "chatglm": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1006,6 +1014,8 @@ class AdapterLearning(PromptLearning):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py",
+            "chatglm": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1034,6 +1044,8 @@ class IA3Learning(PromptLearning):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_ia3_tuning.py",
+            "chatglm": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1335,6 +1347,8 @@ class NeMoEvaluation(NeMoStage):
             "peft_falcon": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
             "peft_baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            "peft_chatglm": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
         }
         return model_type_to_code_path[model_type]

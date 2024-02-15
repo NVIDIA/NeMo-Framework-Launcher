@@ -66,7 +66,8 @@ STR2STAGECLASS = {
             "llama",
             "prompt_llama",
             "falcon",
-            "baichuan2"
+            "baichuan2",
+            "chatglm"
         ],
         NeMoEvaluation: [
             "t5",
@@ -81,10 +82,11 @@ STR2STAGECLASS = {
             "code_llama",
             "peft_falcon",
             "peft_baichuan2",
+            "peft_chatglm",
         ],
     },
     "data_preparation": {
-        PileDataPreparation: ["gpt3", "t5", "bert", "llama", "falcon", "baichuan2"],
+        PileDataPreparation: ["gpt3", "t5", "bert", "llama", "falcon", "baichuan2", "chatglm"],
         MC4DataPreparation: ["mt5"],
         SteerLMDataPreparation: ["steerlm"],
         CustomDataPreparation: ["generic"],
