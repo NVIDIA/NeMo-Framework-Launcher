@@ -24,14 +24,6 @@ python3 ${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts/main.py \
     peft.model.tensor_model_parallel_size=1 \
     peft.model.pipeline_model_parallel_size=1 \
     peft.model.peft.peft_scheme=lora \
-    peft.model.optim.name=fused_adam \
-    ~peft.model.optim.bucket_cap_mb \
-    ~peft.model.optim.dtype \
-    ~peft.model.optim.grad_sync_dtype \
-    ~peft.model.optim.overlap_grad_sync \
-    ~peft.model.optim.overlap_param_sync \
-    ~peft.model.optim.contiguous_param_buffer \
-    ~peft.model.optim.contiguous_grad_buffer \
     peft.model.fp8=true \
     ++peft.model.fp8_params=true \
     ++peft.model.log_token_counts=true \
