@@ -148,30 +148,11 @@ class NemoMegatronStage:
             temp_config["data_config"] = stage_cfg.run.name
             stage_cfg = OmegaConf.create(temp_config)
 
-        self.hydra_interpolation(stage_cfg)
+        _hydra_interpolation(stage_cfg)
 
         cfg_save_path = job_path.config_file
         omegaconf.OmegaConf.save(stage_cfg, cfg_save_path)
         return cfg_save_path
-
-    def hydra_interpolation(self, cfg: OmegaConf) -> None:
-        """
-        Interpolate hydra config values in cfg object, bypassing lazy interpolation
-
-        :param OmegaConf cfg: OmegaConf object with the config to be interpolated
-        :return: None
-        """
-
-        def interpolate(cfg: OmegaConf):
-            if isinstance(cfg, omegaconf.dictconfig.DictConfig):
-                for k, v in cfg.items():
-                    cfg[k] = interpolate(v)
-            elif isinstance(cfg, omegaconf.listconfig.ListConfig):
-                for i, v in enumerate(cfg):
-                    cfg[i] = interpolate(v)
-            return cfg
-
-        interpolate(cfg)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """
@@ -1942,7 +1923,7 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             job_path = self.get_job_path(sub_stage)
             job_path.folder.mkdir(parents=True, exist_ok=True)
 
-            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
+            stage_cfg_path = self.save_stage_hydra_config(
                 self.stage_cfg, job_path, self.cfg
             )
             if job_id:
@@ -2100,6 +2081,26 @@ def clean_command_groups(command_groups: List[List[str]]) -> List[List[str]]:
     for ind, command_group in enumerate(command_groups):
         command_groups[ind] = [c for c in command_group if c]
     return command_groups
+
+
+def _hydra_interpolation(cfg: OmegaConf) -> None:
+    """
+    Interpolate hydra config values in cfg object, bypassing lazy interpolation
+
+    :param OmegaConf cfg: OmegaConf object with the config to be interpolated
+    :return: None
+    """
+
+    def interpolate(cfg: OmegaConf):
+        if isinstance(cfg, omegaconf.dictconfig.DictConfig):
+            for k, v in cfg.items():
+                cfg[k] = interpolate(v)
+        elif isinstance(cfg, omegaconf.listconfig.ListConfig):
+            for i, v in enumerate(cfg):
+                cfg[i] = interpolate(v)
+        return cfg
+
+    interpolate(cfg)
 
 
 def create_args_list(
