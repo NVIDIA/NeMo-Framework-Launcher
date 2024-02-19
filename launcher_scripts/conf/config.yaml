@@ -6,6 +6,8 @@ defaults:
   - training: gpt3/5b
   - conversion: gpt3/convert_gpt3
   - conversion_hf2nemo: hf_llama2/convert_llama2_nemo
+  - fw_inference: null
+  - external_conversion: null
   - fine_tuning: null
   - peft: null
   - prompt_learning: null
@@ -32,6 +34,7 @@ stages:
   #- conversion_hf2nemo
   #- prompt_learning
   #- adapter_learning
+  #- peft
   #- ia3_learning
   #- evaluation
   #- export
@@ -43,7 +46,7 @@ data_dir: ${launcher_scripts_path}/data  # Location to store and read the data.
 base_results_dir: ${launcher_scripts_path}/results  # Location to store the results, checkpoints and logs.
 container_mounts: # List of additional paths to mount to container. They will be mounted to same path.
   - null
-container: nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.11
+container: nvcr.io/nvidia/nemo:24.01.framework
 
 wandb_api_key_file: null  # File where the w&B api key is stored. Key must be on the first line.
 wandb_api_bcp_secret_key: null  # For BCP clusters, read the W&B api key directly from the environment variable set as a secret from BCP. The value must match the name of the environment variable in BCP, such as WANDB_TOKEN.
@@ -62,6 +65,7 @@ env_vars:
   NCCL_NVLS_ENABLE: 0
   NVTE_DP_AMAX_REDUCE_INTERVAL: 0 # Diable FP8 AMAX reduction in the data-parallel domain
   NVTE_ASYNC_AMAX_REDUCTION: 1 # Enable asynchronous FP8 AMAX reduction
+  NVTE_FUSED_ATTN: 0 # Disable cudnn FA until we've tested it more
 
 # GPU Mapping
 numa_mapping:
@@ -89,3 +93,5 @@ rlhf_rm_config: ${hydra:runtime.choices.rlhf_rm}
 rlhf_ppo_config: ${hydra:runtime.choices.rlhf_ppo}
 steerlm_reg_config : ${hydra:runtime.choices.steerlm_reg}
 conversion_hf2nemo_config: ${hydra:runtime.choices.conversion_hf2nemo}
+fw_inference_config: ${hydra:runtime.choices.fw_inference}
+external_conversion_config: ${hydra:runtime.choices.external_conversion}

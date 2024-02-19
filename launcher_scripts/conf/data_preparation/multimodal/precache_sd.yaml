@@ -1,0 +1,51 @@
+batch_size_per_GPU: 64  # as much as it can fit in your GPU memory
+dataloader_num_workers: 16
+save_original_in_tar:  # for SD, original images or text are not used during training (if using precached encodings)
+# so we can leave this empty. If you want the original image and text copied into the tarfile,
+# this should be [image, text]
+encodings: # see README for instructions
+  - modality: image
+    extension: jpg
+    key: autoencoderkl_image
+    precision: 16
+    encoder_config:
+      cls: nemo.collections.multimodal.models.text_to_image.stable_diffusion.ldm.autoencoder.AutoencoderKL
+      from_pretrained: /path/to/encoder  # change me
+      embed_dim: 4
+      ddconfig:
+        double_z: true
+        z_channels: 4
+        resolution: 256
+        in_channels: 3
+        out_ch: 3
+        ch: 128
+        ch_mult:
+          - 1
+          - 2
+          - 4
+          - 4
+        num_res_blocks: 2
+        attn_resolutions: [ ]
+        dropout: 0.0
+      lossconfig:
+        target: torch.nn.Identity
+  - modality: text
+    extension: txt
+    key: clip-vit-large-patch14_text
+    precision: 32
+    store_pad_tokens: True
+    encoder_config:
+      cls: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.FrozenCLIPEmbedder
+      version: openai/clip-vit-large-patch14
+      device: cuda
+      max_length: 77
+      use_fp16: True
+
+lightning:
+  devices: 8
+  num_nodes: 1
+  max_epochs: 1  # important for caching
+  precision: 16
+  accelerator: gpu
+  enable_checkpointing: False
+  strategy: ddp

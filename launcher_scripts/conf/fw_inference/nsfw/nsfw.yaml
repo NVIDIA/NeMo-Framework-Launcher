@@ -1,0 +1,19 @@
+run:
+  name: fw_inference_${.model_train_name}
+  time_limit: "00:10:00"
+  depencency: "singleton"
+  model_train_name: nsfw_L_14
+  results_dir: ${base_results_dir}/${.model_train_name}/${.name}
+
+image_path: ??? # Path to a image for inference
+
+trainer:
+  devices: 1
+  num_nodes: 1
+  accelerator: gpu
+  logger: False # logger provided by exp_manager
+  precision: 16 # 16, 32, or bf16
+
+model:
+  restore_from_path: ${base_results_dir}/${fw_inference.run.model_train_name}/results/checkpoints/nemo_nsfw.nemo 
+  precision: ${fw_inference.trainer.precision}
