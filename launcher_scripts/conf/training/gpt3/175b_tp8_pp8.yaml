@@ -45,7 +45,7 @@ exp_manager:
     save_nemo_on_train_end: False # not recommended when training large models on clusters with short time limits
     filename: 'megatron_gpt--{val_loss:.2f}-{step}-{consumed_samples}'
     model_parallel_size: 64
-    log_step_timing: True
+  log_step_timing: True
   step_timing_kwargs:
     sync_cuda: True
     buffer_size: 5
