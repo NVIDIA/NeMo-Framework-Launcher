@@ -4,11 +4,8 @@ run:
   name: ${.task_name}_${.model_train_name}
   time_limit: "04:00:00"
   dependency: "singleton"
-  convert_name: convert_nemo
-  model_train_name: ltaurus_7b
-  convert_dir: ${base_results_dir}/${.model_train_name}/${.convert_name}
   task_name: "squad"
-  results_dir: ${base_results_dir}/${.model_train_name}/peft_${.name}
+  results_dir: ${base_results_dir}/peft_${.name}
 
 trainer:
   devices: 8
@@ -30,7 +27,7 @@ exp_manager:
   name: ${peft.name}
   create_wandb_logger: False
   wandb_logger_kwargs:
-    project: nemo_ltaurus_${peft.run.task_name}
+    project: nemo_gemma_${peft.run.task_name}
     name: ${peft.run.name}
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
@@ -60,7 +57,7 @@ model:
   
   global_batch_size: 128
   micro_batch_size: 4
-  restore_from_path: ${peft.run.convert_dir}/results/megatron_llama.nemo # Path to an existing .nemo model you wish to add new tasks to or run inference with
+  restore_from_path: ??? # Path to an existing .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
   save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training. 
   sync_batch_comm: False
@@ -86,6 +83,15 @@ model:
   hidden_dropout: 0.0
   attention_dropout: 0.0
   ffn_dropout: 0.0
+
+  fp8: False
+  fp8_e4m3: False
+  fp8_hybrid: True
+  fp8_margin: 0
+  fp8_interval: 1
+  fp8_amax_history_len: 512
+  fp8_amax_compute_algo: max
+  fp8_wgrad: True
 
   peft:
     peft_scheme: "lora"  # can be either adapter, ia3, lora, or ptuning
