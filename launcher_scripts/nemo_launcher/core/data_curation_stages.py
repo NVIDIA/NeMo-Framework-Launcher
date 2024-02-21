@@ -135,7 +135,7 @@ class DataCurationSubStage(NemoMegatronStage):
 
         # Make cluster configuration parameters
         cluster_parameters = self._make_cluster_parameters(self.cluster)
-        stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
+        stage_cfg_path = self.save_stage_hydra_config(
             self.stage_cfg, job_path, self.cfg
         )
 
