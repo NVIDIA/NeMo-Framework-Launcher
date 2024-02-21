@@ -300,7 +300,12 @@ class RLHFPPO(NeMoStage):
             self._rlhf_code_path / "examples/nlp/gpt/train_gpt_ppo_actor.py",
         ]
 
-        for i, code_path in enumerate(code_path_list):
+        cfg_name_list = [
+            "gpt_ppo_critic.yaml",
+            "gpt_ppo_actor.yaml",
+        ]
+
+        for i, (code_path, cfg_name) in enumerate(zip(code_path_list, cfg_name_list)):
             command = self._make_wandb_login_command()
             command += self._make_nemo_path_command()
             core_command = [
@@ -310,10 +315,11 @@ class RLHFPPO(NeMoStage):
                 self._skip_ag_overlap,
                 self._nvte_bias_gelu_nvfusion,
             ]
+
             nemo_cammnd = [
                 f"python3 -u {code_path} ",
                 f"--config-path={stage_cfg_path.parents[0]}",
-                f"--config-name={stage_cfg_path.name}",
+                f"--config-name={cfg_name}",
             ]
             if i == 1:
                 nemo_cammnd += [
