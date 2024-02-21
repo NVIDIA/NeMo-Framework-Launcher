@@ -424,7 +424,6 @@ class SlimPajamaDataPreparation(DataStage):
         Based on the input config, some of sub stages may not need to run.
 
         :return: a list of sub-stage names which are required to run
-        :rtype: List[str]
         """
         sub_stages = []
         if self.stage_cfg.get("download_slim_pajama", False):
@@ -477,12 +476,6 @@ class SlimPajamaDataPreparation(DataStage):
             with open(preprocess_worker_mapping, "w") as file:
                 file.write(output)
             print(f" ****** Workers mapping saved to {preprocess_worker_mapping} ...")
-            for i in range(avail_workers):
-                print(
-                    f"{i + 1:>4d} "
-                    f"{distributed_size[i]:>7.2f}GB  "
-                    f"{",".join([os.path.basename(file) for file in distributed_files[i]]):s}"
-                )
 
         if download_tokenizer_url is not None:
             assert (
@@ -524,7 +517,6 @@ class SlimPajamaDataPreparation(DataStage):
         :param str cluster: cluster type
         :param str sub_stage: current sub_stage name
         :return: a dictionary of private cluster parameters, e.g. `bcp_preproc_npernode`
-        :rtype: Dict
         """
         cfg = self.cfg
         run_cfg = self.stage_cfg.get("run")
