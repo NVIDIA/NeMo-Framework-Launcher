@@ -92,7 +92,7 @@ class NemoMegatronStage:
                 f"global batch size and number of nodes will change following this schedule:\n {self.nodes_scheduler}"
             )
 
-        stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
+        stage_cfg_path = self.save_stage_hydra_config(
             self.stage_cfg, job_path, self.cfg
         )
         # Make cluster parameters
@@ -122,9 +122,8 @@ class NemoMegatronStage:
         results_folder = job_path.results_folder
         results_folder.mkdir(parents=True, exist_ok=True)
 
-    @staticmethod
     def save_stage_hydra_config(
-        stage_cfg: OmegaConf, job_path: JobPaths, cfg: OmegaConf
+        self, stage_cfg: OmegaConf, job_path: JobPaths, cfg: OmegaConf
     ) -> Path:
         """
         Interpolate and save hydra config file for current stage
@@ -1938,7 +1937,7 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             job_path = self.get_job_path(sub_stage)
             job_path.folder.mkdir(parents=True, exist_ok=True)
 
-            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
+            stage_cfg_path = self.save_stage_hydra_config(
                 self.stage_cfg, job_path, self.cfg
             )
             if job_id:
