@@ -1,5 +1,3 @@
-name: megatron_llama_peft_tuning-${peft.model.peft.peft_scheme}
-
 run:
   name: ${.task_name}_${.model_train_name}
   time_limit: "04:00:00"
