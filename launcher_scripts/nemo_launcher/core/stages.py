@@ -478,7 +478,7 @@ class NemoMegatronStage:
 
     @property
     def _rlhf_code_path(self) -> Path:
-        return Path("/opt/nemo-rlhf")
+        return Path("/opt/NeMo-Aligner")
 
     @property
     def _aligner_code_path(self) -> Path:
