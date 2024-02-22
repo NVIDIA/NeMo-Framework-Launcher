@@ -1,0 +1,36 @@
+image:
+  trainingImage: cfg.container
+  pullPolicy: IfNotPresent
+
+  # Insert the name of your container registry pull secret #
+  pullSecret: nvcr.io
+
+trainingConfig:
+  # Specify the amount of shared memory to attach to the Pods #
+  shmSize: 512Gi
+
+  # Insert the address for the NFS server if using NFS for model storage #
+  NFSServer: <Insert NFS server address>
+
+  # Insert the path to save data on the NFS server #
+  NFSPath: <Insert NFS server path>
+
+  # Specify the k8s resource name for IB devices #
+  ibResourceName: nvidia.com/hostdev
+
+  # Specity the number of IB devices to include in pods #
+  ibCount: "0"
+
+  # Specify the WandB API key if using WandB for logging #
+  wandbKey: "nil"
+
+  # Insert the dnsPolicy #
+  dnsPolicy: "nil"
+
+critic:
+  numGPUs: rlhf_ppo.critic.trainer.devices
+  nodes: rlhf_ppo.critic.trainer.num_nodes
+
+actor:
+  numGPUs: rlhf_ppo.actor.trainer.devices
+  nodes: rlhf_ppo.actor.trainer.num_nodes
