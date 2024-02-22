@@ -55,12 +55,12 @@ exp_manager:
     buffer_size: 5
 
 model:
-  micro_batch_size: 4
+  micro_batch_size: 2
   global_batch_size: 2048
   rampup_batch_size: null
   context_parallel_size: 1
-  tensor_model_parallel_size: 8
-  pipeline_model_parallel_size: 1
+  tensor_model_parallel_size: 2
+  pipeline_model_parallel_size: 4
   virtual_pipeline_model_parallel_size: null # interleaved pipeline
   resume_from_checkpoint: null # manually set the checkpoint file to load from
   # model architecture
@@ -105,8 +105,8 @@ model:
   ## Sequence Parallelism
   sequence_parallel: True
 
-  overlap_p2p_comm: False # Overlap p2p communication with computes. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
-  batch_p2p_comm: True # Batch consecutive inter-peer send/recv operations. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
+  overlap_p2p_comm: True # Overlap p2p communication with computes. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
+  batch_p2p_comm: False # Batch consecutive inter-peer send/recv operations. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
   num_query_groups: null # Number of query groups for group query attention. If None, normal attention is used.
 
   tokenizer:
@@ -146,7 +146,9 @@ model:
   fp8_amax_history_len: 1024 # Number of steps for which amax history is recorded per tensor
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   fp8_wgrad: True
-  ub_tp_comm_overlap: False
+  ub_tp_comm_overlap: True
+  tp_comm_atomic_ag: False
+  tp_comm_atomic_rs: False
 
   # miscellaneous
   seed: 1234

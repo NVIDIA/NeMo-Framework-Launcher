@@ -24,7 +24,7 @@ exp_manager:
   explicit_log_dir: ${training.run.results_dir}/results
   exp_dir: null
   name: megatron_llama
-  create_wandb_logger: True
+  create_wandb_logger: false
   wandb_logger_kwargs:
     project: nemo_llama
     name: ${training.run.name}
@@ -117,7 +117,6 @@ model:
   sequence_parallel: false # does not support sequence parallel
 
   ## Transformer Engine
-  # fp8 training is currently not supported in the improved models
   transformer_engine: True
   fp8: False # enables fp8 in TransformerLayer forward
   fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3

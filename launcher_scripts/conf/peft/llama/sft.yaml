@@ -1,3 +1,11 @@
+defaults:
+  - _self_
+  - optional tp_overlap@model.ub_tp_comm_overlap_cfg:
+
+hydra:
+  searchpath:
+    - file:///opt/NeMo/examples/nlp/language_modeling/conf
+
 run:
   name: sft_llama2
   results_dir: ${base_results_dir}/${.name}
@@ -8,7 +16,7 @@ trainer:
   devices: 1
   accelerator: gpu
   num_nodes: 1
-  precision: 16
+  precision: bf16
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
   use_distributed_sampler: False
@@ -46,6 +54,8 @@ exp_manager:
     patience: 10
     verbose: True
     strict: False # Should be False to avoid a runtime error where EarlyStopping says monitor is unavailable, which sometimes happens with resumed training.
+  create_tensorboard_logger: False
+  log_global_rank_0_only: True
 
 model:
   seed: 1234
@@ -61,6 +71,8 @@ model:
   sync_batch_comm: False
   overlap_p2p_comm: False
   ub_tp_comm_overlap: False
+  tp_comm_atomic_ag: False
+  tp_comm_atomic_rs: False
 
   megatron_amp_O2: True
   mcore_gpt: True
@@ -71,7 +83,8 @@ model:
   bias_activation_fusion: True
   bias_dropout_add_fusion: True
   masked_softmax_fusion: True
-  grad_allreduce_chunk_size_mb: 125
+  gradient_accumulation_fusion: True
+  grad_div_ar_fusion: True
 
   fp8: False
   fp8_e4m3: False
@@ -96,7 +109,7 @@ model:
   activations_checkpoint_num_layers: null # not used with 'selective'
   activations_checkpoint_layers_per_pipeline: null
   answer_only_loss: False
-  gradient_as_bucket_view: False
+  gradient_as_bucket_view: True
 
   hidden_dropout: 0.0
   attention_dropout: 0.0
@@ -241,4 +254,5 @@ model:
     overlap_grad_sync: True
     overlap_param_sync: True
     contiguous_grad_buffer: True
+    contiguous_param_buffer: True
 

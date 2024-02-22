@@ -681,6 +681,7 @@ class TestBaseConfigs:
             buffer_size: 5
 
         model:
+          mcore_bert: True
           # model parallelism 
           global_batch_size: 256
           micro_batch_size: 4
@@ -730,9 +731,9 @@ class TestBaseConfigs:
           gradient_as_bucket_view: True # PyTorch DDP argument. Allocate gradients in a contiguous bucket to save memory (less fragmentation and buffer memory)
 
           # Activations checkpointing
-          activations_checkpoint_granularity: selective
-          activations_checkpoint_method: block # 'uniform', 'block'
-          activations_checkpoint_num_layers: 1
+          activations_checkpoint_granularity: null
+          activations_checkpoint_method: null
+          activations_checkpoint_num_layers: null
           num_micro_batches_with_partial_activation_checkpoints: null
           activations_checkpoint_layers_per_pipeline: null
           sequence_parallel: True
