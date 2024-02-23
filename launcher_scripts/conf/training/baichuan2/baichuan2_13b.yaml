@@ -1,13 +1,5 @@
-defaults:
-  - _self_
-  - optional tp_overlap@model.ub_tp_comm_overlap_cfg: ub_cfg_h100_h5120_tp2_mbs1_seqlen4096
-
-hydra:
-  searchpath:
-    - file:///opt/NeMo/examples/nlp/language_modeling/conf
-
 run:
-  name: llama2_13b
+  name: baichuan2_13b
   results_dir: ${base_results_dir}/${.name}
   time_limit: 0-01:00:00
   dependency: singleton
@@ -31,10 +23,10 @@ trainer:
 exp_manager:
   explicit_log_dir: ${training.run.results_dir}/results
   exp_dir: null
-  name: megatron_llama
-  create_wandb_logger: false
+  name: megatron_baichuan2
+  create_wandb_logger: true
   wandb_logger_kwargs:
-    project: nemo_llama_pretrain
+    project: nemo_baichuan2_pretrain
     name: ${training.run.name}
   resume_if_exists: false
   resume_ignore_no_checkpoint: true
@@ -45,7 +37,7 @@ exp_manager:
     mode: min
     always_save_nemo: false
     save_nemo_on_train_end: true
-    filename: megatron_llama--{val_loss:.2f}-{step}-{consumed_samples}
+    filename: megatron_baichuan2--{val_loss:.2f}-{step}-{consumed_samples}
     model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size},
       ${training.model.pipeline_model_parallel_size}}
   log_step_timing: true
@@ -64,9 +56,9 @@ model:
   max_position_embeddings: 4096
   num_layers: 40
   hidden_size: 5120
-  ffn_hidden_size: 13824
+  ffn_hidden_size: 13696
   num_attention_heads: 40
-  init_method_std: 0.01
+  init_method_std: 0.02
   use_scaled_init_method: true
   hidden_dropout: 0.0
   attention_dropout: 0.0
@@ -74,7 +66,7 @@ model:
   kv_channels: null
   apply_query_key_layer_scaling: true
   normalization: rmsnorm
-  layernorm_epsilon: 1.0e-05
+  layernorm_epsilon: 1.0e-06
   do_layer_norm_weight_decay: false
   make_vocab_size_divisible_by: 128
   pre_process: true
@@ -86,14 +78,14 @@ model:
   transformer_block_type: pre_ln
   openai_gelu: false
   normalize_attention_scores: true
-  position_embedding_type: rope
+  position_embedding_type: ALiBi
   rotary_percentage: 1.0
   attention_type: multihead
   share_embeddings_and_output_weights: false
   tokenizer:
-    library: sentencepiece
+    library: 'sentencepiece'
     type: null
-    model: ${data_dir}/llama/llama_tokenizer.model
+    model: null
     delimiter: null
     vocab_file: null
     merge_file: null
@@ -132,9 +124,7 @@ model:
   fp8_amax_history_len: 1
   fp8_amax_compute_algo: most_recent
   use_emha: false
-  ub_tp_comm_overlap: true
-  tp_comm_atomic_ag: False
-  tp_comm_atomic_rs: False
+  ub_tp_comm_overlap: false
   use_flash_attention: true
   optim:
     name: distributed_fused_adam
@@ -165,63 +155,63 @@ model:
     index_mapping_dir: null
     data_prefix:
     - .0333
-    - ${data_dir}/my-llama_00_text_document
+    - ${data_dir}/my-baichuan2_00_text_document
     - .0333
-    - ${data_dir}/my-llama_01_text_document
+    - ${data_dir}/my-baichuan2_01_text_document
     - .0333
-    - ${data_dir}/my-llama_02_text_document
+    - ${data_dir}/my-baichuan2_02_text_document
     - .0333
-    - ${data_dir}/my-llama_03_text_document
+    - ${data_dir}/my-baichuan2_03_text_document
     - .0333
-    - ${data_dir}/my-llama_04_text_document
+    - ${data_dir}/my-baichuan2_04_text_document
     - .0333
-    - ${data_dir}/my-llama_05_text_document
+    - ${data_dir}/my-baichuan2_05_text_document
     - .0333
-    - ${data_dir}/my-llama_06_text_document
+    - ${data_dir}/my-baichuan2_06_text_document
     - .0333
-    - ${data_dir}/my-llama_07_text_document
+    - ${data_dir}/my-baichuan2_07_text_document
     - .0333
-    - ${data_dir}/my-llama_08_text_document
+    - ${data_dir}/my-baichuan2_08_text_document
     - .0333
-    - ${data_dir}/my-llama_09_text_document
+    - ${data_dir}/my-baichuan2_09_text_document
     - .0333
-    - ${data_dir}/my-llama_10_text_document
+    - ${data_dir}/my-baichuan2_10_text_document
     - .0333
-    - ${data_dir}/my-llama_11_text_document
+    - ${data_dir}/my-baichuan2_11_text_document
     - .0333
-    - ${data_dir}/my-llama_12_text_document
+    - ${data_dir}/my-baichuan2_12_text_document
     - .0333
-    - ${data_dir}/my-llama_13_text_document
+    - ${data_dir}/my-baichuan2_13_text_document
     - .0333
-    - ${data_dir}/my-llama_14_text_document
+    - ${data_dir}/my-baichuan2_14_text_document
     - .0333
-    - ${data_dir}/my-llama_15_text_document
+    - ${data_dir}/my-baichuan2_15_text_document
     - .0333
-    - ${data_dir}/my-llama_16_text_document
+    - ${data_dir}/my-baichuan2_16_text_document
     - .0333
-    - ${data_dir}/my-llama_17_text_document
+    - ${data_dir}/my-baichuan2_17_text_document
     - .0333
-    - ${data_dir}/my-llama_18_text_document
+    - ${data_dir}/my-baichuan2_18_text_document
     - .0333
-    - ${data_dir}/my-llama_19_text_document
+    - ${data_dir}/my-baichuan2_19_text_document
     - .0333
-    - ${data_dir}/my-llama_20_text_document
+    - ${data_dir}/my-baichuan2_20_text_document
     - .0333
-    - ${data_dir}/my-llama_21_text_document
+    - ${data_dir}/my-baichuan2_21_text_document
     - .0333
-    - ${data_dir}/my-llama_22_text_document
+    - ${data_dir}/my-baichuan2_22_text_document
     - .0333
-    - ${data_dir}/my-llama_23_text_document
+    - ${data_dir}/my-baichuan2_23_text_document
     - .0333
-    - ${data_dir}/my-llama_24_text_document
+    - ${data_dir}/my-baichuan2_24_text_document
     - .0333
-    - ${data_dir}/my-llama_25_text_document
+    - ${data_dir}/my-baichuan2_25_text_document
     - .0333
-    - ${data_dir}/my-llama_26_text_document
+    - ${data_dir}/my-baichuan2_26_text_document
     - .0333
-    - ${data_dir}/my-llama_27_text_document
+    - ${data_dir}/my-baichuan2_27_text_document
     - .0333
-    - ${data_dir}/my-llama_28_text_document
+    - ${data_dir}/my-baichuan2_28_text_document
     - .0334
-    - ${data_dir}/my-llama_29_text_document
+    - ${data_dir}/my-baichuan2_29_text_document
 
