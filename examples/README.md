@@ -42,7 +42,7 @@ For further details see [5.3.2.4 Interpreting the Results](https://github.com/NV
 
 ### Benchmark performance numbers [pretraining]
 
-| Model | GPU | Precision | #-GPUs | GBS | Model TFLOPs/GPU | Est. time to train in days <br> (1T tokens, 1K GPUs) |
+| Model | GPU | Precision | #-GPUs | GBS | Model TFLOPs <br> per GPU | Est. time to train in days <br> (1T tokens, 1K GPUs) |
 | ---      | ---      | ---      | ---      | ---      | ---      | ---     |
 | GPT3-5B | H100 | BF16 | 64 | 2048 | 510 | 0.7  |
 | GPT3-5B | H100 | FP8 | 64 | 2048 | 738 | 0.5  |
@@ -62,7 +62,7 @@ For further details see [5.3.2.4 Interpreting the Results](https://github.com/NV
 
 ### Benchmark performance numbers [finetuning]
 
-| Model | Mode | GPU | Precision | #-GPUs | GBS | Model TFLOPs/GPU | Est. time to complete 40M tokens (mins) |
+| Model | Mode | GPU | Precision | #-GPUs | GBS | Model TFLOPs <br> per GPU | Est. time in mins <br> (run 40M tokens) |
 | ---      | ----- | ---      | ---      | ---      | ---      | ---      | ---     |
 | LLAMA2-7B | SFT | H100 | BF16 | 8 | 8 | 430 | 8 |
 | LLAMA2-7B | SFT | H100 | FP8 | 8 | 8 | 465 | 8 |
