@@ -1,10 +1,10 @@
 ### Example scripts for pre-train and finetuning 
-These scripts run a recommended config for GPT, LLAMA2, Nemotron pretraining, and finetuning for various model sizes on A100, H100.
+These scripts run a recommended config for GPT, LLAMA2, Nemotron pretraining, and finetuning for various model sizes on A100, H100. For example, for GPT3 pretrain the following folders provide example scripts.
 
-- [a100](https://github.com/NVIDIA/NeMo-Megatron-Launcher/tree/example_run_scripts/examples/training/gpt/a100)
+- [a100](https://github.com/NVIDIA/NeMo-Megatron-Launcher/tree/master/examples/training/gpt/a100)
 : Scripts to run GPT pretraining on NVIDIA A100, in bf16 data type
 
-- [h100](https://github.com/NVIDIA/NeMo-Megatron-Launcher/tree/example_run_scripts/examples/training/gpt/h100)
+- [h100](https://github.com/NVIDIA/NeMo-Megatron-Launcher/tree/master/examples/training/gpt/h100)
 : Scripts to run GPT pretraining for NVIDIA H100, in fp8 data type
 
 #### Setup
@@ -42,37 +42,34 @@ For further details see [5.3.2.4 Interpreting the Results](https://github.com/NV
 
 ### Benchmark performance numbers [pretraining]
 
-| Model | GPU | Precision | #-GPUs | GBS | Model TFLOPs/GPU | Est. time to train (1T tokens, 1K GPUs) |
+| Model | GPU | Precision | #-GPUs | GBS | Model TFLOPs/GPU | Est. time to train in days (1T tokens, 1K GPUs) |
 | ---      | ---      | ---      | ---      | ---      | ---      | ---     |
-| GPT3-5B | H100 | BF16 | 64 | 2048 | 450 | 3.4 days |
-| GPT3-5B | H100 | FP8 | 64 | 2048 | 450 | 3.4 days |
-| GPT3-20B | H100 | BF16 | 64 | 2048 | 450 | 3.4 days |
-| GPT3-20B | H100 | FP8 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-7B | H100 | BF16 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-7B | H100 | FP8 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-13B | H100 | BF16 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-13B | H100 | FP8 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-70B | H100 | BF16 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-70B | H100 | FP8 | 64 | 2048 | 450 | 3.4 days |
-| Nemotron-8B | H100 | BF16 | 64 | 2048 | 450 | 3.4 days |
-| Nemotron-8B  | H100 | FP8 | 64 | 2048 | 450 | 3.4 days |
-| Nemotron-22B | H100 | BF16 | 64 | 2048 | 450 | 3.4 days |
-| Nemotron-22B  | H100 | FP8 | 64 | 2048 | 450 | 3.4 days |
+| GPT3-5B | H100 | BF16 | 64 | 2048 | 510 | 0.7  |
+| GPT3-5B | H100 | FP8 | 64 | 2048 | 738 | 0.5  |
+| GPT3-20B | H100 | BF16 | 64 | 256 | 466 | 3.1  |
+| GPT3-20B | H100 | FP8 | 64 | 256 | 660 | 2.2  |
+| LLAMA2-7B | H100 | BF16 | 8 | 128 | 511 | 1.0  |
+| LLAMA2-7B | H100 | FP8 | 8 | 128 | 694 | 0.8  |
+| LLAMA2-13B | H100 | BF16 | 16 | 128 | 471 | 2.1  |
+| LLAMA2-13B | H100 | FP8 | 16 | 128 | 674 | 1.5  |
+| LLAMA2-70B | H100 | BF16 | 64 | 128 | 467 | 10.8  |
+| LLAMA2-70B | H100 | FP8 | 64 | 128 | 708 | 7.1  |
+| Nemotron-8B | H100 | BF16 | 8 | 32 | 453 | 1.3  |
+| Nemotron-8B  | H100 | FP8 | 8 | 32 | 593 | 1.0  |
+| Nemotron-22B | H100 | BF16 | 16 | 32 | 395 | 3.7  |
+| Nemotron-22B  | H100 | FP8 | 16 | 32 | 499 | 3.0  |
 
 
 ### Benchmark performance numbers [finetuning]
 
-| Model | Mode | GPU | Precision | #-GPUs | GBS | Model TFLOPs/GPU | Est. time to train (40M tokens) |
+| Model | Mode | GPU | Precision | #-GPUs | GBS | Model TFLOPs/GPU | Est. time to train 40M tokens (mins) |
 | ---      | ----- | ---      | ---      | ---      | ---      | ---      | ---     |
-| LLAMA2-7B | SFT | H100 | BF16 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-7B | LoRA | H100 | BF16 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-13B | SFT | H100 | BF16 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-13B | LoRA | H100 | BF16 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-70B | SFT | H100 | BF16 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-70B | LoRA | H100 | BF16 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-7B | SFT | H100 | FP8 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-7B | LoRA | H100 | FP8 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-13B | SFT | H100 | FP8 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-13B | LoRA | H100 | FP8 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-70B | SFT | H100 | FP8 | 64 | 2048 | 450 | 3.4 days |
-| LLAMA2-70B | LoRA | H100 | FP8 | 64 | 2048 | 450 | 3.4 days |
+| LLAMA2-7B | SFT | H100 | BF16 | 8 | 8 | 430 | 8 |
+| LLAMA2-7B | SFT | H100 | FP8 | 8 | 8 | 465 | 8 |
+| LLAMA2-13B | SFT | H100 | BF16 | 8 | 8 | 467 | 14 |
+| LLAMA2-13B | SFT | H100 | FP8 | 8 | 8 | 600 | 11 |
+| LLAMA2-7B | LoRA | H100 | BF16 | 8 | 8 | 471 | 5 |
+| LLAMA2-7B | LoRA | H100 | FP8 | 8 | 8 | 484 | 5 |
+| LLAMA2-13B | LoRA | H100 | BF16 | 8 | 8 | 507 | 9 |
+| LLAMA2-13B | LoRA | H100 | FP8 | 8 | 8 | 623 | 7 |
+
