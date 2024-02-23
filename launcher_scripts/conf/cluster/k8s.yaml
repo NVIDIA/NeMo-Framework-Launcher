@@ -22,3 +22,4 @@ ib_resource_name: "nvidia.com/hostdev"  # Specify the resource name for IB devic
 ib_count: "8"  # Specify the number of IB devices to include per node in each pod. Can also be a list, but must be same length as ib_resource_name
 ib_network_annotation: ""  # Specify the networks as comma separated values
 dns_policy: null  # Specify a dnsPolicy to use in all pods, if necessary
+namespace: "" # Specify the namespace to kubernetes
