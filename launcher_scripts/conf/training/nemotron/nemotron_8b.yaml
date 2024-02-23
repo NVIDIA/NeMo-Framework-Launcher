@@ -1,3 +1,7 @@
+defaults:
+   - _self_
+   - optional tp_overlap@model.ub_tp_comm_overlap_cfg:
+
 hydra:
   searchpath:
     - file:///opt/NeMo/examples/nlp/language_modeling/conf
@@ -51,7 +55,7 @@ exp_manager:
     buffer_size: 5
 
 model:
-  micro_batch_size: 1
+  micro_batch_size: 2
   global_batch_size: 32
   rampup_batch_size: null
   context_parallel_size: 1
@@ -140,7 +144,6 @@ model:
   mcore_gpt: True
 
   ## Transformer Engine
-  # fp8 training is currently not supported in the improved models
   transformer_engine: True
   fp8: False # enables fp8 in TransformerLayer forward
   fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
@@ -150,7 +153,9 @@ model:
   fp8_amax_history_len: 1024 # Number of steps for which amax history is recorded per tensor
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   fp8_wgrad: True
-  ub_tp_comm_overlap: False
+  ub_tp_comm_overlap: true
+  tp_comm_atomic_ag: False
+  tp_comm_atomic_rs: False
 
   nsys_profile:
     enabled: False

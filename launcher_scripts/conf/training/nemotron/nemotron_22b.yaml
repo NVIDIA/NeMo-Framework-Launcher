@@ -1,3 +1,7 @@
+defaults:
+   - _self_
+   - optional tp_overlap@model.ub_tp_comm_overlap_cfg:
+ 
 hydra:
   searchpath:
     - file:///opt/NeMo/examples/nlp/language_modeling/conf
@@ -9,7 +13,7 @@ run:
   dependency: "singleton"
 
 trainer:
-  num_nodes: 4 # 256
+  num_nodes: 1
   devices: 8
   accelerator: gpu
   precision: bf16
@@ -129,8 +133,8 @@ model:
   fsdp_grad_reduce_dtype: 32 # Gradient reduction data type.
   fsdp_sharded_checkpoint: False # Store and load FSDP shared checkpoint.
 
-  overlap_p2p_comm: False # Overlap p2p communication with computes. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
-  batch_p2p_comm: True # Batch consecutive inter-peer send/recv operations. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
+  overlap_p2p_comm: True # Overlap p2p communication with computes. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
+  batch_p2p_comm: False # Batch consecutive inter-peer send/recv operations. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
   num_query_groups: null # Number of query groups for group query attention. If None, normal attention is used.
 
   ## Network
@@ -140,7 +144,6 @@ model:
   mcore_gpt: True
 
   ## Transformer Engine
-  # fp8 training is currently not supported in the improved models
   transformer_engine: True
   fp8: False # enables fp8 in TransformerLayer forward
   fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
@@ -150,7 +153,9 @@ model:
   fp8_amax_history_len: 1024 # Number of steps for which amax history is recorded per tensor
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   fp8_wgrad: True
-  ub_tp_comm_overlap: False
+  ub_tp_comm_overlap: True
+  tp_comm_atomic_ag: False
+  tp_comm_atomic_rs: False
 
   nsys_profile:
     enabled: False

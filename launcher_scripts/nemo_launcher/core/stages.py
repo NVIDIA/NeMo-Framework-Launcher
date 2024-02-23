@@ -31,7 +31,7 @@ from omegaconf import DictConfig, OmegaConf
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-__LANGUAGE_MODELS_LIST__ = ["gpt3", "t5", "mt5", "bert", "llama", "falcon"]
+__LANGUAGE_MODELS_LIST__ = ["gpt3", "t5", "mt5", "bert", "llama", "falcon", "baichuan2"]
 __VISION_MODELS_LIST__ = ["vit"]
 __MULTIMODAL_MODELS_LIST__ = [
     "clip",
@@ -92,7 +92,7 @@ class NemoMegatronStage:
                 f"global batch size and number of nodes will change following this schedule:\n {self.nodes_scheduler}"
             )
 
-        stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
+        stage_cfg_path = self.save_stage_hydra_config(
             self.stage_cfg, job_path, self.cfg
         )
         # Make cluster parameters
@@ -122,9 +122,8 @@ class NemoMegatronStage:
         results_folder = job_path.results_folder
         results_folder.mkdir(parents=True, exist_ok=True)
 
-    @staticmethod
     def save_stage_hydra_config(
-        stage_cfg: OmegaConf, job_path: JobPaths, cfg: OmegaConf
+        self, stage_cfg: OmegaConf, job_path: JobPaths, cfg: OmegaConf
     ) -> Path:
         """
         Interpolate and save hydra config file for current stage
@@ -716,6 +715,9 @@ class NeMoStage(NemoMegatronStage):
         values_template.image.numGPUs = self.stage_cfg.trainer.devices
         values_template.image.nodes = self.stage_cfg.trainer.num_nodes
         values_template.trainingConfig.shmSize = cluster_parameters["shm_size"]
+        # TODO: NFSServer and NFSPath will eventually be deprecated
+        values_template.trainingConfig.NFSServer = cluster_parameters["nfs_server"]
+        values_template.trainingConfig.NFSPath = cluster_parameters["nfs_path"]
         values_template.volumes = cluster_parameters["volumes"]
         values_template.trainingConfig.ibResourceName = cluster_parameters[
             "ib_resource_name"
@@ -831,6 +833,8 @@ class Training(NeMoStage):
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "llama": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "nemotron": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "bert": self._nemo_code_path
@@ -931,6 +935,8 @@ class FineTuning(NeMoStage):
             / "examples/multimodal/multimodal_llm/neva/neva_finetune.py",
             "nsfw": self._nemo_code_path
             / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
+            "baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1012,6 +1018,9 @@ class PEFT(NeMoStage):
         values_template.image.gpuNum = self.stage_cfg.trainer.devices
         values_template.image.nodes = self.stage_cfg.trainer.num_nodes
         values_template.trainingConfig.shmSize = cluster_parameters["shm_size"]
+        # TODO: NFSServer and NFSPath will eventually be deprecated
+        values_template.trainingConfig.NFSServer = cluster_parameters["nfs_server"]
+        values_template.trainingConfig.NFSPath = cluster_parameters["nfs_path"]
         values_template.volumes = cluster_parameters["volumes"]
         values_template.trainingConfig.scriptPath = str(
             self._get_nemo_code_path(choice_model_type)
@@ -1054,6 +1063,8 @@ class PEFT(NeMoStage):
             "gpt3": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
             "llama": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            "baichuan2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_peft_tuning.py",
@@ -1101,6 +1112,8 @@ class PromptLearning(NeMoStage):
             / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
             "llama": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
+            "baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
             "mt5": self._nemo_code_path
@@ -1129,6 +1142,8 @@ class AdapterLearning(PromptLearning):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
             "llama": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
+            "baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py",
         }
@@ -1154,6 +1169,8 @@ class IA3Learning(PromptLearning):
             "gpt3": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
             "llama": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
+            "baichuan2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_ia3_tuning.py",
@@ -1279,6 +1296,9 @@ class Conversion(NemoMegatronStage):
         values_template.image.pullSecret = cluster_parameters["pull_secret"]
         values_template.image.gpuNum = num_gpus
         values_template.trainingConfig.shmSize = cluster_parameters["shm_size"]
+        # TODO: NFSServer and NFSPath will eventually be deprecated
+        values_template.trainingConfig.NFSServer = cluster_parameters["nfs_server"]
+        values_template.trainingConfig.NFSPath = cluster_parameters["nfs_path"]
         values_template.volumes = cluster_parameters["volumes"]
         values_template.trainingConfig.vocabPath = self.cfg.conversion.model.vocab_file
         values_template.trainingConfig.mergesPath = self.cfg.conversion.model.merge_file
@@ -1577,6 +1597,8 @@ class NeMoEvaluation(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
             "peft_falcon": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            "peft_baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
             "vit": self._nemo_code_path
             / "examples/vision/vision_transformer/megatron_vit_classification_evaluate.py",
             "clip": self._nemo_code_path
@@ -1642,6 +1664,9 @@ class EvalHarnessEvaluation(NemoMegatronStage):
         values_template.image.pullSecret = cluster_parameters["pull_secret"]
         values_template.image.gpuNum = num_gpus
         values_template.trainingConfig.shmSize = cluster_parameters["shm_size"]
+        # TODO: NFSServer and NFSPath will eventually be deprecated
+        values_template.trainingConfig.NFSServer = cluster_parameters["nfs_server"]
+        values_template.trainingConfig.NFSPath = cluster_parameters["nfs_path"]
         values_template.volumes = cluster_parameters["volumes"]
         values_template.trainingConfig.vocabPath = self.cfg.evaluation.model.vocab_file
         values_template.trainingConfig.mergesPath = self.cfg.evaluation.model.merge_file
@@ -1912,7 +1937,7 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             job_path = self.get_job_path(sub_stage)
             job_path.folder.mkdir(parents=True, exist_ok=True)
 
-            stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
+            stage_cfg_path = self.save_stage_hydra_config(
                 self.stage_cfg, job_path, self.cfg
             )
             if job_id:
@@ -2235,6 +2260,7 @@ class ConversionHF2NeMo(NeMoStage):
         values_template.image.pullSecret = cluster_parameters["pull_secret"]
         values_template.image.gpuNum = num_gpus
         values_template.trainingConfig.shmSize = cluster_parameters["shm_size"]
+        # TODO: NFSServer and NFSPath will eventually be deprecated
         values_template.trainingConfig.NFSServer = cluster_parameters["nfs_server"]
         values_template.trainingConfig.NFSPath = cluster_parameters["nfs_path"]
         values_template.trainingConfig.vocabPath = self.cfg.conversion.model.vocab_file
