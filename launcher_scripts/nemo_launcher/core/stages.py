@@ -31,7 +31,16 @@ from omegaconf import DictConfig, OmegaConf
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-__LANGUAGE_MODELS_LIST__ = ["gpt3", "t5", "mt5", "bert", "llama", "gemma", "falcon", "baichuan2"]
+__LANGUAGE_MODELS_LIST__ = [
+    "gpt3",
+    "t5",
+    "mt5",
+    "bert",
+    "llama",
+    "gemma",
+    "falcon",
+    "baichuan2",
+]
 __VISION_MODELS_LIST__ = ["vit"]
 __MULTIMODAL_MODELS_LIST__ = [
     "clip",
