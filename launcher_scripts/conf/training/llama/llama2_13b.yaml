@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - optional tp_overlap@model.ub_tp_comm_overlap_cfg:
+  - optional tp_overlap@model.ub_tp_comm_overlap_cfg: ub_cfg_h100_h5120_tp2_mbs1_seqlen4096
 
 hydra:
   searchpath:
