@@ -1061,15 +1061,15 @@ class PEFT(NeMoStage):
             )
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "llama": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "baichuan2": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "t5": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_t5_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_t5_finetuning.py",
             "falcon": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "neva": self._nemo_code_path
             / "examples/multimodal/multimodal_llm/neva/neva_peft.py",
         }
