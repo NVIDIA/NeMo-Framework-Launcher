@@ -1,25 +1,14 @@
-defaults:
-  - _self_
-  - optional tp_overlap@model.ub_tp_comm_overlap_cfg:
-
-hydra:
-  searchpath:
-    - file:///opt/NeMo/examples/nlp/language_modeling/conf
-
 run:
-  name: sft_${.model_train_name}
+  name: sft_gemma
   results_dir: ${base_results_dir}/${.name}
-  time_limit: 04:00:00
-  dependency: singleton
-  convert_name: convert_nemo
-  model_train_name: llama2
-  convert_dir: ${base_results_dir}/${.model_train_name}/${.convert_name}
+  time_limit: "04:00:00"
+  dependency: "singleton"
 
 trainer:
-  devices: 8
+  devices: 1
   accelerator: gpu
   num_nodes: 1
-  precision: bf16
+  precision: 16
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
   use_distributed_sampler: False
@@ -30,7 +19,7 @@ trainer:
   gradient_clip_val: 1.0
 
 exp_manager:
-  explicit_log_dir: ${peft.run.results_dir}/results
+  explicit_log_dir: null
   exp_dir: null
   name: ${peft.run.name}
   create_wandb_logger: False
@@ -46,7 +35,7 @@ exp_manager:
     mode: min
     save_nemo_on_train_end: True
     filename: '${peft.exp_manager.name}--{${.monitor}:.3f}-{step}-{consumed_samples}'
-    model_parallel_size: ${multiply:${peft.model.tensor_model_parallel_size}, ${peft.model.pipeline_model_parallel_size}}
+    model_parallel_size: ${peft.model.tensor_model_parallel_size}
     always_save_nemo: False
     save_best_model: True
   create_early_stopping_callback: True
@@ -57,39 +46,34 @@ exp_manager:
     patience: 10
     verbose: True
     strict: False # Should be False to avoid a runtime error where EarlyStopping says monitor is unavailable, which sometimes happens with resumed training.
-  create_tensorboard_logger: False
-  log_global_rank_0_only: True
 
 model:
   seed: 1234
-  tensor_model_parallel_size: 1 # intra-layer model parallelism
+  tensor_model_parallel_size: 2 # intra-layer model parallelism
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
   virtual_pipeline_model_parallel_size: null
 
-  encoder_seq_length: ${peft.model.data.train_ds.max_seq_length}
-
   global_batch_size: 128
   micro_batch_size: 4
-  restore_from_path: ${peft.run.convert_dir}/results/megatron_llama.nemo # Path to an existing .nemo model you wish to add new tasks to or run inference with
+  restore_from_path: ??? # Path to an existing .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
   save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training.
   sync_batch_comm: False
   overlap_p2p_comm: False
   ub_tp_comm_overlap: False
-  tp_comm_atomic_ag: False
-  tp_comm_atomic_rs: False
 
   megatron_amp_O2: True
   mcore_gpt: True
   transformer_engine: False
 
+  grad_div_ar_fusion: True
+  gradient_accumulation_fusion: True
   get_attention_mask_from_fusion: True
   apply_rope_fusion: True
-  bias_activation_fusion: True
+  bias_activation_fusion: False
   bias_dropout_add_fusion: True
   masked_softmax_fusion: True
-  gradient_accumulation_fusion: True
-  grad_div_ar_fusion: True
+  grad_allreduce_chunk_size_mb: 125
 
   fp8: False
   fp8_e4m3: False
@@ -103,7 +87,7 @@ model:
   ## Sequence Parallelism
   # Makes tensor parallelism more memory efficient for LLMs (20B+) by parallelizing layer norms and dropout sequentially
   # See Reducing Activation Recomputation in Large Transformer Models: https://arxiv.org/abs/2205.05198 for more details.
-  sequence_parallel: False
+  sequence_parallel: True
 
   ## Activation Checkpoint
   activations_checkpoint_granularity: null # 'selective' or 'full'
@@ -114,7 +98,7 @@ model:
   activations_checkpoint_num_layers: null # not used with 'selective'
   activations_checkpoint_layers_per_pipeline: null
   answer_only_loss: False
-  gradient_as_bucket_view: True
+  gradient_as_bucket_view: False
 
   hidden_dropout: 0.0
   attention_dropout: 0.0
@@ -172,9 +156,9 @@ model:
       num_workers: 2
       memmap_workers: 2
       pin_memory: True
-      packed_sequence: False # Set to true to load with GPTSFTPackedDataset
-      pad_to_max_length: False
-      max_seq_length: 2048
+      packed_sequence: True # Set to true to load with GPTSFTPackedDataset
+      pad_to_max_length: True
+      max_seq_length: 4096
       min_seq_length: 1
       drop_last: True
       # Example of how to specify concat_sampling_probabilities
@@ -259,5 +243,4 @@ model:
     overlap_grad_sync: True
     overlap_param_sync: True
     contiguous_grad_buffer: True
-    contiguous_param_buffer: True
 
