@@ -46,22 +46,23 @@ For further details see [Interpreting the Results](https://docs.nvidia.com/nemo-
 - To calculate Model TFLOPs, please see Appendix A in [paper](https://arxiv.org/pdf/2205.05198.pdf).
 
   
-| Model | GPU | Precision | #-GPUs | Global Batch <br> Size | Model TFLOPs <br> per GPU | Est. time to train in days <br> (1T tokens, 1K GPUs) |
-| ---      | ---      | ---      | ---      | ---      | ---      | ---     |
-| GPT3-5B | H100 | BF16 | 64 | 2048 | 510 | 0.7  |
-| GPT3-5B | H100 | FP8 | 64 | 2048 | 738 | 0.5  |
-| GPT3-20B | H100 | BF16 | 64 | 256 | 466 | 3.1  |
-| GPT3-20B | H100 | FP8 | 64 | 256 | 660 | 2.2  |
-| LLAMA2-7B | H100 | BF16 | 8 | 128 | 511 | 1.0  |
-| LLAMA2-7B | H100 | FP8 | 8 | 128 | 694 | 0.8  |
-| LLAMA2-13B | H100 | BF16 | 16 | 128 | 471 | 2.1  |
-| LLAMA2-13B | H100 | FP8 | 16 | 128 | 674 | 1.5  |
-| LLAMA2-70B | H100 | BF16 | 64 | 128 | 467 | 10.8  |
-| LLAMA2-70B | H100 | FP8 | 64 | 128 | 708 | 7.1  |
-| Nemotron-8B | H100 | BF16 | 8 | 32 | 453 | 1.3  |
-| Nemotron-8B  | H100 | FP8 | 8 | 32 | 593 | 1.0  |
-| Nemotron-22B | H100 | BF16 | 16 | 32 | 395 | 3.7  |
-| Nemotron-22B  | H100 | FP8 | 16 | 32 | 499 | 3.0  |
+| Model | GPU | Precision | #-GPUs | Global Batch <br> Size | Sequence <br> Length | Model TFLOPs <br> per GPU | Est. time to train in days <br> (1T tokens, 1K GPUs) |
+| ---      | ---      | ---      | ---      |----   | ---      | ---      | ---     |
+| GPT3-175B | H100 | FP8 | 512 | 2048 | 2048 | [797*](https://developer.nvidia.com/blog/setting-new-records-at-data-center-scale-using-nvidia-h100-gpus-and-quantum-2-infiniband/) | 15.3  |
+| GPT3-5B | H100 | BF16 | 64 | 2048 | 2048 | 510 | 0.7  |
+| GPT3-5B | H100 | FP8 | 64 | 2048 | 2048 | 738 | 0.5  |
+| GPT3-20B | H100 | BF16 | 64 | 256 | 2048 | 466 | 3.1  |
+| GPT3-20B | H100 | FP8 | 64 | 256 | 2048 | 660 | 2.2  |
+| LLAMA2-7B | H100 | BF16 | 8 | 128 | 4096 | 511 | 1.0  |
+| LLAMA2-7B | H100 | FP8 | 8 | 128 | 4096 | 694 | 0.8  |
+| LLAMA2-13B | H100 | BF16 | 16 | 128 | 4096 | 471 | 2.1  |
+| LLAMA2-13B | H100 | FP8 | 16 | 128 | 4096 | 674 | 1.5  |
+| LLAMA2-70B | H100 | BF16 | 64 | 128 | 4096 | 467 | 10.8  |
+| LLAMA2-70B | H100 | FP8 | 64 | 128 | 4096 | 708 | 7.1  |
+| Nemotron-8B | H100 | BF16 | 8 | 32 | 4096 | 453 | 1.3  |
+| Nemotron-8B  | H100 | FP8 | 8 | 32 | 4096 | 593 | 1.0  |
+| Nemotron-22B | H100 | BF16 | 16 | 32 | 4096 | 395 | 3.7  |
+| Nemotron-22B  | H100 | FP8 | 16 | 32 | 4096 | 499 | 3.0  |
 
 
 ### Benchmark performance numbers (finetuning)
@@ -69,11 +70,11 @@ For further details see [Interpreting the Results](https://docs.nvidia.com/nemo-
 - The following table provides performance benchmarking of LLAMA2 models with SFT (supervised fine-tuning), and LoRA (Low-rank adaptors) on H100.
 - For fine-tuning, we use packed input dataset, and the inputs are packed to 4096 tokens.
 
-| Model | Mode | GPU | Precision | #-GPUs | Global Batch <br> Size | Model TFLOPs <br> per GPU | Est. time in mins <br> (run 40M tokens) |
-| ---      | ----- | ---      | ---      | ---      | ---      | ---      | ---     |
-| LLAMA2-7B | SFT | H100 | BF16 | 8 | 8 | 430 | 8 |
-| LLAMA2-13B | SFT | H100 | BF16 | 8 | 8 | 467 | 14 |
-| LLAMA2-13B | SFT | H100 | FP8 | 8 | 8 | 600 | 11 |
-| LLAMA2-7B | LoRA | H100 | BF16 | 8 | 8 | 471 | 5 |
-| LLAMA2-13B | LoRA | H100 | BF16 | 8 | 8 | 507 | 9 |
-| LLAMA2-13B | LoRA | H100 | FP8 | 8 | 8 | 623 | 7 |
+| Model | Mode | GPU | Precision | #-GPUs | Global Batch <br> Size | Sequence <br> Length | Model TFLOPs <br> per GPU | Est. time in mins <br> (run 40M tokens) |
+| ---      | ----- | ---      | ---      | ---      | ---      | ---      | ---      | ---     |
+| LLAMA2-7B | SFT | H100 | BF16 | 8 | 8 | 4096 | 430 | 8 |
+| LLAMA2-13B | SFT | H100 | BF16 | 8 | 8 | 4096 | 467 | 14 |
+| LLAMA2-13B | SFT | H100 | FP8 | 8 | 8 | 4096 | 600 | 11 |
+| LLAMA2-7B | LoRA | H100 | BF16 | 8 | 8 | 4096 | 471 | 5 |
+| LLAMA2-13B | LoRA | H100 | BF16 | 8 | 8 | 4096 | 507 | 9 |
+| LLAMA2-13B | LoRA | H100 | FP8 | 8 | 8 | 4096 | 623 | 7 |
