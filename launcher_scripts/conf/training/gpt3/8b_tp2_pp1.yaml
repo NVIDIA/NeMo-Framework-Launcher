@@ -9,11 +9,11 @@ hydra:
 run:
   name: nemotron3-8B
   results_dir: ${base_results_dir}/${.name}
-  time_limit: "0:30:00"
+  time_limit: "04:00:00"
   dependency: "singleton"
 
 trainer:
-  num_nodes: 1
+  num_nodes: 8
   devices: 8
   accelerator: gpu
   precision: bf16
@@ -24,7 +24,7 @@ trainer:
   max_steps: 300000 # consumed_samples = global_step * global_batch_size
   max_time: "05:23:30:00" # days:hours:minutes:seconds
   log_every_n_steps: 1
-  val_check_interval: 2000
+  val_check_interval: 1000
   limit_val_batches: 32
   limit_test_batches: 32
   accumulate_grad_batches: 1
@@ -43,7 +43,7 @@ exp_manager:
   create_checkpoint_callback: True
   checkpoint_callback_params:
     monitor: val_loss
-    save_top_k: 10
+    save_top_k: 2
     mode: min
     always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
     save_nemo_on_train_end: False # not recommended when training large models on clusters with short time limits
@@ -56,7 +56,7 @@ exp_manager:
 
 model:
   micro_batch_size: 2
-  global_batch_size: 32
+  global_batch_size: 256
   rampup_batch_size: null
   context_parallel_size: 1
   tensor_model_parallel_size: 2

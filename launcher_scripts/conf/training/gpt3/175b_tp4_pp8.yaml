@@ -3,7 +3,7 @@ hydra:
     - file:///opt/NeMo/examples/nlp/language_modeling/conf
 
 run:
-  name: gpt3_175b_tp8_pp8
+  name: gpt3_175b_tp4_pp8
   results_dir: ${base_results_dir}/${.name}
   time_limit: "04:00:00"
   dependency: "singleton"
@@ -20,7 +20,7 @@ trainer:
   max_steps: 7500 # consumed_samples = global_step * global_batch_size
   max_time: "00:23:30:00" # days:hours:minutes:seconds
   log_every_n_steps: 10
-  val_check_interval: 250
+  val_check_interval: 50
   limit_val_batches: 25
   limit_test_batches: 25
   accumulate_grad_batches: 1
@@ -44,7 +44,7 @@ exp_manager:
     always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
     save_nemo_on_train_end: False # not recommended when training large models on clusters with short time limits
     filename: 'megatron_gpt--{val_loss:.2f}-{step}-{consumed_samples}'
-    model_parallel_size: 64
+    model_parallel_size: 32
   log_step_timing: True
   step_timing_kwargs:
     sync_cuda: True
@@ -55,7 +55,7 @@ model:
   global_batch_size: 16
   rampup_batch_size: null
   context_parallel_size: 1
-  tensor_model_parallel_size: 8
+  tensor_model_parallel_size: 4
   pipeline_model_parallel_size: 8
   virtual_pipeline_model_parallel_size: 12 # interleaved pipeline
   resume_from_checkpoint: null # manually set the checkpoint file to load from
