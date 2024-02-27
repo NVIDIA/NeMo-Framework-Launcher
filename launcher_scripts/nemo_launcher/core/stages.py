@@ -1080,7 +1080,7 @@ class PEFT(NeMoStage):
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_finetuning.py",
             "falcon": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "gemma": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "neva": self._nemo_code_path
@@ -1605,13 +1605,13 @@ class NeMoEvaluation(NeMoStage):
             "adapter_gpt3": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_eval.py",
             "peft_llama": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "code_llama": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "peft_falcon": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "peft_baichuan2": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "vit": self._nemo_code_path
             / "examples/vision/vision_transformer/megatron_vit_classification_evaluate.py",
             "clip": self._nemo_code_path
