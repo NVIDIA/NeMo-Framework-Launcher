@@ -46,7 +46,7 @@ For further details see [Interpreting the Results](https://docs.nvidia.com/nemo-
 - To calculate Model TFLOPs, please see Appendix A in [paper](https://arxiv.org/pdf/2205.05198.pdf).
 
   
-| Model | GPU | Precision | #-GPUs | GBS | Model TFLOPs <br> per GPU | Est. time to train in days <br> (1T tokens, 1K GPUs) |
+| Model | GPU | Precision | #-GPUs | Global Batch <br> Size | Model TFLOPs <br> per GPU | Est. time to train in days <br> (1T tokens, 1K GPUs) |
 | ---      | ---      | ---      | ---      | ---      | ---      | ---     |
 | GPT3-5B | H100 | BF16 | 64 | 2048 | 510 | 0.7  |
 | GPT3-5B | H100 | FP8 | 64 | 2048 | 738 | 0.5  |
@@ -67,9 +67,9 @@ For further details see [Interpreting the Results](https://docs.nvidia.com/nemo-
 ### Benchmark performance numbers (finetuning)
 
 - The following table provides performance benchmarking of LLAMA2 models with SFT (supervised fine-tuning), and LoRA (Low-rank adaptors) on H100.
-- For fine-tuning, the scripts use packed input dataset.
+- For fine-tuning, we use packed input dataset, and the inputs are packed to 4096 tokens.
 
-| Model | Mode | GPU | Precision | #-GPUs | GBS | Model TFLOPs <br> per GPU | Est. time in mins <br> (run 40M tokens) |
+| Model | Mode | GPU | Precision | #-GPUs | Global Batch <br> Size | Model TFLOPs <br> per GPU | Est. time in mins <br> (run 40M tokens) |
 | ---      | ----- | ---      | ---      | ---      | ---      | ---      | ---     |
 | LLAMA2-7B | SFT | H100 | BF16 | 8 | 8 | 430 | 8 |
 | LLAMA2-13B | SFT | H100 | BF16 | 8 | 8 | 467 | 14 |
