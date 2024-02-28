@@ -873,7 +873,7 @@ class Training(NeMoStage):
             "neva": self._nemo_code_path
             / "examples/multimodal/multimodal_llm/neva/neva_pretrain.py",
             "mixtral": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -952,7 +952,7 @@ class FineTuning(NeMoStage):
             "baichuan2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "mixtral": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1139,7 +1139,7 @@ class PromptLearning(NeMoStage):
             "mt5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
             "mixtral": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1169,7 +1169,7 @@ class AdapterLearning(PromptLearning):
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py",
             "mixtral": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1628,7 +1628,7 @@ class NeMoEvaluation(NeMoStage):
             "clip": self._nemo_code_path
             / "examples/multimodal/vision_language_foundation/clip/megatron_clip_imagenet_zeroshot.py",
             "mixtral": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
         }
         return model_type_to_code_path[model_type]
 
