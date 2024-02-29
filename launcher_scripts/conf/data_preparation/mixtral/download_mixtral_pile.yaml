@@ -1,0 +1,18 @@
+run:
+  name: download_mixtral_pile
+  results_dir: ${base_results_dir}/${.name}
+  time_limit: "1:00:00"
+  dependency: "singleton"
+  node_array_size: 2
+  array: ${..file_numbers}
+  bcp_preproc_npernode: 2 # 2 should be safe to use and x2 times faster.
+
+dataset: pile
+download_the_pile: True  # Whether to download the pile dataset from the internet.
+the_pile_url: "https://huggingface.co/datasets/monology/pile-uncopyrighted/resolve/main/train/"  # Source URL to download The Pile dataset from.
+file_numbers: "0-29"  # The pile dataset consists of 30 files (0-29), choose which ones to download.
+preprocess_data: True  # True to preprocess the data from a jsonl file, False otherwise.
+tokenizer_library: "huggingface"
+tokenizer_type: mistralai/Mixtral-8x7B-v0.1
+rm_downloaded: False # Extract script will remove downloaded zst after extraction
+rm_extracted: False # Preprocess script will remove extracted files after preproc.
