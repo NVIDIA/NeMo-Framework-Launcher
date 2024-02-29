@@ -5,10 +5,10 @@ run:
   dependency: "singleton"
 
 trainer:
-  devices: 1
+  devices: 8
   accelerator: gpu
   num_nodes: 1
-  precision: 16
+  precision: bf16
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
   use_distributed_sampler: False
@@ -54,7 +54,7 @@ model:
   virtual_pipeline_model_parallel_size: null
 
   global_batch_size: 128
-  micro_batch_size: 4
+  micro_batch_size: 1
   restore_from_path: ??? # Path to an existing .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
   save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training.
@@ -156,7 +156,7 @@ model:
       num_workers: 2
       memmap_workers: 2
       pin_memory: True
-      packed_sequence: True # Set to true to load with GPTSFTPackedDataset
+      packed_sequence: False # Set to true to load with GPTSFTPackedDataset
       pad_to_max_length: True
       max_seq_length: 4096
       min_seq_length: 1
