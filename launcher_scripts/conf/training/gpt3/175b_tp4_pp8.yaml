@@ -28,7 +28,6 @@ trainer:
   accumulate_grad_batches: 1
   gradient_clip_val: 1.0
   benchmark: false
-  limit_train_batches: 50
   enable_model_summary: false
   num_sanity_val_steps: 0
 
