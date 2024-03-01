@@ -31,7 +31,18 @@ from omegaconf import DictConfig, OmegaConf
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-__LANGUAGE_MODELS_LIST__ = ["gpt3", "t5", "mt5", "bert", "llama", "falcon"]
+__LANGUAGE_MODELS_LIST__ = [
+    "gpt3",
+    "t5",
+    "mt5",
+    "bert",
+    "llama",
+    "gemma",
+    "falcon",
+    "baichuan2",
+    "mistral",
+    "mixtral",
+]
 __VISION_MODELS_LIST__ = ["vit"]
 __MULTIMODAL_MODELS_LIST__ = [
     "clip",
@@ -833,6 +844,8 @@ class Training(NeMoStage):
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "llama": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "nemotron": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "bert": self._nemo_code_path
@@ -860,6 +873,10 @@ class Training(NeMoStage):
             "nerf": self._nemo_code_path / "examples/multimodal/x_to_nerf/nerf/main.py",
             "neva": self._nemo_code_path
             / "examples/multimodal/multimodal_llm/neva/neva_pretrain.py",
+            "mistral": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -927,12 +944,20 @@ class FineTuning(NeMoStage):
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "falcon": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            "gemma": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "vit": self._nemo_code_path
             / "examples/vision/vision_transformer/megatron_vit_classification_finetune.py",
             "neva": self._nemo_code_path
             / "examples/multimodal/multimodal_llm/neva/neva_finetune.py",
             "nsfw": self._nemo_code_path
             / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
+            "baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            "mistral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            "mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1057,15 +1082,23 @@ class PEFT(NeMoStage):
             )
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "llama": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            "baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "t5": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_t5_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_t5_finetuning.py",
             "falcon": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            "gemma": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "neva": self._nemo_code_path
             / "examples/multimodal/multimodal_llm/neva/neva_peft.py",
+            "mistral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            "mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1106,10 +1139,14 @@ class PromptLearning(NeMoStage):
             / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
             "llama": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
+            "baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
             "mt5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
+            "mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1134,8 +1171,14 @@ class AdapterLearning(PromptLearning):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
             "llama": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
+            "baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py",
+            "mistral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
+            "mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1159,6 +1202,8 @@ class IA3Learning(PromptLearning):
             "gpt3": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
             "llama": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
+            "baichuan2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_ia3_tuning.py",
@@ -1580,15 +1625,21 @@ class NeMoEvaluation(NeMoStage):
             "adapter_gpt3": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_eval.py",
             "peft_llama": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "code_llama": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "peft_falcon": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_peft_eval.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
+            "peft_baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "vit": self._nemo_code_path
             / "examples/vision/vision_transformer/megatron_vit_classification_evaluate.py",
             "clip": self._nemo_code_path
             / "examples/multimodal/vision_language_foundation/clip/megatron_clip_imagenet_zeroshot.py",
+            "mistral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
+            "mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
         }
         return model_type_to_code_path[model_type]
 
