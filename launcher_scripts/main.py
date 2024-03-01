@@ -96,7 +96,15 @@ STR2STAGECLASS = {
         DiffusionModelEvaluation: ["stable_diffusion", "imagen"],
     },
     "data_preparation": {
-        PileDataPreparation: ["gpt3", "t5", "bert", "llama", "falcon", "baichuan2", "chatglm"],
+        PileDataPreparation: [
+            "gpt3",
+            "t5",
+            "bert",
+            "llama",
+            "falcon",
+            "baichuan2",
+            "chatglm",
+        ],
         MC4DataPreparation: ["mt5"],
         SteerLMDataPreparation: ["steerlm"],
         CustomDataPreparation: ["generic"],

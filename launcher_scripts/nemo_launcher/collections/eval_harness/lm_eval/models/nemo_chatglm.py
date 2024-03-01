@@ -60,7 +60,7 @@ class NeMo_CHATGLM_TP_PP(LM):
         assert self.tokenizer.text_to_ids("hello, world") == [
             24954,
             30932,
-            993
+            993,
         ], "Tokenizer text_to_ids is not working as expected."
 
         self.truncate = truncate

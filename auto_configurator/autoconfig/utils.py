@@ -401,7 +401,13 @@ def modify_cfg(
             new_cfg["model"]["encoder"]["activations_checkpoint_num_layers"] = act // 2
             new_cfg["model"]["decoder"]["activations_checkpoint_num_layers"] = act // 2
 
-    if num_mbs_act is not None and model_name in ["gpt3", "bert", "llama", "baichuan2", "chatglm"]:
+    if num_mbs_act is not None and model_name in [
+        "gpt3",
+        "bert",
+        "llama",
+        "baichuan2",
+        "chatglm",
+    ]:
         new_cfg["model"][
             "num_micro_batches_with_partial_activation_checkpoints"
         ] = num_mbs_act
