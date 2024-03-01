@@ -1,9 +1,14 @@
+name: megatron_mistral_peft_tuning-${peft.model.peft.peft_scheme}
+
 run:
   name: ${.task_name}_${.model_train_name}
-  time_limit: "04:00:00"
+  time_limit: "01:00:00"
   dependency: "singleton"
+  convert_name: convert_nemo
+  model_train_name: mistral_7b
+  convert_dir: ${base_results_dir}/${peft.run.model_train_name}/${peft.run.convert_name}
   task_name: "squad"
-  results_dir: ${base_results_dir}/peft_${.name}
+  results_dir: ${base_results_dir}/${.model_train_name}/peft_${.task_name}
 
 trainer:
   devices: 8
@@ -15,18 +20,18 @@ trainer:
   use_distributed_sampler: False
   max_epochs: 9999
   max_steps: 20000 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
-  log_every_n_steps: 10 # frequency with which training steps are logged 
+  log_every_n_steps: 10 # frequency with which training steps are logged
   val_check_interval: 200 # If is an int n > 1, will run val every n training steps, if a float 0.0 - 1.0 will run val every epoch fraction, e.g. 0.25 will run val every quarter epoch
   gradient_clip_val: 1.0
 
 exp_manager:
-  explicit_log_dir: ${peft.run.results_dir}/results
+  explicit_log_dir: null
   exp_dir: null
-  name: ${peft.run.name}
+  name: ${peft.name}
   create_wandb_logger: False
   wandb_logger_kwargs:
-    project: nemo_gemma_${peft.run.task_name}
-    name: ${peft.run.name}
+    project: null
+    name: null
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
   create_checkpoint_callback: True
@@ -35,7 +40,7 @@ exp_manager:
     save_top_k: 1
     mode: min
     save_nemo_on_train_end: True
-    filename: '${peft.run.name}--{${peft.exp_manager.checkpoint_callback_params.monitor}:.3f}-{step}-{consumed_samples}'
+    filename: '${peft.name}--{${peft.exp_manager.checkpoint_callback_params.monitor}:.3f}-{step}-{consumed_samples}'
     model_parallel_size: ${peft.model.tensor_model_parallel_size}
     always_save_nemo: False
     save_best_model: True
@@ -52,14 +57,14 @@ model:
   seed: 1234
   tensor_model_parallel_size: 1 # intra-layer model parallelism
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
-  
+
   global_batch_size: 128
-  micro_batch_size: 1
-  restore_from_path: ??? # Path to an existing .nemo model you wish to add new tasks to or run inference with
+  micro_batch_size: 4
+  restore_from_path: ${peft.run.convert_dir}/results/megatron_mistral.nemo # Path to an existing .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
-  save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training. 
+  save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training.
   sync_batch_comm: False
-  megatron_amp_O2: True
+  megatron_amp_O2: False
   mcore_gpt: True
 
   ## Sequence Parallelism
@@ -67,8 +72,8 @@ model:
   # See Reducing Activation Recomputation in Large Transformer Models: https://arxiv.org/abs/2205.05198 for more details.
   sequence_parallel: False
 
-  ## Activation Checkpoint 
-  activations_checkpoint_granularity: null # 'selective' or 'full' 
+  ## Activation Checkpoint
+  activations_checkpoint_granularity: null # 'selective' or 'full'
   activations_checkpoint_method: null # 'uniform', 'block', not used with 'selective'
   # 'uniform' divides the total number of transformer layers and checkpoints the input activation
   # of each chunk at the specified granularity
@@ -82,19 +87,10 @@ model:
   attention_dropout: 0.0
   ffn_dropout: 0.0
 
-  fp8: False
-  fp8_e4m3: False
-  fp8_hybrid: True
-  fp8_margin: 0
-  fp8_interval: 1
-  fp8_amax_history_len: 512
-  fp8_amax_compute_algo: max
-  fp8_wgrad: True
-
   peft:
-    peft_scheme: "lora"  # can be either adapter, ia3, lora, or ptuning
+    peft_scheme: "lora"  # can be either adapter,ia3, or ptuning
     restore_from_path: null
-    
+
     # Used for adapter peft training
     adapter_tuning:
       type: 'parallel_adapter' # this should be either 'parallel_adapter' or 'linear_adapter'
@@ -107,7 +103,7 @@ model:
       layer_selection: null  # selects in which layers to add adapters, e.g. [1,12] will add adapters to layer 1 (lowest) and 12. null will apply adapters to all layers
       weight_tying: False
       position_embedding_strategy: null # used only when weight_tying is True
-    
+
     lora_tuning:
       adapter_dim: 32
       adapter_dropout: 0.0
@@ -116,21 +112,21 @@ model:
       layer_selection:  null  # selects in which layers to add lora adapters. e.g. [1,12] will add lora to layer 1 (lowest) and 12. null will apply adapters to all layers
       weight_tying: False
       position_embedding_strategy: null # used only when weight_tying is True
-    
+
     # Used for p-tuning peft training
     p_tuning:
       virtual_tokens: 10  # The number of virtual tokens the prompt encoder should add at the start of the sequence
       bottleneck_dim: 1024  # the size of the prompt encoder mlp bottleneck
       embedding_dim: 1024  # the size of the prompt encoder embeddings
       init_std: 0.023
-    
+
     ia3_tuning:
       layer_selection:  null  # selects in which layers to add ia3 adapters. e.g. [1,12] will add lora to layer 1 (lowest) and 12. null will apply adapters to all layers
 
   data:
     train_ds:
       # Example of how to specify paths to multiple datasets
-      # file_names: 
+      # file_names:
       #   - /path/to/squad.jsonl
       #   - /path/to/mnli.jsonl
       #   - /path/to/boolq.jsonl
@@ -144,7 +140,7 @@ model:
       num_workers: 0
       memmap_workers: 2
       pin_memory: True
-      max_seq_length: 4096
+      max_seq_length: 2048
       min_seq_length: 1
       drop_last: True
       # Example of how to specify concat_sampling_probabilities
@@ -158,14 +154,14 @@ model:
       label_key: 'output'
       add_eos: True
       add_sep: False
-      add_bos: True
+      add_bos: False
       separate_prompt_and_response_with_newline: False
-      truncation_field: "context" # Options: ['context', 'answer']
+      truncation_field: "context"
       index_mapping_dir: null # Path to a directory to write index mapping files.
       prompt_template: "{input} {output}" # fstring to use for assistant prompt. Example: "Q: {input}\nA: {output}"
 
     validation_ds:
-      file_names: 
+      file_names:
       - ${data_dir}/squad_data/v1.1/dev-v1.1_gpt.json # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
       names:
       - ${peft.run.task_name} # Names of the corresponding datasets used to log metrics.
@@ -226,8 +222,8 @@ model:
   optim:
     name: fused_adam
     lr: 1e-4
-    weight_decay: 0.01 
-    betas: 
+    weight_decay: 0.01
+    betas:
     - 0.9
     - 0.98
     sched:
