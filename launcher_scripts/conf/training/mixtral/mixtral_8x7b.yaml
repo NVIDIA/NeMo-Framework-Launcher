@@ -55,9 +55,9 @@ model:
   encoder_seq_length: 2048
   max_position_embeddings: 2048
   num_layers: 32
-  hidden_size: 4544
-  ffn_hidden_size: 18176
-  num_attention_heads: 71
+  hidden_size: 4096
+  ffn_hidden_size: 14336
+  num_attention_heads: 32
   init_method_std: 0.02
   use_scaled_init_method: true
   hidden_dropout: 0.0
@@ -80,6 +80,9 @@ model:
   normalize_attention_scores: true
   position_embedding_type: rope
   rotary_percentage: 1.0
+  rotary_base: 1000000.0
+  moe_router_topk: 2
+  num_moe_experts: 8
   attention_type: multihead
   share_embeddings_and_output_weights: false
   overlap_p2p_comm: false
