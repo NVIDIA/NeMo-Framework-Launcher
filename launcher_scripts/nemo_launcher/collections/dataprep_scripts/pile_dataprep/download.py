@@ -19,7 +19,7 @@ import hydra
 import nemo_launcher.utils.file_utils as utils
 
 
-@hydra.main(config_path="conf", config_name="config")
+@hydra.main(config_path="conf", config_name="config", version_base="1.2")
 def main(cfg):
     """Function to download the pile dataset files on BCM.
 
@@ -39,11 +39,16 @@ def main(cfg):
         file_numbers = cfg["file_numbers"]
         # Downloading the files
         files_list = utils.convert_file_numbers(file_numbers)
-        # Assumes launched via mpirun:
-        #   mpirun -N <nnodes> -npernode <preproc_npernode> ...
-        # where preproc_npernode is set in dataprep config -> bcp config
-        wrank = int(os.environ.get("OMPI_COMM_WORLD_RANK", 0))
-        wsize = int(os.environ.get("OMPI_COMM_WORLD_SIZE", 0))
+
+        if cfg.get("cluster_type") == "bcp":
+            wrank = int(os.environ.get("RANK", 0))
+            wsize = int(os.environ.get("WORLD_SIZE", 0))
+        else:
+            # Assumes launched via mpirun:
+            #   mpirun -N <nnodes> -npernode <preproc_npernode> ...
+            # where preproc_npernode is set in dataprep config -> bcp config
+            wrank = int(os.environ.get("OMPI_COMM_WORLD_RANK", 0))
+            wsize = int(os.environ.get("OMPI_COMM_WORLD_SIZE", 0))
         files_list_groups = utils.split_list(files_list, wsize)
         files_to_download = files_list_groups[wrank]
         proc_list = []

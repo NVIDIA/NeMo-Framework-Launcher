@@ -89,7 +89,12 @@ def generate_grid_search_configs(
         else base_cfg["model"]["encoder"]["num_layers"]
     )
 
-    act_method = base_cfg["model"].get("activations_checkpoint_method", "None")
+    if model_name in ["gpt3", "bert", "llama"]:
+        act_method = base_cfg["model"].get("activations_checkpoint_method", "None")
+    else:
+        act_method = base_cfg["model"]["encoder"].get(
+            "activations_checkpoint_method", "None"
+        )
 
     (
         tp_list,
@@ -149,27 +154,42 @@ def generate_grid_search_configs(
             tp, pp, num_layers, act_method, multiplier, model_size_in_b, model_name
         )
         for mbs in mbs_list:
-            if act_layers is not None and act_layers != "auto":
-                act_ckpt_layers = act_layers
-            new_cfg = utils.modify_cfg(
-                base_cfg=base_cfg,
-                act=act_ckpt_layers,
-                num_mbs_act=num_micro_batches_partial_act_ckpt,
-                act_per_pipe=act_ckpt_layers_per_pipeline,
-                tp=tp,
-                pp=pp,
-                virtual_pipelines=virtual_pipelines,
-                mbs=mbs,
-                max_minutes=max_minutes,
-                max_steps=max_steps,
-                num_nodes=num_nodes,
-                model_name=model_name,
-            )
-            if new_cfg:  # Save candidate cfg.
-                file_name = f"{model_name}_{model_size_in_b}b_{num_nodes}nodes_tp_{tp}_pp_{pp}_mbs_{mbs}_act_ckpt_{act_ckpt_layers}_num_mbs_act_{num_micro_batches_partial_act_ckpt}_act_per_pipe_{act_ckpt_layers_per_pipeline}.yaml"
-                results_cfgs[mbs].append(file_name)
-                with open(f"{base_dir}/{file_name}", "w") as f:
-                    yaml.dump(new_cfg, f)
+            kwargs = {
+                "base_cfg": base_cfg,
+                "act": None,
+                "num_mbs_act": None,
+                "act_per_pipe": None,
+                "tp": tp,
+                "pp": pp,
+                "virtual_pipelines": virtual_pipelines,
+                "mbs": mbs,
+                "max_minutes": max_minutes,
+                "max_steps": max_steps,
+                "num_nodes": num_nodes,
+                "model_name": model_name,
+            }
+            if act_ckpt_layers[0] is not None:
+                if act_layers is not None and act_layers != "auto":
+                    act_ckpt_layers = act_layers
+                for act in act_ckpt_layers:
+                    for num_mbs_act in num_micro_batches_partial_act_ckpt:
+                        for act_per_pipe in act_ckpt_layers_per_pipeline:
+                            kwargs["act"] = act
+                            kwargs["num_mbs_act"] = num_mbs_act
+                            kwargs["act_per_pipe"] = act_per_pipe
+                            new_cfg = utils.modify_cfg(**kwargs)
+                            if new_cfg:  # Save candidate cfg.
+                                file_name = f"{model_name}_{model_size_in_b}b_{num_nodes}nodes_tp_{tp}_pp_{pp}_mbs_{mbs}_act_ckpt_{act}_num_mbs_act_{num_mbs_act}_act_per_pipe_{act_per_pipe}.yaml"
+                                results_cfgs[act].append(file_name)
+                                with open(f"{base_dir}/{file_name}", "w") as f:
+                                    yaml.dump(new_cfg, f)
+            else:
+                new_cfg = utils.modify_cfg(**kwargs)
+                if new_cfg:  # Save candidate cfg.
+                    file_name = f"{model_name}_{model_size_in_b}b_{num_nodes}nodes_tp_{tp}_pp_{pp}_mbs_{mbs}_act_ckpt_{kwargs['act']}_num_mbs_act_{kwargs['num_mbs_act']}_act_per_pipe_{kwargs['act_per_pipe']}.yaml"
+                    results_cfgs[mbs].append(file_name)
+                    with open(f"{base_dir}/{file_name}", "w") as f:
+                        yaml.dump(new_cfg, f)
 
     print("\nAll candidate configurations created correctly.\n")
     return base_dir, results_cfgs, num_nodes
@@ -237,11 +257,6 @@ def _set_activations_checkpoint_params(
                 min_layers_per_pipe, max_layers_per_pipe + 1, interval_layers_per_pipe
             )
 
-    (
-        act_ckpt_layers,
-        num_micro_batches_partial_act_ckpt,
-        act_ckpt_layers_per_pipeline,
-    ) = (None, None, None)
     return (
         virtual_pipelines,
         act_ckpt_layers,

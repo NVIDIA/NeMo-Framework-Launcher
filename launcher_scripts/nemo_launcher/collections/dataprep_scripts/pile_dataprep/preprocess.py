@@ -21,7 +21,7 @@ import nemo_launcher.utils.file_utils as utils  # TODO: check if this in python 
 import psutil
 
 
-@hydra.main(config_path="conf", config_name="config")
+@hydra.main(config_path="conf", config_name="config", version_base="1.2")
 def main(cfg):
     launcher_scripts_path = cfg.get("launcher_scripts_path")
     data_config = cfg.get("data_config")
@@ -79,6 +79,8 @@ def main(cfg):
             model_type = "llama"
         elif "falcon" in data_config:
             model_type = "falcon"
+        elif "baichuan2" in data_config:
+            model_type = "baichuan2"
         elif "chatglm" in data_config:
             model_type = "chatglm"
 

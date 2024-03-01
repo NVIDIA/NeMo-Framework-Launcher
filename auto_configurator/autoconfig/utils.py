@@ -406,10 +406,22 @@ def modify_cfg(
             "num_micro_batches_with_partial_activation_checkpoints"
         ] = num_mbs_act
 
-    if act_per_pipe is not None and model_name in ["gpt3", "bert", "llama", "baichuan2", "chatglm"]:
+    if act_per_pipe is not None and model_name in [
+        "gpt3",
+        "bert",
+        "llama",
+        "baichuan2",
+        "chatglm",
+    ]:
         new_cfg["model"]["activations_checkpoint_layers_per_pipeline"] = act_per_pipe
 
-    if virtual_pipelines is not None and model_name in ["gpt3", "bert", "llama", "baichuan2", "chatglm"]:
+    if virtual_pipelines is not None and model_name in [
+        "gpt3",
+        "bert",
+        "llama",
+        "baichuan2",
+        "chatglm",
+    ]:
         new_cfg["model"]["virtual_pipeline_model_parallel_size"] = virtual_pipelines
 
     new_cfg["model"]["tensor_model_parallel_size"] = tp
