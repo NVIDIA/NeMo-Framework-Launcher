@@ -32,7 +32,7 @@ exp_manager:
   name: megatron_gpt
   create_wandb_logger: true
   wandb_logger_kwargs:
-    project: 126m_ci_convergence
+    project: weekly_ci_convergence
     name: 126m_conv_tp1_pp1
   resume_if_exists: true
   resume_ignore_no_checkpoint: true

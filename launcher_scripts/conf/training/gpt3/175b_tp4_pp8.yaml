@@ -40,10 +40,10 @@ exp_manager:
   wandb_logger_kwargs:
     project: null
     name: null
-  create_neptune_logger: false
+  create_neptune_logger: true
   neptune_logger_kwargs:
-    project: null
-    name: null
+    project: weekly_ci_convergence
+    name: 175b_tp4_pp8
     prefix: train
     log_model_checkpoints: false
     tags: null
