@@ -1,5 +1,5 @@
 run:
-  name: mixtral_7b
+  name: mistral_7b
   results_dir: ${base_results_dir}/${.name}
   time_limit: "0-04:00:00"
   dependency: "singleton"
@@ -23,10 +23,10 @@ trainer:
 exp_manager:
   explicit_log_dir: ${training.run.results_dir}/results
   exp_dir: null
-  name: megatron_mixtral
+  name: megatron_mistral
   create_wandb_logger: False
   wandb_logger_kwargs:
-    project: nemo_mixtral_pretrain
+    project: nemo_mistral_pretrain
     name: ${training.run.name}
   resume_if_exists: false
   resume_ignore_no_checkpoint: true
@@ -37,7 +37,7 @@ exp_manager:
     mode: min
     always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
     save_nemo_on_train_end: False # not recommended when training large models on clusters with short time limits
-    filename: 'megatron_mixtral--{val_loss:.2f}-{step}-{consumed_samples}'
+    filename: 'megatron_mistral--{val_loss:.2f}-{step}-{consumed_samples}'
     model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
   log_step_timing: True
   step_timing_kwargs:
@@ -55,9 +55,9 @@ model:
   encoder_seq_length: 2048
   max_position_embeddings: 2048
   num_layers: 32
-  hidden_size: 4544
-  ffn_hidden_size: 18176
-  num_attention_heads: 71
+  hidden_size: 4096
+  ffn_hidden_size: 14336
+  num_attention_heads: 32
   init_method_std: 0.02
   use_scaled_init_method: true
   hidden_dropout: 0.0
@@ -88,7 +88,7 @@ model:
   num_query_groups: 1
   tokenizer:
     library: huggingface
-    type: tiiuae/mixtral-7b
+    type: mistralai/Mistral-7B-v0.1
     use_fast: true
   native_amp_init_scale: 4294967296
   native_amp_growth_interval: 1000
@@ -150,7 +150,7 @@ model:
       min_lr: 1.0e-05
   gc_interval: 0
   precision: bf16
-  name: megatron_mixtral_gpt
+  name: megatron_mistral_gpt
   mcore_customization_config:
     new_decoder_architecture: false
     parallel_attention: true
@@ -169,63 +169,63 @@ model:
     index_mapping_dir: null
     data_prefix:
     - .0333
-    - ${data_dir}/my-mixtral_00_text_document
+    - ${data_dir}/my-mistral_00_text_document
     - .0333
-    - ${data_dir}/my-mixtral_01_text_document
+    - ${data_dir}/my-mistral_01_text_document
     - .0333
-    - ${data_dir}/my-mixtral_02_text_document
+    - ${data_dir}/my-mistral_02_text_document
     - .0333
-    - ${data_dir}/my-mixtral_03_text_document
+    - ${data_dir}/my-mistral_03_text_document
     - .0333
-    - ${data_dir}/my-mixtral_04_text_document
+    - ${data_dir}/my-mistral_04_text_document
     - .0333
-    - ${data_dir}/my-mixtral_05_text_document
+    - ${data_dir}/my-mistral_05_text_document
     - .0333
-    - ${data_dir}/my-mixtral_06_text_document
+    - ${data_dir}/my-mistral_06_text_document
     - .0333
-    - ${data_dir}/my-mixtral_07_text_document
+    - ${data_dir}/my-mistral_07_text_document
     - .0333
-    - ${data_dir}/my-mixtral_08_text_document
+    - ${data_dir}/my-mistral_08_text_document
     - .0333
-    - ${data_dir}/my-mixtral_09_text_document
+    - ${data_dir}/my-mistral_09_text_document
     - .0333
-    - ${data_dir}/my-mixtral_10_text_document
+    - ${data_dir}/my-mistral_10_text_document
     - .0333
-    - ${data_dir}/my-mixtral_11_text_document
+    - ${data_dir}/my-mistral_11_text_document
     - .0333
-    - ${data_dir}/my-mixtral_12_text_document
+    - ${data_dir}/my-mistral_12_text_document
     - .0333
-    - ${data_dir}/my-mixtral_13_text_document
+    - ${data_dir}/my-mistral_13_text_document
     - .0333
-    - ${data_dir}/my-mixtral_14_text_document
+    - ${data_dir}/my-mistral_14_text_document
     - .0333
-    - ${data_dir}/my-mixtral_15_text_document
+    - ${data_dir}/my-mistral_15_text_document
     - .0333
-    - ${data_dir}/my-mixtral_16_text_document
+    - ${data_dir}/my-mistral_16_text_document
     - .0333
-    - ${data_dir}/my-mixtral_17_text_document
+    - ${data_dir}/my-mistral_17_text_document
     - .0333
-    - ${data_dir}/my-mixtral_18_text_document
+    - ${data_dir}/my-mistral_18_text_document
     - .0333
-    - ${data_dir}/my-mixtral_19_text_document
+    - ${data_dir}/my-mistral_19_text_document
     - .0333
-    - ${data_dir}/my-mixtral_20_text_document
+    - ${data_dir}/my-mistral_20_text_document
     - .0333
-    - ${data_dir}/my-mixtral_21_text_document
+    - ${data_dir}/my-mistral_21_text_document
     - .0333
-    - ${data_dir}/my-mixtral_22_text_document
+    - ${data_dir}/my-mistral_22_text_document
     - .0333
-    - ${data_dir}/my-mixtral_23_text_document
+    - ${data_dir}/my-mistral_23_text_document
     - .0333
-    - ${data_dir}/my-mixtral_24_text_document
+    - ${data_dir}/my-mistral_24_text_document
     - .0333
-    - ${data_dir}/my-mixtral_25_text_document
+    - ${data_dir}/my-mistral_25_text_document
     - .0333
-    - ${data_dir}/my-mixtral_26_text_document
+    - ${data_dir}/my-mistral_26_text_document
     - .0333
-    - ${data_dir}/my-mixtral_27_text_document
+    - ${data_dir}/my-mistral_27_text_document
     - .0333
-    - ${data_dir}/my-mixtral_28_text_document
+    - ${data_dir}/my-mistral_28_text_document
     - .0334
-    - ${data_dir}/my-mixtral_29_text_document
+    - ${data_dir}/my-mistral_29_text_document
 
