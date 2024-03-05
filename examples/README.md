@@ -9,8 +9,7 @@ These scripts run a recommended config for GPT, LLAMA2, Nemotron pretraining, an
 
 #### Setup
 1. To run these scripts, you must have access to the nemo bignlp container (like nvcr.io/nvidia/nemo:24.01.framework)
-     - If you don't have access, please sign in at [NGC](https://ngc.nvidia.com/signin) (user = ea-bignlp/ga-participants)
-     - Get Nemo at https://developer.nvidia.com/nemo-framework-open-beta
+     - Get Nemo container at https://developer.nvidia.com/nemo-framework-open-beta. Please sign in at [NGC](https://ngc.nvidia.com/signin) (user = ea-bignlp/ga-participants) to access the catalog.
        
 2. Update the following bash variables in the example run scripts:
      - ``` NEMO_MEGATRON_LAUNCHER_DIR ``` : the directory of where this repository is located
