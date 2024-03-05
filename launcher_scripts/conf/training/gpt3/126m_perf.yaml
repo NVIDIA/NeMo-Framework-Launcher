@@ -8,12 +8,12 @@ restore_from_path: null
 run:
   name: train_gpt3_126m_tp2_pp4
   results_dir: ${base_results_dir}/${.name}
-  time_limit: "00:20:00"
+  time_limit: "00:30:00"
   dependency: "singleton"
 
 trainer:
   devices: 8
-  num_nodes: 2
+  num_nodes: 1
   accelerator: gpu
   precision: bf16
   logger: false
