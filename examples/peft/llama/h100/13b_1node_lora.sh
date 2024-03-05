@@ -20,7 +20,7 @@ python3 ${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts/main.py \
     peft.trainer.devices=8 \
     peft.trainer.num_nodes=1 \
     peft.model.micro_batch_size=1 \
-    peft.model.global_batch_size=8 \
+    peft.model.global_batch_size=32 \
     peft.model.tensor_model_parallel_size=1 \
     peft.model.pipeline_model_parallel_size=1 \
     peft.model.peft.peft_scheme=lora \
