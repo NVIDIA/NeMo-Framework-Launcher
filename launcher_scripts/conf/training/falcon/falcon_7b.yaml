@@ -154,8 +154,6 @@ model:
   mcore_customization_config:
     new_decoder_architecture: false
     parallel_attention: true
-  target: nemo.collections.nlp.models.language_modeling.megatron_gpt_model.MegatronGPTModel
-  nemo_version: 1.21.0rc0
   data:
     data_impl: mmap
     splits_string: "99990,8,2"
