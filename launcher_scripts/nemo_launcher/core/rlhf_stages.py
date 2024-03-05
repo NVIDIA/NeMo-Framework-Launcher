@@ -110,7 +110,7 @@ class RLHFPPO(NeMoStage):
 
         setup = None
         env_vars = self.get_env_vars()
-        for i in range(3):
+        for i in range(2):
             env_vars[
                 f"HETJOB{i}_HOST"
             ] = f"$(scontrol show hostnames=$SLURM_JOB_NODELIST_HET_GROUP_{i} | head -n1)"
@@ -300,7 +300,12 @@ class RLHFPPO(NeMoStage):
             self._rlhf_code_path / "examples/nlp/gpt/train_gpt_ppo_actor.py",
         ]
 
-        for i, code_path in enumerate(code_path_list):
+        cfg_name_list = [
+            "gpt_ppo_critic.yaml",
+            "gpt_ppo_actor.yaml",
+        ]
+
+        for i, (code_path, cfg_name) in enumerate(zip(code_path_list, cfg_name_list)):
             command = self._make_wandb_login_command()
             command += self._make_nemo_path_command()
             core_command = [
@@ -310,17 +315,17 @@ class RLHFPPO(NeMoStage):
                 self._skip_ag_overlap,
                 self._nvte_bias_gelu_nvfusion,
             ]
+
             nemo_cammnd = [
                 f"python3 -u {code_path} ",
                 f"--config-path={stage_cfg_path.parents[0]}",
-                f"--config-name={stage_cfg_path.name}",
+                f"--config-name={cfg_name}",
             ]
-            if i == 3:
+            if i == 1:
                 nemo_cammnd += [
-                    "actor.model.rlhf.reward_model.ip=${HETJOB0_HOST}",
-                    "actor.model.rlhf.initial_policy.ip=${HETJOB1_HOST}",
-                    "actor.model.rlhf.critic.ip=${HETJOB2_HOST}",
+                    "remote_critic_rm.critic.ip=${HETJOB0_HOST}",
                 ]
+
             nemo_call_string = " \\\n  ".join(nemo_cammnd)
             core_command += [
                 self._make_api_log_command_prefix(
