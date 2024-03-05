@@ -9,7 +9,8 @@ These scripts run a recommended config for GPT, LLAMA2, Nemotron pretraining, an
 
 #### Setup
 1. To run these scripts, you must have access to the nemo bignlp container (like nvcr.io/nvidia/nemo:24.01.framework)
-     - If you don't have access, please signup at https://developer.nvidia.com/nemo-framework-open-beta
+     - If you don't have access, please sign in at [NGC](https://ngc.nvidia.com/signin) (user = ea-bignlp/ga-participants)
+     - Get Nemo at https://developer.nvidia.com/nemo-framework-open-beta
        
 2. Update the following bash variables in the example run scripts:
      - ``` NEMO_MEGATRON_LAUNCHER_DIR ``` : the directory of where this repository is located
@@ -49,30 +50,30 @@ For further details see [Interpreting the Results](https://docs.nvidia.com/nemo-
 - To calculate Model TFLOPs, please see Appendix A in [paper](https://arxiv.org/pdf/2205.05198.pdf).
   
   
-| Model | #-GPUs | Global Batch <br> Size | Sequence <br> Length | TP | PP | Tokens <br>/ sec | Model TFLOPs <br> per GPU | Est. time to train in days <br> (1T tokens, 1K GPUs) |
+| Model | #-GPUs | Global Batch <br> Size | Sequence <br> Length | TP | PP | Tokens <br>/ sec / GPU | Model TFLOPs <br> / GPU | Est. time to train <br> in days <br> (1T tokens, 1K GPUs) |
 | ---      | ---      |----   | ---      |----   | ---      | ---      | ---     | ---     |
-| GPT3-175B     | 512 | 2048 | 2048 | 4 | 8 | 379379 |  [797*](https://developer.nvidia.com/blog/setting-new-records-at-data-center-scale-using-nvidia-h100-gpus-and-quantum-2-infiniband/) | 15.3  |
-| GPT3-5B       | 64 | 2048 | 2048 | 1 | 1 | 1446312 | 738 | 0.5  |
-| GPT3-20B      | 64 | 256  | 2048 | 4 | 1 | 329741 | 660 | 2.2  |
-| LLAMA2-7B     | 8  | 128  | 4096 | 1 | 1 | 120526 | 694 | 0.8  |
-| LLAMA2-13B    | 16 | 128  | 4096 | 2 | 1 | 123653 | 674 | 1.5  |
-| LLAMA2-70B    | 64 | 128  | 4096 | 4 | 4 | 102002 | 708 | 7.1  |
-| Nemotron-8B   | 8  | 32   | 4096 | 2 | 1 | 92304 | 593 | 1.0  |
-| Nemotron-22B  | 16 | 32   | 4096 | 2 | 4 | 61249 | 499 | 3.0  |
+| GPT3-175B     | 512 | 2048 | 2048 | 4 | 8 | 741 |  [797*](https://developer.nvidia.com/blog/setting-new-records-at-data-center-scale-using-nvidia-h100-gpus-and-quantum-2-infiniband/) | 15.3  |
+| GPT3-5B       | 64 | 2048 | 2048 | 1 | 1 | 22599 | 738 | 0.5  |
+| GPT3-20B      | 64 | 256  | 2048 | 4 | 1 | 5152 | 660 | 2.2  |
+| LLAMA2-7B     | 8  | 128  | 4096 | 1 | 1 | 15066 | 694 | 0.8  |
+| LLAMA2-13B    | 16 | 128  | 4096 | 2 | 1 | 7728 | 674 | 1.5  |
+| LLAMA2-70B    | 64 | 128  | 4096 | 4 | 4 | 1594 | 708 | 7.1  |
+| Nemotron-8B   | 8  | 32   | 4096 | 2 | 1 | 11538 | 593 | 1.0  |
+| Nemotron-22B  | 16 | 32   | 4096 | 2 | 4 | 3828 | 499 | 3.0  |
 
 
 ### Benchmark performance numbers (finetuning)
 
 - The following table provides performance benchmarking of LLAMA2 models with SFT (supervised fine-tuning), and LoRA (Low-rank adaptors) on DGXH100, with FP8.
-- For fine-tuning, we use packed input dataset, and the inputs are packed to 4096 tokens.
+- For fine-tuning, we use [SQuAD-v1.1](https://rajpurkar.github.io/SQuAD-explorer/) dataset, and the inputs are packed to 4096 tokens.
 - To calculate Model TFLOPs, please see Appendix A in [paper](https://arxiv.org/pdf/2205.05198.pdf).
 
 
-| Model | Mode | #-GPUs | Global Batch <br> Size | Sequence <br> Length | TP | PP | Tokens <br>/ sec | Model TFLOPs <br> per GPU | Est. time to complete in mins <br> (40M tokens) |
+| Model | Mode | #-GPUs | Global Batch <br> Size | Sequence <br> Length | TP | PP | Tokens <br>/ sec / GPU| Model TFLOPs <br> / GPU | Est. time to <br> complete in mins <br> (10M tokens) |
 | ---     | ---      | ---      |----   | ---      |----   | ---      | ---      | ---     | ---     |
-| LLAMA2-7B  | SFT   | 8  | 32 | 4096 | 1 | 1 | 118096 | 591 | 5 |
-| LLAMA2-13B | SFT   | 8  | 32 | 4096 | 1 | 4 | 71916  | 698 | 9 |
-| LLAMA2-70B | SFT   | 16 | 32 | 4096 | 4 | 4 | 23515  | 609 | 7 |
-| LLAMA2-7B  | LoRA  | 8  | 32 | 4096 | 1 | 1 | 166002 | 556 | 4 |
-| LLAMA2-13B | LoRA  | 8  | 32 | 4096 | 1 | 1 | 100672 | 654 | 7 |
-| LLAMA2-70B | LoRA  | 8  | 32 | 4096 | 2 | 4 | 18234  | 631 | 37 |
+| LLAMA2-7B  | SFT   | 8  | 32 | 4096 | 1 | 1 | 14761 | 591 | 1 |
+| LLAMA2-13B | SFT   | 8  | 32 | 4096 | 1 | 4 | 8989  | 698 | 2 |
+| LLAMA2-70B | SFT   | 16 | 32 | 4096 | 4 | 4 | 1470  | 609 | 7 |
+| LLAMA2-7B  | LoRA  | 8  | 32 | 4096 | 1 | 1 | 20750 | 556 | 1 |
+| LLAMA2-13B | LoRA  | 8  | 32 | 4096 | 1 | 1 | 12584 | 654 | 2 |
+| LLAMA2-70B | LoRA  | 8  | 32 | 4096 | 2 | 4 | 2279  | 631 | 9 |
