@@ -49,7 +49,7 @@ model:
   micro_batch_size: 1
   global_batch_size: 32
   rampup_batch_size: null
-  tensor_model_parallel_size: 1
+  tensor_model_parallel_size: 8
   pipeline_model_parallel_size: 1
   virtual_pipeline_model_parallel_size: null
   encoder_seq_length: 4096

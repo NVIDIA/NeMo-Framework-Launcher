@@ -46,7 +46,7 @@ model:
   seed: 1234
   tensor_model_parallel_size: 8 # intra-layer model parallelism
   pipeline_model_parallel_size: 2 # inter-layer model parallelism
-  global_batch_size: 16
+  global_batch_size: 128
   micro_batch_size: 1
   restore_from_path: ${fine_tuning.run.convert_dir}/results/megatron_mixtral.nemo # Path to an existing p-tuned/prompt tuned .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
