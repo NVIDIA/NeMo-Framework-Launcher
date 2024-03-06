@@ -22,6 +22,8 @@ from . import (
     nemo_llama_prompt,
     nemo_falcon,
     nemo_baichuan2,
+    nemo_mistral,
+    nemo_mixtral,
 )
 
 MODEL_REGISTRY = {
