@@ -55,11 +55,11 @@ exp_manager:
 
 model:
   seed: 1234
-  tensor_model_parallel_size: 1 # intra-layer model parallelism
+  tensor_model_parallel_size: 8 # intra-layer model parallelism
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
 
-  global_batch_size: 128
-  micro_batch_size: 4
+  global_batch_size: 32
+  micro_batch_size: 1
   restore_from_path: ${peft.run.convert_dir}/results/megatron_mixtral.nemo # Path to an existing .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
   save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training.
