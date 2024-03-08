@@ -81,8 +81,6 @@ class NemoMegatronStage:
                 f"global batch size and number of nodes will change following this schedule:\n {self.nodes_scheduler}"
             )
 
-        self._set_fault_tolerance_work_dir_in_stage_cfg(self.stage_cfg, self.cluster)
-
         stage_cfg_path = NemoMegatronStage.save_stage_hydra_config(
             self.stage_cfg, job_path, self.cfg
         )
@@ -376,12 +374,6 @@ class NemoMegatronStage:
                 ft_conf.get('additional_ft_launcher_args', "")
         return cluster_parameters
     
-    def _set_fault_tolerance_work_dir_in_stage_cfg(self, stage_cfg, cluster):
-        use_ft, ft_conf = self._get_fault_tol_config_section(stage_cfg, cluster)
-        if use_ft:
-            with omegaconf.open_dict(ft_conf):
-                ft_conf.work_dir = str(self.get_job_path().folder / "_ft_scratch_dir")
-                
     def _find_optimal_nodes(self, cfg, gpus) -> None:
         nodes_scheduler_path = (
             f"{cfg.get('training').get('run').get('results_dir')}/nodes_scheduler.json"

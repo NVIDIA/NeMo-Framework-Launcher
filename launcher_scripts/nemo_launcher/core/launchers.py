@@ -1014,8 +1014,10 @@ def _make_sbatch_string_ft_launcher(
     # We do this by setting SLURM_JOB_NAME=interactive.
     # This is a temporary workaround, until the following PR is merged with NeMo 
     # https://github.com/Lightning-AI/pytorch-lightning/pull/18618
+    # --ignore-missing-fault-tol-cfg is used so FT launcher can handle NeMo YAML without fault_tolerance section
+    # in such case default FT config will be used
     ft_launcher_cmd_part="SLURM_JOB_NAME=interactive ft_launcher "+\
-                    f"--fault-tol-cfg-path=$FAULT_TOL_CFG_PATH {additional_ft_launcher_args} "+\
+                    f"--fault-tol-cfg-path=$FAULT_TOL_CFG_PATH --ignore-missing-fault-tol-cfg {additional_ft_launcher_args} "+\
                     "--rdzv_id=$SLURM_JOB_ID --rdzv_backend=c10d --rdzv_endpoint=$RDZV_HOST " +\
                     f"--nnodes={nodes} --nproc_per_node={ntasks_per_node} --max-restarts={max_rank_restarts}"
 
