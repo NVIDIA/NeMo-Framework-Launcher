@@ -18,4 +18,3 @@ model:
   tensor_model_parallel_size: 2
   pipeline_model_parallel_size: 1
   model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
-  tokenizer_model: ${data_dir}/mistral/mistral_tokenizer.model

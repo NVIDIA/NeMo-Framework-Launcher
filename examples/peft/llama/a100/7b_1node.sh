@@ -15,7 +15,7 @@ python3 ${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts/main.py \
     stages=[peft] \
     launcher_scripts_path=${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts \
     base_results_dir=${NEMO_MEGATRON_LAUNCHER_DIR}/results \
-    peft.run.name=h100_7b_1node \
+    peft.run.name=a100_7b_1node \
     peft.run.time_limit=0:20:00 \
     peft.trainer.devices=8 \
     peft.trainer.num_nodes=1 \
@@ -23,8 +23,6 @@ python3 ${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts/main.py \
     peft.model.global_batch_size=32 \
     peft.model.tensor_model_parallel_size=1 \
     peft.model.pipeline_model_parallel_size=1 \
-    peft.model.fp8=true \
-    ++peft.model.fp8_params=true \
     ++peft.model.log_token_counts=true \
     ++peft.model.gc_interval=0 \
     peft.model.restore_from_path=${MODEL} \
