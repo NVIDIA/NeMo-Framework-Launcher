@@ -1649,6 +1649,8 @@ class NeMoEvaluation(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "mixtral": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
+            "starcoder2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
         }
         return model_type_to_code_path[model_type]
 

@@ -90,6 +90,7 @@ STR2STAGECLASS = {
             "vit",
             "clip",
             "peft_baichuan2",
+            "starcoder2",
         ],
         DiffusionModelEvaluation: ["stable_diffusion", "imagen"],
     },
@@ -116,7 +117,6 @@ def main(cfg):
     dependency = None
     for stage_name in requested_stages:
         stage_class = STR2STAGECLASS[stage_name]
-
         if isinstance(stage_class, dict):
             stage_config_choice = cfg.get(f"{stage_name}_config")
             choice_model_type = stage_config_choice.rsplit("/", 1)[0]
