@@ -28,8 +28,8 @@ exp_manager:
 
 model:
   seed: 1234
-  tensor_model_parallel_size: 1
-  pipeline_model_parallel_size: 8
+  tensor_model_parallel_size: 8
+  pipeline_model_parallel_size: 1
 
   global_batch_size: 32
   micro_batch_size: 4
