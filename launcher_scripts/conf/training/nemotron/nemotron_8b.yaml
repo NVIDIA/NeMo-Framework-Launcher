@@ -96,7 +96,7 @@ model:
   tokenizer:
     library: sentencepiece
     type: null
-    model: /lustre/share/llmservice_nlp_fm/adlr-nlp-sharing/nvllm-8t/utils/nemotron_2_256k.model
+    model: null
     delimiter: null
     vocab_file: null
     merge_file: null
@@ -194,5 +194,5 @@ model:
     index_mapping_dir: ${data_dir}
     data_prefix:
       - 1
-      - /lustre/share/llmservice_nlp_fm/adlr-nlp-sharing/nvllm-8t/data/tokens-shuffle/english/non-cc/bioRxiv_fixed_shuf_text_document
+      - my_text_document
 
