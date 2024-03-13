@@ -111,7 +111,7 @@ model:
   tokenizer:
     library: sentencepiece
     type: bpe
-    model: null
+    model: /lustre/fsr/datasets/llm/c4/tokenizers/google_c4_spm/c4_en_301_5Mexp2_spm.model
     vocab_file: null
     merge_file: null
     delimiter: null
