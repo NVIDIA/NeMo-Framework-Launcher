@@ -163,7 +163,7 @@ class DataCurationSubStage(NemoMegatronStage):
 
     def make_dask_command_string(self, runscript_path):
         run_config = self.stage_cfg.get("run")
-        dask_config = self.stage_cfg.get("dask")
+        dask_config = self.stage_cfg.get("dask", {})
 
         command_string = []
         # Logging
