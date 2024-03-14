@@ -598,7 +598,13 @@ class PrepareTaskData(DataCurationSubStage):
             task_config_file=f"{task_cfg}",
         )
 
-        core_command = ["prepare_task_data", *args]
+        runscript = " \\\n  ".join(["prepare_task_data", *args])
+        runscript_path = os.path.join(self.log_folder, f"{self.stage_name}.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]
@@ -651,7 +657,13 @@ class FindMatchingNgrams(DataCurationSubStage):
 
         self.memory.ngrams_path = output_dir
 
-        core_command = ["find_matching_ngrams", *args]
+        runscript = " \\\n  ".join(["find_matching_ngrams", *args])
+        runscript_path = os.path.join(self.log_folder, f"{self.stage_name}.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]
@@ -704,7 +716,13 @@ class RemoveMatchingNgrams(DataCurationSubStage):
 
         self.memory.data_dir = output_dir
 
-        core_command = ["remove_matching_ngrams", *args]
+        runscript = " \\\n  ".join(["remove_matching_ngrams", *args])
+        runscript_path = os.path.join(self.log_folder, f"{self.stage_name}.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]
