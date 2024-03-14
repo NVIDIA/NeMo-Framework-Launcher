@@ -96,7 +96,7 @@ model:
   tokenizer:
     library: sentencepiece
     type: null
-    model: /lustre/share/llmservice_nlp_fm/adlr-nlp-sharing/nvllm-8t/utils/nemotron_2_256k.model
+    model: null
     delimiter: null
     vocab_file: null
     merge_file: null
@@ -144,7 +144,6 @@ model:
   mcore_gpt: True
 
   ## Transformer Engine
-  # fp8 training is currently not supported in the improved models
   transformer_engine: True
   fp8: False # enables fp8 in TransformerLayer forward
   fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
@@ -195,5 +194,5 @@ model:
     index_mapping_dir: ${data_dir}
     data_prefix:
       - 1
-      - /lustre/share/llmservice_nlp_fm/adlr-nlp-sharing/nvllm-8t/data/tokens-shuffle/english/non-cc/bioRxiv_fixed_shuf_text_document
+      - my_text_document
 

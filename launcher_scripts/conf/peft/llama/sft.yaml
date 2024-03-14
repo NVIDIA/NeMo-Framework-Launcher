@@ -7,13 +7,16 @@ hydra:
     - file:///opt/NeMo/examples/nlp/language_modeling/conf
 
 run:
-  name: sft_llama2
+  name: sft_${.model_train_name}
   results_dir: ${base_results_dir}/${.name}
-  time_limit: 0-01:00:00
+  time_limit: 04:00:00
   dependency: singleton
+  convert_name: convert_nemo
+  model_train_name: llama2
+  convert_dir: ${base_results_dir}/${.model_train_name}/${.convert_name}
 
 trainer:
-  devices: 1
+  devices: 8
   accelerator: gpu
   num_nodes: 1
   precision: bf16
@@ -27,7 +30,7 @@ trainer:
   gradient_clip_val: 1.0
 
 exp_manager:
-  explicit_log_dir: null
+  explicit_log_dir: ${peft.run.results_dir}/results
   exp_dir: null
   name: ${peft.run.name}
   create_wandb_logger: False
@@ -43,7 +46,7 @@ exp_manager:
     mode: min
     save_nemo_on_train_end: True
     filename: '${peft.exp_manager.name}--{${.monitor}:.3f}-{step}-{consumed_samples}'
-    model_parallel_size: ${peft.model.tensor_model_parallel_size}
+    model_parallel_size: ${multiply:${peft.model.tensor_model_parallel_size}, ${peft.model.pipeline_model_parallel_size}}
     always_save_nemo: False
     save_best_model: True
   create_early_stopping_callback: True
@@ -63,9 +66,11 @@ model:
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
   virtual_pipeline_model_parallel_size: null
 
+  encoder_seq_length: ${peft.model.data.train_ds.max_seq_length}
+
   global_batch_size: 128
   micro_batch_size: 4
-  restore_from_path: ??? # Path to an existing .nemo model you wish to add new tasks to or run inference with
+  restore_from_path: ${peft.run.convert_dir}/results/megatron_llama.nemo # Path to an existing .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
   save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training.
   sync_batch_comm: False
