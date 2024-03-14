@@ -7,6 +7,8 @@ run:
   node_type: cpu
 
 filter_config:
-  filter_module: ndc.filter.classifier.filter.FastTextLangId
-  params:
-    model_path: lid.176.bin # Will be automatically downloaded if it doesn't exist
+  input_field: text
+  filters:
+    - name: ndc.filters.classifier_filter.FastTextLangId
+      params:
+        model_path: lid.176.bin # Will be automatically downloaded if it doesn't exist
