@@ -593,7 +593,6 @@ class PrepareTaskData(DataCurationSubStage):
         # Create the list of arguments for the command
         args = create_args_list(
             replace_underscore=True,
-            log_dir=self.log_folder,
             output_task_ngrams=output_task_ngrams,
             task_config_file=f"{task_cfg}",
         )
@@ -648,7 +647,6 @@ class FindMatchingNgrams(DataCurationSubStage):
         # Create the list of arguments for the command
         args = create_args_list(
             replace_underscore=True,
-            log_dir=self.log_folder,
             input_data_dir=self.memory.data_dir,
             input_task_ngrams=self.memory.ngrams_path,
             output_matched_ngram_data=output_dir,
@@ -707,7 +705,6 @@ class RemoveMatchingNgrams(DataCurationSubStage):
         # Create the list of arguments for the command
         args = create_args_list(
             replace_underscore=True,
-            log_dir=self.log_folder,
             input_data_dir=self.memory.data_dir,
             input_matched_ngrams=self.memory.ngrams_path,
             output_task_deduped_dir=output_dir,
