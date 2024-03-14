@@ -174,7 +174,7 @@ class DataCurationSubStage(NemoMegatronStage):
         command_string.append(f"SCHEDULER_LOG={scheduler_log}")
         done_marker = self.log_folder / "done.txt"
         command_string.append(f"DONE_MARKER={done_marker}")
-        
+
         command_string.append(f"RUNSCRIPT={runscript_path}")
 
         device = run_config.get("node_type")
