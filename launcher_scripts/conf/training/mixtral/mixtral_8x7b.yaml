@@ -49,15 +49,15 @@ model:
   micro_batch_size: 1
   global_batch_size: 32
   rampup_batch_size: null
-  tensor_model_parallel_size: 1
-  pipeline_model_parallel_size: 1
+  tensor_model_parallel_size: 8
+  pipeline_model_parallel_size: 2
   virtual_pipeline_model_parallel_size: null
   encoder_seq_length: 2048
-  max_position_embeddings: 2048
+  max_position_embeddings: 32768
   num_layers: 32
-  hidden_size: 4544
-  ffn_hidden_size: 18176
-  num_attention_heads: 71
+  hidden_size: 4096
+  ffn_hidden_size: 14336
+  num_attention_heads: 32
   init_method_std: 0.02
   use_scaled_init_method: true
   hidden_dropout: 0.0
@@ -65,7 +65,7 @@ model:
   ffn_dropout: 0
   kv_channels: null
   apply_query_key_layer_scaling: false
-  normalization: layernorm
+  normalization: rmsnorm
   layernorm_epsilon: 1.0e-05
   do_layer_norm_weight_decay: false
   make_vocab_size_divisible_by: 128
@@ -73,19 +73,22 @@ model:
   post_process: true
   persist_layer_norm: true
   bias: false
-  activation: gelu
+  activation: fast-swiglu
   headscale: false
   transformer_block_type: pre_ln
   openai_gelu: false
   normalize_attention_scores: true
   position_embedding_type: rope
   rotary_percentage: 1.0
+  rotary_base: 1000000.0
+  moe_router_topk: 2
+  num_moe_experts: 8
   attention_type: multihead
   share_embeddings_and_output_weights: false
   overlap_p2p_comm: false
   batch_p2p_comm: true
   seq_len_interpolation_factor: null
-  num_query_groups: 1
+  num_query_groups: 8
   tokenizer:
     library: huggingface
     type: mistralai/Mixtral-8x7B-v0.1
@@ -119,11 +122,11 @@ model:
   transformer_engine: true
   fp8: false
   fp8_e4m3: false
-  fp8_hybrid: false
+  fp8_hybrid: true
   fp8_margin: 0
   fp8_interval: 1
-  fp8_amax_history_len: 1
-  fp8_amax_compute_algo: most_recent
+  fp8_amax_history_len: 1024
+  fp8_amax_compute_algo: max
   reduce_amax: true
   use_emha: false
   ub_tp_comm_overlap: false
@@ -150,12 +153,9 @@ model:
       min_lr: 1.0e-05
   gc_interval: 0
   precision: bf16
-  name: megatron_mixtral_gpt
   mcore_customization_config:
     new_decoder_architecture: false
-    parallel_attention: true
-  target: nemo.collections.nlp.models.language_modeling.megatron_gpt_model.MegatronGPTModel
-  nemo_version: 1.21.0rc0
+    parallel_attention: false
   data:
     data_impl: mmap
     splits_string: "99990,8,2"

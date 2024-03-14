@@ -490,7 +490,7 @@ class NemoMegatronStage:
 
     @property
     def _rlhf_code_path(self) -> Path:
-        return Path("/opt/nemo-rlhf")
+        return Path("/opt/NeMo-Aligner")
 
     @property
     def _aligner_code_path(self) -> Path:
@@ -1640,6 +1640,10 @@ class NeMoEvaluation(NeMoStage):
             "peft_starcoder2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "peft_baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
+            "peft_mistral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
+            "peft_mixtral": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "vit": self._nemo_code_path
             / "examples/vision/vision_transformer/megatron_vit_classification_evaluate.py",
