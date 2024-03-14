@@ -445,6 +445,9 @@ class LanguageIdentification(DataCurationSubStage):
             **optional_args,
         )
 
+        if optional_args["output_retained_document_dir"] is not None:
+            self.memory.data_dir = optional_args["output_retained_document_dir"]
+
         runscript = " \\\n  ".join(["filter_documents", *args])
         runscript_path = os.path.join(self.log_folder, f"{self.stage_name}.sh")
 

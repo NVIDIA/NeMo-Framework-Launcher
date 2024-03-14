@@ -7,3 +7,4 @@ run:
   node_type: cpu
 
 log_scores: True
+output_retained_document_dir: ${.run.results_dir}/lang_annotated
