@@ -445,7 +445,13 @@ class LanguageIdentification(DataCurationSubStage):
             **optional_args,
         )
 
-        core_command = ["filter_documents", *args]
+        runscript = " \\\n  ".join(["filter_documents", *args])
+        runscript_path = os.path.join(self.log_folder, f"{self.stage_name}.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]
@@ -495,7 +501,13 @@ class SeparateByLanguage(DataCurationSubStage):
         self.memory.data_dir = None
         self.memory.nested_dir = output_dir
 
-        core_command = ["separate_by_language", *args]
+        runscript = " \\\n  ".join(["separate_by_metadata", *args])
+        runscript_path = os.path.join(self.log_folder, f"{self.stage_name}.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]
@@ -527,14 +539,19 @@ class TextCleaning(DataCurationSubStage):
         # Create the list of arguments for the command
         args = create_args_list(
             replace_underscore=True,
-            log_dir=self.log_folder,
             input_data_dir=self.memory.data_dir,
             output_clean_dir=output_dir,
         )
 
         self.memory.data_dir = output_dir
 
-        core_command = ["text_cleaning", *args]
+        runscript = " \\\n  ".join(["text_cleaning", *args])
+        runscript_path = os.path.join(self.log_folder, f"{self.stage_name}.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]
