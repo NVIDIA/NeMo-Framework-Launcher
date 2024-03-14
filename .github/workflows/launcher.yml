@@ -22,5 +22,5 @@ jobs:
           pip install requests-mock
 
       - name: run unit tests
-        run: pytest
+        run: PYTHONPATH=${{env.working-directory}} pytest
         working-directory: ${{env.working-directory}}
