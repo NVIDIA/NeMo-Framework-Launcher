@@ -440,6 +440,7 @@ class LanguageIdentification(DataCurationSubStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
+            log_scores=stage_cfg.get("log_scores"),
             input_data_dir=self.memory.data_dir,
             filter_config_file=self.memory.filter_config_path,
             **optional_args,
