@@ -369,9 +369,9 @@ class FastTextDownload(NemoMegatronStage):
         # Write out the filter configuration as a separate config file
         results_path = self.get_job_path().results_folder
         filter_cfg = self.stage_cfg["filter_config"]
-        bin_path = Path(results_path, filter_cfg["params"]["model_path"])
+        bin_path = Path(results_path, filter_cfg["filters"][0]["params"]["model_path"])
         filter_cfg_file = Path(results_path, "fasttext_langid.yaml")
-        filter_cfg["params"]["model_path"] = str(bin_path)
+        filter_cfg["filters"][0]["params"]["model_path"] = str(bin_path)
 
         omegaconf.OmegaConf.save(filter_cfg, filter_cfg_file)
         self.memory.filter_config_path = filter_cfg_file
