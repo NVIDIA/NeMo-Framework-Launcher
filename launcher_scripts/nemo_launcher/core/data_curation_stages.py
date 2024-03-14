@@ -492,10 +492,9 @@ class SeparateByLanguage(DataCurationSubStage):
         # Create the list of arguments for the command
         args = create_args_list(
             replace_underscore=True,
-            log_dir=self.log_folder,
             input_data_dir=self.memory.data_dir,
             output_data_dir=output_dir,
-            output_language_distribution=stage_cfg.get("output_language_distribution"),
+            output_metadata_distribution=stage_cfg.get("output_language_distribution"),
             **optional_args,
         )
         self.memory.data_dir = None
