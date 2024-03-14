@@ -162,19 +162,36 @@ class DataCurationSubStage(NemoMegatronStage):
         return sub_stage_config
 
     def make_dask_command_string(self, runscript_path):
+        run_config = self.stage_cfg.get("run")
         dask_config = self.stage_cfg.get("dask")
 
         command_string = []
+        # Logging
         command_string.append(f"LOGDIR={self.log_folder}")
+        scheduler_file = self.log_folder / "scheduler.json"
+        command_string.append(f"SCHEDULER_FILE={scheduler_file}")
+        scheduler_log = self.log_folder / "scheduler.log"
+        command_string.append(f"SCHEDULER_LOG={scheduler_log}")
+        done_marker = self.log_folder / "done.txt"
+        command_string.append(f"DONE_MARKER={done_marker}")
+        
         command_string.append(f"RUNSCRIPT={runscript_path}")
 
-        pool_size = dask_config.get("pool_size")
-        command_string.append(f"POOL_SIZE={pool_size}")
+        device = run_config.get("node_type")
+        command_string.append(f"DEVICE={device}")
 
-        protocol = dask_config.get("protocol")
+        # CPU config
+        cpu_worker_memory_limit = dask_config.get("cpu_worker_memory_limit", "0")
+        command_string.append(f"CPU_WORKER_MEMORY_LIMIT={cpu_worker_memory_limit}")
+
+        # GPU config
+        scheduler_pool_size = dask_config.get("scheduler_pool_size", "1GB")
+        command_string.append(f"RMM_SCHEDULER_POOL_SIZE={scheduler_pool_size}")
+        worker_pool_size = dask_config.get("pool_size", "72GiB")
+        command_string.append(f"RMM_WORKER_POOL_SIZE={worker_pool_size}")
+        protocol = dask_config.get("protocol", "tcp")
         command_string.append(f"PROTOCOL={protocol}")
-
-        interface = dask_config.get("interface")
+        interface = dask_config.get("interface", "ibp12s0")
         command_string.append(f"INTERFACE={interface}")
 
         dask_script_path = (
