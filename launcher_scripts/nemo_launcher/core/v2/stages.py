@@ -667,10 +667,6 @@ torchrun {self.actor_script} --config-path=/config --config-name=config.yaml \
                 ],
                 capabilities=self.cluster_cfg.capabilities,
             )
-            # with Steps(name="rlhf-ppo-steps") as s:
-            #    with s.parallel():
-            #        critic_step = Step(name="critic-job", template=critic_job)
-            #        Step(name="actor-job", template=actor_job, arguments=critic_step.get_parameter("dependency_name"))
             with DAG(name="rlhf-ppo-steps"):
                 critic_task = critic_job()
                 actor_task = actor_job(
