@@ -65,18 +65,6 @@ if not OmegaConf.has_resolver("divide_floor"):
             ],
         ),
         (
-            stages.RLHFPPO,
-            [
-                "stages=[rlhf_ppo]",
-                "rlhf_ppo=gpt3/2b_ppo",
-                "rlhf_ppo.critic.pretrained_checkpoint.restore_from_path=/nemo/megatron_gpt.nemo",
-                "rlhf_ppo.critic.exp_manager.explicit_log_dir=/nemo/critic_results",
-                "rlhf_ppo.actor.pretrained_checkpoint.restore_from_path=/nemo/megatron_gpt.nemo",
-                "rlhf_ppo.actor.exp_manager.explicit_log_dir=/nemo/actor_results",
-                "rlhf_ppo.actor.model.data.data_prefix={train: [/nemo/train_prompt], validation: [/nemo/val_prompt], test: [/nemo/val_prompt]}",
-            ],
-        ),
-        (
             stages.RLHFRewardModel,
             [
                 "stages=[rlhf_rm]",
