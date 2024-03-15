@@ -62,6 +62,7 @@ STR2STAGECLASSV2 = {
         stages_v2.PileDataPreparation: ["gpt3", "t5", "bert", "llama", "falcon"],
     },
     "training": stages_v2.Training,
+    "rlhf_ppo": stages_v2.RLHFPPO,
     "rlhf_rm": stages_v2.RLHFRewardModel,
     "generic": stages_v2.GenericJob,
 }
