@@ -97,7 +97,7 @@ model:
   data:
     test_ds:
       file_names:
-        - ${data_dir}/test.jsonl
+        - ${data_dir}/human_eval/test.jsonl
       test_names:
         - human_eval
       global_batch_size: 16
