@@ -112,12 +112,12 @@ model:
   tokenizer:
     library: 'sentencepiece'
     type: null
-    model: "/lustre/fsw/joc/big_nlp/nemo_gpt3/rlhf/data/sp_model/sp_tokenizer_256k.model"
+    model: null
     delimiter: null
     vocab_file: null
     merge_file: null
     sentencepiece_legacy: false
-    tokenizer_model: "/lustre/fsw/joc/big_nlp/nemo_gpt3/rlhf/data/sp_model/sp_tokenizer_256k.model"
+    tokenizer_model: null
 
   # precision
   native_amp_init_scale: 4294967296 # 2 ** 32

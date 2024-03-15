@@ -79,6 +79,8 @@ def main(cfg):
             model_type = "llama"
         elif "falcon" in data_config:
             model_type = "falcon"
+        elif "baichuan2" in data_config:
+            model_type = "baichuan2"
 
         output_prefix = os.path.join(data_dir, f"my-{model_type}_{file_number:02d}")
 

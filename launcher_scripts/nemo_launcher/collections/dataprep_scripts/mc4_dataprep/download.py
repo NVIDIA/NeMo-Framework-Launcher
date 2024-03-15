@@ -43,9 +43,7 @@ if __name__ == "__main__":
 
     setup_git_lfs(args.git_lfs_path)
     if args.bcp:
-        task_id = int(
-            os.environ.get("OMPI_COMM_WORLD_RANK", 0)
-        )  # assume exec with mpirun
+        task_id = int(os.environ.get("RANK", 0))  # assume exec with mpirun
     else:  # on slurm based platforms
         task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
     with open(args.worker_mapping_file) as f:
