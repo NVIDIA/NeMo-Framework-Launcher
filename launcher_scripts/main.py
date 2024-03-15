@@ -92,6 +92,7 @@ STR2STAGECLASS = {
             "vit",
             "clip",
             "peft_baichuan2",
+            "starcoder2",
             "peft_mistral",
             "peft_mixtral",
         ],

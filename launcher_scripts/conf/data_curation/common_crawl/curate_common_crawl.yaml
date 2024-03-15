@@ -12,7 +12,7 @@ gpu_config:
 
 stages:
   - lang_separation_and_cleaning
-  - task_deduplication
+  - task_decontamination
 
 lang_separation_and_cleaning:
   - fasttext_download
@@ -21,7 +21,7 @@ lang_separation_and_cleaning:
   - choose_language
   - text_cleaning
 
-task_deduplication:
+task_decontamination:
   - prepare_task_data
   - find_matching_ngrams
   - remove_matching_ngrams
