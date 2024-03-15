@@ -15,19 +15,27 @@ python3 ${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts/main.py \
     stages=[peft] \
     launcher_scripts_path=${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts \
     base_results_dir=${NEMO_MEGATRON_LAUNCHER_DIR}/results \
-    peft.run.name=h100_7b_1node \
+    peft.run.name=a100_70b_1node_lora \
     peft.run.time_limit=0:20:00 \
     peft.trainer.devices=8 \
     peft.trainer.num_nodes=1 \
     peft.model.micro_batch_size=1 \
     peft.model.global_batch_size=32 \
-    peft.model.tensor_model_parallel_size=1 \
-    peft.model.pipeline_model_parallel_size=1 \
-    peft.model.fp8=true \
-    ++peft.model.fp8_params=true \
+    peft.model.tensor_model_parallel_size=2 \
+    peft.model.pipeline_model_parallel_size=4 \
+    peft.model.peft.peft_scheme=lora \
+    peft.model.ub_tp_comm_overlap=true \
     ++peft.model.log_token_counts=true \
     ++peft.model.gc_interval=0 \
     peft.model.restore_from_path=${MODEL} \
+    peft.model.optim.name=fused_adam \
+    ~peft.model.optim.bucket_cap_mb \
+    ~peft.model.optim.dtype \
+    ~peft.model.optim.grad_sync_dtype \
+    ~peft.model.optim.overlap_grad_sync \
+    ~peft.model.optim.overlap_param_sync \
+    ~peft.model.optim.contiguous_param_buffer \
+    ~peft.model.optim.contiguous_grad_buffer \
     peft.model.data.train_ds.file_names=${TRAIN_DS} \
     peft.model.data.train_ds.packed_sequence=true \
     peft.model.data.train_ds.pad_to_max_length=true \

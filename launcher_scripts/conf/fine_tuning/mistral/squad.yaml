@@ -44,8 +44,8 @@ exp_manager:
 
 model:
   seed: 1234
-  tensor_model_parallel_size: 1 # intra-layer model parallelism
-  pipeline_model_parallel_size: 4 # inter-layer model parallelism
+  tensor_model_parallel_size: 8 # intra-layer model parallelism
+  pipeline_model_parallel_size: 1 # inter-layer model parallelism
   global_batch_size: 128
   micro_batch_size: 1
   restore_from_path: ${fine_tuning.run.convert_dir}/results/megatron_mistral.nemo # Path to an existing p-tuned/prompt tuned .nemo model you wish to add new tasks to or run inference with

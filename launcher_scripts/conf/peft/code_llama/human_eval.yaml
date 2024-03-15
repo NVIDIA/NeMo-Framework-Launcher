@@ -5,9 +5,9 @@ run:
   time_limit: "04:00:00"
   dependency: "singleton"
   convert_name: convert_nemo
-  model_train_name: llama2_7b
+  model_train_name: code_llama_python_7b
   convert_dir: ${base_results_dir}/${.model_train_name}/${.convert_name}
-  task_name: "squad"
+  task_name: "human_eval"
   results_dir: ${base_results_dir}/${.model_train_name}/peft_${.name}
 
 trainer:
@@ -20,7 +20,7 @@ trainer:
   use_distributed_sampler: False
   max_epochs: 9999
   max_steps: 20000 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
-  log_every_n_steps: 10 # frequency with which training steps are logged 
+  log_every_n_steps: 10 # frequency with which training steps are logged
   val_check_interval: 200 # If is an int n > 1, will run val every n training steps, if a float 0.0 - 1.0 will run val every epoch fraction, e.g. 0.25 will run val every quarter epoch
   gradient_clip_val: 1.0
 
@@ -30,7 +30,7 @@ exp_manager:
   name: ${peft.name}
   create_wandb_logger: False
   wandb_logger_kwargs:
-    project: nemo_llama2_${peft.run.task_name}
+    project: nemo_code_llama_${peft.run.task_name}
     name: ${peft.run.name}
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
@@ -60,9 +60,9 @@ model:
 
   global_batch_size: 128
   micro_batch_size: 4
-  restore_from_path: ${peft.run.convert_dir}/results/megatron_llama.nemo # Path to an existing .nemo model you wish to add new tasks to or run inference with
+  restore_from_path: ${peft.run.convert_dir}/results/megatron_code_llama.nemo # Path to an existing p-tuned/prompt tuned .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
-  save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training. 
+  save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training.
   sync_batch_comm: False
   megatron_amp_O2: False
   mcore_gpt: True
@@ -72,8 +72,8 @@ model:
   # See Reducing Activation Recomputation in Large Transformer Models: https://arxiv.org/abs/2205.05198 for more details.
   sequence_parallel: False
 
-  ## Activation Checkpoint 
-  activations_checkpoint_granularity: null # 'selective' or 'full' 
+  ## Activation Checkpoint
+  activations_checkpoint_granularity: null # 'selective' or 'full'
   activations_checkpoint_method: null # 'uniform', 'block', not used with 'selective'
   # 'uniform' divides the total number of transformer layers and checkpoints the input activation
   # of each chunk at the specified granularity
@@ -86,13 +86,6 @@ model:
   hidden_dropout: 0.0
   attention_dropout: 0.0
   ffn_dropout: 0.0
-
-  # FSDP
-  fsdp: False # Enable training with torch FSDP.
-  fsdp_sharding_strategy: 'full' # Method to shard model states. Available options are 'full', 'hybrid', and 'grad'.
-  fsdp_grad_reduce_dtype: 'bf16' # Gradient reduction data type.
-  fsdp_sharded_checkpoint: False # Store and load FSDP shared checkpoint.
-  fsdp_use_orig_params: False # Set to True to use FSDP for specific peft scheme.
 
   peft:
     peft_scheme: "lora"  # can be either adapter, ia3, lora, or ptuning
@@ -133,14 +126,14 @@ model:
   data:
     train_ds:
       # Example of how to specify paths to multiple datasets
-      # file_names: 
+      # file_names:
       #   - /path/to/squad.jsonl
       #   - /path/to/mnli.jsonl
       #   - /path/to/boolq.jsonl
       # Example of how each dataset is formatted
       # {'input': 'John von Neumann\nVon Neumann made fundamental contributions .... Q: What did the math of artificial viscosity do?', 'output': 'smoothed the shock transition without sacrificing basic physics'}
       file_names:
-      - ${data_dir}/squad_data/v1.1/train-v1.1_gpt.json # Path to a list of JSONL files corresponding to the source data.
+      - ${data_dir}/human_eval/train.jsonl # Path to a list of JSONL files corresponding to the source data.
       global_batch_size: ${peft.model.global_batch_size}
       micro_batch_size: ${peft.model.micro_batch_size}
       shuffle: True
@@ -168,8 +161,8 @@ model:
       prompt_template: "{input} {output}" # fstring to use for assistant prompt. Example: "Q: {input}\nA: {output}"
 
     validation_ds:
-      file_names: 
-      - ${data_dir}/squad_data/v1.1/dev-v1.1_gpt.json # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
+      file_names:
+      - ${data_dir}/human_eval/validation.jsonl  # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
       names:
       - ${peft.run.task_name} # Names of the corresponding datasets used to log metrics.
       global_batch_size: ${peft.model.global_batch_size}
@@ -198,7 +191,8 @@ model:
         average: null # Average the metric over the dataset. Options: ['macro', 'micro']. Works only for 'F1', 'accuracy' etc. Refer to torchmetrics for metrics where this is supported.
         num_classes: null
     test_ds:
-        file_names: ${peft.model.data.validation_ds.file_names} # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
+        file_names:
+          - ${data_dir}/human_eval/test.jsonl # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
         names: null # Names of the corresponding datasets used to log metrics.
         global_batch_size: ${peft.model.global_batch_size}
         micro_batch_size: ${peft.model.micro_batch_size}
@@ -229,8 +223,8 @@ model:
   optim:
     name: fused_adam
     lr: 1e-4
-    weight_decay: 0.01 
-    betas: 
+    weight_decay: 0.01
+    betas:
     - 0.9
     - 0.98
     sched:

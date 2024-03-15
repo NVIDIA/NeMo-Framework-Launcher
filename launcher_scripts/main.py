@@ -75,6 +75,8 @@ STR2STAGECLASS = {
             "falcon",
             "baichuan2",
             "chatglm",
+            "mistral",
+            "mixtral",
         ],
         NeMoEvaluation: [
             "t5",
@@ -92,6 +94,9 @@ STR2STAGECLASS = {
             "clip",
             "peft_baichuan2",
             "peft_chatglm",
+            "starcoder2",
+            "peft_mistral",
+            "peft_mixtral",
         ],
         DiffusionModelEvaluation: ["stable_diffusion", "imagen"],
     },

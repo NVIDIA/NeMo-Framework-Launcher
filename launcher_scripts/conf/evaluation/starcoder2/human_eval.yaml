@@ -1,16 +1,17 @@
 run:
   name: eval_${.task_name}_${.model_train_name}
-  time_limit: "01:00:00"
+  time_limit: "04:00:00"
   dependency: "singleton"
+  ntasks_per_node: 1
   convert_name: convert_nemo
-  model_train_name: mixtral_8x7b
-  task_name: "squad"  # SQuAD v1.1
+  model_train_name: starcoder2
+  task_name: "human_eval"  # HumanEval
   convert_dir: ${base_results_dir}/${.model_train_name}/${.convert_name}
-  fine_tuning_dir: ${base_results_dir}/${.model_train_name}/peft_${.task_name}
-  results_dir: ${base_results_dir}/${.model_train_name}/peft_${.task_name}_eval
+  fine_tuning_dir: ${base_results_dir}/${.model_train_name}/${.task_name}
+  results_dir: ${base_results_dir}/${.model_train_name}/${.task_name}_evaluation
 
 trainer:
-  devices: 8
+  devices: 1
   num_nodes: 1
   accelerator: gpu
   precision: bf16
@@ -23,17 +24,17 @@ trainer:
 exp_manager:
   explicit_log_dir: ${evaluation.run.results_dir}/results
   exp_dir: null
-  name: megatron_mixtral_${evaluation.run.task_name}_eval
+  name: megatrmegatron_starcoder2_${evaluation.run.task_name}_eval
   create_checkpoint_callback: False
 
 model:
   seed: 1234
-  tensor_model_parallel_size: 8
+  tensor_model_parallel_size: 1
   pipeline_model_parallel_size: 1
 
   global_batch_size: 32
   micro_batch_size: 4
-  restore_from_path: ${peft.run.convert_dir}/results/megatron_mixtral.nemo # Path to an existing .nemo model you wish to add new tasks to or run inference with
+  restore_from_path: ${evaluation.run.convert_dir}/results/megatron_starcoder2.nemo # Path to converted starcoder2 .nemo file
   resume_from_checkpoint: null
   save_nemo_on_validation_end: True
   sync_batch_comm: False
@@ -53,9 +54,12 @@ model:
   ffn_dropout: 0.0
 
   peft:
-    peft_scheme: "lora"  # can be either lora or ptuning
-    restore_from_path: ${evaluation.run.fine_tuning_dir}/checkpoints/megatron_mixtral_peft_tuning-${.peft_scheme}.nemo
+    peft_scheme: "ptuning"  # can be either adapter,ia3, or ptuning
+    restore_from_path: null
     restore_from_ckpt_name: null
+    restore_from_ckpt:
+      checkpoint_dir: null
+      checkpoint_name: null
     restore_from_hparams_path: null
 
     # Used for adapter peft training
@@ -88,32 +92,32 @@ model:
       init_std: 0.023
 
     ia3_tuning:
-      layer_selection:  null  # selects in which layers to add ia3 adapters. e.g. [1,12] will add lora to layer 1 (lowest) and 12. null will apply adapters to all layers 
+      layer_selection:  null  # selects in which layers to add ia3 adapters. e.g. [1,12] will add lora to layer 1 (lowest) and 12. null will apply adapters to all layers
 
   data:
     test_ds:
       file_names:
-        - ${data_dir}/squad_data/v1.1/dev-v1.1_gpt.json
+        - ${data_dir}/human_eval/test.jsonl
       test_names:
-        - squad
-      global_batch_size: 32
-      micro_batch_size: 4
+        - human_eval
+      global_batch_size: 16
+      micro_batch_size: 2
       shuffle: False
       num_workers: 4
       pin_memory: True
       max_seq_length: 2048
       min_seq_length: 1
       drop_last: False
-      context_key: 'input'
-      label_key: 'output'
+      context_key: 'prompt'
+      label_key: 'canonical_solution'
       add_eos: True
       add_sep: False
       add_bos: False
       write_predictions_to_file: True
       output_file_path_prefix: ${evaluation.run.results_dir}/results/predictions
-      truncation_field: "context"
+      truncation_field: "prompt"
       index_mapping_dir: null
-      prompt_template: "{input} {output}"
+      prompt_template: "{prompt} {canonical_solution}"
       tokens_to_generate: 20
       truncation_method: 'right'
 
@@ -143,57 +147,3 @@ username: test # user name for web client
 password: test2  # password for web client
 web_port: 9889 # the port number of the web server 1058
 chat: False # use the chat interface
-chatbot_config:
-  value: False   # whether to inject the value attributes
-  attributes:
-    - name: Quality
-      min: 0
-      max: 4
-      key: quality
-      type: int
-      default: 4
-    - name: Toxicity
-      min: 0
-      max: 4
-      key: toxcity
-      type: int
-      default: 0
-    - name: Humor
-      min: 0
-      max: 4
-      key: humor
-      type: int
-      default: 0
-    - name: Creativity
-      min: 0
-      max: 4
-      key: creativity
-      type: int
-      default: 0
-    - name: Violence
-      min: 0
-      max: 4
-      key: violence
-      type: int
-      default: 0
-    - name: Helpfulness
-      min: 0
-      max: 4
-      key: helpfulness
-      type: int
-      default: 4
-    - name: Not_Appropriate
-      min: 0
-      max: 4
-      key: not_appropriate
-      type: int
-      default: 0
-    - name: Language
-      choices: ['ar', 'bg', 'bn', 'ca', 'cs', 'da', 'de', 'el', 'en', 'eo', 'es', 'eu', 'fa', 'fi', 'fr', 'gl', 'he', 'hu', 'id', 'it', 'ja', 'ko', 'nb', 'nl', 'pl', 'pt', 'ro', 'ru', 'sk', 'sv', 'th', 'tr', 'uk', 'vi', 'zh']
-      key: lang
-      type: list
-      default: en
-
-  user: User
-  assistant: Assistant
-  system: "A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the human's questions.\n\n"
