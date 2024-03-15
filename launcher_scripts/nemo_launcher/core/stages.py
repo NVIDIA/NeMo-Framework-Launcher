@@ -1448,8 +1448,7 @@ class Conversion(NemoMegatronStage):
             )
         if not run_cfg.get("pack_nemo_file", True):
             args += create_args_list(
-                replace_underscore=False,
-                no_pack_nemo_file="store_true",
+                replace_underscore=False, no_pack_nemo_file="store_true",
             )
 
         args += ["--bcp"] if self.cluster == "bcp" else []
