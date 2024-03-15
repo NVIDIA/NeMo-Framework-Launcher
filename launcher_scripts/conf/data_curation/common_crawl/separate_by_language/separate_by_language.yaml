@@ -6,5 +6,5 @@ run:
   nodes: 1
   node_type: cpu
 
-output_data_dir: ${data_dir}/lang_separated
+output_data_dir: ${.run.results_dir}/lang_separated
 output_language_distribution: ${.run.results_dir}/lang_distro.json
