@@ -23,6 +23,7 @@ python3 ${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts/main.py \
     peft.model.global_batch_size=32 \
     peft.model.tensor_model_parallel_size=2 \
     peft.model.pipeline_model_parallel_size=2 \
+    peft.model.sequence_parallel=true \
     peft.model.ub_tp_comm_overlap=true \
     peft.model.fp8=true \
     ++peft.model.fp8_params=true \
