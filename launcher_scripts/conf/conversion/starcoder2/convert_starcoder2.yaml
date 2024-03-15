@@ -5,10 +5,10 @@ run:
   dependency: "singleton"
   ntasks_per_node: ${divide_ceil:${conversion.model.model_parallel_size}, ${.nodes}}
   convert_name: convert_nemo
-  model_train_name: mistral_7b
+  model_train_name: starcoder2_15b
   train_dir: ${base_results_dir}/${.model_train_name}
   results_dir: ${.train_dir}/${.convert_name}
-  nemo_file_name: megatron_mistral.nemo # name of nemo checkpoint; must be .nemo file
+  nemo_file_name: megatron_starcoder2.nemo # name of nemo checkpoint; must be .nemo file
 
 model:
   model_type: gpt # gpt or t5, use t5 for mt5 as well
@@ -18,3 +18,4 @@ model:
   tensor_model_parallel_size: 2
   pipeline_model_parallel_size: 1
   model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
+  tokenizer_model: ${data_dir}/starcoder2/starcoder2_tokenizer.model
