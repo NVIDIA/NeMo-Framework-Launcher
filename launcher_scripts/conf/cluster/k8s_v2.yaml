@@ -1,7 +1,8 @@
 _target_: nemo_launcher.core.v2.config_k8s.K8sClusterConfig
 volumes:
   workspace:
-    sub_path: my-workspace
+    # mount_path=null mirrors the volume into all the containers. Specify a different path if
+    mount_path: null
     persistent_volume_claim:
       claim_name: nemo-workspace
   dshm:
