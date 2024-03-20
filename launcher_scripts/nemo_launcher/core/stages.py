@@ -2398,7 +2398,7 @@ class ConversionHF2NeMo(NeMoStage):
         nemo_file_path = self.get_job_path().results_folder / nemo_file_name
         code_path = (
             self._nemo_code_path
-            / "scripts/nlp_language_modeling/convert_hf_llama_to_nemo.py"
+            / "scripts/checkpoint_converters/convert_llama_hf_to_nemo.py"
         )
         args = create_args_list(
             in_file=run_cfg.get("huggingface_ckpt_path"),
