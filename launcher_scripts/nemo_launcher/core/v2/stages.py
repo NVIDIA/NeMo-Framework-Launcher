@@ -87,59 +87,6 @@ class Stage(BaseModel):
             raise NotImplementedError
 
 
-class GenericJob(Stage):
-    image: str
-    env: dict[str, Any]
-    n_workers: int
-    gpus_per_worker: int | None
-    script: str
-    stage_name: ClassVar[str] = "generic"
-
-    @classmethod
-    def _from_omegaconf(cls, cfg: OmegaConf):
-        stage_cfg = cfg.get(cls.stage_name)
-
-        return cls(
-            stage_cfg=stage_cfg,
-            cluster_cfg=instantiate_model_from_omegaconf(cfg.cluster),
-            image=cfg.container,
-            env=cfg.env_vars,
-            n_workers=stage_cfg.n_workers,
-            gpus_per_worker=stage_cfg.gpus_per_worker,
-            script=stage_cfg.script,
-        )
-
-    def make_k8s_workflow(self) -> Workflow:
-        assert isinstance(self.cluster_cfg, K8sClusterConfig)
-        # First step is to resolve the config since there are absolute/relative references
-        OmegaConf.resolve(self.stage_cfg)
-
-        vols, vol_mounts = adapt_volume_to(self.cluster_cfg.volumes, to_format="hera")
-
-        with Workflow(
-            generate_name="generic-",
-            entrypoint="generic-steps",
-            namespace=self.cluster_cfg.namespace,
-            volumes=vols,
-        ) as w:
-            pytorchjob = create_pytorchjob_resource(
-                generate_name="generic-",
-                image=self.image,
-                image_pull_secret=self.cluster_cfg.pull_secret,
-                n_workers=self.n_workers,
-                gpus_per_worker=self.gpus_per_worker,
-                namespace=self.cluster_cfg.namespace,
-                env=self.env,
-                command=["bash", "-euxc", self.script,],
-                volumes=self.cluster_cfg.volumes,
-                network_interfaces=self.cluster_cfg.ib_interfaces,
-                capabilities=self.cluster_cfg.capabilities,
-            )
-            with Steps(name="generic-steps") as s:
-                Step(name="pytorchjob", template=pytorchjob)
-        return w
-
-
 class Training(Stage):
     image: str
     env: dict[str, Any]

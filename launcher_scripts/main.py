@@ -64,7 +64,6 @@ STR2STAGECLASSV2 = {
     "training": stages_v2.Training,
     "rlhf_ppo": stages_v2.RLHFPPO,
     "rlhf_rm": stages_v2.RLHFRewardModel,
-    "generic": stages_v2.GenericJob,
 }
 STR2STAGECLASS = {
     "training": Training,

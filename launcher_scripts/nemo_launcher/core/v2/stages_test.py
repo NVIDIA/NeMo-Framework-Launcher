@@ -35,7 +35,6 @@ if not OmegaConf.has_resolver("divide_floor"):
 @pytest.mark.parametrize(
     "stage_cls,overrides",
     [
-        (stages.GenericJob, ["stages=[generic]", "generic=job"]),
         (
             stages.Training,
             [

@@ -6,6 +6,7 @@ from nemo_launcher.core.v2.step_k8s import (
     prune_tree,
     create_pytorchjob_resource,
     create_mpijob_resource,
+    BACKOFF_LIMIT,
 )
 import pytest
 import yaml
@@ -101,7 +102,7 @@ def test_pytorchjob_in_workflow():
                     },
                 },
             },
-            "runPolicy": {"cleanPodPolicy": "None",},
+            "runPolicy": {"cleanPodPolicy": "None", "backoffLimit": BACKOFF_LIMIT},
         },
     }
 
@@ -149,7 +150,7 @@ def test_mpijob_in_workflow():
                         # Check manifest separately
                         # "manifest": "apiVersion: kubeflow.org/v1\nkind: MPIJob..."
                         "setOwnerReference": True,
-                        "successCondition": "status.replicaStatuses.Worker.succeeded = 2",
+                        "successCondition": "status.replicaStatuses.Launcher.succeeded = 1",
                     },
                 }
             ],
@@ -201,7 +202,7 @@ def test_mpijob_in_workflow():
                     },
                 },
             },
-            "runPolicy": {"cleanPodPolicy": "Running",},
+            "runPolicy": {"cleanPodPolicy": "Running", "backoffLimit": BACKOFF_LIMIT},
         },
     }
 

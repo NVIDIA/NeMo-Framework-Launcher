@@ -1,7 +1,0 @@
-run:
-  name: generic_job
-  results_dir: ${base_results_dir}/${.name}
-
-n_workers: 1
-gpus_per_worker: null
-script: ''
