@@ -220,7 +220,7 @@ def create_mpijob_resource(
     capabilities: list[str] | None = None,
 ) -> Resource:
     if success_condition == _unset:
-        success_condition = f"status.replicaStatuses.Worker.succeeded = {n_workers}"
+        success_condition = f"status.replicaStatuses.Launcher.succeeded = 1"
     pod_annotations = {
         constants.ISTIO_SIDECAR_INJECTION: "false",
     }
