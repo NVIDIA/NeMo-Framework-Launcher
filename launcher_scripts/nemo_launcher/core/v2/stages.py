@@ -686,7 +686,10 @@ torchrun {self.actor_script} --config-path=/config --config-name=config.yaml \
                     ]
                 )
                 critic_task >> actor_task
-                delete_critic(arguments=[critic_task.get_parameter("metadata_name")], depends=f"{actor_task.name} || {actor_task.name}.Failed || {actor_task.name}.Errored")
+                delete_critic(
+                    arguments=[critic_task.get_parameter("metadata_name")],
+                    depends=f"{actor_task.name} || {actor_task.name}.Failed || {actor_task.name}.Errored",
+                )
         return w
 
 

@@ -170,7 +170,9 @@ def create_pytorchjob_resource(
         kind=constants.PYTORCHJOB_KIND,
         metadata=V1ObjectMeta(generate_name=generate_name, namespace=namespace),
         spec=KubeflowOrgV1PyTorchJobSpec(
-            run_policy=KubeflowOrgV1RunPolicy(clean_pod_policy="None",backoff_limit=BACKOFF_LIMIT),
+            run_policy=KubeflowOrgV1RunPolicy(
+                clean_pod_policy="None", backoff_limit=BACKOFF_LIMIT
+            ),
             elastic_policy=KubeflowOrgV1ElasticPolicy(
                 rdzv_backend="c10d",
                 min_replicas=n_workers,
@@ -293,7 +295,9 @@ def create_mpijob_resource(
         metadata=V1ObjectMeta(generate_name=generate_name, namespace=namespace),
         spec=KubeflowOrgV1MPIJobSpec(
             # Clean running pods since the workers will hang around even after the launcher finishes
-            run_policy=KubeflowOrgV1RunPolicy(clean_pod_policy="Running", backoff_limit=BACKOFF_LIMIT),
+            run_policy=KubeflowOrgV1RunPolicy(
+                clean_pod_policy="Running", backoff_limit=BACKOFF_LIMIT
+            ),
             mpi_replica_specs={"Launcher": launcher, "Worker": worker,},
         ),
     )
@@ -326,13 +330,16 @@ def create_mpijob_resource(
         ],
     )
 
-def delete_pytorchjob(name: str="delete-pytorchjob"):
-    manifest = dedent(f"""
-                      apiVersion: {constants.KUBEFLOW_GROUP}/{constants.OPERATOR_VERSION}
-                      kind: {constants.PYTORCHJOB_KIND}
-                      metadata:
-                        name: {{{{inputs.parameters.metadata_name}}}}
-                      """)
+
+def delete_pytorchjob(name: str = "delete-pytorchjob"):
+    manifest = dedent(
+        f"""
+        apiVersion: {constants.KUBEFLOW_GROUP}/{constants.OPERATOR_VERSION}
+        kind: {constants.PYTORCHJOB_KIND}
+        metadata:
+          name: {{{{inputs.parameters.metadata_name}}}}
+        """
+    )
     return Resource(
         name=name,
         action="delete",
