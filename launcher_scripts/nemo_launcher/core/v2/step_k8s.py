@@ -41,8 +41,15 @@ from nemo_launcher.core.v2.config_k8s import (
     K8sNetworkInterfaces,
     adapt_volume_to,
 )
+from textwrap import dedent
+import os
 
 _unset = object()
+
+# TODO: Plumb this value from the K8sClusterConfig
+# The value is set to a relatively small value to avoid
+# using resources if a pod is continually failing.
+BACKOFF_LIMIT = int(os.environ.get("K8S_BACKOFF_LIMIT", 10))
 
 
 def prune_tree(tree: dict, is_prunable: Callable[[Any], bool] = None):
@@ -163,7 +170,7 @@ def create_pytorchjob_resource(
         kind=constants.PYTORCHJOB_KIND,
         metadata=V1ObjectMeta(generate_name=generate_name, namespace=namespace),
         spec=KubeflowOrgV1PyTorchJobSpec(
-            run_policy=KubeflowOrgV1RunPolicy(clean_pod_policy="None",),
+            run_policy=KubeflowOrgV1RunPolicy(clean_pod_policy="None",backoff_limit=BACKOFF_LIMIT),
             elastic_policy=KubeflowOrgV1ElasticPolicy(
                 rdzv_backend="c10d",
                 min_replicas=n_workers,
@@ -285,7 +292,8 @@ def create_mpijob_resource(
         kind=constants.MPIJOB_KIND,
         metadata=V1ObjectMeta(generate_name=generate_name, namespace=namespace),
         spec=KubeflowOrgV1MPIJobSpec(
-            run_policy=KubeflowOrgV1RunPolicy(clean_pod_policy="Running",),
+            # Clean running pods since the workers will hang around even after the launcher finishes
+            run_policy=KubeflowOrgV1RunPolicy(clean_pod_policy="Running", backoff_limit=BACKOFF_LIMIT),
             mpi_replica_specs={"Launcher": launcher, "Worker": worker,},
         ),
     )
