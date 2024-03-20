@@ -325,3 +325,17 @@ def create_mpijob_resource(
             ),
         ],
     )
+
+def delete_pytorchjob(name: str="delete-pytorchjob"):
+    manifest = dedent(f"""
+                      apiVersion: {constants.KUBEFLOW_GROUP}/{constants.OPERATOR_VERSION}
+                      kind: {constants.PYTORCHJOB_KIND}
+                      metadata:
+                        name: {{{{inputs.parameters.metadata_name}}}}
+                      """)
+    return Resource(
+        name=name,
+        action="delete",
+        inputs=[Parameter(name="metadata_name")],
+        manifest=manifest,
+    )

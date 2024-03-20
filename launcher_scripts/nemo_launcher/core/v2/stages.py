@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from nemo_launcher.core.v2.step_k8s import (
     create_pytorchjob_resource,
     create_mpijob_resource,
+    delete_pytorchjob,
 )
 from nemo_launcher.core.v2.config_k8s import (
     K8sClusterConfig,
@@ -19,6 +20,7 @@ from hera.workflows import (
     script,
     Parameter,
     DAG,
+    models as m,
 )
 import os
 from omegaconf import OmegaConf
@@ -667,6 +669,9 @@ torchrun {self.actor_script} --config-path=/config --config-name=config.yaml \
                 ],
                 capabilities=self.cluster_cfg.capabilities,
             )
+            # Critic will hang around so it should be deleted
+            delete_critic = delete_pytorchjob()
+
             with DAG(name="rlhf-ppo-steps"):
                 critic_task = critic_job()
                 actor_task = actor_job(
@@ -674,12 +679,14 @@ torchrun {self.actor_script} --config-path=/config --config-name=config.yaml \
                         critic_task.get_parameter("metadata_name").with_name(
                             "critic_job_name"
                         ),
+                        # Namespace is also required b/c actor uses critic's Pod DNS which includes namespace
                         critic_task.get_parameter("metadata_namespace").with_name(
                             "critic_job_namespace"
                         ),
                     ]
                 )
                 critic_task >> actor_task
+                delete_critic(arguments=[critic_task.get_parameter("metadata_name")], depends=f"{actor_task.name} || {actor_task.name}.Failed || {actor_task.name}.Errored")
         return w
 
 
