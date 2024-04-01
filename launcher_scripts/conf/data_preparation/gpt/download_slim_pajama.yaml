@@ -15,6 +15,7 @@ concat_slim_pajama: False
 preprocess_data: False  # True to preprocess the data from a jsonl file, False otherwise.
 rm_downloaded: False # Extract script will remove downloaded zst after extraction.
 rm_extracted: False # Preprocess script will remove extracted files after preproc.
+approved_sources: ["RedPajamaCommonCrawl", "RedPajamaC4", "RedPajamaGithub", "RedPajamaArXiv", "RedPajamaWikipedia", "RedPajamaStackExchange"] # For each dataset an user elects to use, the user is responsible for checking if the dataset license is fit for the intended purpose. More information can be found here: https://huggingface.co/datasets/cerebras/SlimPajama-627B#dataset-structure
 slim_pajama_url: "https://huggingface.co/datasets/cerebras/SlimPajama-627B/resolve/main/train"  # Source URL to download The Slim Pajama dataset from.
 download_vocab_url: "https://huggingface.co/gpt2/resolve/main/vocab.json"  # URL to download the vocab from.
 download_merges_url: "https://huggingface.co/gpt2/resolve/main/merges.txt"  # URL to download the merges from.

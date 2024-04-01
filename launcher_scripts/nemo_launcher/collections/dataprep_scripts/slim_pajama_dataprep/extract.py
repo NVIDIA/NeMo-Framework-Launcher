@@ -22,8 +22,37 @@ from glob import glob
 import os
 
 import hydra
+import pandas as pd
 
 import nemo_launcher.utils.file_utils as utils
+from nemo_launcher.core.logger import logger
+
+
+SOURCES_LIST = [
+    "RedPajamaCommonCrawl",
+    "RedPajamaC4",
+    "RedPajamaGithub",
+    "RedPajamaBook",
+    "RedPajamaArXiv",
+    "RedPajamaWikipedia",
+    "RedPajamaStackExchange",
+]
+
+
+def approve_source(filename: str, source_list: list):
+    """
+    Function to remove data from non approved sources.
+    Books data is removed by default due to copyright issues
+
+    Arguments:
+        filename: path to jsonl file with the data
+        source_list: list of sources that are allowed to be included in the dataset
+    """
+    df = pd.read_json(filename, lines=True)
+    df = df[df["redpajama_set_name"].isin(source_list)]
+    with open(filename + ".tmp", "w") as f:
+        f.write(df.to_json(lines=True))
+    return
 
 
 def split_shards(dataset: list, w_size: int) -> list:
@@ -41,13 +70,27 @@ def get_shard_list(data_dir: str, w_size: int) -> list:
 
 
 def run_extraction(
-    data_dir: str, shards_to_extract: list, w_rank: int, rm_downloaded: bool = False
+    data_dir: str,
+    shards_to_extract: list,
+    w_rank: int,
+    approved_sources: list,
+    rm_downloaded: bool = False,
 ) -> int:
     shards_extracted = 0
-    print(f"Task :{w_rank} is extracting shards {shards_to_extract}")
+    source_list = []
+    for source in approved_sources:
+        if source in SOURCES_LIST:
+            source_list.append(source)
+        else:
+            logger.warning(
+                f"Source: {source} is not recognized, set the approved_sources flag in launcher_scripts/conf/data_preparation/gpt/download_slim_pajama.yaml"
+            )
+
+    logger.info(f"Task :{w_rank} is extracting shards {shards_to_extract}")
     for shard in shards_to_extract[w_rank]:
         file_path = os.path.join(data_dir, shard)
         utils.extract_single_zst_file(file_path, data_dir, shard[:-4], rm_downloaded)
+        approve_source(shard[:-4], source_list)
         shards_extracted += 1
     return shards_extracted
 
@@ -64,6 +107,7 @@ def main(cfg):
     """
     data_dir = cfg.get("data_dir")
     rm_downloaded = cfg.get("rm_downloaded")
+    approved_sources = cfg.get("approved_sources")
     num_tasks = int(os.environ["SLURM_STEP_NUM_TASKS"])
     array_count = int(os.environ["SLURM_ARRAY_TASK_COUNT"])
     rank = int(os.environ["RANK"])
@@ -74,9 +118,9 @@ def main(cfg):
 
     shards_to_extract = get_shard_list(data_dir, w_size)
     shards_extracted = run_extraction(
-        data_dir, shards_to_extract, w_rank, rm_downloaded
+        data_dir, shards_to_extract, w_rank, approved_sources, rm_downloaded
     )
-    print(f"Extracted {shards_extracted} shards out of {len(shards_to_extract)}")
+    logger.info(f"Extracted {shards_extracted} shards out of {len(shards_to_extract)}")
 
 
 if __name__ == "__main__":
