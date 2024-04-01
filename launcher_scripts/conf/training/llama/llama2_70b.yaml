@@ -139,7 +139,7 @@ model:
   use_flash_attention: true
   overlap_p2p_comm: true
   batch_p2p_comm: false
-  gc_interval: 100
+  gc_interval: 10
   optim:
     name: distributed_fused_adam
     lr: 0.00015
