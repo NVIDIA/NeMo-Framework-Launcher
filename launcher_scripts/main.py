@@ -80,6 +80,7 @@ STR2STAGECLASS = {
         NeMoEvaluation: [
             "t5",
             "mt5",
+            "retro",
             "prompt_t5",
             "prompt_mt5",
             "adapter_t5",
