@@ -140,6 +140,7 @@ model:
   fsdp_sharding_strategy: full
   fsdp_grad_reduce_dtype: fp32
   fsdp_sharded_checkpoint: false
+  torch_distributed_checkpoint: True
   activations_checkpoint_granularity: null
   activations_checkpoint_method: null
   activations_checkpoint_num_layers: null

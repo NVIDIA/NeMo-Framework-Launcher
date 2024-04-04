@@ -82,6 +82,9 @@ model:
   fsdp_sharded_checkpoint: False # Store and load FSDP shared checkpoint.
   fsdp_use_orig_params: False # Set to True to use FSDP for specific peft scheme.
 
+  # PyTorch distributed checkpoint
+  torch_distributed_checkpoint: True
+
   data:
     chat: False # whether use chatbot data or not
     train_ds:

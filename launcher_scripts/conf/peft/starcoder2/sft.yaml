@@ -120,6 +120,15 @@ model:
   attention_dropout: 0.0
   ffn_dropout: 0.0
 
+  # FSDP
+  fsdp: False # Enable training with torch FSDP.
+  fsdp_sharding_strategy: 'full' # Method to shard model states. Available options are 'full', 'hybrid', and 'grad'.
+  fsdp_grad_reduce_dtype: 32 # Gradient reduction data type.
+  fsdp_sharded_checkpoint: False # Store and load FSDP shared checkpoint.
+
+  # PyTorch distributed checkpoint
+  torch_distributed_checkpoint: True
+
   peft:
     peft_scheme: null  # null (SFT, no PEFT), ptuning, lora
     restore_from_path: null
@@ -248,7 +257,7 @@ model:
         num_classes: null
 
   optim:
-    name: fused_adam
+    name: distributed_fused_adam
     lr: 1e-4
     weight_decay: 0.01
     betas:

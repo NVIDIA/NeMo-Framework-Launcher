@@ -93,6 +93,9 @@ model:
   fsdp_sharded_checkpoint: False # Store and load FSDP shared checkpoint.
   fsdp_use_orig_params: False # Set to True to use FSDP for specific peft scheme.
 
+  # PyTorch distributed checkpoint
+  torch_distributed_checkpoint: True
+
   peft:
     peft_scheme: "lora"  # can be either adapter, ia3, lora, or ptuning
     restore_from_path: null

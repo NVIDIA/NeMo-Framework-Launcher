@@ -96,6 +96,9 @@ model:
   fsdp_sharding_strategy: 'full' # Method to shard model states. Available options are 'full', 'hybrid', and 'grad'.
   fsdp_grad_reduce_dtype: 32 # Gradient reduction data type.
   fsdp_sharded_checkpoint: False # Store and load FSDP shared checkpoint.
+
+  # PyTorch distributed checkpoint
+  torch_distributed_checkpoint: True
   
   ## Activation Checkpointing
   activations_checkpoint_granularity: null # 'selective' or 'full'
