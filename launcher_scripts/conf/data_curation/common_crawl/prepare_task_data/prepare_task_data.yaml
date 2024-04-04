@@ -20,43 +20,43 @@ lm_tasks_config:
     # find_matching_ngrams will then search for these N-grams
     # in the training documents, and remove_matching_ngrams will
     # split the documents based on matches
-    - name: ndc.deduplication.task.lmtask.Winogrande
+    - name: ndc.tasks.Winogrande
       params: {}
-    - name: ndc.deduplication.task.lmtask.Squad
+    - name: ndc.tasks.Squad
       params: {}
-    - name: ndc.deduplication.task.lmtask.TriviaQA
+    - name: ndc.tasks.TriviaQA
       params: {}
-    - name: ndc.deduplication.task.lmtask.Quac
+    - name: ndc.tasks.Quac
       params: {}
-    - name: ndc.deduplication.task.lmtask.WebQA
+    - name: ndc.tasks.WebQA
       params: {}
-    - name: ndc.deduplication.task.lmtask.Race
+    - name: ndc.tasks.Race
       params: {}
-    - name: ndc.deduplication.task.lmtask.Drop
+    - name: ndc.tasks.Drop
       params: {}
-    - name: ndc.deduplication.task.lmtask.WiC
+    - name: ndc.tasks.WiC
       params: {}
-    - name: ndc.deduplication.task.lmtask.PIQA
+    - name: ndc.tasks.PIQA
       params: {}
-    - name: ndc.deduplication.task.lmtask.ArcEasy
+    - name: ndc.tasks.ArcEasy
       params: {}
-    - name: ndc.deduplication.task.lmtask.ArcChallenge
+    - name: ndc.tasks.ArcChallenge
       params: {}
-    - name: ndc.deduplication.task.lmtask.OpenBookQA
+    - name: ndc.tasks.OpenBookQA
       params: {}
-    - name: ndc.deduplication.task.lmtask.BoolQ
+    - name: ndc.tasks.BoolQ
       params: {}
-    - name: ndc.deduplication.task.lmtask.Copa
+    - name: ndc.tasks.Copa
       params: {}
-    - name: ndc.deduplication.task.lmtask.RTE
+    - name: ndc.tasks.RTE
       params: {}
-    - name: ndc.deduplication.task.lmtask.MultiRC
+    - name: ndc.tasks.MultiRC
       params: {}
-    - name: ndc.deduplication.task.lmtask.WSC
+    - name: ndc.tasks.WSC
       params: {}
-    - name: ndc.deduplication.task.lmtask.CB
+    - name: ndc.tasks.CB
       params: {}
-    - name: ndc.deduplication.task.lmtask.ANLI
+    - name: ndc.tasks.ANLI
       params: {}
-    - name: ndc.deduplication.task.lmtask.Record
+    - name: ndc.tasks.Record
       params: {}

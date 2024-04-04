@@ -12,7 +12,7 @@ train_settings:
   num_tokens_in_b: 300  # Unit in billions, typically 300B for GPT3 models.
   vocab_size: 32000
   seq_length: 4096 # available seq_length list for GPT-3 models: [2048, 4096, 8192, 16384, 32768]
-  custom_config: {auto_configurator_path}/base_configs/llama2_13b.yaml # path to custom .yaml model config instead of using auto-generated
+  custom_config: ${auto_configurator_path}/base_configs/llama2_13b.yaml # path to custom .yaml model config instead of using auto-generated
   logs: ${base_results_dir}/${search_config_value}_${.gpu_memory_gb}gb  # Example base_results_dir/gpt3/126m
   tensor_parallel_sizes: auto  # auto to use our recommendation, or a list, such as [1, 2, 4, 8]
   pipeline_parallel_sizes: auto  # auto to use our recommendation, or a list, such as [1, 2, 4, 8, 10]

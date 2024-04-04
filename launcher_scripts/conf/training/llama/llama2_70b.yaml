@@ -88,6 +88,7 @@ model:
   normalize_attention_scores: true
   position_embedding_type: rope
   rotary_percentage: 1.0
+  apply_rope_fusion: true
   attention_type: multihead
   share_embeddings_and_output_weights: false
   tokenizer:
@@ -138,7 +139,7 @@ model:
   use_flash_attention: true
   overlap_p2p_comm: true
   batch_p2p_comm: false
-  gc_interval: 100
+  gc_interval: 3
   optim:
     name: distributed_fused_adam
     lr: 0.00015

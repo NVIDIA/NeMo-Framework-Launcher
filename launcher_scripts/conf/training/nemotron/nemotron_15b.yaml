@@ -91,6 +91,7 @@ model:
   normalize_attention_scores: true
   position_embedding_type: rope
   rotary_percentage: 0.5
+  apply_rope_fusion: true
   attention_type: multihead
   share_embeddings_and_output_weights: false
   tokenizer:
