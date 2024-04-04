@@ -596,6 +596,7 @@ class SlimPajamaDataPreparation(DataStage):
                 tokenizer_model=self.stage_cfg.get("tokenizer_model", None),
                 vocab_save_dir=self.stage_cfg.get("vocab_save_dir"),
                 merges_save_dir=self.stage_cfg.get("merges_save_dir"),
+                approved_sources=self.stage_cfg.get("approved_sources"),
             )
         else:
             print("Unknown Stage, quitting")

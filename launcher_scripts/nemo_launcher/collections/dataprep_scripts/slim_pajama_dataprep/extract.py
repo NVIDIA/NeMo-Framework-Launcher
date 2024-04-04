@@ -22,7 +22,7 @@ from glob import glob
 import os
 
 import hydra
-import pandas as pd
+import json
 
 import nemo_launcher.utils.file_utils as utils
 from nemo_launcher.core.logger import logger
@@ -48,10 +48,15 @@ def approve_source(filename: str, source_list: list):
         filename: path to jsonl file with the data
         source_list: list of sources that are allowed to be included in the dataset
     """
-    df = pd.read_json(filename, lines=True)
-    df = df[df["redpajama_set_name"].isin(source_list)]
-    with open(filename + ".tmp", "w") as f:
-        f.write(df.to_json(lines=True))
+
+    with open(filename, "r") as i:
+        with open(filename + ".tmp", "w") as o:
+            for line in i.read().splitlines():
+                j = json.loads(line)
+                if j["meta"]["redpajama_set_name"] in source_list:
+                    json.dump(j, o)
+                    o.write("\n")
+    os.rename(filename + ".tmp", filename)
     return
 
 
@@ -90,7 +95,8 @@ def run_extraction(
     for shard in shards_to_extract[w_rank]:
         file_path = os.path.join(data_dir, shard)
         utils.extract_single_zst_file(file_path, data_dir, shard[:-4], rm_downloaded)
-        approve_source(shard[:-4], source_list)
+        shard_path = os.path.join(data_dir, shard[:-4])
+        approve_source(shard_path, source_list)
         shards_extracted += 1
     return shards_extracted
 

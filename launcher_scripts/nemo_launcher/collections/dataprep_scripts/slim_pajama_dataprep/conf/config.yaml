@@ -11,6 +11,7 @@ cluster_type: bcm
 launcher_scripts_path: null
 data_dir: null
 slim_pajama_url: null
+approved_sources: null
 file_numbers: null
 rm_downloaded: True
 rm_extracted: True
