@@ -3,7 +3,7 @@ run:
   time_limit: "04:00:00"
   dependency: "singleton"
   convert_name: convert_nemo
-  model_train_name: gpt3_sft
+  model_train_name: chatglm3_6b
   convert_dir: ${base_results_dir}/${fine_tuning.run.model_train_name}/${fine_tuning.run.convert_name}
   task_name: "squad"  # Rename this name to be more clear
   results_dir: ${base_results_dir}/${fine_tuning.run.model_train_name}/${fine_tuning.run.task_name}
@@ -25,10 +25,10 @@ trainer:
 exp_manager:
   explicit_log_dir: ${fine_tuning.run.results_dir}/results
   exp_dir: null
-  name: megatron_gpt3_${fine_tuning.run.task_name}
+  name: megatron_chatglm3_${fine_tuning.run.task_name}
   create_wandb_logger: False
   wandb_logger_kwargs:
-    project: nemo_gpt3_${fine_tuning.run.task_name}
+    project: nemo_chatglm3_${fine_tuning.run.task_name}
     name: ${fine_tuning.run.name}
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
@@ -48,7 +48,7 @@ model:
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
   global_batch_size: 32
   micro_batch_size: 4
-  restore_from_path: ${fine_tuning.run.convert_dir}/results/megatron_gpt.nemo # Path to an existing p-tuned/prompt tuned .nemo model you wish to add new tasks to or run inference with
+  restore_from_path: ${fine_tuning.run.convert_dir}/results/megatron_chatglm.nemo # Path to an existing p-tuned/prompt tuned .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
   save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training. 
   sync_batch_comm: False
@@ -60,7 +60,7 @@ model:
   sequence_parallel: False
 
   ## Activation Checkpoint 
-  activations_checkpoint_granularity: selective # 'selective' or 'full' 
+  activations_checkpoint_granularity: null # 'selective' or 'full' 
   activations_checkpoint_method: uniform # 'uniform', 'block', not used with 'selective'
   # 'uniform' divides the total number of transformer layers and checkpoints the input activation
   # of each chunk at the specified granularity
@@ -74,13 +74,6 @@ model:
   hidden_dropout: 0.1
   attention_dropout: 0.1
   ffn_dropout: 0.1
-
-  # FSDP
-  fsdp: False # Enable training with torch FSDP.
-  fsdp_sharding_strategy: 'full' # Method to shard model states. Available options are 'full', 'hybrid', and 'grad'.
-  fsdp_grad_reduce_dtype: 'bf16' # Gradient reduction data type.
-  fsdp_sharded_checkpoint: False # Store and load FSDP shared checkpoint.
-  fsdp_use_orig_params: False # Set to True to use FSDP for specific peft scheme.
 
   data:
     chat: False # whether use chatbot data or not
@@ -99,7 +92,7 @@ model:
       shuffle: True
       num_workers: 4
       pin_memory: True
-      max_seq_length: 2048
+      max_seq_length: 4096
       min_seq_length: 1
       drop_last: True
       # Example of how to specify concat_sampling_probabilities
@@ -178,7 +171,7 @@ model:
         num_classes: null
 
   optim:
-    name: fused_adam # Supports distributed optimizer for memory savings. To enable, set to 'distributed_fused_adam'. Needs Apex to be built with specific args to work.
+    name: distributed_fused_adam # Supports distributed optimizer for memory savings. To enable, set to 'distributed_fused_adam'. Needs Apex to be built with specific args to work.
     lr: 1e-6
     weight_decay: 0.1 
     betas: 
