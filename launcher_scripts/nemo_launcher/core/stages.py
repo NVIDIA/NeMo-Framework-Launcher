@@ -1264,6 +1264,8 @@ class FWInference(NeMoStage):
             / "examples/multimodal/text_to_image/controlnet/controlnet_infer.py",
             "neva": self._nemo_code_path
             / "examples/multimodal/multimodal_llm/neva/neva_evaluation.py",
+            "retro": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_retro_eval.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1639,6 +1641,8 @@ class NeMoEvaluation(NeMoStage):
             / "examples/nlp/language_modeling/megatron_t5_prompt_learning_eval.py",
             "prompt_mt5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_prompt_learning_eval.py",
+            "retro": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_retro_qatask_eval.py",
             "ia3_t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_ia3_eval.py",
             "ia3_gpt3": self._nemo_code_path
