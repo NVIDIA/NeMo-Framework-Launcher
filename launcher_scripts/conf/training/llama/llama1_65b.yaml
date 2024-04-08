@@ -24,7 +24,7 @@ exp_manager:
   explicit_log_dir: ${training.run.results_dir}/results
   exp_dir: null
   name: megatron_llama
-  create_wandb_logger: true
+  create_wandb_logger: false
   wandb_logger_kwargs:
     project: nemo_llama
     name: ${training.run.name}
