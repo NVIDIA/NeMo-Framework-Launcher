@@ -193,6 +193,8 @@ class DataCurationSubStage(NemoMegatronStage):
         command_string.append(f"PROTOCOL={protocol}")
         interface = dask_config.get("interface", "ibp12s0")
         command_string.append(f"INTERFACE={interface}")
+        nworkers = dask_config.get("nworkers", "-1")
+        command_string.append(f"NUM_WORKERS={nworkers}")
 
         dask_script_path = (
             self._launcher_scripts_path / "nemo_launcher/collections/run_dask_stage.sh"
