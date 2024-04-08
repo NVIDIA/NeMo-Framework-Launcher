@@ -57,7 +57,7 @@ model:
 
   # specify micro_batch_size, global_batch_size, and model parallelism
   # gradient accumulation will be done automatically based on data_parallel_size
-  micro_batch_size: 8 # limited by GPU memory
+  micro_batch_size: 4 # limited by GPU memory
   global_batch_size: 256     # will be overrided by value from RETRO preprocessed workdir
   rampup_batch_size: null # Should be a list of 3 values: [<start_batch_size>, <batch_size_increment>, <rampup_samples>]
   tensor_model_parallel_size: 1 # intra-layer model parallelism
@@ -221,7 +221,7 @@ model:
     splits_string: 98,2,0  # will be read from RETRO preprocessed workdir
     seq_length: null # will be read from RETRO preprocessed workdir
     skip_warmup: True
-    num_workers: 0
+    num_workers: 4
     dataloader_type: cyclic # cyclic/single
     reset_position_ids: False # Reset position ids after end-of-document token
     reset_attention_mask: False # Reset attention mask after end-of-document token
