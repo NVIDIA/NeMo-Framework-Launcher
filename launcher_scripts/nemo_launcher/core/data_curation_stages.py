@@ -191,7 +191,7 @@ class DataCurationSubStage(NemoMegatronStage):
         command_string.append(f"RMM_SCHEDULER_POOL_SIZE={scheduler_pool_size}")
         worker_pool_size = dask_config.get("pool_size", "72GiB")
         command_string.append(f"RMM_WORKER_POOL_SIZE={worker_pool_size}")
-        
+
         # Common
         protocol = dask_config.get("protocol", "tcp")
         command_string.append(f"PROTOCOL={protocol}")
