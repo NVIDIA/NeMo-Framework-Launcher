@@ -18,3 +18,4 @@ training.model.global_batch_size=128 \
 training.model.fp8=True \
 training.model.fp8_hybrid=True \
 training.model.tokenizer.model=${TOK_PATH} \
++training.model.optim.grad_sync_dtype=bf16 \

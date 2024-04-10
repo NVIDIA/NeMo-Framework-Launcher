@@ -18,3 +18,4 @@ training.model.micro_batch_size=1 \
 training.model.fp8=True \
 training.model.fp8_hybrid=True \
 +training.model.gc_interval=100 \
++training.model.optim.grad_sync_dtype=bf16 \

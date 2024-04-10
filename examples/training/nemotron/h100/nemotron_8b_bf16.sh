@@ -17,3 +17,4 @@ training.model.global_batch_size=32 \
 training.model.micro_batch_size=2 \
 training.model.fp8=False \
 training.model.fp8_hybrid=False \
++training.model.optim.grad_sync_dtype=bf16 \
