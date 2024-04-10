@@ -20,43 +20,43 @@ lm_tasks_config:
     # find_matching_ngrams will then search for these N-grams
     # in the training documents, and remove_matching_ngrams will
     # split the documents based on matches
-    - name: ndc.tasks.Winogrande
+    - name: nemo_curator.tasks.Winogrande
       params: {}
-    - name: ndc.tasks.Squad
+    - name: nemo_curator.tasks.Squad
       params: {}
-    - name: ndc.tasks.TriviaQA
+    - name: nemo_curator.tasks.TriviaQA
       params: {}
-    - name: ndc.tasks.Quac
+    - name: nemo_curator.tasks.Quac
       params: {}
-    - name: ndc.tasks.WebQA
+    - name: nemo_curator.tasks.WebQA
       params: {}
-    - name: ndc.tasks.Race
+    - name: nemo_curator.tasks.Race
       params: {}
-    - name: ndc.tasks.Drop
+    - name: nemo_curator.tasks.Drop
       params: {}
-    - name: ndc.tasks.WiC
+    - name: nemo_curator.tasks.WiC
       params: {}
-    - name: ndc.tasks.PIQA
+    - name: nemo_curator.tasks.PIQA
       params: {}
-    - name: ndc.tasks.ArcEasy
+    - name: nemo_curator.tasks.ArcEasy
       params: {}
-    - name: ndc.tasks.ArcChallenge
+    - name: nemo_curator.tasks.ArcChallenge
       params: {}
-    - name: ndc.tasks.OpenBookQA
+    - name: nemo_curator.tasks.OpenBookQA
       params: {}
-    - name: ndc.tasks.BoolQ
+    - name: nemo_curator.tasks.BoolQ
       params: {}
-    - name: ndc.tasks.Copa
+    - name: nemo_curator.tasks.Copa
       params: {}
-    - name: ndc.tasks.RTE
+    - name: nemo_curator.tasks.RTE
       params: {}
-    - name: ndc.tasks.MultiRC
+    - name: nemo_curator.tasks.MultiRC
       params: {}
-    - name: ndc.tasks.WSC
+    - name: nemo_curator.tasks.WSC
       params: {}
-    - name: ndc.tasks.CB
+    - name: nemo_curator.tasks.CB
       params: {}
-    - name: ndc.tasks.ANLI
+    - name: nemo_curator.tasks.ANLI
       params: {}
-    - name: ndc.tasks.Record
+    - name: nemo_curator.tasks.Record
       params: {}
