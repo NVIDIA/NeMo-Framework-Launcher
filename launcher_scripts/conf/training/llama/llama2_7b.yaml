@@ -151,7 +151,6 @@ model:
     overlap_param_sync: true
     contiguous_grad_buffer: true    
     contiguous_param_buffer: true   
-    grad_sync_dtype: bf16 
     sched:
       name: CosineAnnealing
       warmup_steps: 500
