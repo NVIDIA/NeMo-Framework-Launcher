@@ -183,12 +183,16 @@ class DataCurationSubStage(NemoMegatronStage):
         # CPU config
         cpu_worker_memory_limit = dask_config.get("cpu_worker_memory_limit", "0")
         command_string.append(f"CPU_WORKER_MEMORY_LIMIT={cpu_worker_memory_limit}")
+        nworkers = dask_config.get("nworkers", "-1")
+        command_string.append(f"NUM_WORKERS={nworkers}")
 
         # GPU config
         scheduler_pool_size = dask_config.get("scheduler_pool_size", "1GB")
         command_string.append(f"RMM_SCHEDULER_POOL_SIZE={scheduler_pool_size}")
         worker_pool_size = dask_config.get("pool_size", "72GiB")
         command_string.append(f"RMM_WORKER_POOL_SIZE={worker_pool_size}")
+
+        # Common
         protocol = dask_config.get("protocol", "tcp")
         command_string.append(f"PROTOCOL={protocol}")
         interface = dask_config.get("interface", "ibp12s0")
