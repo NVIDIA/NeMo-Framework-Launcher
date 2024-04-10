@@ -19,8 +19,8 @@ trainer:
   logger: false
   enable_checkpointing: false
   use_distributed_sampler: false
-  max_epochs: 1
-  max_steps: 6511
+  max_epochs: null
+  max_steps: 100
   log_every_n_steps: 1
   val_check_interval: 30
   limit_val_batches: 1.0
@@ -28,7 +28,6 @@ trainer:
   accumulate_grad_batches: 1
   gradient_clip_val: 1.0
   benchmark: false
-  limit_train_batches: 100
   enable_model_summary: false
   num_sanity_val_steps: 0
 
@@ -68,8 +67,8 @@ exp_manager:
 
 model:
   mcore_gpt: true
-  micro_batch_size: 2
-  global_batch_size: 64
+  micro_batch_size: 1
+  global_batch_size: 8
   rampup_batch_size: null
   tensor_model_parallel_size: 2
   pipeline_model_parallel_size: 4

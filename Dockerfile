@@ -185,7 +185,7 @@ RUN pip install --no-cache-dir wandb==0.15.3 \
         'ipython>=7.31.1' \
         'torchmetrics==0.9.1'
 
-RUN pip install pytorch_lightning==2.0.7
+RUN pip install pytorch_lightning==2.2.1
 # Copy FasterTransformer
 #COPY --from=ft_builder /workspace/FasterTransformer FasterTransformer
 
