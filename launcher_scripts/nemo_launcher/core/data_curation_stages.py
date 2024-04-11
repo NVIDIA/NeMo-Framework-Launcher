@@ -289,6 +289,7 @@ class QualityFiltering(DataCurationSubStage):
             input_data_dir=self.memory.data_dir,
             filter_config_file=f"{filter_cfg}",
             output_retained_document_dir=output_dir,
+            scheduler_file=self.log_folder / "scheduler.json",
             **optional_args,
         )
 
@@ -447,6 +448,7 @@ class LanguageIdentification(DataCurationSubStage):
             log_scores=stage_cfg.get("log_scores"),
             input_data_dir=self.memory.data_dir,
             filter_config_file=self.memory.filter_config_path,
+            scheduler_file=self.log_folder / "scheduler.json",
             **optional_args,
         )
 
@@ -503,6 +505,7 @@ class SeparateByLanguage(DataCurationSubStage):
             input_data_dir=self.memory.data_dir,
             output_data_dir=output_dir,
             output_metadata_distribution=stage_cfg.get("output_language_distribution"),
+            scheduler_file=self.log_folder / "scheduler.json",
             **optional_args,
         )
         self.memory.data_dir = None
@@ -548,6 +551,7 @@ class TextCleaning(DataCurationSubStage):
             replace_underscore=True,
             input_data_dir=self.memory.data_dir,
             output_clean_dir=output_dir,
+            scheduler_file=self.log_folder / "scheduler.json",
         )
 
         self.memory.data_dir = output_dir
@@ -599,6 +603,7 @@ class PrepareTaskData(DataCurationSubStage):
             replace_underscore=True,
             output_task_ngrams=output_task_ngrams,
             task_config_file=f"{task_cfg}",
+            scheduler_file=self.log_folder / "scheduler.json",
         )
 
         runscript = " \\\n  ".join(["prepare_task_data", *args])
@@ -654,6 +659,7 @@ class FindMatchingNgrams(DataCurationSubStage):
             input_data_dir=self.memory.data_dir,
             input_task_ngrams=self.memory.ngrams_path,
             output_matched_ngram_data=output_dir,
+            scheduler_file=self.log_folder / "scheduler.json",
             **optional_args,
         )
 
@@ -712,6 +718,7 @@ class RemoveMatchingNgrams(DataCurationSubStage):
             input_data_dir=self.memory.data_dir,
             input_matched_ngrams=self.memory.ngrams_path,
             output_task_deduped_dir=output_dir,
+            scheduler_file=self.log_folder / "scheduler.json",
             **optional_args,
         )
 
