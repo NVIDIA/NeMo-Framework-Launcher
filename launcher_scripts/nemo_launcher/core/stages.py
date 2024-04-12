@@ -42,6 +42,7 @@ __LANGUAGE_MODELS_LIST__ = [
     "baichuan2",
     "mistral",
     "mixtral",
+    "starcoder2",
 ]
 __VISION_MODELS_LIST__ = ["vit"]
 __MULTIMODAL_MODELS_LIST__ = [
@@ -544,8 +545,7 @@ class NemoMegatronStage:
         """Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel"""
         vpp = self.cfg.training.model.get("virtual_pipeline_model_parallel_size")
         if (
-            self.cfg.training.model.get("overlap_p2p_comm", False)
-            and self.cfg.training.model.get("pipeline_model_parallel_size") > 1
+            self.cfg.training.model.get("pipeline_model_parallel_size") > 1
             and vpp is not None
             and vpp > 1
         ):
@@ -852,6 +852,10 @@ class Training(NeMoStage):
             / "examples/nlp/language_modeling/megatron_bert_pretraining.py",
             "falcon": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "chatglm": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "starcoder2": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "retro": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_retro_pretraining.py",
             "vit": self._nemo_code_path
@@ -943,6 +947,10 @@ class FineTuning(NeMoStage):
             "mt5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "falcon": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            "chatglm": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            "starcoder2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
             "gemma": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
@@ -1087,9 +1095,13 @@ class PEFT(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "baichuan2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            "chatglm": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_finetuning.py",
             "falcon": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            "starcoder2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "gemma": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
@@ -1145,6 +1157,8 @@ class PromptLearning(NeMoStage):
             / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
             "mt5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_prompt_learning.py",
+            "chatglm": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
             "mixtral": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_prompt_learning.py",
         }
@@ -1175,6 +1189,8 @@ class AdapterLearning(PromptLearning):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_adapter_tuning.py",
+            "chatglm": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
             "mistral": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_adapter_tuning.py",
             "mixtral": self._nemo_code_path
@@ -1207,6 +1223,8 @@ class IA3Learning(PromptLearning):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_ia3_tuning.py",
+            "chatglm": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_ia3_tuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1245,6 +1263,8 @@ class FWInference(NeMoStage):
             / "examples/multimodal/text_to_image/controlnet/controlnet_infer.py",
             "neva": self._nemo_code_path
             / "examples/multimodal/multimodal_llm/neva/neva_evaluation.py",
+            "retro": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_retro_eval.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1446,6 +1466,10 @@ class Conversion(NemoMegatronStage):
                     "pipeline_model_parallel_split_rank"
                 ),
             )
+        if not run_cfg.get("pack_nemo_file", True):
+            args += create_args_list(
+                replace_underscore=False, no_pack_nemo_file="store_true",
+            )
 
         args += ["--bcp"] if self.cluster == "bcp" else []
 
@@ -1616,6 +1640,8 @@ class NeMoEvaluation(NeMoStage):
             / "examples/nlp/language_modeling/megatron_t5_prompt_learning_eval.py",
             "prompt_mt5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_prompt_learning_eval.py",
+            "retro": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_retro_qatask_eval.py",
             "ia3_t5": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_t5_ia3_eval.py",
             "ia3_gpt3": self._nemo_code_path
@@ -1630,7 +1656,15 @@ class NeMoEvaluation(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "peft_falcon": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
+            "peft_starcoder2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "peft_baichuan2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
+            "peft_chatglm": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
+            "peft_mistral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
+            "peft_mixtral": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "vit": self._nemo_code_path
             / "examples/vision/vision_transformer/megatron_vit_classification_evaluate.py",
@@ -1639,6 +1673,8 @@ class NeMoEvaluation(NeMoStage):
             "mistral": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
+            "starcoder2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
         }
         return model_type_to_code_path[model_type]
@@ -2365,7 +2401,7 @@ class ConversionHF2NeMo(NeMoStage):
         nemo_file_path = self.get_job_path().results_folder / nemo_file_name
         code_path = (
             self._nemo_code_path
-            / "scripts/nlp_language_modeling/convert_hf_llama_to_nemo.py"
+            / "scripts/checkpoint_converters/convert_llama_hf_to_nemo.py"
         )
         args = create_args_list(
             in_file=run_cfg.get("huggingface_ckpt_path"),

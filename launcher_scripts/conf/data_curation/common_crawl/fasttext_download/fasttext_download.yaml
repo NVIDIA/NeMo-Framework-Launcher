@@ -7,6 +7,9 @@ run:
   node_type: cpu
 
 filter_config:
-  filter_module: ndc.filter.classifier.filter.FastTextLangId
-  params:
-    model_path: lid.176.bin # Will be automatically downloaded if it doesn't exist
+  input_field: text
+  filters:
+    - name: nemo_curator.filters.classifier_filter.FastTextLangId
+      log_score: True
+      params:
+        model_path: lid.176.bin # Will be automatically downloaded if it doesn't exist

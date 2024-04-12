@@ -16,11 +16,11 @@ trainer:
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
   use_distributed_sampler: False
-  max_epochs: null
+  max_epochs: -1
   max_steps: 750000 # consumed_samples = global_step * global_batch_size
   max_time: "00:23:30:00" # days:hours:minutes:seconds
   log_every_n_steps: 10
-  val_check_interval: 1000
+  val_check_interval: 100
   limit_val_batches: 50
   limit_test_batches: 50
   accumulate_grad_batches: 1
@@ -218,7 +218,7 @@ model:
     data_prefix: null     # will be overrided by value from RETRO preprocessed workdir 
     index_mapping_dir: null # path to save index mapping .npy files, by default will save in the same location as data_prefix
     data_impl: mmap
-    splits_string: null  # will be read from RETRO preprocessed workdir
+    splits_string: 98,2,0  # will be read from RETRO preprocessed workdir
     seq_length: null # will be read from RETRO preprocessed workdir
     skip_warmup: True
     num_workers: 0
@@ -234,6 +234,8 @@ model:
     retro_data:
       retro_block_size: 10000
       retro_chunk_length: 64
+      retro_split_preprocessing: 98,2,0
+      retro_neighbor_dirs: null
 
 
   # Nsys profiling options

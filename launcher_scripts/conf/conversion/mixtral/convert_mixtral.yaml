@@ -9,6 +9,7 @@ run:
   train_dir: ${base_results_dir}/${.model_train_name}
   results_dir: ${.train_dir}/${.convert_name}
   nemo_file_name: megatron_mixtral.nemo # name of nemo checkpoint; must be .nemo file
+  pack_nemo_file: True # true to compress as a .nemo file, false to write files under nemo_file_name as a directory
 
 model:
   model_type: gpt # gpt or t5, use t5 for mt5 as well
@@ -18,4 +19,3 @@ model:
   tensor_model_parallel_size: 2
   pipeline_model_parallel_size: 1
   model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
-  tokenizer_model: ${data_dir}/mixtral/mixtral_tokenizer.model
