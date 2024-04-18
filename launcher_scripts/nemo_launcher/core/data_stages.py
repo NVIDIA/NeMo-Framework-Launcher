@@ -415,6 +415,197 @@ class PileDataPreparation(DataStage):
         return [sub_stage_command]
 
 
+class SlimPajamaDataPreparation(DataStage):
+    """DataStage for preparing the Slim Pajama dataset for gpt"""
+
+    def _make_sub_stages(self) -> List[str]:
+        """
+        Create a list of sub-stage names which are required to run in current data stage.
+        Based on the input config, some of sub stages may not need to run.
+
+        :return: a list of sub-stage names which are required to run
+        """
+        sub_stages = []
+        if self.stage_cfg.get("download_slim_pajama", False):
+            sub_stages += ["download"]
+        if self.stage_cfg.get("extract_slim_pajama", False):
+            sub_stages += ["extract"]
+        if self.stage_cfg.get("concat_slim_pajama", False):
+            sub_stages += ["concat"]
+        if self.stage_cfg.get("preprocess_data", False):
+            sub_stages += ["preprocess"]
+        return sub_stages
+
+    def setup_folder_and_data(self) -> None:
+        """Setup job/data folders and fine-tuning/prompt-learning dataset"""
+        job_path = self.get_job_path()
+        job_path.folder.mkdir(parents=True, exist_ok=True)
+
+        data_cfg = self.stage_cfg
+        download_vocab_url = data_cfg.get("download_vocab_url")
+        download_merges_url = data_cfg.get("download_merges_url")
+        vocab_save_dir = data_cfg.get("vocab_save_dir")
+        merges_save_dir = data_cfg.get("merges_save_dir")
+        download_tokenizer_url = data_cfg.get("download_tokenizer_url")
+        tokenizer_save_dir = data_cfg.get("tokenizer_save_dir")
+
+        # Set up preprocessing
+        if self.stage_cfg.get("preprocess_data", False):
+            # Get preprocess related variables
+            run_cfg = data_cfg.get("run")
+            nodes = run_cfg.get("node_array_size", 1)
+            workers_per_node = run_cfg.get("workers_per_node", 1)
+            preprocess_worker_mapping = data_cfg.get("preprocess_worker_mapping")
+
+            files = glob.glob("train_chunk_[0-9]*.jsonl", root_dir=self._data_dir)
+            dataset_files = [os.path.join(self._data_dir, file) for file in files]
+            # Sort list of files in directory by size
+            sorted_files = sorted(dataset_files, key=lambda x: os.stat(x).st_size)
+            file_sizes = [os.stat(x).st_size for x in sorted_files]
+
+            avail_workers = nodes * workers_per_node
+            distributed_files = [[] for _ in range(avail_workers)]
+            distributed_size = [0] * avail_workers
+            for f, file_size in zip(sorted_files, file_sizes):
+                min_ind = distributed_size.index(min(distributed_size))
+                distributed_files[min_ind].append(f)
+                distributed_size[min_ind] += file_size
+
+            output = [",".join(distributed_files[i]) for i in range(avail_workers)]
+            output = "\n".join(output)
+            with open(preprocess_worker_mapping, "w") as file:
+                file.write(output)
+            print(f" ****** Workers mapping saved to {preprocess_worker_mapping} ...")
+
+        if download_tokenizer_url is not None:
+            assert (
+                tokenizer_save_dir is not None
+            ), "tokenizer_save_dir must be a valid path."
+            download_single_file(
+                url=download_tokenizer_url,
+                save_dir=tokenizer_save_dir,
+                file_name="llama_tokenizer.model",
+            )
+
+        # Download vocab
+        if download_vocab_url is not None:
+            assert vocab_save_dir is not None, "vocab_save_dir must be a valid path."
+            download_single_file(
+                url=download_vocab_url,
+                save_dir=vocab_save_dir,
+                file_name="vocab.json"
+                if download_vocab_url.endswith("json")
+                else "vocab.txt",
+            )
+        # Download merges
+        if download_merges_url is not None:
+            assert merges_save_dir is not None, "merges_save_dir must be a valid path."
+            download_single_file(
+                url=download_merges_url,
+                save_dir=merges_save_dir,
+                file_name="merges.txt",
+            )
+
+    def _make_private_cluster_parameters(self, cluster: str, sub_stage: str) -> Dict:
+        """
+        A simplifying function to make cluster parameters specific to each cluster type.
+        Shared cluster parameters are handled in _make_cluster_parameters.
+        This is function is introduced because for different dataset preparation the required slurm params are different,
+            but the shared parameters are always the same. As a result, one only needs to override private parameters
+            for different DataStage.
+
+        :param str cluster: cluster type
+        :param str sub_stage: current sub_stage name
+        :return: a dictionary of private cluster parameters, e.g. `bcp_preproc_npernode`
+        """
+        cfg = self.cfg
+        run_cfg = self.stage_cfg.get("run")
+
+        container_image = cfg.get("container")
+        container_mounts = self._make_container_mounts_string()
+
+        ntasks_per_node = run_cfg.get("ntasks_per_node")
+        array_size = run_cfg.get("node_array_size")
+        array = f"0-{array_size-1}"
+        parameters = {
+            "nodes": 1,
+            "ntasks_per_node": ntasks_per_node,
+            "array": f"{array}",
+            "container_image": container_image,
+            "container_mounts": container_mounts,
+        }
+        # Change parameters for the preprocess job
+        if sub_stage == "preprocess":
+            parameters["ntasks_per_node"] = run_cfg.get("workers_per_node")
+            parameters["cpus_per_task"] = (
+                run_cfg.get("cpus_per_node") // parameters["ntasks_per_node"]
+            )
+        return parameters
+
+    def _make_sub_stage_command(self, sub_stage: str) -> List[str]:
+        """Make a command of the specified sub-stage"""
+
+        prep_path = (
+            self._launcher_scripts_path
+            / "nemo_launcher/collections/dataprep_scripts/slim_pajama_dataprep"
+        )
+        stage_to_code_path = {
+            "download": prep_path / "download.py",
+            "extract": prep_path / "extract.py",
+            "concat": prep_path / "concat.sh",
+            "preprocess": prep_path / "preprocess.py",
+        }
+        choice_model_type, choice_name = self.get_stage_config_choice()
+
+        code_path = stage_to_code_path[sub_stage]
+        # Return special command for the concat stage
+        args = []
+        if sub_stage == "concat":
+            return [
+                f'bash {code_path} "{self._data_dir}" {self.stage_cfg.get("rm_extracted")}'
+            ]
+        elif sub_stage == "preprocess":
+            run_cfg = self.stage_cfg.get("run")
+            args = create_args_list(
+                output_path=self.stage_cfg.get("preprocessed_dir"),
+                workers_per_node=run_cfg.get("workers_per_node"),
+                worker_mapping_file=self.stage_cfg.get("preprocess_worker_mapping"),
+                tokenizer_library=self.stage_cfg.get("tokenizer_library"),
+                tokenizer_model=self.stage_cfg.get("tokenizer_model"),
+                tokenizer_type=self.stage_cfg.get("tokenizer_type"),
+                dataset_impl="mmap",
+                log_interval="2000",
+                apply_ftfy="store_true",
+                workers=run_cfg.get("cpus_per_node") // run_cfg.get("workers_per_node"),
+                vocab_file=f'{self.stage_cfg.get("vocab_save_dir")}/vocab.json',
+                merges_file=f'{self.stage_cfg.get("merges_save_dir")}/merges.txt',
+            )
+        elif sub_stage in ["download", "extract"]:
+            args = create_args_list(
+                hydra=True,
+                data_config=choice_name,
+                cluster_type=self.cluster,
+                launcher_scripts_path=self._launcher_scripts_path,
+                data_dir=self._data_dir,
+                slim_pajama_url=self.stage_cfg.get("slim_pajama_url"),
+                file_numbers=self.stage_cfg.get("file_numbers"),
+                rm_downloaded=self.stage_cfg.get("rm_downloaded"),
+                rm_extracted=self.stage_cfg.get("rm_extracted"),
+                tokenizer_type=self.stage_cfg.get("tokenizer_type"),
+                tokenizer_library=self.stage_cfg.get("tokenizer_library", "megatron"),
+                tokenizer_model=self.stage_cfg.get("tokenizer_model", None),
+                vocab_save_dir=self.stage_cfg.get("vocab_save_dir"),
+                merges_save_dir=self.stage_cfg.get("merges_save_dir"),
+                approved_sources=self.stage_cfg.get("approved_sources"),
+            )
+        else:
+            print("Unknown Stage, quitting")
+            return
+        sub_stage_command = [f"python3 -u {code_path}", *args]
+        sub_stage_command = " \\\n  ".join(sub_stage_command)
+        return [sub_stage_command]
+
+
 class MC4DataPreparation(DataStage):
     """DataStage for preparing the mC4 dataset for mt5"""
 
