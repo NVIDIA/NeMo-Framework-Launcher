@@ -21,3 +21,4 @@ training.model.pipeline_model_parallel_size=4 \
 training.model.virtual_pipeline_model_parallel_size=12 \
 training.model.fp8=true \
 training.run.time_limit=0:20:00 \
++training.model.optim.grad_sync_dtype=bf16 \

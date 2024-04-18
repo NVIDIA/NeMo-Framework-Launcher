@@ -162,19 +162,40 @@ class DataCurationSubStage(NemoMegatronStage):
         return sub_stage_config
 
     def make_dask_command_string(self, runscript_path):
-        dask_config = self.stage_cfg.get("dask")
+        run_config = self.stage_cfg.get("run")
+        dask_config = self.stage_cfg.get("dask", {})
 
         command_string = []
+        # Logging
         command_string.append(f"LOGDIR={self.log_folder}")
+        scheduler_file = self.log_folder / "scheduler.json"
+        command_string.append(f"SCHEDULER_FILE={scheduler_file}")
+        scheduler_log = self.log_folder / "scheduler.log"
+        command_string.append(f"SCHEDULER_LOG={scheduler_log}")
+        done_marker = self.log_folder / "done.txt"
+        command_string.append(f"DONE_MARKER={done_marker}")
+
         command_string.append(f"RUNSCRIPT={runscript_path}")
 
-        pool_size = dask_config.get("pool_size")
-        command_string.append(f"POOL_SIZE={pool_size}")
+        device = run_config.get("node_type")
+        command_string.append(f"DEVICE={device}")
 
-        protocol = dask_config.get("protocol")
+        # CPU config
+        cpu_worker_memory_limit = dask_config.get("cpu_worker_memory_limit", "0")
+        command_string.append(f"CPU_WORKER_MEMORY_LIMIT={cpu_worker_memory_limit}")
+        nworkers = dask_config.get("nworkers", "-1")
+        command_string.append(f"NUM_WORKERS={nworkers}")
+
+        # GPU config
+        scheduler_pool_size = dask_config.get("scheduler_pool_size", "1GB")
+        command_string.append(f"RMM_SCHEDULER_POOL_SIZE={scheduler_pool_size}")
+        worker_pool_size = dask_config.get("pool_size", "72GiB")
+        command_string.append(f"RMM_WORKER_POOL_SIZE={worker_pool_size}")
+
+        # Common
+        protocol = dask_config.get("protocol", "tcp")
         command_string.append(f"PROTOCOL={protocol}")
-
-        interface = dask_config.get("interface")
+        interface = dask_config.get("interface", "ibp12s0")
         command_string.append(f"INTERFACE={interface}")
 
         dask_script_path = (
@@ -352,9 +373,9 @@ class FastTextDownload(NemoMegatronStage):
         # Write out the filter configuration as a separate config file
         results_path = self.get_job_path().results_folder
         filter_cfg = self.stage_cfg["filter_config"]
-        bin_path = Path(results_path, filter_cfg["params"]["model_path"])
+        bin_path = Path(results_path, filter_cfg["filters"][0]["params"]["model_path"])
         filter_cfg_file = Path(results_path, "fasttext_langid.yaml")
-        filter_cfg["params"]["model_path"] = str(bin_path)
+        filter_cfg["filters"][0]["params"]["model_path"] = str(bin_path)
 
         omegaconf.OmegaConf.save(filter_cfg, filter_cfg_file)
         self.memory.filter_config_path = filter_cfg_file
@@ -423,12 +444,22 @@ class LanguageIdentification(DataCurationSubStage):
         args = create_args_list(
             replace_underscore=True,
             log_dir=self.log_folder,
+            log_scores=stage_cfg.get("log_scores"),
             input_data_dir=self.memory.data_dir,
             filter_config_file=self.memory.filter_config_path,
             **optional_args,
         )
 
-        core_command = ["filter_documents", *args]
+        if optional_args["output_retained_document_dir"] is not None:
+            self.memory.data_dir = optional_args["output_retained_document_dir"]
+
+        runscript = " \\\n  ".join(["filter_documents", *args])
+        runscript_path = os.path.join(self.log_folder, f"{self.stage_name}.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]
@@ -469,16 +500,21 @@ class SeparateByLanguage(DataCurationSubStage):
         # Create the list of arguments for the command
         args = create_args_list(
             replace_underscore=True,
-            log_dir=self.log_folder,
             input_data_dir=self.memory.data_dir,
             output_data_dir=output_dir,
-            output_language_distribution=stage_cfg.get("output_language_distribution"),
+            output_metadata_distribution=stage_cfg.get("output_language_distribution"),
             **optional_args,
         )
         self.memory.data_dir = None
         self.memory.nested_dir = output_dir
 
-        core_command = ["separate_by_language", *args]
+        runscript = " \\\n  ".join(["separate_by_metadata", *args])
+        runscript_path = os.path.join(self.log_folder, f"{self.stage_name}.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]
@@ -510,14 +546,19 @@ class TextCleaning(DataCurationSubStage):
         # Create the list of arguments for the command
         args = create_args_list(
             replace_underscore=True,
-            log_dir=self.log_folder,
             input_data_dir=self.memory.data_dir,
             output_clean_dir=output_dir,
         )
 
         self.memory.data_dir = output_dir
 
-        core_command = ["text_cleaning", *args]
+        runscript = " \\\n  ".join(["text_cleaning", *args])
+        runscript_path = os.path.join(self.log_folder, f"{self.stage_name}.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]
@@ -556,12 +597,17 @@ class PrepareTaskData(DataCurationSubStage):
         # Create the list of arguments for the command
         args = create_args_list(
             replace_underscore=True,
-            log_dir=self.log_folder,
             output_task_ngrams=output_task_ngrams,
             task_config_file=f"{task_cfg}",
         )
 
-        core_command = ["prepare_task_data", *args]
+        runscript = " \\\n  ".join(["prepare_task_data", *args])
+        runscript_path = os.path.join(self.log_folder, f"{self.stage_name}.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]
@@ -605,7 +651,6 @@ class FindMatchingNgrams(DataCurationSubStage):
         # Create the list of arguments for the command
         args = create_args_list(
             replace_underscore=True,
-            log_dir=self.log_folder,
             input_data_dir=self.memory.data_dir,
             input_task_ngrams=self.memory.ngrams_path,
             output_matched_ngram_data=output_dir,
@@ -614,7 +659,13 @@ class FindMatchingNgrams(DataCurationSubStage):
 
         self.memory.ngrams_path = output_dir
 
-        core_command = ["find_matching_ngrams", *args]
+        runscript = " \\\n  ".join(["find_matching_ngrams", *args])
+        runscript_path = os.path.join(self.log_folder, f"{self.stage_name}.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]
@@ -658,7 +709,6 @@ class RemoveMatchingNgrams(DataCurationSubStage):
         # Create the list of arguments for the command
         args = create_args_list(
             replace_underscore=True,
-            log_dir=self.log_folder,
             input_data_dir=self.memory.data_dir,
             input_matched_ngrams=self.memory.ngrams_path,
             output_task_deduped_dir=output_dir,
@@ -667,7 +717,13 @@ class RemoveMatchingNgrams(DataCurationSubStage):
 
         self.memory.data_dir = output_dir
 
-        core_command = ["remove_matching_ngrams", *args]
+        runscript = " \\\n  ".join(["remove_matching_ngrams", *args])
+        runscript_path = os.path.join(self.log_folder, f"{self.stage_name}.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]

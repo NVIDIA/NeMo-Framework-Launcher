@@ -25,6 +25,7 @@ from nemo_launcher.core.data_stages import (
     MC4DataPreparation,
     MultimodalDataPreparation,
     PileDataPreparation,
+    SlimPajamaDataPreparation,
     SteerLMDataPreparation,
 )
 from nemo_launcher.core.export_stages import Export
@@ -74,12 +75,14 @@ STR2STAGECLASS = {
             "prompt_llama",
             "falcon",
             "baichuan2",
+            "chatglm",
             "mistral",
             "mixtral",
         ],
         NeMoEvaluation: [
             "t5",
             "mt5",
+            "retro",
             "prompt_t5",
             "prompt_mt5",
             "adapter_t5",
@@ -92,6 +95,7 @@ STR2STAGECLASS = {
             "vit",
             "clip",
             "peft_baichuan2",
+            "peft_chatglm",
             "starcoder2",
             "peft_mistral",
             "peft_mixtral",
@@ -99,7 +103,16 @@ STR2STAGECLASS = {
         DiffusionModelEvaluation: ["stable_diffusion", "imagen"],
     },
     "data_preparation": {
-        PileDataPreparation: ["gpt3", "t5", "bert", "llama", "falcon", "baichuan2"],
+        SlimPajamaDataPreparation: ["gpt"],
+        PileDataPreparation: [
+            "gpt3",
+            "t5",
+            "bert",
+            "llama",
+            "falcon",
+            "baichuan2",
+            "chatglm",
+        ],
         MC4DataPreparation: ["mt5"],
         SteerLMDataPreparation: ["steerlm"],
         CustomDataPreparation: ["generic"],

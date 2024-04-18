@@ -137,7 +137,7 @@ model:
   ## Transformer Engine
   # To use fp8, please set `transformer_engine=True` and `fp8=True`.
   # The rest of fp8 knobs are set for the fp8 training mode, which are ignored in non-fp8 training
-  transformer_engine: False
+  transformer_engine: True
   fp8: True # enables fp8 in TransformerLayer forward
   fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
   fp8_hybrid: True # sets fp8_format = recipe.Format.HYBRID

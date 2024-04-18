@@ -88,6 +88,7 @@ model:
   normalize_attention_scores: true
   position_embedding_type: rope
   rotary_percentage: 1.0
+  apply_rope_fusion: true
   attention_type: multihead
   share_embeddings_and_output_weights: false
   tokenizer:
@@ -107,7 +108,7 @@ model:
   grad_allreduce_chunk_size_mb: 125
   grad_div_ar_fusion: true
   gradient_accumulation_fusion: true
-  bias_activation_fusion: false
+  bias_activation_fusion: true
   bias_dropout_add_fusion: false
   masked_softmax_fusion: true
   seed: 1234
@@ -149,6 +150,7 @@ model:
     overlap_grad_sync: true
     overlap_param_sync: true
     contiguous_grad_buffer: true    
+    contiguous_param_buffer: true   
     sched:
       name: CosineAnnealing
       warmup_steps: 500

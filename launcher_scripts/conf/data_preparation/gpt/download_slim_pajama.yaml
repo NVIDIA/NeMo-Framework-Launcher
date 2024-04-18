@@ -1,0 +1,27 @@
+run:
+  name: download_gpt_slim_pajama
+  results_dir: ${base_results_dir}/${.name}
+  time_limit: "24:00:00"
+  dependency: "singleton"
+  cpus_per_node: 256
+  node_array_size: 4 # Number of nodes to assign to each step. Ideally at each step all nodes in the array are running at the same time
+  ntasks_per_node: 48 # Number of tasks per node for the download, extract, and concat steps
+  workers_per_node: 4 # Number of workers per node in preprocessing step.
+
+dataset: slim_pajama
+download_slim_pajama: True  # Whether to download the Slim Pajama dataset from the internet.
+extract_slim_pajama: True
+concat_slim_pajama: False
+preprocess_data: False  # True to preprocess the data from a jsonl file, False otherwise.
+rm_downloaded: False # Extract script will remove downloaded zst after extraction.
+rm_extracted: False # Preprocess script will remove extracted files after preproc.
+approved_sources: ["RedPajamaCommonCrawl", "RedPajamaC4", "RedPajamaGithub", "RedPajamaArXiv", "RedPajamaWikipedia", "RedPajamaStackExchange"] # For each dataset an user elects to use, the user is responsible for checking if the dataset license is fit for the intended purpose. More information can be found here: https://huggingface.co/datasets/cerebras/SlimPajama-627B#dataset-structure
+slim_pajama_url: "https://huggingface.co/datasets/cerebras/SlimPajama-627B/resolve/main/train"  # Source URL to download The Slim Pajama dataset from.
+download_vocab_url: "https://huggingface.co/gpt2/resolve/main/vocab.json"  # URL to download the vocab from.
+download_merges_url: "https://huggingface.co/gpt2/resolve/main/merges.txt"  # URL to download the merges from.
+vocab_save_dir: ${data_dir}/bpe
+merges_save_dir: ${data_dir}/bpe
+tokenizer_type: GPT2BPETokenizer
+preprocess_worker_mapping: ${data_dir}/preprocess_mapping
+preprocessed_dir: ${data_dir}/preprocessed
+tokenizer_library: megatron

@@ -20,43 +20,43 @@ lm_tasks_config:
     # find_matching_ngrams will then search for these N-grams
     # in the training documents, and remove_matching_ngrams will
     # split the documents based on matches
-    - name: ndc.deduplication.task.lmtask.Winogrande
+    - name: nemo_curator.tasks.Winogrande
       params: {}
-    - name: ndc.deduplication.task.lmtask.Squad
+    - name: nemo_curator.tasks.Squad
       params: {}
-    - name: ndc.deduplication.task.lmtask.TriviaQA
+    - name: nemo_curator.tasks.TriviaQA
       params: {}
-    - name: ndc.deduplication.task.lmtask.Quac
+    - name: nemo_curator.tasks.Quac
       params: {}
-    - name: ndc.deduplication.task.lmtask.WebQA
+    - name: nemo_curator.tasks.WebQA
       params: {}
-    - name: ndc.deduplication.task.lmtask.Race
+    - name: nemo_curator.tasks.Race
       params: {}
-    - name: ndc.deduplication.task.lmtask.Drop
+    - name: nemo_curator.tasks.Drop
       params: {}
-    - name: ndc.deduplication.task.lmtask.WiC
+    - name: nemo_curator.tasks.WiC
       params: {}
-    - name: ndc.deduplication.task.lmtask.PIQA
+    - name: nemo_curator.tasks.PIQA
       params: {}
-    - name: ndc.deduplication.task.lmtask.ArcEasy
+    - name: nemo_curator.tasks.ArcEasy
       params: {}
-    - name: ndc.deduplication.task.lmtask.ArcChallenge
+    - name: nemo_curator.tasks.ArcChallenge
       params: {}
-    - name: ndc.deduplication.task.lmtask.OpenBookQA
+    - name: nemo_curator.tasks.OpenBookQA
       params: {}
-    - name: ndc.deduplication.task.lmtask.BoolQ
+    - name: nemo_curator.tasks.BoolQ
       params: {}
-    - name: ndc.deduplication.task.lmtask.Copa
+    - name: nemo_curator.tasks.Copa
       params: {}
-    - name: ndc.deduplication.task.lmtask.RTE
+    - name: nemo_curator.tasks.RTE
       params: {}
-    - name: ndc.deduplication.task.lmtask.MultiRC
+    - name: nemo_curator.tasks.MultiRC
       params: {}
-    - name: ndc.deduplication.task.lmtask.WSC
+    - name: nemo_curator.tasks.WSC
       params: {}
-    - name: ndc.deduplication.task.lmtask.CB
+    - name: nemo_curator.tasks.CB
       params: {}
-    - name: ndc.deduplication.task.lmtask.ANLI
+    - name: nemo_curator.tasks.ANLI
       params: {}
-    - name: ndc.deduplication.task.lmtask.Record
+    - name: nemo_curator.tasks.Record
       params: {}

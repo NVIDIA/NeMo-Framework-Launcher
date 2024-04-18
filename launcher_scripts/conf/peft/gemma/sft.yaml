@@ -64,7 +64,7 @@ model:
 
   megatron_amp_O2: True
   mcore_gpt: True
-  transformer_engine: False
+  transformer_engine: True
 
   grad_div_ar_fusion: True
   gradient_accumulation_fusion: True

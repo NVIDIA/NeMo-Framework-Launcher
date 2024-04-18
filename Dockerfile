@@ -102,7 +102,7 @@ RUN git clone https://github.com/NVIDIA/NeMo-Aligner.git && \
     pip install --no-deps -e .
 
 # HF cache
-RUN python -c "from transformers import AutoTokenizer; tok_gpt=AutoTokenizer.from_pretrained('gpt2'); tok_bert=AutoTokenizer.from_pretrained('bert-base-cased'); tok_large_bert=AutoTokenizer.from_pretrained('bert-large-cased'); tok_large_uncased_bert=AutoTokenizer.from_pretrained('bert-large-uncased');"
+RUN python -c "from transformers import AutoTokenizer; tok_gpt=AutoTokenizer.from_pretrained('gpt2'); tok_bert=AutoTokenizer.from_pretrained('bert-base-cased'); tok_large_bert=AutoTokenizer.from_pretrained('bert-large-cased'); tok_large_uncased_bert=AutoTokenizer.from_pretrained('bert-large-uncased'); AutoTokenizer.from_pretrained('mistralai/Mixtral-8x7B-v0.1'); AutoTokenizer.from_pretrained('mistralai/Mistral-7B-v0.1');"
 
 # Install TE
 ARG TE_COMMIT
@@ -185,7 +185,7 @@ RUN pip install --no-cache-dir wandb==0.15.3 \
         'ipython>=7.31.1' \
         'torchmetrics==0.9.1'
 
-RUN pip install pytorch_lightning==2.0.7
+RUN pip install pytorch_lightning==2.2.1
 # Copy FasterTransformer
 #COPY --from=ft_builder /workspace/FasterTransformer FasterTransformer
 
