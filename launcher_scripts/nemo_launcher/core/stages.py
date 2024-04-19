@@ -71,7 +71,7 @@ class NemoMegatronStage:
         self.stage_name = None
         self.stage_cfg = None
         self.setup_stage_vars(cfg)
-        self.job_name = self.stage_cfg.run.get("name")
+        self.job_name = str(self.stage_cfg.run.get("name"))
 
         self.nodes_scheduler = {}
 
@@ -305,7 +305,7 @@ class NemoMegatronStage:
         cfg = self.cfg
         stage_cfg = self.stage_cfg
         run_cfg = stage_cfg.get("run")
-        job_name = run_cfg.get("name")
+        job_name = str(run_cfg.get("name"))
         time_limit = run_cfg.get("time_limit")
         nodes = run_cfg.get("nodes")
         dependency = run_cfg.get("dependency")
@@ -353,7 +353,7 @@ class NemoMegatronStage:
                 }
             )
             cluster_parameters["job_name"] = (
-                job_name_prefix + cluster_parameters["job_name"]
+                job_name_prefix + str(cluster_parameters["job_name"])
             )
         elif cluster == "bcp":
             cluster_parameters.update(
