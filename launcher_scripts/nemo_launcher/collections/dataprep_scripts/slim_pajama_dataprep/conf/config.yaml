@@ -1,0 +1,23 @@
+# @package _global_
+defaults:
+  - override /hydra/hydra_logging@_group_: none
+  - override /hydra/job_logging@_group_: none
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+data_config: download_slim_pajama
+cluster_type: bcm
+launcher_scripts_path: null
+data_dir: null
+slim_pajama_url: null
+approved_sources: null
+file_numbers: null
+rm_downloaded: True
+rm_extracted: True
+tokenizer_type: null
+vocab_save_dir: null
+merges_save_dir: null
+tokenizer_library: null
+tokenizer_model: null
+preprocessed_dir: null
