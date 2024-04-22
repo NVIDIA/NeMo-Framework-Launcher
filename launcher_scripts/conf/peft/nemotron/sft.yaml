@@ -12,7 +12,7 @@ run:
   time_limit: 04:00:00
   dependency: singleton
   convert_name: convert_nemo
-  model_train_name: llama2
+  model_train_name: nemotron
   convert_dir: ${base_results_dir}/${.model_train_name}/${.convert_name}
 
 trainer:
@@ -70,7 +70,7 @@ model:
 
   global_batch_size: 128
   micro_batch_size: 4
-  restore_from_path: ${peft.run.convert_dir}/results/megatron_llama.nemo # Path to an existing .nemo model you wish to add new tasks to or run inference with
+  restore_from_path: ???
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
   save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training.
   sync_batch_comm: False
@@ -84,10 +84,10 @@ model:
 
   get_attention_mask_from_fusion: True
   apply_rope_fusion: True
-  bias_activation_fusion: True
+  bias_activation_fusion: False
   bias_dropout_add_fusion: True
   masked_softmax_fusion: True
-  gradient_accumulation_fusion: True
+  gradient_accumulation_fusion: False
   grad_div_ar_fusion: True
 
   fp8: False
