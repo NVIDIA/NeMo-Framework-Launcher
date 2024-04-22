@@ -1,10 +1,10 @@
 run:
-  name: mixtral_8x7b
+  name: mixtral_8x22b
   results_dir: ${base_results_dir}/${.name}
   time_limit: "0-04:00:00"
   dependency: "singleton"
 trainer:
-  num_nodes: 8
+  num_nodes: 48
   devices: 8
   accelerator: gpu
   precision: bf16
@@ -46,20 +46,18 @@ exp_manager:
 
 model:
   mcore_gpt: true
-  moe_grouped_gemm: true
   micro_batch_size: 1
-  global_batch_size: 32
+  global_batch_size: 1
   rampup_batch_size: null
   tensor_model_parallel_size: 8
   pipeline_model_parallel_size: 2
-  expert_model_parallel_size: 4
   virtual_pipeline_model_parallel_size: null
-  encoder_seq_length: 4096
-  max_position_embeddings: 32768
-  num_layers: 32
-  hidden_size: 4096
-  ffn_hidden_size: 14336
-  num_attention_heads: 32
+  encoder_seq_length: 65536
+  max_position_embeddings: 65536
+  num_layers: 56
+  hidden_size: 6144
+  ffn_hidden_size: 16384
+  num_attention_heads: 48
   init_method_std: 0.02
   use_scaled_init_method: true
   hidden_dropout: 0.0
@@ -93,7 +91,7 @@ model:
   num_query_groups: 8
   tokenizer:
     library: huggingface
-    type: mistralai/Mixtral-8x7B-v0.1
+    type: mistral-community/Mixtral-8x22B-v0.1
     use_fast: true
   native_amp_init_scale: 4294967296
   native_amp_growth_interval: 1000
@@ -104,9 +102,9 @@ model:
   grad_allreduce_chunk_size_mb: 125
   grad_div_ar_fusion: true
   gradient_accumulation_fusion: false
-  bias_activation_fusion: true
-  bias_dropout_add_fusion: true
-  masked_softmax_fusion: false
+  bias_activation_fusion: false
+  bias_dropout_add_fusion: false
+  masked_softmax_fusion: true
   get_attention_mask_from_fusion: true
   seed: 1234
   resume_from_checkpoint: null
@@ -133,7 +131,7 @@ model:
   use_emha: false
   ub_tp_comm_overlap: false
   ub_tp_comm_overlap_cfg: null
-  use_flash_attention: true
+  use_flash_attention: false
   nsys_profile:
     enabled: false
     start_step: 10
