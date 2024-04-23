@@ -4,7 +4,7 @@ run:
   time_limit: "0-04:00:00"
   dependency: "singleton"
 trainer:
-  num_nodes: 16
+  num_nodes: 8
   devices: 8
   accelerator: gpu
   precision: bf16
@@ -46,13 +46,15 @@ exp_manager:
 
 model:
   mcore_gpt: true
+  moe_grouped_gemm: true
   micro_batch_size: 1
   global_batch_size: 32
   rampup_batch_size: null
   tensor_model_parallel_size: 8
   pipeline_model_parallel_size: 2
+  expert_model_parallel_size: 4
   virtual_pipeline_model_parallel_size: null
-  encoder_seq_length: 2048
+  encoder_seq_length: 4096
   max_position_embeddings: 32768
   num_layers: 32
   hidden_size: 4096
@@ -102,9 +104,9 @@ model:
   grad_allreduce_chunk_size_mb: 125
   grad_div_ar_fusion: true
   gradient_accumulation_fusion: false
-  bias_activation_fusion: false
-  bias_dropout_add_fusion: false
-  masked_softmax_fusion: true
+  bias_activation_fusion: true
+  bias_dropout_add_fusion: true
+  masked_softmax_fusion: false
   get_attention_mask_from_fusion: true
   seed: 1234
   resume_from_checkpoint: null
@@ -131,7 +133,7 @@ model:
   use_emha: false
   ub_tp_comm_overlap: false
   ub_tp_comm_overlap_cfg: null
-  use_flash_attention: false
+  use_flash_attention: true
   nsys_profile:
     enabled: false
     start_step: 10
@@ -159,7 +161,7 @@ model:
   data:
     data_impl: mmap
     splits_string: "99990,8,2"
-    seq_length: 2048
+    seq_length: 4096
     skip_warmup: true
     num_workers: 2
     dataloader_type: single

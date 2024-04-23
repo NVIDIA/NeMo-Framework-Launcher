@@ -41,7 +41,7 @@ fc1_fprop:
 
 fc2_dgrad:
   method: ring_exchange
-  aggregate: 1
+  aggregate: 0
 
 # Chunked-collective overlap with ReduceScatter
 proj_fprop:

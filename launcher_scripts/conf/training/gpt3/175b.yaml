@@ -105,8 +105,8 @@ model:
   ## Sequence Parallelism
   sequence_parallel: True
 
-  overlap_p2p_comm: False # Overlap p2p communication with computes. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
-  batch_p2p_comm: True # Batch consecutive inter-peer send/recv operations. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
+  overlap_p2p_comm: True # Overlap p2p communication with computes. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
+  batch_p2p_comm: False # Batch consecutive inter-peer send/recv operations. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
   num_query_groups: null # Number of query groups for group query attention. If None, normal attention is used.
 
   tokenizer:
@@ -137,7 +137,7 @@ model:
   ## Transformer Engine
   # To use fp8, please set `transformer_engine=True` and `fp8=True`.
   # The rest of fp8 knobs are set for the fp8 training mode, which are ignored in non-fp8 training
-  transformer_engine: False
+  transformer_engine: True
   fp8: False # enables fp8 in TransformerLayer forward
   fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
   fp8_hybrid: True # sets fp8_format = recipe.Format.HYBRID
@@ -156,7 +156,7 @@ model:
   use_cpu_initialization: False # Init weights on the CPU (slow for large models)
   onnx_safe: False # Use work-arounds for known problems with Torch ONNX exporter.
   apex_transformer_log_level: 30 # Python logging level displays logs with severity greater than or equal to this
-  gc_interval: 3 #Manual garbage collection
+  gc_interval: 100 #Manual garbage collection
 
   # Nsys profiling options
   nsys_profile:
@@ -173,6 +173,7 @@ model:
     overlap_grad_sync: True
     overlap_param_sync: true
     contiguous_grad_buffer: True
+    contiguous_param_buffer: True
     lr: 0.9e-4
     weight_decay: 0.1 
     betas: 
