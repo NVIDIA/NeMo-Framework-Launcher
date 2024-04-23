@@ -93,7 +93,7 @@ model:
   data:
     test_ds:
       file_names: 
-        - ${data_dir}/squad_data/v1.1/dev-v1.1_gpt.json
+        - ${data_dir}/1_squad_test.jsonl
       test_names:
         - squad
       global_batch_size: 32
