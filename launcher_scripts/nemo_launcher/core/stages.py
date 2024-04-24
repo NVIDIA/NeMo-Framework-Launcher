@@ -44,7 +44,7 @@ __LANGUAGE_MODELS_LIST__ = [
     "mixtral",
     "starcoder2",
     "chatglm",
-    "griffin"
+    "griffin",
 ]
 __VISION_MODELS_LIST__ = ["vit"]
 __MULTIMODAL_MODELS_LIST__ = [
