@@ -93,7 +93,7 @@ model:
   share_embeddings_and_output_weights: false
   tokenizer:
     library: huggingface
-    type: meta-llama/Llama-3-8b-hf
+    type: meta-llama/Meta-Llama-3-8B
     use_fast: true
   native_amp_init_scale: 4294967296
   native_amp_growth_interval: 1000
