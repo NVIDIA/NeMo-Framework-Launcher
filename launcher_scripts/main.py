@@ -25,6 +25,7 @@ from nemo_launcher.core.data_stages import (
     MC4DataPreparation,
     MultimodalDataPreparation,
     PileDataPreparation,
+    SlimPajamaDataPreparation,
     SteerLMDataPreparation,
 )
 from nemo_launcher.core.export_stages import Export
@@ -104,6 +105,7 @@ STR2STAGECLASS = {
         DiffusionModelEvaluation: ["stable_diffusion", "imagen"],
     },
     "data_preparation": {
+        SlimPajamaDataPreparation: ["gpt"],
         PileDataPreparation: [
             "gpt3",
             "t5",

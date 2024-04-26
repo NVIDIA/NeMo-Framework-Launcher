@@ -25,7 +25,7 @@ class TestConfig:
         base_results_dir: ${auto_configurator_path}/results
         data_dir: ${launcher_scripts_path}/data
 
-        training_container: nvcr.io/nvidia/nemo:24.01.01.framework
+        training_container: nvcr.io/nvidia/nemo:24.03.01.framework
         container_mounts:
           - null
         

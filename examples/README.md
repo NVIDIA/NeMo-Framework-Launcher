@@ -8,8 +8,8 @@ These scripts run a recommended config for GPT, LLAMA2, Nemotron pretraining, an
 : Scripts to run GPT pretraining for NVIDIA H100, in fp8 data type
 
 #### Setup
-1. To run these scripts, you must have access to the nemo bignlp container (like nvcr.io/nvidia/nemo:24.01.01.framework)
-     - Get Nemo container at https://developer.nvidia.com/nemo-framework-open-beta. Please sign in at [NGC](https://ngc.nvidia.com/signin) (user = ea-bignlp/ga-participants) to access the catalog.
+1. To run these scripts, you must have access to the nemo container (https://catalog.ngc.nvidia.com/orgs/nvidia/containers/nemo)
+     - Please sign in at [NGC](https://ngc.nvidia.com/signin) (user = ea-bignlp/ga-participants) to access the catalog.
        
 2. Update the following bash variables in the example run scripts:
      - ``` NEMO_MEGATRON_LAUNCHER_DIR ``` : the directory of where this repository is located
@@ -52,11 +52,11 @@ For further details see [Interpreting the Results](https://docs.nvidia.com/nemo-
 | Model | #-GPUs | GBS | MBS | Sequence <br> Length | TP | PP | Tokens <br>/ sec / GPU | Model TFLOP <br> / sec / GPU | Est. time to train <br> in days <br> (1T tokens, 1K GPUs) |
 | ---      | ---      |----   |----   | ---      |----   | ---      | ---      | ---     | ---     |
 | GPT3-175B    | 512 | 2048 | 1 | 2048 | 4 | 8 | 741 |  [797*](https://developer.nvidia.com/blog/setting-new-records-at-data-center-scale-using-nvidia-h100-gpus-and-quantum-2-infiniband/) | 15.3  |
-| GPT3-5B       | 64 | 2048 | 4 | 2048 | 1 | 1 | 22599 | 738 | 0.5  |
-| GPT3-20B      | 64 | 256  | 4 | 2048 | 4 | 1 | 5152 | 660 | 2.2  |
-| LLAMA2-7B     | 8  | 128  | 1 | 4096 | 1 | 1 | 15066 | 694 | 0.8  |
-| LLAMA2-13B    | 16 | 128  | 1 | 4096 | 2 | 1 | 7728 | 674 | 1.5  |
-| LLAMA2-70B    | 64 | 128  | 1 | 4096 | 4 | 4 | 1594 | 708 | 7.1  |
+| GPT3-5B       | 64 | 2048 | 4 | 2048 | 1 | 1 | 23574 | 746 | 0.5  |
+| GPT3-20B      | 64 | 256  | 2 | 2048 | 2 | 1 | 5528 | 708 | 2.0  |
+| LLAMA2-7B     | 8  | 128  | 1 | 4096 | 1 | 1 | 16290 | 751 | 0.7  |
+| LLAMA2-13B    | 16 | 128  | 1 | 4096 | 4 | 1 | 8317 | 725 | 1.4  |
+| LLAMA2-70B    | 64 | 128  | 1 | 4096 | 4 | 4 | 1725 | 767 | 6.6  |
 | Nemotron-8B   | 8  | 32   | 2 | 4096 | 2 | 1 | 11538 | 593 | 1.0  |
 | Nemotron-22B  | 16 | 32   | 2 | 4096 | 1 | 4 | 3828 | 499 | 3.0  |
 
