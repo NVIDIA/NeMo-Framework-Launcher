@@ -80,6 +80,7 @@ model:
   pre_process: true
   post_process: true
   persist_layer_norm: true
+  num_query_groups: 8
   bias: false
   activation: fast-swiglu
   headscale: false
@@ -155,7 +156,7 @@ model:
   data:
     data_impl: mmap
     splits_string: "99990,8,2"
-    seq_length: 4096
+    seq_length: 8192
     skip_warmup: true
     num_workers: 2
     dataloader_type: single
