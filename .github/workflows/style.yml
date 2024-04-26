@@ -3,7 +3,7 @@ name: code_style
 on:
   pull_request:
     branches:
-      - 'master'
+      - 'main'
 
 jobs:
   black:
