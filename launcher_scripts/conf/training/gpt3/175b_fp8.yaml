@@ -1,6 +1,10 @@
 # The configurations below provide the best 175B training performance with the NeMo SW stack.
 # We have confirmed the model convergence only with a limited number of tokens and the full model
 # convergence (e.g., 300B tokens) is not guaranteed.
+defaults:
+  - _self_
+  - optional tp_overlap@model.ub_tp_comm_overlap_cfg: ub_cfg_h100_h12288_tp8_mbs2_seqlen2048
+
 hydra:
   searchpath:
     - file:///opt/NeMo/examples/nlp/language_modeling/conf
@@ -56,6 +60,7 @@ exp_manager:
 model:
   micro_batch_size: 2
   global_batch_size: 2048
+  context_parallel_size: 1
   tensor_model_parallel_size: 8
   pipeline_model_parallel_size: 8
   virtual_pipeline_model_parallel_size: 12 # interleaved pipeline, set to maximum
@@ -68,8 +73,8 @@ model:
   ffn_hidden_size: ${multiply:4, ${.hidden_size}}  # Transformer FFN hidden size. 4 * hidden_size.
   num_attention_heads: 96
   init_method_std: 0.006  # Standard deviation of the zero mean normal distribution used for weight initialization.')
-  hidden_dropout: 0.0  # Dropout probability for hidden state transformer.
-  attention_dropout: 0.0
+  hidden_dropout: 0.1  # Dropout probability for hidden state transformer.
+  attention_dropout: 0.1
   kv_channels: null  # Projection weights dimension in multi-head attention. Set to hidden_size // num_attention_heads if null
   apply_query_key_layer_scaling: True # scale Q * K^T by 1 / layer-number.
   layernorm_epsilon: 1e-5
@@ -86,6 +91,12 @@ model:
   bias_dropout_add_fusion: True # Use a kernel that fuses the bias addition, dropout and residual connection addition.
   masked_softmax_fusion: True # Use a kernel that fuses the attention softmax with it's mask.
 
+  # FSDP
+  fsdp: False # Enable training with torch FSDP.
+  fsdp_sharding_strategy: 'full' # Method to shard model states. Available options are 'full', 'hybrid', and 'grad'.
+  fsdp_grad_reduce_dtype: 32 # Gradient reduction data type.
+  fsdp_sharded_checkpoint: False # Store and load FSDP shared checkpoint.
+  
   ## Activation Checkpointing
   activations_checkpoint_granularity: null # 'selective' or 'full'
   activations_checkpoint_method: null # 'uniform', 'block'
@@ -117,13 +128,16 @@ model:
   megatron_amp_O2: True # Enable O2-level automatic mixed precision using master parameters
   grad_allreduce_chunk_size_mb: 125
 
+  ## Network
+  sharp: False # Enable the use of SHARP for NCCL data-parallel communications. This is going to be ignored if the network doesn't support SHARP.
+
   ## Using Megatron Core
   mcore_gpt: True
 
   ## Transformer Engine
   # To use fp8, please set `transformer_engine=True` and `fp8=True`.
   # The rest of fp8 knobs are set for the fp8 training mode, which are ignored in non-fp8 training
-  transformer_engine: False
+  transformer_engine: True
   fp8: True # enables fp8 in TransformerLayer forward
   fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
   fp8_hybrid: True # sets fp8_format = recipe.Format.HYBRID
@@ -133,6 +147,8 @@ model:
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   fp8_wgrad: True
   ub_tp_comm_overlap: False
+  tp_comm_atomic_ag: False
+  tp_comm_atomic_rs: False
 
   # miscellaneous
   seed: 1234

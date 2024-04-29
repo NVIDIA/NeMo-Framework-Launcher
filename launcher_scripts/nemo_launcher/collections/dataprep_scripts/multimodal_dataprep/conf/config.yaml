@@ -1,0 +1,22 @@
+# this file is only a template for the hydra arguments
+# you should not edit or use this file unless you are debugging data prep scripts directly
+
+dataset_repo_id:
+dataset_output_root:
+
+input_dir:
+output_dir:
+parquet_subpartitions:
+parquet_pattern:
+num_parquets_downloaded:
+download_num_processes:
+download_num_threads:
+img2dataset_additional_arguments:
+node_array_size:
+tar_chunk_size:
+file_ext_in_tar:
+precache_config_path:
+output_wdinfo_path:
+append_tar_dir:
+source_dir:
+source_extensions:

@@ -266,7 +266,9 @@ class BCPLauncher(Launcher):
         """Launch the submission command"""
         command_list = self._make_submission_command(submission_file_path)
         # run
-        job_utils.CommandFunction(command_list, verbose=False)()  # explicit errors
+        job_utils.CommandFunction(
+            command_list, ret_stdout=False, verbose=False
+        )()  # explicit errors
 
         return ""
 
@@ -560,7 +562,21 @@ class K8SLauncher(Launcher):
         helm_charts = paths.folder / "k8s_template"
         job_name = self.job_name.replace("_", "-")
 
-        return f"#!/bin/bash\nhelm install {job_name} {helm_charts}\n"
+        if NEMO_LAUNCHER_DEBUG:
+            # If NEMO_LAUNCHER_DEBUG is set, we just print the template.
+            # The submission script will also have this command so a user is
+            # expected to drop this env-var if they want to subsequently run.
+            sub_command = "template"
+        else:
+            sub_command = "install"
+
+        extra_helm_args = ""
+        if self.parameters.get("namespace", None):
+            extra_helm_args += f" --namespace {self.parameters['namespace']}"
+
+        # Apply a timeout of 15min in case images take a long time to bring up
+        # or pre-install hooks take a while
+        return f"#!/bin/bash\nhelm {sub_command} --timeout=15m --wait {extra_helm_args} {job_name} {helm_charts}\n"
 
 
 @functools.lru_cache()

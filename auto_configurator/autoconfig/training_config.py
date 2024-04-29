@@ -80,16 +80,23 @@ def generate_grid_search_configs(
     act_layers = train_cfg.get("act_ckpt_layers")
 
     # 2 * num_layers is needed because of encoder/decoder architecture.
-    multiplier = 1 if model_name in ["gpt3", "bert", "llama"] else 2
+    multiplier = (
+        1 if model_name in ["gpt3", "bert", "llama", "baichuan2", "chatglm"] else 2
+    )
 
     seq_length = base_cfg["model"]["data"]["seq_length"]
     num_layers = (
         base_cfg["model"]["num_layers"]
-        if model_name in ["gpt3", "bert", "llama"]
+        if model_name in ["gpt3", "bert", "llama", "baichuan2", "chatglm"]
         else base_cfg["model"]["encoder"]["num_layers"]
     )
 
-    act_method = base_cfg["model"].get("activations_checkpoint_method", "None")
+    if model_name in ["gpt3", "bert", "llama"]:
+        act_method = base_cfg["model"].get("activations_checkpoint_method", "None")
+    else:
+        act_method = base_cfg["model"]["encoder"].get(
+            "activations_checkpoint_method", "None"
+        )
 
     (
         tp_list,
@@ -119,7 +126,7 @@ def generate_grid_search_configs(
                     base_cfg["trainer"]["num_nodes"] * base_cfg["trainer"]["devices"]
                 )
                 gbs = base_cfg["model"]["global_batch_size"]
-                if model_name in ["gpt3", "bert", "llama"]:
+                if model_name in ["gpt3", "bert", "llama", "baichuan2", "chatglm"]:
                     att_heads = base_cfg["model"]["num_attention_heads"]
                     num_layers = base_cfg["model"]["num_layers"]
                 else:
@@ -149,27 +156,42 @@ def generate_grid_search_configs(
             tp, pp, num_layers, act_method, multiplier, model_size_in_b, model_name
         )
         for mbs in mbs_list:
-            if act_layers is not None and act_layers != "auto":
-                act_ckpt_layers = act_layers
-            new_cfg = utils.modify_cfg(
-                base_cfg=base_cfg,
-                act=act_ckpt_layers,
-                num_mbs_act=num_micro_batches_partial_act_ckpt,
-                act_per_pipe=act_ckpt_layers_per_pipeline,
-                tp=tp,
-                pp=pp,
-                virtual_pipelines=virtual_pipelines,
-                mbs=mbs,
-                max_minutes=max_minutes,
-                max_steps=max_steps,
-                num_nodes=num_nodes,
-                model_name=model_name,
-            )
-            if new_cfg:  # Save candidate cfg.
-                file_name = f"{model_name}_{model_size_in_b}b_{num_nodes}nodes_tp_{tp}_pp_{pp}_mbs_{mbs}_act_ckpt_{act_ckpt_layers}_num_mbs_act_{num_micro_batches_partial_act_ckpt}_act_per_pipe_{act_ckpt_layers_per_pipeline}.yaml"
-                results_cfgs[mbs].append(file_name)
-                with open(f"{base_dir}/{file_name}", "w") as f:
-                    yaml.dump(new_cfg, f)
+            kwargs = {
+                "base_cfg": base_cfg,
+                "act": None,
+                "num_mbs_act": None,
+                "act_per_pipe": None,
+                "tp": tp,
+                "pp": pp,
+                "virtual_pipelines": virtual_pipelines,
+                "mbs": mbs,
+                "max_minutes": max_minutes,
+                "max_steps": max_steps,
+                "num_nodes": num_nodes,
+                "model_name": model_name,
+            }
+            if act_ckpt_layers[0] is not None:
+                if act_layers is not None and act_layers != "auto":
+                    act_ckpt_layers = act_layers
+                for act in act_ckpt_layers:
+                    for num_mbs_act in num_micro_batches_partial_act_ckpt:
+                        for act_per_pipe in act_ckpt_layers_per_pipeline:
+                            kwargs["act"] = act
+                            kwargs["num_mbs_act"] = num_mbs_act
+                            kwargs["act_per_pipe"] = act_per_pipe
+                            new_cfg = utils.modify_cfg(**kwargs)
+                            if new_cfg:  # Save candidate cfg.
+                                file_name = f"{model_name}_{model_size_in_b}b_{num_nodes}nodes_tp_{tp}_pp_{pp}_mbs_{mbs}_act_ckpt_{act}_num_mbs_act_{num_mbs_act}_act_per_pipe_{act_per_pipe}.yaml"
+                                results_cfgs[act].append(file_name)
+                                with open(f"{base_dir}/{file_name}", "w") as f:
+                                    yaml.dump(new_cfg, f)
+            else:
+                new_cfg = utils.modify_cfg(**kwargs)
+                if new_cfg:  # Save candidate cfg.
+                    file_name = f"{model_name}_{model_size_in_b}b_{num_nodes}nodes_tp_{tp}_pp_{pp}_mbs_{mbs}_act_ckpt_{kwargs['act']}_num_mbs_act_{kwargs['num_mbs_act']}_act_per_pipe_{kwargs['act_per_pipe']}.yaml"
+                    results_cfgs[mbs].append(file_name)
+                    with open(f"{base_dir}/{file_name}", "w") as f:
+                        yaml.dump(new_cfg, f)
 
     print("\nAll candidate configurations created correctly.\n")
     return base_dir, results_cfgs, num_nodes
@@ -200,7 +222,7 @@ def _set_activations_checkpoint_params(
     max_layers_per_pipe = num_layers
     interval_layers_per_pipe = act_multiple
     if (
-        model_name in ["gpt3", "bert", "llama"] and pp > 2
+        model_name in ["gpt3", "bert", "llama", "baichuan2", "chatglm"] and pp > 2
     ):  # Interleaved pipeline scheduling.
         virtual_pipelines = (
             num_layers // pp
@@ -224,7 +246,7 @@ def _set_activations_checkpoint_params(
                 0, multiplier * num_layers // pp // virtual_pipelines + 1, act_multiple
             )
 
-        if pp > 1 and model_name in ["gpt3", "bert", "llama"]:
+        if pp > 1 and model_name in ["gpt3", "bert", "llama", "baichuan2", "chatglm"]:
             # Num micro batches with partial act ckpt
             num_micro_batches_partial_act_ckpt = list(
                 range(min_micro_b, max_micro_b + 1, interval_micro_b)
@@ -237,11 +259,6 @@ def _set_activations_checkpoint_params(
                 min_layers_per_pipe, max_layers_per_pipe + 1, interval_layers_per_pipe
             )
 
-    (
-        act_ckpt_layers,
-        num_micro_batches_partial_act_ckpt,
-        act_ckpt_layers_per_pipeline,
-    ) = (None, None, None)
     return (
         virtual_pipelines,
         act_ckpt_layers,
@@ -806,13 +823,15 @@ def _calculate_tp_pp_mbs_grid(
     mbs_sizes = train_cfg.get("micro_batch_sizes")
     gpu_memory_gb = train_cfg.get("gpu_memory_gb")
 
-    multiplier = 1 if model_name in ["gpt3", "bert", "llama"] else 2
-    init_pp = [] if model_name in ["gpt3", "llama"] else [1]
+    multiplier = (
+        1 if model_name in ["gpt3", "bert", "llama", "baichuan2", "chatglm"] else 2
+    )
+    init_pp = [] if model_name in ["gpt3", "llama", "baichuan2", "chatglm"] else [1]
     valid_pp = init_pp + [
         multiplier * x for x in range(1, num_layers + 1) if num_layers % x == 0
     ]  # Only divisors of num_layers are possible.
 
-    if model_name in ["gpt3", "llama"]:
+    if model_name in ["gpt3", "llama", "baichuan2", "chatglm"]:
         if gpu_memory_gb == 80:
             (
                 tp,

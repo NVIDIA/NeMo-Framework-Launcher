@@ -1,0 +1,9 @@
+run:
+  name: 'text-cleaning'
+  results_dir: ${data_curation.run.results_dir}/${.name}
+  dependency: "singleton"
+  time_limit: "04:00:00"
+  nodes: 1
+  node_type: cpu
+
+output_clean_dir: ${.run.results_dir}/clean

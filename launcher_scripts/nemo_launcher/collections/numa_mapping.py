@@ -52,7 +52,7 @@ def numa_mapping(local_rank, devices, numa_cfg):
         print("No NUMA mapping was enabled, performance might be affected.")
 
 
-@hydra.main(config_path="conf", config_name="numa_mapping")
+@hydra.main(config_path="conf", config_name="numa_mapping", version_base="1.2")
 def main(cfg):
     rank = int(os.environ.get("LOCAL_RANK"))
     devices = int(

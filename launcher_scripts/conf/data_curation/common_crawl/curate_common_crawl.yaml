@@ -1,0 +1,64 @@
+run:
+  name: 'data-curation'
+  results_dir: ${base_results_dir}/${.name}
+
+# Many steps in the data curator do not use GPUs
+# Adjust configs here if you would like to use different cluster configurations for jobs that do/don't require GPUs
+cpu_config:
+  partition: 
+
+gpu_config:
+  partition: luna
+
+stages:
+  - lang_separation_and_cleaning
+  - task_decontamination
+
+lang_separation_and_cleaning:
+  - fasttext_download
+  - language_identification
+  - separate_by_language
+  - choose_language
+  - text_cleaning
+
+task_decontamination:
+  - prepare_task_data
+  - find_matching_ngrams
+  - remove_matching_ngrams
+
+filter_quality:
+  - quality_filtering
+
+fuzzy_deduplication:
+  - compute_minhashes
+  - minhash_buckets
+  - jaccard_map_buckets
+  - jaccard_shuffle
+  - jaccard_compute
+  - connected_component
+  - write_deduped_result_with_text
+  - verify_all_pairs_jaccard
+
+dataset_name: common_crawl
+
+defaults:
+  - common_crawl/fasttext_download/fasttext_download
+  - common_crawl/language_identification/language_identification
+  - common_crawl/separate_by_language/separate_by_language
+  - common_crawl/text_cleaning/text_cleaning
+  - common_crawl/prepare_task_data/prepare_task_data
+  - common_crawl/find_matching_ngrams/find_matching_ngrams
+  - common_crawl/remove_matching_ngrams/remove_matching_ngrams
+  - common_crawl/quality_filtering/heuristic_english
+  - common_crawl/compute_minhashes/compute_minhashes
+  - common_crawl/minhash_buckets/minhash_buckets
+  - common_crawl/jaccard_map_buckets/jaccard_map_buckets
+  - common_crawl/jaccard_shuffle/jaccard_shuffle
+  - common_crawl/jaccard_compute/jaccard_compute
+  - common_crawl/connected_component/connected_component
+  - common_crawl/write_deduped_result_with_text/write_deduped_result_with_text
+  - common_crawl/verify_all_pairs_jaccard/verify_all_pairs_jaccard
+
+special:
+  choose_language:
+    language: EN # Change to language of choice based on fastText supported languages: https://fasttext.cc/docs/en/language-identification.html

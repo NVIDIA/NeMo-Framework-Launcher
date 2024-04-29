@@ -8,10 +8,13 @@ class TestConfig:
         defaults:
           - _self_
           - cluster: bcm  # Set to bcm for BCM and BCP clusters. Set to k8s for a k8s cluster.
-          - data_preparation: gpt3/download_gpt3_pile
-          - quality_filtering: heuristic/english
+          - data_curation: common_crawl/curate_common_crawl
+          - data_preparation: gpt3/download_gpt3_pile #steerlm/steerlm_data_prep1 or steerlm/steerlm_data_prep2_reg
           - training: gpt3/5b
           - conversion: gpt3/convert_gpt3
+          - conversion_hf2nemo: hf_llama2/convert_llama2_nemo
+          - fw_inference: null
+          - external_conversion: null
           - fine_tuning: null
           - peft: null
           - prompt_learning: null
@@ -21,6 +24,7 @@ class TestConfig:
           - export: gpt3/export_gpt3
           - rlhf_rm: gpt3/2b_rm
           - rlhf_ppo: gpt3/2b_ppo
+          - steerlm_reg : ac_sft/gpt_sft #rw_sft/training_rm
           - override hydra/job_logging: stdout
         
         hydra:
@@ -34,11 +38,13 @@ class TestConfig:
           #- data_preparation
           #- training
           - conversion
+          #- conversion_hf2nemo
           #- prompt_learning
           #- adapter_learning
           #- ia3_learning
           #- evaluation
           #- export
+          #- steerlm_reg
         
         cluster_type: bcm  # bcm or bcp. If bcm, it must match - cluster above.
         launcher_scripts_path: ???  # Path to NeMo Megatron Launch scripts, should ends with /launcher_scripts
@@ -46,7 +52,7 @@ class TestConfig:
         base_results_dir: ${launcher_scripts_path}/results  # Location to store the results, checkpoints and logs.
         container_mounts: # List of additional paths to mount to container. They will be mounted to same path.
             - null
-        container: nvcr.io/ea-bignlp/ga-participants/nemofw-training:23.11
+        container: nvcr.io/nvidia/nemo:24.01.01.framework
         
         wandb_api_key_file: null  # File where the w&B api key is stored. Key must be on the first line.
         wandb_api_bcp_secret_key: null  # For BCP clusters, read the W&B api key directly from the environment variable set as a secret from BCP. The value must match the name of the environment variable in BCP, such as WANDB_TOKEN.
@@ -63,6 +69,9 @@ class TestConfig:
           TRANSFORMERS_OFFLINE: 1
           TORCH_NCCL_AVOID_RECORD_STREAMS: 1
           NCCL_NVLS_ENABLE: 0
+          NVTE_DP_AMAX_REDUCE_INTERVAL: 0 # Diable FP8 AMAX reduction in the data-parallel domain
+          NVTE_ASYNC_AMAX_REDUCTION: 1 # Enable asynchronous FP8 AMAX reduction
+          NVTE_FUSED_ATTN: 0 # Disable cudnn FA until we've tested it more
         
         # GPU Mapping
         numa_mapping:
@@ -76,7 +85,7 @@ class TestConfig:
         
         # Do not modify below, use the values above instead.
         data_preparation_config: ${hydra:runtime.choices.data_preparation}
-        quality_filtering_config: ${hydra:runtime.choices.quality_filtering}
+        data_curation_config: ${hydra:runtime.choices.data_curation}
         training_config: ${hydra:runtime.choices.training}
         fine_tuning_config: ${hydra:runtime.choices.fine_tuning}
         peft_config: ${hydra:runtime.choices.peft}
@@ -88,6 +97,10 @@ class TestConfig:
         export_config: ${hydra:runtime.choices.export}
         rlhf_rm_config: ${hydra:runtime.choices.rlhf_rm}
         rlhf_ppo_config: ${hydra:runtime.choices.rlhf_ppo}
+        steerlm_reg_config : ${hydra:runtime.choices.steerlm_reg}
+        conversion_hf2nemo_config: ${hydra:runtime.choices.conversion_hf2nemo}
+        fw_inference_config: ${hydra:runtime.choices.fw_inference}
+        external_conversion_config: ${hydra:runtime.choices.external_conversion}
         """
         expected = OmegaConf.create(s)
         assert (

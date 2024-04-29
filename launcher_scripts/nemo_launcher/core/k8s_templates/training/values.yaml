@@ -18,11 +18,14 @@ trainingConfig:
   # Insert the path to save data on the NFS server #
   NFSPath: <Insert NFS server path>
 
-  # Specify the k8s resource name for IB devices #
+  # Specify the k8s resource name for IB devices. Can be string or list of strings. If list, must be same length as ibCount #
   ibResourceName: nvidia.com/hostdev
 
-  # Specity the number of IB devices to include in pods #
+  # Specity the number of IB devices to include in pods. Can be string or list. If list, must be same length as ibResourceName #
   ibCount: "8"
+
+  # Specity the number of IB networks to include in pods. Should be a comma separated set of networks. #
+  ibNetworkAnnotation: ""
 
   # Specify the WandB API key if using WandB for logging #
   wandbKey: "nil"

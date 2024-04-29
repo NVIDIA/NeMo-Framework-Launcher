@@ -1,0 +1,10 @@
+run:
+  name: 'language-identification'
+  results_dir: ${data_curation.run.results_dir}/${.name}
+  dependency: "singleton"
+  time_limit: "04:00:00"
+  nodes: 1
+  node_type: cpu
+
+log_scores: store_true
+output_retained_document_dir: ${.run.results_dir}/lang_annotated

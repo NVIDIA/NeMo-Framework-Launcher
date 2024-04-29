@@ -1,0 +1,15 @@
+run:
+  name: 'fasttext-download'
+  results_dir: ${data_curation.run.results_dir}/${.name}
+  dependency: "singleton"
+  time_limit: "00:20:00"
+  nodes: 1
+  node_type: cpu
+
+filter_config:
+  input_field: text
+  filters:
+    - name: nemo_curator.filters.classifier_filter.FastTextLangId
+      log_score: True
+      params:
+        model_path: lid.176.bin # Will be automatically downloaded if it doesn't exist
