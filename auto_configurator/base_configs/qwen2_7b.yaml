@@ -160,7 +160,7 @@ model:
   data:
     data_impl: mmap
     splits_string: 900,50,50
-    seq_length: ${model.encoder_seq_length}
+    seq_length: 32768
     skip_warmup: true
     num_workers: 2
     dataloader_type: single

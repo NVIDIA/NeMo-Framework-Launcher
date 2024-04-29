@@ -53,10 +53,10 @@ model:
   global_batch_size: 128
   rampup_batch_size: null
   tensor_model_parallel_size: 4
-  pipeline_model_parallel_size: 4
+  pipeline_model_parallel_size: 8
   virtual_pipeline_model_parallel_size: null
   encoder_seq_length: 32768
-  max_position_embeddings: ${.encoder_seq_length}
+  max_position_embeddings: 32768
   num_layers: 80
   hidden_size: 8192
   ffn_hidden_size: 24576
@@ -160,7 +160,7 @@ model:
   data:
     data_impl: mmap
     splits_string: 900,50,50
-    seq_length: ${model.encoder_seq_length}
+    seq_length: 32768
     skip_warmup: true
     num_workers: 2
     dataloader_type: single
