@@ -141,6 +141,11 @@ def setup_trainer_and_model(args):
             pretrained_cfg.activations_checkpoint_granularity = None
             pretrained_cfg.activations_checkpoint_method = None
             pretrained_cfg.precision = trainer.precision
+            pretrained_cfg.batch_size = args.batch_size
+            pretrained_cfg.tensor_model_parallel_size = args.tensor_model_parallel_size
+            pretrained_cfg.pipeline_model_parallel_size = (
+                args.pipeline_model_parallel_size
+            )
             if trainer.precision == "16":
                 pretrained_cfg.megatron_amp_O2 = False
         model = MegatronGPTModel.restore_from(
