@@ -73,6 +73,8 @@ class NemoMegatronStage:
         self.setup_stage_vars(cfg)
         self.job_name = self.stage_cfg.run.get("name")
         if self.cluster.lower() == 'bcm':
+            # this to ensure that submission filename (.sh) matches the config filename (.yaml)
+            # expected result: <prefix><run_name>_submission.sh, <prefix><run_name>_hydra.yaml
             self.job_name = cfg.get("cluster").get("job_name_prefix","") + self.job_name
         self.nodes_scheduler = {}
 

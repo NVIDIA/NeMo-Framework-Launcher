@@ -951,8 +951,8 @@ def _make_sbatch_string_ft_launcher(
         srun_args = []
 
     # A safety measures:
-    # let SLURM kill all tasks if any FT launcher returns with a failure.
-    # let SLURM kill the job, 1h after any task ended.
+    # let SLURM immediately kill all tasks if any FT launcher returns with a failure.
+    # let SLURM kill the job, 1h after any task ended without a failure.
     srun_args += ["--kill-on-bad-exit=1", "--wait=3600"]
 
     lines += [
@@ -972,7 +972,7 @@ def _make_sbatch_string_ft_launcher(
             f'MAX_JOB_FAILURES={max_subsequent_job_failures}',
             'is_job_failures_limit_reached() {',
             '    tail -n $MAX_JOB_FAILURES "$JOB_RESULTS_FILE" | \\',
-            '       awk "/^[[:alnum:]]+[[:space:]]+F$/{f++} END{exit !(f>=$MAX_JOB_FAILURES)}"',
+            '       awk "/^[[:alnum:]]+[[:space:]]+[XF]$/{f++} END{exit !(f>=$MAX_JOB_FAILURES)}"',
             '}',
             'is_training_finished() {',
             '    test -f "$FAULT_TOL_FINISHED_FLAG_FILE"',
