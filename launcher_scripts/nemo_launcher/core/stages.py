@@ -545,8 +545,11 @@ class NemoMegatronStage:
     def _set_ln_sm_margin(self) -> str:
         """Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel"""
         vpp = self.cfg.training.model.get("virtual_pipeline_model_parallel_size")
-        pp = self.cfg.training.model.get("pipeline_model_parallel_size")
-        if pp is not None and pp > 1 and vpp is not None and vpp > 1:
+        if (
+            self.cfg.training.model.get("pipeline_model_parallel_size", 1) > 1
+            and vpp is not None
+            and vpp > 1
+        ):
             get_ln_sm_margin_command = (
                 f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/conditional_cfgs.py'} "
                 f"name=get_ln_sm_margin"
