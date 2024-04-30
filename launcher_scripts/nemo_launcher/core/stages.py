@@ -546,7 +546,7 @@ class NemoMegatronStage:
         """Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel"""
         vpp = self.cfg.training.model.get("virtual_pipeline_model_parallel_size")
         if (
-            self.cfg.training.model.get("pipeline_model_parallel_size") > 1
+            self.cfg.training.model.get("pipeline_model_parallel_size", 1) > 1
             and vpp is not None
             and vpp > 1
         ):
