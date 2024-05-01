@@ -886,8 +886,7 @@ class Training(NeMoStage):
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "mixtral": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
-            "tacotron2": self._nemo_code_path
-            / "examples/tts/tacotron2.py",
+            "tacotron2": self._nemo_code_path / "examples/tts/tacotron2.py",
             "citrinet": self._nemo_code_path
             / "examples/asr/speech_pretraining/speech_pre_training.py",
         }
