@@ -1,19 +1,19 @@
 defaults:
   - _self_
-  - optional tp_overlap@model.ub_tp_comm_overlap_cfg: ub_cfg_h100_h6144_tp2_mbs2_seqlen2048
+  - optional tp_overlap@model.ub_tp_comm_overlap_cfg:
 
 hydra:
   searchpath:
     - file:///opt/NeMo/examples/nlp/language_modeling/conf
 
 run:
-  name: gpt3_20b
+  name: gpt3_40b
   results_dir: ${base_results_dir}/${.name}
-  time_limit: "7-00:00:00"
+  time_limit: "04:00:00"
   dependency: "singleton"
 
 trainer:
-  num_nodes: 64
+  num_nodes: 16
   devices: 8
   accelerator: gpu
   precision: bf16
@@ -22,11 +22,11 @@ trainer:
   use_distributed_sampler: False
   max_epochs: null
   max_steps: 75000 # consumed_samples = global_step * global_batch_size
-  max_time: "06:23:30:00"
+  max_time: "6:11:00:00"
   log_every_n_steps: 10
   val_check_interval: 2000
-  limit_val_batches: 50
-  limit_test_batches: 50
+  limit_val_batches: 20
+  limit_test_batches: 20
   accumulate_grad_batches: 1
   gradient_clip_val: 1.0
 
@@ -43,7 +43,7 @@ exp_manager:
   create_checkpoint_callback: True
   checkpoint_callback_params:
     monitor: val_loss
-    save_top_k: 10
+    save_top_k: 5
     mode: min
     always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
     save_nemo_on_train_end: False # not recommended when training large models on clusters with short time limits
@@ -55,24 +55,24 @@ exp_manager:
     buffer_size: 5
 
 model:
-  micro_batch_size: 2
-  global_batch_size: 2048
+  micro_batch_size: 1
+  global_batch_size: 32
   rampup_batch_size: null
-  context_parallel_size: 1
-  tensor_model_parallel_size: 2
-  pipeline_model_parallel_size: 1
-  virtual_pipeline_model_parallel_size: null # interleaved pipeline
+  context_parallel_size: 2
+  tensor_model_parallel_size: 8
+  pipeline_model_parallel_size: 4
+  virtual_pipeline_model_parallel_size: 12 # interleaved pipeline
   resume_from_checkpoint: null # manually set the checkpoint file to load from
   # model architecture
-  encoder_seq_length: 2048
-  max_position_embeddings: 2048
-  num_layers: 44
-  hidden_size: 6144
+  encoder_seq_length: 32768
+  max_position_embeddings: 32768
+  num_layers: 48
+  hidden_size: 8192
   ffn_hidden_size: ${multiply:4, ${.hidden_size}}  # Transformer FFN hidden size. 4 * hidden_size.
-  num_attention_heads: 48
-  init_method_std: 0.008165  # Standard deviation of the zero mean normal distribution used for weight initialization.')
+  num_attention_heads: 64
+  init_method_std: 0.007  # Standard deviation of the zero mean normal distribution used for weight initialization.')
   hidden_dropout: 0.1  # Dropout probability for hidden state transformer.
-  attention_dropout: 0.1 # Dropout probability for attention
+  attention_dropout: 0.1
   kv_channels: null  # Projection weights dimension in multi-head attention. Set to hidden_size // num_attention_heads if null
   apply_query_key_layer_scaling: True # scale Q * K^T by 1 / layer-number.
   layernorm_epsilon: 1e-5
@@ -105,8 +105,8 @@ model:
   ## Sequence Parallelism
   sequence_parallel: True
 
-  overlap_p2p_comm: False # Overlap p2p communication with computes. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
-  batch_p2p_comm: True # Batch consecutive inter-peer send/recv operations. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
+  overlap_p2p_comm: True # Overlap p2p communication with computes. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
+  batch_p2p_comm: False # Batch consecutive inter-peer send/recv operations. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
   num_query_groups: null # Number of query groups for group query attention. If None, normal attention is used.
 
   tokenizer:
@@ -123,14 +123,14 @@ model:
   hysteresis: 2 # Gradient scale hysteresis
   fp32_residual_connection: False # Move residual connections to fp32
   fp16_lm_cross_entropy: False # Move the cross entropy unreduced loss calculation for lm head to fp16
-  
+
   # Megatron O2-style half-precision
   megatron_amp_O2: True # Enable O2-level automatic mixed precision using master parameters
   grad_allreduce_chunk_size_mb: 125
 
   ## Network
   sharp: False # Enable the use of SHARP for NCCL data-parallel communications. This is going to be ignored if the network doesn't support SHARP.
-
+  
   ## Using Megatron Core
   mcore_gpt: True
 
@@ -156,7 +156,6 @@ model:
   use_cpu_initialization: False # Init weights on the CPU (slow for large models)
   onnx_safe: False # Use work-arounds for known problems with Torch ONNX exporter.
   apex_transformer_log_level: 30 # Python logging level displays logs with severity greater than or equal to this
-  gc_interval: 100
 
   # Nsys profiling options
   nsys_profile:
@@ -169,12 +168,11 @@ model:
 
   optim:
     name: distributed_fused_adam
-    bucket_cap_mb: 220
+    bucket_cap_mb: 200
     overlap_grad_sync: True
     overlap_param_sync: true
     contiguous_grad_buffer: True
-    contiguous_param_buffer: True
-    lr: 1.4e-4
+    lr: 1.1e-4
     weight_decay: 0.1 
     betas: 
     - 0.9
@@ -183,7 +181,7 @@ model:
       name: CosineAnnealing
       warmup_steps: 115
       constant_steps: 12500
-      min_lr: 1.4e-5
+      min_lr: 1.1e-5
 
   data:
     data_impl: mmap
@@ -197,63 +195,63 @@ model:
     eod_mask_loss: False # Mask loss for the end of document tokens
     index_mapping_dir: null # path to save index mapping .npy files, by default will save in the same location as data_prefix
     data_prefix: # Should be weight path weight path... for a blended dataset
-      - .0333
+      - .9
       - ${data_dir}/my-gpt3_00_text_document
-      - .0333
+      - .1
       - ${data_dir}/my-gpt3_01_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_02_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_03_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_04_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_05_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_06_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_07_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_08_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_09_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_10_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_11_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_12_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_13_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_14_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_15_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_16_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_17_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_18_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_19_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_20_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_21_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_22_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_23_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_24_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_25_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_26_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_27_text_document
-      - .0333
-      - ${data_dir}/my-gpt3_28_text_document
-      - .0334
-      - ${data_dir}/my-gpt3_29_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_02_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_03_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_04_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_05_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_06_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_07_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_08_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_09_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_10_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_11_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_12_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_13_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_14_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_15_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_16_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_17_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_18_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_19_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_20_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_21_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_22_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_23_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_24_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_25_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_26_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_27_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_28_text_document
+      # - .0334
+      # - ${data_dir}/my-gpt3_29_text_document
