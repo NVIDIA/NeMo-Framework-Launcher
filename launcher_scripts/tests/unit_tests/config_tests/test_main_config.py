@@ -16,6 +16,7 @@ class TestConfig:
           - fw_inference: null
           - external_conversion: null
           - fine_tuning: null
+          - generic: null
           - peft: null
           - prompt_learning: null
           - adapter_learning: null

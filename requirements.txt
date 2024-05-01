@@ -10,3 +10,7 @@ requests==2.26.0
 tqdm==4.62.3
 zstandard==0.15.2
 sqlitedict
+hera
+pydantic
+kubeflow-training
+kubernetes

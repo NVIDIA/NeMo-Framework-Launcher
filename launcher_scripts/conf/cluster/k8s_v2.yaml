@@ -1,0 +1,25 @@
+_target_: nemo_launcher.core.v2.config_k8s.K8sClusterConfig
+volumes:
+  workspace:
+    # mount_path=null mirrors the volume into all the containers. Specify a different path if
+    mount_path: null
+    persistent_volume_claim:
+      claim_name: nemo-workspace
+  dshm:
+    mount_path: /dev/shm
+    empty_dir:
+      medium: Memory
+      # Amount of system memory to allocate in Pods. Should end in "Gi" for gigabytes.
+      size_limit: 512Gi
+namespace: null  # null implies to use current namespace
+
+ib_interfaces:
+  annotation: ""  # Specify the networks as comma separated values
+  resources: {}
+    # key: Specify the resource name for IB devices according to kubernetes, such as "nvidia.com/hostdev" for Mellanox IB adapters.
+    # value: Specify the number of IB devices to include per node in each pod.
+    # nvidia.com/hostdev: 8
+
+dns_policy: null  # Specify a dnsPolicy to use in all pods, if necessary
+pull_secret: ngc-registry  # Kubernetes secret for the container registry to pull private containers.
+capabilities: []
