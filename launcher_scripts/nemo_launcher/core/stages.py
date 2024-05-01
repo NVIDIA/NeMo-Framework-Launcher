@@ -45,6 +45,10 @@ __LANGUAGE_MODELS_LIST__ = [
     "starcoder2",
     "chatglm",
 ]
+__SPEECH_MODELS_LIST__ = [
+    "tacotron2",
+    "citrinet",
+]
 __VISION_MODELS_LIST__ = ["vit"]
 __MULTIMODAL_MODELS_LIST__ = [
     "clip",
@@ -882,6 +886,10 @@ class Training(NeMoStage):
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "mixtral": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "tacotron2": self._nemo_code_path
+            / "examples/tts/tacotron2.py",
+            "citrinet": self._nemo_code_path
+            / "examples/asr/speech_pretraining/speech_pre_training.py",
         }
         return model_type_to_code_path[model_type]
 
