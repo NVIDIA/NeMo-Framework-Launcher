@@ -7,7 +7,7 @@ hydra:
     - file:///opt/NeMo/examples/nlp/language_modeling/conf
 
 run:
-  name: gpt3_5b_16k
+  name: 5b_h100_prec${training.trainer.precision}_nodes${training.trainer.num_nodes}_cp${training.model.context_parallel_size}_tp${training.model.tensor_model_parallel_size}_pp${training.model.pipeline_model_parallel_size}_vp${training.model.virtual_pipeline_model_parallel_size}_gbs${training.model.global_batch_size}_mbs${training.model.micro_batch_size}_ckpt${training.model.activations_checkpoint_num_layers}_seq${training.model.encoder_seq_length}_${training.model.data.data_impl}
   results_dir: ${base_results_dir}/${.name}
   time_limit: "04:00:00"
   dependency: "singleton"
@@ -36,7 +36,7 @@ exp_manager:
   name: megatron_gpt
   create_wandb_logger: False
   wandb_logger_kwargs:
-    project: nemo_gpt3_5b_16k
+    project: nemo_gpt3_5b_seq${training.model.encoder_seq_length}
     name: ${training.run.name}
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
@@ -198,10 +198,10 @@ model:
     eod_mask_loss: False # Mask loss for the end of document tokens
     index_mapping_dir: null # path to save index mapping .npy files, by default will save in the same location as data_prefix
     data_prefix: # Should be weight path weight path... for a blended dataset
-      - .9
+      - 1
       - ${data_dir}/my-gpt3_00_text_document
-      - .1
-      - ${data_dir}/my-gpt3_01_text_document
+      # - .0333
+      # - ${data_dir}/my-gpt3_01_text_document
       # - .0333
       # - ${data_dir}/my-gpt3_02_text_document
       # - .0333
