@@ -36,7 +36,7 @@ exp_manager:
   name: megatron_gpt
   create_wandb_logger: False
   wandb_logger_kwargs:
-    project: nemo_gpt3_5b
+    project: nemo_gpt3_5b_32k
     name: ${training.run.name}
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
@@ -64,6 +64,7 @@ model:
   pipeline_model_parallel_size: 1
   virtual_pipeline_model_parallel_size: null # interleaved pipeline
   resume_from_checkpoint: null # manually set the checkpoint file to load from
+
   # model architecture
   encoder_seq_length: 32768
   max_position_embeddings: ${.encoder_seq_length}
@@ -160,7 +161,7 @@ model:
 
   # Nsys profiling options
   nsys_profile:
-    enabled: False
+    enabled: True
     trace: [nvtx,cuda]
     start_step: 21  # Global batch to start profiling
     end_step: 22 # Global batch to end profiling
