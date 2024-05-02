@@ -28,6 +28,7 @@ import nemo_launcher.utils.job_utils as job_utils
 import yaml
 from nemo_launcher.core.logger import logger
 from omegaconf import DictConfig, OmegaConf
+from hera.workflows import Workflow
 
 NEMO_LAUNCHER_CI = os.getenv("NEMO_LAUNCHER_CI", "False").lower() in ("true", "t", "1")
 NEMO_LAUNCHER_DEBUG = os.getenv("NEMO_LAUNCHER_DEBUG", "False").lower() in (
@@ -559,6 +560,50 @@ class K8SLauncher(Launcher):
         # Apply a timeout of 15min in case images take a long time to bring up
         # or pre-install hooks take a while
         return f"#!/bin/bash\nhelm {sub_command} --timeout=15m --wait {extra_helm_args} {job_name} {helm_charts}\n"
+
+
+class K8SLauncherV2:
+    """
+    K8s V2 job launcher
+    This class simply creates 
+
+    """
+
+    def __init__(self, job_path: job_utils.JobPaths):
+        self.job_path = job_path
+
+    def launch(self, workflow: Workflow):
+        """
+        Three steps of launching:
+        1. make workflow manifest file
+        2. make submission script
+        3. run submission script
+        """
+
+        # Step 1
+        workflow_path = workflow.to_file(output_directory=self.job_path.folder)
+
+        # Step 2
+        extra_args = ""
+        if NEMO_LAUNCHER_DEBUG:
+            # If NEMO_LAUNCHER_DEBUG is set, we just print the template.
+            # The submission script will also have this command so a user is
+            # expected to drop this env-var if they want to subsequently run.
+            extra_args = "--dry-run=client"
+        submission_cmd = (
+            f"#!/bin/bash\nkubectl create {extra_args} -f {workflow_path}\n"
+        )
+
+        submission_file_path = self.job_path.submission_file
+        with submission_file_path.open("w") as f:
+            f.write(submission_cmd)
+
+        # Step 3
+        job_utils.CommandFunction(
+            command=["bash", str(submission_file_path)],
+            ret_stdout=False,
+            verbose=False,
+        )()
 
 
 @functools.lru_cache()

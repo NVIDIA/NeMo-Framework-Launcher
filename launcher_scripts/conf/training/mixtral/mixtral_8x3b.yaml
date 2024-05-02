@@ -1,10 +1,10 @@
 run:
-  name: mixtral_8x7b
+  name: mixtral_8x3b
   results_dir: ${base_results_dir}/${.name}
   time_limit: "0-04:00:00"
   dependency: "singleton"
 trainer:
-  num_nodes: 8
+  num_nodes: 2
   devices: 8
   accelerator: gpu
   precision: bf16
@@ -48,17 +48,17 @@ model:
   mcore_gpt: true
   moe_grouped_gemm: true
   micro_batch_size: 1
-  global_batch_size: 32
+  global_batch_size: 128
   rampup_batch_size: null
-  tensor_model_parallel_size: 8
-  pipeline_model_parallel_size: 2
-  expert_model_parallel_size: 4
-  virtual_pipeline_model_parallel_size: null
+  tensor_model_parallel_size: 1
+  pipeline_model_parallel_size: 4
+  expert_model_parallel_size: 1
+  virtual_pipeline_model_parallel_size: 8
   encoder_seq_length: 4096
   max_position_embeddings: 32768
   num_layers: 32
-  hidden_size: 4096
-  ffn_hidden_size: 14336
+  hidden_size: 2560
+  ffn_hidden_size: 8960
   num_attention_heads: 32
   init_method_std: 0.02
   use_scaled_init_method: true
@@ -87,8 +87,8 @@ model:
   num_moe_experts: 8
   attention_type: multihead
   share_embeddings_and_output_weights: false
-  overlap_p2p_comm: false
-  batch_p2p_comm: true
+  overlap_p2p_comm: true
+  batch_p2p_comm: false
   seq_len_interpolation_factor: null
   num_query_groups: 8
   tokenizer:

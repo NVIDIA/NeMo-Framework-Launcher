@@ -11,17 +11,30 @@ trainer:
   devices: 8
   accelerator: gpu
   precision: bf16
+
+  # rm specific args
+  rm:
+    max_epochs: 1
+    max_steps: -1
+    val_check_interval: 100
+    save_interval: 100
+
+    # how many GBS we loop over
+    # set to float for a percentage
+    # of the validation dataset
+    limit_val_batches: 50
+    limit_test_batches: 50
+    gradient_clip_val: 1.0
+
+  # do not change these
   logger: False # logger provided by exp_manager
-  enable_checkpointing: False
-  replace_sampler_ddp: False
-  max_epochs: 1
-  max_time: "00:10:00:00" # days:hours:minutes:seconds
   log_every_n_steps: 10
-  val_check_interval: 100
-  limit_val_batches: 50
-  limit_test_batches: 50
+  enable_checkpointing: False
+  use_distributed_sampler: False
+  max_time: "00:10:00:00" # days:hours:minutes:seconds
+  max_epochs: ${.rm.max_epochs}
+  max_steps: ${.rm.max_steps}
   accumulate_grad_batches: 1
-  gradient_clip_val: 1.0
 
 
 exp_manager:
@@ -29,7 +42,7 @@ exp_manager:
   exp_dir: null
   name: megatron_gpt
   max_time_per_run: "00:03:45:00"
-  create_wandb_logger: True
+  create_wandb_logger: False
   wandb_logger_kwargs:
     project: nemo_rlhf_launcher_runs
     name: 2b_rm
@@ -48,6 +61,9 @@ exp_manager:
   step_timing_kwargs:
     sync_cuda: True
     buffer_size: 5
+
+# Aliased since scripts expect it at the top level
+pretrained_checkpoint: ${.model.pretrained_checkpoint}
 
 model:
   micro_batch_size: 1
@@ -110,14 +126,12 @@ model:
   sequence_parallel: False
 
   tokenizer:
-    library: 'sentencepiece'
-    type: null
+    library: 'megatron'
+    type: 'GPT2BPETokenizer'
     model: null
-    delimiter: null
-    vocab_file: null
-    merge_file: null
-    sentencepiece_legacy: false
-    tokenizer_model: null
+    delimiter: null # only used for tabular tokenizer
+    vocab_file: ${data_dir}/bpe/vocab.json
+    merge_file: ${data_dir}/bpe/merges.txt
 
   # precision
   native_amp_init_scale: 4294967296 # 2 ** 32
@@ -179,9 +193,9 @@ model:
       min_lr: 9e-7
 
   data:
-    data_impl: mmap
+    data_impl: jsonl
     splits_string: null
-    seq_length: 4096
+    seq_length: ${..encoder_seq_length}
     skip_warmup: True
     num_workers: 2
     dataloader_type: single # cyclic
@@ -190,3 +204,8 @@ model:
     eod_mask_loss: False # Mask loss for the end of document tokens
     index_mapping_dir: null # path to save index mapping .npy files, by default will save in the same location as data_prefix
     data_prefix: null
+
+  # define fields from the base model's config that should be ignored when merging with this config.
+  overwrite_base_config:
+      data:
+        data_prefix: True

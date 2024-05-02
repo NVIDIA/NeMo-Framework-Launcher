@@ -20,7 +20,7 @@ import tqdm
 import zstandard as zstd
 
 
-def download_single_file(url, save_dir, file_name=None):
+def download_single_file(url: str, save_dir: str, file_name: str | None = None) -> str:
     os.makedirs(save_dir, exist_ok=True)
     if file_name is None:
         file_name = os.path.basename(url)
