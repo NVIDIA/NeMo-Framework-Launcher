@@ -3,7 +3,7 @@ defaults:
   - cluster: bcm  # Set to bcm for BCM and BCP clusters. Set to k8s for a k8s cluster.
   - data_curation: common_crawl/curate_common_crawl
   - data_preparation: gpt3/download_gpt3_pile #steerlm/steerlm_data_prep1 or steerlm/steerlm_data_prep2_reg
-  - training: gpt3/40b_32k
+  - training: gpt3/5b_32k
   - conversion: gpt3/convert_gpt3
   - conversion_hf2nemo: hf_llama2/convert_llama2_nemo
   - fw_inference: null
@@ -32,7 +32,7 @@ stages:
 
 results:
     base: /home/boxiangw/results/long_context/
-    dir: gpt3/40b_32k
+    dir: gpt3/5b_32k
 code: /home/boxiangw/NeMo
 
 #preproc_data: /lustre/fsw/joc/big_nlp/t5/dataset/Pile # T5 dataset
