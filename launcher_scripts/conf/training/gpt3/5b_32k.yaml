@@ -57,7 +57,7 @@ exp_manager:
 
 model:
   micro_batch_size: 1
-  global_batch_size: 16
+  global_batch_size: 32
   rampup_batch_size: null
   context_parallel_size: 1
   tensor_model_parallel_size: 8
