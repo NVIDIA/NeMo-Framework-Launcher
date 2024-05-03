@@ -59,7 +59,7 @@ model:
   micro_batch_size: 1
   global_batch_size: 32
   rampup_batch_size: null
-  context_parallel_size: 4
+  context_parallel_size: 8
   tensor_model_parallel_size: 8
   pipeline_model_parallel_size: 16
   virtual_pipeline_model_parallel_size: 6 # interleaved pipeline, set to maximum
