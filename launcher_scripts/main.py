@@ -45,6 +45,7 @@ from nemo_launcher.core.stages import (
     Training,
     SteerLMRegSFT,
     ConversionHF2NeMo,
+    PostTrainingQuantization,
 )
 from nemo_launcher.core.v2 import stages as stages_v2
 from nemo_launcher.core.v2.config_k8s import K8sClusterConfig
@@ -135,6 +136,7 @@ STR2STAGECLASS = {
     "rlhf_ppo": RLHFPPO,
     "data_curation": DataCurationStage,
     "steerlm_reg": SteerLMRegSFT,
+    "ptq": PostTrainingQuantization,
 }
 
 
