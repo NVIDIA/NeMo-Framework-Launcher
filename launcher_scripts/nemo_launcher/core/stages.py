@@ -473,8 +473,7 @@ class NemoMegatronStage:
         For example, if `training=gpt3/5b`, then `choice_model_type=gpt3` and `choice_name=5b`
         """
         stage_config_choice = self.cfg.get(f"{self.stage_name}_config")
-        choice_model_type = stage_config_choice.rsplit("/", 1)[0]
-        choice_name = stage_config_choice.rsplit("/", 1)[1]
+        choice_model_type, choice_name = stage_config_choice.rsplit("/", 1)
         return choice_model_type, choice_name
 
     @property

@@ -4,7 +4,7 @@ run:
   dependency: "singleton"
   ntasks_per_node: 1
   #convert_name: convert_nemo
-  model_train_name: llama3_7b
+  model_train_name: llama2_7b
   task_name: "ptq"
   #convert_dir: ${base_results_dir}/${.model_train_name}/${.convert_name}
   #fine_tuning_dir: ${base_results_dir}/${.model_train_name}/${.task_name}
