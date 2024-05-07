@@ -1,12 +1,12 @@
 run:
-  name: ptq_${.task_name}_${.model_name}
+  name: ${.task_name}_${.model_train_name}
   time_limit: 00:30:00
   dependency: singleton
   nodes: ${..pipeline_model_parallel_size}
   ntasks_per_node: ${..tensor_model_parallel_size}
-  model_name: llama2_7b
+  model_train_name: llama2_7b
   task_name: ptq
-  results_dir: ${base_results_dir}/${.model_name}/${.task_name}_${..quantization.algorithm}
+  results_dir: ${base_results_dir}/${.model_train_name}/${.task_name}_${..quantization.algorithm}
 
 inference:
   greedy: false # Whether or not to use sampling ; use greedy decoding otherwise
