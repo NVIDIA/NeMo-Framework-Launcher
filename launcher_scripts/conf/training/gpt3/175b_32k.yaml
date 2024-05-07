@@ -21,7 +21,7 @@ trainer:
   enable_checkpointing: False
   use_distributed_sampler: False
   max_epochs: null
-  max_steps: 75000 # consumed_samples = global_step * global_batch_size
+  max_steps: 100 # consumed_samples = global_step * global_batch_size
   max_time: "25:23:00:00"
   log_every_n_steps: 10
   val_check_interval: 100
@@ -171,7 +171,7 @@ model:
 
   optim:
     name: distributed_fused_adam
-    bucket_cap_mb: 220
+    bucket_cap_mb: 100
     overlap_grad_sync: True
     overlap_param_sync: True
     contiguous_grad_buffer: True
@@ -199,10 +199,10 @@ model:
     eod_mask_loss: False # Mask loss for the end of document tokens
     index_mapping_dir: null # path to save index mapping .npy files, by default will save in the same location as data_prefix
     data_prefix: # Should be weight path weight path... for a blended dataset
-      - 1
+      - .5
       - ${data_dir}/my-gpt3_00_text_document
-      # - .0333
-      # - ${data_dir}/my-gpt3_01_text_document
+      - .5
+      - ${data_dir}/my-gpt3_01_text_document
       # - .0333
       # - ${data_dir}/my-gpt3_02_text_document
       # - .0333

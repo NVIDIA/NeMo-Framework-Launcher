@@ -13,7 +13,7 @@ run:
   dependency: "singleton"
 
 trainer:
-  num_nodes: 2
+  num_nodes: 4
   devices: 8
   accelerator: gpu
   precision: bf16
@@ -59,7 +59,7 @@ model:
   micro_batch_size: 1
   global_batch_size: 32
   rampup_batch_size: null
-  context_parallel_size: 2
+  context_parallel_size: 4
   tensor_model_parallel_size: 8
   pipeline_model_parallel_size: 1
   virtual_pipeline_model_parallel_size: null # interleaved pipeline
@@ -198,10 +198,10 @@ model:
     eod_mask_loss: False # Mask loss for the end of document tokens
     index_mapping_dir: null # path to save index mapping .npy files, by default will save in the same location as data_prefix
     data_prefix: # Should be weight path weight path... for a blended dataset
-      - 1
+      - .5
       - ${data_dir}/my-gpt3_00_text_document
-      # - .0333
-      # - ${data_dir}/my-gpt3_01_text_document
+      - .5
+      - ${data_dir}/my-gpt3_01_text_document
       # - .0333
       # - ${data_dir}/my-gpt3_02_text_document
       # - .0333
