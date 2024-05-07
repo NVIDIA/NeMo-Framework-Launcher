@@ -2,7 +2,7 @@ import os
 import subprocess
 
 ERROR = 'RuntimeError: Could not detect "srun", are you indeed on a slurm cluster?'
-NEMO_LAUNCHER_DEBUG_MSG = 'submitted with FAKE Job ID'
+NEMO_LAUNCHER_DEBUG_MSG = "submitted with FAKE Job ID"
 
 
 def ptq(model_type, task_type, nemo_launcher_debug=False):
