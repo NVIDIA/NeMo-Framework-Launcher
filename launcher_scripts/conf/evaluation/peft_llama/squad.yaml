@@ -18,7 +18,7 @@ trainer:
   enable_checkpointing: False
   use_distributed_sampler: False
   log_every_n_steps: 10
-
+  max_steps: 1000
 
 exp_manager:
   explicit_log_dir: ${evaluation.run.results_dir}/results
