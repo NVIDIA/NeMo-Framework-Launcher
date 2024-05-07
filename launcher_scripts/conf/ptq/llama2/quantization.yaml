@@ -1,14 +1,12 @@
 run:
-  name: ptq_${.task_name}_${.model_train_name}
-  time_limit: "00:15:00"
-  dependency: "singleton"
-  ntasks_per_node: 1
-  #convert_name: convert_nemo
-  model_train_name: llama2_7b
-  task_name: "ptq"
-  #convert_dir: ${base_results_dir}/${.model_train_name}/${.convert_name}
-  #fine_tuning_dir: ${base_results_dir}/${.model_train_name}/${.task_name}
-  results_dir: ${base_results_dir}/${.model_train_name}/${.task_name}_${..quantization.algorithm}
+  name: ptq_${.task_name}_${.model_name}
+  time_limit: 00:30:00
+  dependency: singleton
+  nodes: ${..pipeline_model_parallel_size}
+  ntasks_per_node: ${..tensor_model_parallel_size}
+  model_name: llama2_7b
+  task_name: ptq
+  results_dir: ${base_results_dir}/${.model_name}/${.task_name}_${..quantization.algorithm}
 
 inference:
   greedy: false # Whether or not to use sampling ; use greedy decoding otherwise
@@ -25,8 +23,8 @@ inference:
   max_context_length: 512 # max length of the context, input sequence will be truncated if it is longer than this
 
 trainer:
-  devices: 1
-  num_nodes: 1
+  devices: ${..tensor_model_parallel_size}
+  num_nodes: ${..pipeline_model_parallel_size}
   accelerator: gpu
   logger: false # logger provided by exp_manager
   precision: bf16 # 16, 32, or bf16
