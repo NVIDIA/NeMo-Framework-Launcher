@@ -8,8 +8,16 @@ from hera.workflows import models as m
 from hera.workflows import script
 from nemo_launcher.core.launchers import K8SLauncherV2
 from nemo_launcher.core.stages import create_args_list
-from nemo_launcher.core.v2.config_k8s import K8sClusterConfig, adapt_volume_to, instantiate_model_from_omegaconf
-from nemo_launcher.core.v2.step_k8s import create_mpijob_resource, create_pytorchjob_resource, delete_pytorchjob
+from nemo_launcher.core.v2.config_k8s import (
+    K8sClusterConfig,
+    adapt_volume_to,
+    instantiate_model_from_omegaconf,
+)
+from nemo_launcher.core.v2.step_k8s import (
+    create_mpijob_resource,
+    create_pytorchjob_resource,
+    delete_pytorchjob,
+)
 from nemo_launcher.utils.job_utils import JobPaths
 from omegaconf import DictConfig, OmegaConf
 from pydantic import BaseModel, computed_field
@@ -34,7 +42,9 @@ class Stage(BaseModel):
     def job_path(self) -> JobPaths:
         """Fetch a JobPaths object for current stage"""
         run_cfg = self.stage_cfg.run
-        results_dir = Path(run_cfg.get("results_dir"))  # TODO: rename this to job dir in config
+        results_dir = Path(
+            run_cfg.get("results_dir")
+        )  # TODO: rename this to job dir in config
         return JobPaths(results_dir, self.job_name)
 
     def make_local_commands(self) -> list[str]:
@@ -123,7 +133,9 @@ class Training(Stage):
         # First step is to resolve the config since there are absolute/relative references
         OmegaConf.resolve(self.stage_cfg)
 
-        self.cluster_cfg.check_path_in_volumes(self.stage_cfg.exp_manager.explicit_log_dir)
+        self.cluster_cfg.check_path_in_volumes(
+            self.stage_cfg.exp_manager.explicit_log_dir
+        )
         for data_item in self.stage_cfg.model.data.data_prefix:
             if not isinstance(data_item, str):
                 continue
@@ -132,7 +144,10 @@ class Training(Stage):
         vols, vol_mounts = adapt_volume_to(self.cluster_cfg.volumes, to_format="hera")
 
         with Workflow(
-            generate_name="training-", entrypoint="training-steps", namespace=self.cluster_cfg.namespace, volumes=vols,
+            generate_name="training-",
+            entrypoint="training-steps",
+            namespace=self.cluster_cfg.namespace,
+            volumes=vols,
         ) as w:
             pytorchjob = create_pytorchjob_resource(
                 generate_name="training-",
@@ -195,7 +210,9 @@ class PEFT(Stage):
         stage_config_choice = cfg.get(f"{cls.stage_name}_config")
         choice_model_type = stage_config_choice.rsplit("/", 1)[0]
         if choice_model_type == "mt5":
-            raise NotImplementedError(f"{cls.__name__} is not supported in NeMo Megatron mt5 models.")
+            raise NotImplementedError(
+                f"{cls.__name__} is not supported in NeMo Megatron mt5 models."
+            )
 
         return cls(
             stage_cfg=stage_cfg,
@@ -216,13 +233,18 @@ class PEFT(Stage):
         OmegaConf.resolve(self.stage_cfg)
 
         self.cluster_cfg.check_path_in_volumes(self.data_dir)
-        self.cluster_cfg.check_path_in_volumes(self.stage_cfg.exp_manager.explicit_log_dir)
+        self.cluster_cfg.check_path_in_volumes(
+            self.stage_cfg.exp_manager.explicit_log_dir
+        )
         self.cluster_cfg.check_path_in_volumes(self.stage_cfg.model.restore_from_path)
 
         vols, vol_mounts = adapt_volume_to(self.cluster_cfg.volumes, to_format="hera")
 
         with Workflow(
-            generate_name="peft-", entrypoint="peft-steps", namespace=self.cluster_cfg.namespace, volumes=vols,
+            generate_name="peft-",
+            entrypoint="peft-steps",
+            namespace=self.cluster_cfg.namespace,
+            volumes=vols,
         ) as w:
             # TODO: to be backward compatible with current stage_cfg, "squad_data" dir is coded
             # here since it's not parametrized
@@ -331,7 +353,9 @@ class PileDataPreparation(Stage):
         return self.n_workers * self.n_proc_per_worker
 
     @classmethod
-    def _from_omegaconf(cls: "PileDataPreparation", cfg: OmegaConf) -> "PileDataPreparation":
+    def _from_omegaconf(
+        cls: "PileDataPreparation", cfg: OmegaConf
+    ) -> "PileDataPreparation":
         # TODO: Rewrite to use model for validation
         # This constructor is to bridge from the old way of specifying configs
         stage_cfg = cfg.get(cls.stage_name)
@@ -360,7 +384,8 @@ class PileDataPreparation(Stage):
     def make_k8s_workflow(self) -> Workflow:
         assert isinstance(self.cluster_cfg, K8sClusterConfig)
         assert (
-            "TRANSFORMERS_OFFLINE" not in self.env or str(self.env["TRANSFORMERS_OFFLINE"]) == "0"
+            "TRANSFORMERS_OFFLINE" not in self.env
+            or str(self.env["TRANSFORMERS_OFFLINE"]) == "0"
         ), f"pile_dataprep/preprocess.py may fail if it cannot fetch configs from HF. Do not use HF in offline mode: {self.env}"
         # First step is to resolve the config since there are absolute/relative references
         OmegaConf.resolve(self.stage_cfg)
@@ -370,7 +395,9 @@ class PileDataPreparation(Stage):
         vols, vol_mounts = adapt_volume_to(self.cluster_cfg.volumes, to_format="hera")
 
         # This is a thin wrapper to avoid the `return` in download_single_file and to be hermetic
-        def _download_single_file(url: str, save_dir: str, file_name: Optional[str] = None):
+        def _download_single_file(
+            url: str, save_dir: str, file_name: Optional[str] = None
+        ):
             from nemo_launcher.utils.file_utils import download_single_file
 
             download_single_file(url, save_dir, file_name)
@@ -384,7 +411,10 @@ class PileDataPreparation(Stage):
         )(_download_single_file)
 
         with Workflow(
-            generate_name="pile-prep-", entrypoint="data-steps", namespace=self.cluster_cfg.namespace, volumes=vols,
+            generate_name="pile-prep-",
+            entrypoint="data-steps",
+            namespace=self.cluster_cfg.namespace,
+            volumes=vols,
         ) as w:
             # ++overide all parameters to avoid having to create config file in launcher & worker containers
             hydra_config_as_args = [
@@ -446,7 +476,11 @@ class PileDataPreparation(Stage):
                         arguments={
                             "url": self.download_vocab_url,
                             "save_dir": self.vocab_save_dir,
-                            "file_name": ("vocab.json" if self.download_vocab_url.endswith("json") else "vocab.txt"),
+                            "file_name": (
+                                "vocab.json"
+                                if self.download_vocab_url.endswith("json")
+                                else "vocab.txt"
+                            ),
                         },
                     )
 
@@ -494,10 +528,18 @@ class RLHFPPO(Stage):
         # First step is to resolve the config since there are absolute/relative references
         OmegaConf.resolve(self.stage_cfg)
 
-        self.cluster_cfg.check_path_in_volumes(self.stage_cfg.critic.exp_manager.explicit_log_dir)
-        self.cluster_cfg.check_path_in_volumes(self.stage_cfg.critic.pretrained_checkpoint.restore_from_path)
-        self.cluster_cfg.check_path_in_volumes(self.stage_cfg.actor.exp_manager.explicit_log_dir)
-        self.cluster_cfg.check_path_in_volumes(self.stage_cfg.actor.pretrained_checkpoint.restore_from_path)
+        self.cluster_cfg.check_path_in_volumes(
+            self.stage_cfg.critic.exp_manager.explicit_log_dir
+        )
+        self.cluster_cfg.check_path_in_volumes(
+            self.stage_cfg.critic.pretrained_checkpoint.restore_from_path
+        )
+        self.cluster_cfg.check_path_in_volumes(
+            self.stage_cfg.actor.exp_manager.explicit_log_dir
+        )
+        self.cluster_cfg.check_path_in_volumes(
+            self.stage_cfg.actor.pretrained_checkpoint.restore_from_path
+        )
         for shards in self.stage_cfg.actor.model.data.data_prefix.values():
             for shard in shards:
                 if not isinstance(shard, str):
@@ -507,7 +549,10 @@ class RLHFPPO(Stage):
         vols, vol_mounts = adapt_volume_to(self.cluster_cfg.volumes, to_format="hera")
 
         with Workflow(
-            generate_name="rlhf-ppo-", entrypoint="rlhf-ppo-steps", namespace=self.cluster_cfg.namespace, volumes=vols,
+            generate_name="rlhf-ppo-",
+            entrypoint="rlhf-ppo-steps",
+            namespace=self.cluster_cfg.namespace,
+            volumes=vols,
         ) as w:
             critic_job = create_pytorchjob_resource(
                 generate_name="critic-",
@@ -562,7 +607,10 @@ torchrun {self.actor_script} --config-path=/config --config-name=config.yaml \
                 ],
                 volumes=self.cluster_cfg.volumes,
                 network_interfaces=self.cluster_cfg.ib_interfaces,
-                resource_inputs=[Parameter(name="critic_job_name"), Parameter(name="critic_job_namespace"),],
+                resource_inputs=[
+                    Parameter(name="critic_job_name"),
+                    Parameter(name="critic_job_namespace"),
+                ],
                 capabilities=self.cluster_cfg.capabilities,
             )
             # Critic will hang around so it should be deleted
@@ -572,9 +620,13 @@ torchrun {self.actor_script} --config-path=/config --config-name=config.yaml \
                 critic_task = critic_job()
                 actor_task = actor_job(
                     arguments=[
-                        critic_task.get_parameter("metadata_name").with_name("critic_job_name"),
+                        critic_task.get_parameter("metadata_name").with_name(
+                            "critic_job_name"
+                        ),
                         # Namespace is also required b/c actor uses critic's Pod DNS which includes namespace
-                        critic_task.get_parameter("metadata_namespace").with_name("critic_job_namespace"),
+                        critic_task.get_parameter("metadata_namespace").with_name(
+                            "critic_job_namespace"
+                        ),
                     ]
                 )
                 critic_task >> actor_task
@@ -623,7 +675,9 @@ class RLHFRewardModel(Stage):
         # First step is to resolve the config since there are absolute/relative references
         OmegaConf.resolve(self.stage_cfg)
 
-        self.cluster_cfg.check_path_in_volumes(self.stage_cfg.exp_manager.explicit_log_dir)
+        self.cluster_cfg.check_path_in_volumes(
+            self.stage_cfg.exp_manager.explicit_log_dir
+        )
         for shards in self.stage_cfg.model.data.data_prefix.values():
             for shard in shards:
                 self.cluster_cfg.check_path_in_volumes(shard)
@@ -631,7 +685,10 @@ class RLHFRewardModel(Stage):
         vols, vol_mounts = adapt_volume_to(self.cluster_cfg.volumes, to_format="hera")
 
         with Workflow(
-            generate_name="rlhf-rm-", entrypoint="rlhf-rm-steps", namespace=self.cluster_cfg.namespace, volumes=vols,
+            generate_name="rlhf-rm-",
+            entrypoint="rlhf-rm-steps",
+            namespace=self.cluster_cfg.namespace,
+            volumes=vols,
         ) as w:
             pytorchjob = create_pytorchjob_resource(
                 generate_name="rlhf-rm-",

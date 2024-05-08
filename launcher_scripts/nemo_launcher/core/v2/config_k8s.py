@@ -49,17 +49,23 @@ def convert_pydantic_vol_to_openapi(vol: NFSVolumeSource) -> V1NFSVolumeSource:
 
 
 @overload
-def convert_pydantic_vol_to_openapi(vol: HostPathVolumeSource,) -> V1HostPathVolumeSource:
+def convert_pydantic_vol_to_openapi(
+    vol: HostPathVolumeSource,
+) -> V1HostPathVolumeSource:
     ...
 
 
 @overload
-def convert_pydantic_vol_to_openapi(vol: PersistentVolumeClaimVolumeSource,) -> V1PersistentVolumeClaimVolumeSource:
+def convert_pydantic_vol_to_openapi(
+    vol: PersistentVolumeClaimVolumeSource,
+) -> V1PersistentVolumeClaimVolumeSource:
     ...
 
 
 @overload
-def convert_pydantic_vol_to_openapi(vol: EmptyDirVolumeSource,) -> V1EmptyDirVolumeSource:
+def convert_pydantic_vol_to_openapi(
+    vol: EmptyDirVolumeSource,
+) -> V1EmptyDirVolumeSource:
     ...
 
 
@@ -70,10 +76,20 @@ def convert_pydantic_vol_to_openapi(vol: None):
 
 def convert_pydantic_vol_to_openapi(
     vol: Optional[
-        Union[NFSVolumeSource, HostPathVolumeSource, PersistentVolumeClaimVolumeSource, EmptyDirVolumeSource]
+        Union[
+            NFSVolumeSource,
+            HostPathVolumeSource,
+            PersistentVolumeClaimVolumeSource,
+            EmptyDirVolumeSource,
+        ]
     ]
 ) -> Optional[
-    Union[V1NFSVolumeSource, V1HostPathVolumeSource, V1PersistentVolumeClaimVolumeSource, V1EmptyDirVolumeSource]
+    Union[
+        V1NFSVolumeSource,
+        V1HostPathVolumeSource,
+        V1PersistentVolumeClaimVolumeSource,
+        V1EmptyDirVolumeSource,
+    ]
 ]:
     if vol is None:
         return vol
@@ -113,10 +129,13 @@ class K8sVolume(BaseModel):
     @model_validator(mode="after")
     def mutually_exclusive(self) -> "K8sVolume":
         num_defined = sum(
-            bool(getattr(self, v_type)) for v_type in ("nfs", "persistent_volume_claim", "host_path", "empty_dir")
+            bool(getattr(self, v_type))
+            for v_type in ("nfs", "persistent_volume_claim", "host_path", "empty_dir")
         )
         if num_defined != 1:
-            raise ValueError(f"Only one of nfs, persistent_volume_claim, host_path, empty_dir can be defined: {self}")
+            raise ValueError(
+                f"Only one of nfs, persistent_volume_claim, host_path, empty_dir can be defined: {self}"
+            )
         return self
 
     @computed_field
@@ -127,7 +146,9 @@ class K8sVolume(BaseModel):
             self.mount_path
             or getattr(self.nfs, "path", None)
             or getattr(self.host_path, "path", None)
-            or (f"/{self.sub_path}" if self.sub_path else None)  # sub_path would normally be set if PVC is used
+            or (
+                f"/{self.sub_path}" if self.sub_path else None
+            )  # sub_path would normally be set if PVC is used
         )
         if not path:
             raise ValueError(
@@ -172,8 +193,11 @@ class VolumeFormat(Enum):
 
 
 def adapt_volume_to(
-    volumes: dict[str, K8sVolume], to_format: Union[VolumeFormat, str] = VolumeFormat.HERA,
-) -> Union[tuple[list[V1Volume], list[V1VolumeMount]], tuple[list[Volume], list[VolumeMount]]]:
+    volumes: dict[str, K8sVolume],
+    to_format: Union[VolumeFormat, str] = VolumeFormat.HERA,
+) -> Union[
+    tuple[list[V1Volume], list[V1VolumeMount]], tuple[list[Volume], list[VolumeMount]]
+]:
     if VolumeFormat(to_format) == VolumeFormat.HERA:
         vol_cls = Volume
         vol_mount_cls = VolumeMount
@@ -198,7 +222,12 @@ def adapt_volume_to(
             )
         )
         vol_mounts.append(
-            vol_mount_cls(name=name, mount_path=v._mount_path, read_only=v.read_only, sub_path=v.sub_path,)
+            vol_mount_cls(
+                name=name,
+                mount_path=v._mount_path,
+                read_only=v.read_only,
+                sub_path=v.sub_path,
+            )
         )
     if VolumeFormat(to_format) == VolumeFormat.OBJECT:
         # Create client just to convert snake-case to camel-case json obj
@@ -220,5 +249,7 @@ def instantiate_model_from_omegaconf(cfg: OmegaConf) -> BaseModel:
     _target_ = kwargs.pop("_target_")
     cls = get_class(_target_)
     if not issubclass(cls, BaseModel):
-        raise ValueError(f"Expected _target_={_target_} to be a subclass of pydantic.BaseModel")
+        raise ValueError(
+            f"Expected _target_={_target_} to be a subclass of pydantic.BaseModel"
+        )
     return cls.model_validate(kwargs, strict=True)

@@ -30,7 +30,11 @@ from kubernetes.client import (
     V1SecurityContext,
     V1VolumeMount,
 )
-from nemo_launcher.core.v2.config_k8s import K8sNetworkInterfaces, K8sVolume, adapt_volume_to
+from nemo_launcher.core.v2.config_k8s import (
+    K8sNetworkInterfaces,
+    K8sVolume,
+    adapt_volume_to,
+)
 from pydantic import BaseModel
 
 _unset = object()
@@ -78,7 +82,11 @@ def prune_tree(tree: dict, is_prunable: Callable[[Any], bool] = None):
 def to_env_list(env: dict[str, Any]) -> list[V1EnvVar]:
     if not env:
         return []
-    return [V1EnvVar(name=name, value=str(value)) for name, value in env.items() if value is not None]
+    return [
+        V1EnvVar(name=name, value=str(value))
+        for name, value in env.items()
+        if value is not None
+    ]
 
 
 def create_pytorchjob_resource(
@@ -116,7 +124,9 @@ def create_pytorchjob_resource(
     if ports:
         ports = [V1ContainerPort(container_port=p) for p in ports]
     if capabilities:
-        security_context = V1SecurityContext(capabilities=V1Capabilities(add=capabilities))
+        security_context = V1SecurityContext(
+            capabilities=V1Capabilities(add=capabilities)
+        )
     else:
         security_context = None
 
@@ -153,7 +163,9 @@ def create_pytorchjob_resource(
         kind=constants.PYTORCHJOB_KIND,
         metadata=V1ObjectMeta(generate_name=generate_name, namespace=namespace),
         spec=KubeflowOrgV1PyTorchJobSpec(
-            run_policy=KubeflowOrgV1RunPolicy(clean_pod_policy="None", backoff_limit=BACKOFF_LIMIT),
+            run_policy=KubeflowOrgV1RunPolicy(
+                clean_pod_policy="None", backoff_limit=BACKOFF_LIMIT
+            ),
             elastic_policy=KubeflowOrgV1ElasticPolicy(
                 rdzv_backend="c10d",
                 min_replicas=n_workers,
@@ -183,8 +195,13 @@ def create_pytorchjob_resource(
         # at the moment the dependency_name is limited to a single resource
         inputs=resource_inputs,
         outputs=[
-            Parameter(name="metadata_name", value_from={"jsonPath": "{.metadata.name}"}),
-            Parameter(name="metadata_namespace", value_from={"jsonPath": "{.metadata.namespace}"},),
+            Parameter(
+                name="metadata_name", value_from={"jsonPath": "{.metadata.name}"}
+            ),
+            Parameter(
+                name="metadata_namespace",
+                value_from={"jsonPath": "{.metadata.namespace}"},
+            ),
         ],
     )
 
@@ -218,7 +235,9 @@ def create_mpijob_resource(
     else:
         vols, vol_mounts = None, None
     if capabilities:
-        security_context = V1SecurityContext(capabilities=V1Capabilities(add=capabilities))
+        security_context = V1SecurityContext(
+            capabilities=V1Capabilities(add=capabilities)
+        )
     else:
         security_context = None
 
@@ -269,7 +288,9 @@ def create_mpijob_resource(
         metadata=V1ObjectMeta(generate_name=generate_name, namespace=namespace),
         spec=KubeflowOrgV1MPIJobSpec(
             # Clean running pods since the workers will hang around even after the launcher finishes
-            run_policy=KubeflowOrgV1RunPolicy(clean_pod_policy="Running", backoff_limit=BACKOFF_LIMIT),
+            run_policy=KubeflowOrgV1RunPolicy(
+                clean_pod_policy="Running", backoff_limit=BACKOFF_LIMIT
+            ),
             mpi_replica_specs={"Launcher": launcher, "Worker": worker,},
         ),
     )
@@ -292,8 +313,13 @@ def create_mpijob_resource(
         # at the moment the dependency_name is limited to a single resource
         inputs=resource_inputs,
         outputs=[
-            Parameter(name="metadata_name", value_from={"jsonPath": "{.metadata.name}"}),
-            Parameter(name="metadata_namespace", value_from={"jsonPath": "{.metadata.namespace}"},),
+            Parameter(
+                name="metadata_name", value_from={"jsonPath": "{.metadata.name}"}
+            ),
+            Parameter(
+                name="metadata_namespace",
+                value_from={"jsonPath": "{.metadata.namespace}"},
+            ),
         ],
     )
 
@@ -307,4 +333,9 @@ def delete_pytorchjob(name: str = "delete-pytorchjob"):
           name: {{{{inputs.parameters.metadata_name}}}}
         """
     )
-    return Resource(name=name, action="delete", inputs=[Parameter(name="metadata_name")], manifest=manifest,)
+    return Resource(
+        name=name,
+        action="delete",
+        inputs=[Parameter(name="metadata_name")],
+        manifest=manifest,
+    )
