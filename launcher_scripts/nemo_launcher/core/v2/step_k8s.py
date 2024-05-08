@@ -1,48 +1,37 @@
-from hera.workflows import (
-    Container,
-    Parameter,
-    Step,
-    Steps,
-    Workflow,
-    Resource,
-    script,
-)
+import os
+from textwrap import dedent
+from typing import Any, Callable, Optional
+
+import yaml
+from hera.workflows import Container, Parameter, Resource, Step, Steps, Workflow, script
 from kubeflow.training import (
-    TrainingClient,
-    KubeflowOrgV1ReplicaSpec,
-    KubeflowOrgV1PyTorchJob,
-    KubeflowOrgV1PyTorchJobSpec,
-    KubeflowOrgV1RunPolicy,
-    KubeflowOrgV1SchedulingPolicy,
     KubeflowOrgV1ElasticPolicy,
     KubeflowOrgV1MPIJob,
     KubeflowOrgV1MPIJobSpec,
+    KubeflowOrgV1PyTorchJob,
+    KubeflowOrgV1PyTorchJobSpec,
+    KubeflowOrgV1ReplicaSpec,
+    KubeflowOrgV1RunPolicy,
+    KubeflowOrgV1SchedulingPolicy,
+    TrainingClient,
 )
 from kubeflow.training.constants import constants
 from kubernetes.client import (
-    V1PodTemplateSpec,
-    V1ObjectMeta,
-    V1PodSpec,
+    ApiClient,
+    V1Capabilities,
     V1Container,
     V1ContainerPort,
-    V1ResourceRequirements,
-    V1VolumeMount,
     V1EnvVar,
     V1LocalObjectReference,
+    V1ObjectMeta,
+    V1PodSpec,
+    V1PodTemplateSpec,
+    V1ResourceRequirements,
     V1SecurityContext,
-    V1Capabilities,
-    ApiClient,
+    V1VolumeMount,
 )
+from nemo_launcher.core.v2.config_k8s import K8sNetworkInterfaces, K8sVolume, adapt_volume_to
 from pydantic import BaseModel
-import yaml
-from typing import Callable, Any
-from nemo_launcher.core.v2.config_k8s import (
-    K8sVolume,
-    K8sNetworkInterfaces,
-    adapt_volume_to,
-)
-from textwrap import dedent
-import os
 
 _unset = object()
 
@@ -89,11 +78,7 @@ def prune_tree(tree: dict, is_prunable: Callable[[Any], bool] = None):
 def to_env_list(env: dict[str, Any]) -> list[V1EnvVar]:
     if not env:
         return []
-    return [
-        V1EnvVar(name=name, value=str(value))
-        for name, value in env.items()
-        if value is not None
-    ]
+    return [V1EnvVar(name=name, value=str(value)) for name, value in env.items() if value is not None]
 
 
 def create_pytorchjob_resource(
@@ -102,16 +87,16 @@ def create_pytorchjob_resource(
     image: str,
     n_workers: int,
     gpus_per_worker: int,
-    env: dict | None = None,
-    command: list[str] | None = None,
-    args: list[str] | None = None,
-    image_pull_secret: str | None = None,
-    volumes: dict[str, K8sVolume] | None = None,
-    network_interfaces: K8sNetworkInterfaces | None = None,
-    ports: list[int] | None = None,
-    success_condition: str | None = _unset,
-    resource_inputs: list[Parameter] | None = None,
-    capabilities: list[str] | None = None,
+    env: Optional[dict] = None,
+    command: Optional[list[str]] = None,
+    args: Optional[list[str]] = None,
+    image_pull_secret: Optional[str] = None,
+    volumes: Optional[dict[str, K8sVolume]] = None,
+    network_interfaces: Optional[K8sNetworkInterfaces] = None,
+    ports: Optional[list[int]] = None,
+    success_condition: Optional[str] = _unset,
+    resource_inputs: Optional[list[Parameter]] = None,
+    capabilities: Optional[list[str]] = None,
 ) -> Resource:
     if success_condition == _unset:
         success_condition = f"status.replicaStatuses.Worker.succeeded = {n_workers}"
@@ -131,9 +116,7 @@ def create_pytorchjob_resource(
     if ports:
         ports = [V1ContainerPort(container_port=p) for p in ports]
     if capabilities:
-        security_context = V1SecurityContext(
-            capabilities=V1Capabilities(add=capabilities)
-        )
+        security_context = V1SecurityContext(capabilities=V1Capabilities(add=capabilities))
     else:
         security_context = None
 
@@ -170,9 +153,7 @@ def create_pytorchjob_resource(
         kind=constants.PYTORCHJOB_KIND,
         metadata=V1ObjectMeta(generate_name=generate_name, namespace=namespace),
         spec=KubeflowOrgV1PyTorchJobSpec(
-            run_policy=KubeflowOrgV1RunPolicy(
-                clean_pod_policy="None", backoff_limit=BACKOFF_LIMIT
-            ),
+            run_policy=KubeflowOrgV1RunPolicy(clean_pod_policy="None", backoff_limit=BACKOFF_LIMIT),
             elastic_policy=KubeflowOrgV1ElasticPolicy(
                 rdzv_backend="c10d",
                 min_replicas=n_workers,
@@ -202,13 +183,8 @@ def create_pytorchjob_resource(
         # at the moment the dependency_name is limited to a single resource
         inputs=resource_inputs,
         outputs=[
-            Parameter(
-                name="metadata_name", value_from={"jsonPath": "{.metadata.name}"}
-            ),
-            Parameter(
-                name="metadata_namespace",
-                value_from={"jsonPath": "{.metadata.namespace}"},
-            ),
+            Parameter(name="metadata_name", value_from={"jsonPath": "{.metadata.name}"}),
+            Parameter(name="metadata_namespace", value_from={"jsonPath": "{.metadata.namespace}"},),
         ],
     )
 
@@ -218,15 +194,15 @@ def create_mpijob_resource(
     namespace: str,
     image: str,
     n_workers: int,
-    env: dict | None = None,
-    command: list[str] | None = None,
-    args: list[str] | None = None,
-    image_pull_secret: str | None = None,
-    volumes: dict[str, K8sVolume] | None = None,
-    network_interfaces: K8sNetworkInterfaces | None = None,
-    success_condition: str | None = _unset,
-    resource_inputs: list[Parameter] | None = None,
-    capabilities: list[str] | None = None,
+    env: Optional[dict] = None,
+    command: Optional[list[str]] = None,
+    args: Optional[list[str]] = None,
+    image_pull_secret: Optional[str] = None,
+    volumes: Optional[dict[str, K8sVolume]] = None,
+    network_interfaces: Optional[K8sNetworkInterfaces] = None,
+    success_condition: Optional[str] = _unset,
+    resource_inputs: Optional[list[Parameter]] = None,
+    capabilities: Optional[list[str]] = None,
 ) -> Resource:
     if success_condition == _unset:
         success_condition = f"status.replicaStatuses.Launcher.succeeded = 1"
@@ -242,9 +218,7 @@ def create_mpijob_resource(
     else:
         vols, vol_mounts = None, None
     if capabilities:
-        security_context = V1SecurityContext(
-            capabilities=V1Capabilities(add=capabilities)
-        )
+        security_context = V1SecurityContext(capabilities=V1Capabilities(add=capabilities))
     else:
         security_context = None
 
@@ -295,9 +269,7 @@ def create_mpijob_resource(
         metadata=V1ObjectMeta(generate_name=generate_name, namespace=namespace),
         spec=KubeflowOrgV1MPIJobSpec(
             # Clean running pods since the workers will hang around even after the launcher finishes
-            run_policy=KubeflowOrgV1RunPolicy(
-                clean_pod_policy="Running", backoff_limit=BACKOFF_LIMIT
-            ),
+            run_policy=KubeflowOrgV1RunPolicy(clean_pod_policy="Running", backoff_limit=BACKOFF_LIMIT),
             mpi_replica_specs={"Launcher": launcher, "Worker": worker,},
         ),
     )
@@ -320,13 +292,8 @@ def create_mpijob_resource(
         # at the moment the dependency_name is limited to a single resource
         inputs=resource_inputs,
         outputs=[
-            Parameter(
-                name="metadata_name", value_from={"jsonPath": "{.metadata.name}"}
-            ),
-            Parameter(
-                name="metadata_namespace",
-                value_from={"jsonPath": "{.metadata.namespace}"},
-            ),
+            Parameter(name="metadata_name", value_from={"jsonPath": "{.metadata.name}"}),
+            Parameter(name="metadata_namespace", value_from={"jsonPath": "{.metadata.namespace}"},),
         ],
     )
 
@@ -340,9 +307,4 @@ def delete_pytorchjob(name: str = "delete-pytorchjob"):
           name: {{{{inputs.parameters.metadata_name}}}}
         """
     )
-    return Resource(
-        name=name,
-        action="delete",
-        inputs=[Parameter(name="metadata_name")],
-        manifest=manifest,
-    )
+    return Resource(name=name, action="delete", inputs=[Parameter(name="metadata_name")], manifest=manifest,)
