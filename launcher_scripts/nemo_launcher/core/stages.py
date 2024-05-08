@@ -2451,3 +2451,28 @@ class PostTrainingQuantization(NeMoStage):
             self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_llama_quantization.py"
         )
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """
+        Make the command groups for current stage
+        Command groups is a list of command group. A command group is defined as:
+              0. Command group is a list of command strings
+              1. Each command group occupies one bcprun, srun or bash
+              2. Each command group eventually has multiple commands connected by ";"
+
+        :param Path stage_cfg_path: path to interpolated and saved configuration
+        :return: command groups for current stage
+        :rtype: List[List[str]]
+        """
+        command_groups = super().make_stage_command_groups(stage_cfg_path)
+
+        # In case of PTQ we need to use a workaround to bypass MPI issues on Slurm by unsetting selected
+        # evironment variables below. It assumes a single command group to which it is applied.
+        unset_commands = [
+            "echo '********** unset all SLURM_, PMI_, PMIX_ Variables **********'",
+            "for i in \\$(env | grep ^SLURM_ | cut -d'=' -f 1); do unset -v \\$i; done",
+            "for i in \\$(env | grep ^PMI_ | cut -d'=' -f 1); do unset -v \\$i; done",
+            "for i in \\$(env | grep ^PMIX_ | cut -d'=' -f 1); do unset -v \\$i; done",
+        ]
+        command_groups[0] = unset_commands + command_groups[0]
+        return command_groups
