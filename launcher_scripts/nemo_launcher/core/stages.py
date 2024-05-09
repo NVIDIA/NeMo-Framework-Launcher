@@ -474,8 +474,7 @@ class NemoMegatronStage:
         For example, if `training=gpt3/5b`, then `choice_model_type=gpt3` and `choice_name=5b`
         """
         stage_config_choice = self.cfg.get(f"{self.stage_name}_config")
-        choice_model_type = stage_config_choice.rsplit("/", 1)[0]
-        choice_name = stage_config_choice.rsplit("/", 1)[1]
+        choice_model_type, choice_name = stage_config_choice.rsplit("/", 1)
         return choice_model_type, choice_name
 
     @property
@@ -547,7 +546,7 @@ class NemoMegatronStage:
         """Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel"""
         vpp = self.cfg.training.model.get("virtual_pipeline_model_parallel_size")
         if (
-            self.cfg.training.model.get("pipeline_model_parallel_size") > 1
+            self.cfg.training.model.get("pipeline_model_parallel_size", 1) > 1
             and vpp is not None
             and vpp > 1
         ):
@@ -2435,3 +2434,29 @@ class ConversionHF2NeMo(NeMoStage):
         command_groups = clean_command_groups(command_groups)
 
         return command_groups
+
+
+class PostTrainingQuantization(NeMoStage):
+    """
+    Stage class of post-training quantization.
+    """
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "ptq"
+        self.stage_cfg = cfg.get("ptq")
+
+    def _get_nemo_code_path(self, model_type: str) -> Path:
+        """
+        Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
+        For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
+
+        :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
+        :return: path current stage's essential nemo scripts code
+        :rtype: Path
+        """
+        # TODO: rename to megatron_quantization.py as this script works for other model families as well
+        return (
+            self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_llama_quantization.py"
+        )

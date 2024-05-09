@@ -109,7 +109,7 @@ model:
   grad_div_ar_fusion: true
   gradient_accumulation_fusion: true
   bias_activation_fusion: true
-  bias_dropout_add_fusion: false
+  bias_dropout_add_fusion: true
   masked_softmax_fusion: true
   seed: 1234
   resume_from_checkpoint: null
