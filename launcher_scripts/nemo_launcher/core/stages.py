@@ -205,6 +205,18 @@ class NemoMegatronStage:
             "git rev-parse HEAD",
             f"export PYTHONPATH={self._nemo_code_path}:\${{PYTHONPATH}}",
         ]
+    
+    def _make_git_log_command(self, stage_cfg_path: Path):
+        """log last 5 commits for repos- NeMo, megatron-lm, NeMo-Framework-Launcher or NeMo-Megatron-Launcher
+            'NeMo-Megatron-Launcher' was renamed to 'NeMo-Framework-Launcher'. We run git log for both, resulting
+            in empty newline for missing dir.
+        """
+        append_to_file = f"{stage_cfg_path.parent}/git_log.txt"
+        return [f"echo \"PYT$NVIDIA_PYTORCH_VERSION\" > {append_to_file}",
+                f"git --git-dir=/opt/NeMo/.git log -n 5 --format='NeMo;%h;%aD;%s' >> {append_to_file}", 
+                f"git --git-dir=/opt/megatron-lm/.git log -n 5 --format='megatron-lm;%h;%aD;%s' >> {append_to_file}",
+                f"git --git-dir=/opt/NeMo-Framework-Launcher/.git log -n 5 --format='NeMo-Framework-Launcher;%h;%aD;%s' >> {append_to_file}",
+                f"git --git-dir=/opt/NeMo-Megatron-Launcher/.git log -n 5 --format='NeMo-Megatron-Launcher;%h;%aD;%s' >> {append_to_file}"]
 
     def _make_k8s_spec_file(
         self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
@@ -588,12 +600,6 @@ class NeMoStage(NemoMegatronStage):
     GPT3 eval is not a NeMo stage because it uses eval-harness inside nemo_launcher collections.
     """
 
-    def make_git_log_command(self, stage_cfg_path: Path):
-        append_to_file = f"{stage_cfg_path.parent}/git_log.txt"
-        return [f"git --git-dir=/opt/NeMo/.git log -n 5 --format='NeMo;%h;%aD;%s' > {append_to_file}", 
-                f"git --git-dir=/opt/megatron-lm/.git log -n 5 --format='megatron-lm;%h;%aD;%s' >> {append_to_file}",
-                f"echo \"PYT$NVIDIA_PYTORCH_VERSION\" >> {append_to_file}"]
-
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
         """
         Make the command groups for current stage
@@ -611,7 +617,7 @@ class NeMoStage(NemoMegatronStage):
         command_groups = [[]]
         command_groups[0] += self._make_wandb_login_command()
         command_groups[0] += self._make_nemo_path_command()
-        command_groups[0] += self.make_git_log_command(stage_cfg_path)
+        command_groups[0] += self._make_git_log_command(stage_cfg_path)
         # command_groups[0] += self._make_numa_mapping_command()
 
         # _cuda_device_max_connections and _cuda_visible_devices cannot be used as command prefix on BCP
