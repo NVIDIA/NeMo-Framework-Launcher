@@ -100,7 +100,7 @@ STR2STAGECLASS = {
             "starcoder2",
             "peft_mistral",
             "peft_mixtral",
-            "peft_qwen2"
+            "peft_qwen2",
         ],
         DiffusionModelEvaluation: ["stable_diffusion", "imagen"],
     },
