@@ -141,6 +141,7 @@ def setup_trainer_and_model(args):
             pretrained_cfg.activations_checkpoint_granularity = None
             pretrained_cfg.activations_checkpoint_method = None
             pretrained_cfg.precision = trainer.precision
+            pretrained_cfg.dist_ckpt_format = False
             if trainer.precision == "16":
                 pretrained_cfg.megatron_amp_O2 = False
         model = MegatronGPTModel.restore_from(
