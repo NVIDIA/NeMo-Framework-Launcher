@@ -3,7 +3,7 @@ defaults:
   - cluster: bcm  # Set to bcm for BCM and BCP clusters. Set to k8s for a k8s cluster.
   - data_curation: common_crawl/curate_common_crawl
   - data_preparation: gpt3/download_gpt3_pile #steerlm/steerlm_data_prep1 or steerlm/steerlm_data_prep2_reg
-  - training: gpt3/175b_16k
+  - training: gpt3/5b
   - conversion: gpt3/convert_gpt3
   - conversion_hf2nemo: hf_llama2/convert_llama2_nemo
   - fw_inference: null
@@ -28,27 +28,25 @@ hydra:
 debug: False
 
 stages:
-  - training
+  #- data_preparation
+  #- training
+  - conversion
+  #- conversion_hf2nemo
+  #- prompt_learning
+  #- adapter_learning
+  #- peft
+  #- ia3_learning
+  #- evaluation
+  #- export
+  #- steerlm_reg
 
-results:
-    base: /home/boxiangw/results/long_context/
-    dir: gpt3/175b_16k
-code: /home/boxiangw/NeMo
-
-#preproc_data: /lustre/fsw/joc/big_nlp/t5/dataset/Pile # T5 dataset
-#preproc_data: /lustre/fsw/joc/big_nlp/gpt3/prepare_dataset/the_pile/train # GPT3 dataset in selene
-preproc_data: /lustre/fsw/coreai_dlalgo_llm/dataset/the_pile/train # GPT3 dataset in eos
-
-cluster_type: bcm  # bcm or bcp. If bcm, it must match - cluster above.
-# Path to NeMo Megatron Launch scripts, should ends with /launcher_scripts
-launcher_scripts_path: /home/boxiangw/NeMo-Megatron-Launcher/launcher_scripts
-data_dir: ${preproc_data}  # Location to store and read the data.
-base_results_dir: ${results.base}/${results.dir}  # Location to store the results, checkpoints and logs.
+cluster_type: bcm  # bcm, bcp, or k8s. If bcm or k8s, it must match - cluster above.
+launcher_scripts_path: ???  # Path to NeMo Megatron Launch scripts, should ends with /launcher_scripts
+data_dir: ${launcher_scripts_path}/data  # Location to store and read the data.
+base_results_dir: ${launcher_scripts_path}/results  # Location to store the results, checkpoints and logs.
 container_mounts: # List of additional paths to mount to container. They will be mounted to same path.
-  - ${code}:/opt/NeMo
-
+  - null
 container: nvcr.io/nvidia/nemo:24.03.01.framework
-# container: gitlab-master.nvidia.com/xren/nemo_megatron_perf_optimization:nemo_2308_cp_ub_fa2
 
 wandb_api_key_file: null  # File where the w&B api key is stored. Key must be on the first line.
 wandb_api_bcp_secret_key: null  # For BCP clusters, read the W&B api key directly from the environment variable set as a secret from BCP. The value must match the name of the environment variable in BCP, such as WANDB_TOKEN.
