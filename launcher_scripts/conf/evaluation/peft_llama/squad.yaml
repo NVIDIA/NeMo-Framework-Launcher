@@ -18,7 +18,7 @@ trainer:
   enable_checkpointing: False
   use_distributed_sampler: False
   log_every_n_steps: 10
-
+  max_steps: 1000
 
 exp_manager:
   explicit_log_dir: ${evaluation.run.results_dir}/results
@@ -93,7 +93,7 @@ model:
   data:
     test_ds:
       file_names: 
-        - ${data_dir}/squad_data/v1.1/dev-v1.1_gpt.json
+        - ${data_dir}/1_squad_test.jsonl
       test_names:
         - squad
       global_batch_size: 32
