@@ -1,0 +1,24 @@
+run:
+  name: ${.eval_name}_${.model_train_name}
+  time_limit: "02:00:00"
+  dependency: "singleton"
+  nodes: ${divide_ceil:${evaluation.model.model_parallel_size}, 8} # 8 gpus per node
+  ntasks_per_node: ${divide_ceil:${evaluation.model.model_parallel_size}, ${.nodes}}
+  eval_name: eval_boolq
+  model_train_name: llama2_7b
+  train_dir: ${base_results_dir}/${.model_train_name}
+  tasks: boolq  # supported: lambada, boolq, race, piqa, hellaswag, winogrande, wikitext2, wikitext103 OR all_tasks
+  results_dir: ${base_results_dir}/${.model_train_name}/${.eval_name}
+
+model:
+  model_type: nemo-llama
+  nemo_model: null # run eval with a .nemo file, produced when converted interleaved checkpoints
+  #checkpoint_folder: ${evaluation.run.train_dir}/results/checkpoints
+  #checkpoint_name: latest # latest OR name pattern of a checkpoint (e.g. megatron_gpt-*last.ckpt)
+  #hparams_file: ${evaluation.run.train_dir}/results/hparams.yaml
+  tensor_model_parallel_size: 1
+  pipeline_model_parallel_size: 1
+  model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
+  precision: bf16 # must match training precision - 32, 16 or bf16
+  eval_batch_size: 4
+  #tokenizer_model: ${data_dir}/llama/llama_tokenizer.model 
