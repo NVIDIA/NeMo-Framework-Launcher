@@ -110,44 +110,43 @@ model:
     dataloader_type: single  # only supports single
     train_ds:
       # Example of how to specify paths to multiple datasets
-      # file_names: 
+      # file_names:
       #   - /path/to/squad.jsonl
       #   - /path/to/mnli.jsonl
       #   - /path/to/boolq.jsonl
       # Example of how each dataset is formatted
       # {'input': 'John von Neumann\nVon Neumann made fundamental contributions .... Q: What did the math of artificial viscosity do?', 'output': 'smoothed the shock transition without sacrificing basic physics'}
-      file_path: ${data_dir}/data/oasst/train_labeled.jsonl # Path to a JSONL file corresponding to the source data. Data format is identical to validation_ds.
-      global_batch_size: 8
+      file_path: ??? # Path to a JSONL file corresponding to the source data. Data format is identical to validation_ds.
+      global_batch_size: 128
       micro_batch_size: 1
       shuffle: True
       memmap_workers: null
-      max_seq_length: 4096
+      max_seq_length: 2048
       min_seq_length: 1
-      drop_last: True
+      drop_last: True  # note that `False` is not currently supported
       # Example of how to specify concat_sampling_probabilities
       # concat_sampling_probabilities:
       #   - 0.5
       #   - 0.25
       #   - 0.25
-      concat_sampling_probabilities: null # When providing a list of datasets, this arg defines the sampling probabilities from each dataset when strategy='random'
       label_key: 'output'
-      add_eos: False
+      add_eos: True
       add_sep: False
       add_bos: False
       truncation_field: "input" # # Can be multiple keys separated with ',' Options: keys in prompt_template
       index_mapping_dir: null # Path to a directory to write index mapping files.
       prompt_template: "{input} {output}" # fstring to use for assistant prompt. Example: "Q: {input}\nA: {output}"
       hf_dataset: False # Whether to load the json file with the HuggingFace dataset. otherwise, will load the jsonl file with the JSONLMemMapDataset.
-      truncation_method: 'right' # Truncation from which position, Options: ['left', 'right'] 
+      truncation_method: 'right' # Truncation from which position, Options: ['left', 'right']
 
     validation_ds:
       file_path: ${data_dir}/data/oasst/val_labeled.jsonl # Path to a JSONL file corresponding to the source data. Data format is identical to validation_ds.
       names: null # Names of the corresponding datasets used to log metrics.
-      global_batch_size: 8 #${model.data.train_ds.global_batch_size}
+      global_batch_size: 128 #${model.data.train_ds.global_batch_size}
       micro_batch_size: 1 #${model.data.train_ds.micro_batch_size}
       shuffle: False
       memmap_workers: null #${model.data.train_ds.memmap_workers}
-      max_seq_length: 4096 #${model.data.train_ds.max_seq_length}
+      max_seq_length: 2048 #${model.data.train_ds.max_seq_length}
       min_seq_length: 1
       drop_last: False
       label_key: 'output' #${model.data.train_ds.label_key}

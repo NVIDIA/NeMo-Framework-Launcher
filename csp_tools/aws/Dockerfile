@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM nvcr.io/nvidia/nemo:24.01.01.framework
+FROM nvcr.io/nvidia/nemo:24.03.01.framework
 
 ARG NCCL_VERSION=2.18.5-1+cuda12.2
 ARG EFA_INSTALLER_VERSION=1.28.0

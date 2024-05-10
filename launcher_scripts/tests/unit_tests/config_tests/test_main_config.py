@@ -16,6 +16,7 @@ class TestConfig:
           - fw_inference: null
           - external_conversion: null
           - fine_tuning: null
+          - generic: null
           - peft: null
           - prompt_learning: null
           - adapter_learning: null
@@ -25,6 +26,7 @@ class TestConfig:
           - rlhf_rm: gpt3/2b_rm
           - rlhf_ppo: gpt3/2b_ppo
           - steerlm_reg : ac_sft/gpt_sft #rw_sft/training_rm
+          - ptq: llama2/quantization
           - override hydra/job_logging: stdout
         
         hydra:
@@ -52,7 +54,7 @@ class TestConfig:
         base_results_dir: ${launcher_scripts_path}/results  # Location to store the results, checkpoints and logs.
         container_mounts: # List of additional paths to mount to container. They will be mounted to same path.
             - null
-        container: nvcr.io/nvidia/nemo:24.01.01.framework
+        container: nvcr.io/nvidia/nemo:24.03.01.framework
         
         wandb_api_key_file: null  # File where the w&B api key is stored. Key must be on the first line.
         wandb_api_bcp_secret_key: null  # For BCP clusters, read the W&B api key directly from the environment variable set as a secret from BCP. The value must match the name of the environment variable in BCP, such as WANDB_TOKEN.
@@ -101,6 +103,7 @@ class TestConfig:
         conversion_hf2nemo_config: ${hydra:runtime.choices.conversion_hf2nemo}
         fw_inference_config: ${hydra:runtime.choices.fw_inference}
         external_conversion_config: ${hydra:runtime.choices.external_conversion}
+        ptq_config: ${hydra:runtime.choices.ptq}
         """
         expected = OmegaConf.create(s)
         assert (
