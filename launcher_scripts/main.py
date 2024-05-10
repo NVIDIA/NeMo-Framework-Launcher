@@ -90,6 +90,7 @@ STR2STAGECLASS = {
             "chatglm",
             "mistral",
             "mixtral",
+            "qwen2",
         ],
         NeMoEvaluation: [
             "t5",
@@ -111,6 +112,7 @@ STR2STAGECLASS = {
             "starcoder2",
             "peft_mistral",
             "peft_mixtral",
+            "peft_qwen2",
         ],
         DiffusionModelEvaluation: ["stable_diffusion", "imagen"],
     },
@@ -124,6 +126,7 @@ STR2STAGECLASS = {
             "falcon",
             "baichuan2",
             "chatglm",
+            "qwen2",
         ],
         MC4DataPreparation: ["mt5"],
         SteerLMDataPreparation: ["steerlm"],

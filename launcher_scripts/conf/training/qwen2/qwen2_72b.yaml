@@ -1,27 +1,27 @@
 defaults:
   - _self_
-  - optional tp_overlap@model.ub_tp_comm_overlap_cfg: ub_cfg_h100_h5120_tp2_mbs1_seqlen4096
+  - optional tp_overlap@model.ub_tp_comm_overlap_cfg: ub_cfg_h100_h8192_tp4_mbs1_seqlen4096
 
 hydra:
   searchpath:
     - file:///opt/NeMo/examples/nlp/language_modeling/conf
 
 run:
-  name: llama2_13b
+  name: qwen2_72b
   results_dir: ${base_results_dir}/${.name}
   time_limit: 0-01:00:00
   dependency: singleton
 trainer:
-  num_nodes: 32
+  num_nodes: 128
   devices: 8
   accelerator: gpu
   precision: bf16
   logger: false
   enable_checkpointing: false
-  use_distributed_sampler: false
+  use_distributed_sampler: False
   max_epochs: null
   max_steps: 300000
-  max_time: '5:23:30:00'
+  max_time: '19:23:30:00'
   log_every_n_steps: 10
   val_check_interval: 2000
   limit_val_batches: 32
@@ -31,10 +31,10 @@ trainer:
 exp_manager:
   explicit_log_dir: ${training.run.results_dir}/results
   exp_dir: null
-  name: megatron_llama
+  name: megatron_qwen2
   create_wandb_logger: false
   wandb_logger_kwargs:
-    project: nemo_llama_pretrain
+    project: nemo_qwen2_pretrain
     name: ${training.run.name}
   resume_if_exists: false
   resume_ignore_no_checkpoint: true
@@ -45,9 +45,8 @@ exp_manager:
     mode: min
     always_save_nemo: false
     save_nemo_on_train_end: true
-    filename: megatron_llama--{val_loss:.2f}-{step}-{consumed_samples}
-    model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size},
-      ${training.model.pipeline_model_parallel_size}}
+    filename: megatron_qwen2--{val_loss:.2f}-{step}-{consumed_samples}
+    model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
   log_step_timing: true
   step_timing_kwargs:
     sync_cuda: true
@@ -57,16 +56,19 @@ model:
   micro_batch_size: 1
   global_batch_size: 2048
   rampup_batch_size: null
-  tensor_model_parallel_size: 1
+  tensor_model_parallel_size: 4
   pipeline_model_parallel_size: 4
-  virtual_pipeline_model_parallel_size: 10
-  encoder_seq_length: 4096
-  max_position_embeddings: 4096
-  num_layers: 40
-  hidden_size: 5120
-  ffn_hidden_size: 13824
-  num_attention_heads: 40
-  init_method_std: 0.01
+  virtual_pipeline_model_parallel_size: 20
+  encoder_seq_length: 32768
+  max_position_embeddings: 32768
+  num_layers: 80
+  hidden_size: 8192
+  ffn_hidden_size: 24576
+  num_attention_heads: 64
+  num_query_groups: 64
+  override_vocab_size: 152064
+  rotary_base: 1000000.0
+  init_method_std: 0.02
   use_scaled_init_method: true
   hidden_dropout: 0.0
   attention_dropout: 0.0
@@ -81,6 +83,7 @@ model:
   post_process: true
   persist_layer_norm: true
   bias: false
+  qkv_bias: true
   activation: fast-swiglu
   headscale: false
   transformer_block_type: pre_ln
@@ -92,9 +95,9 @@ model:
   attention_type: multihead
   share_embeddings_and_output_weights: false
   tokenizer:
-    library: sentencepiece
-    type: null
-    model: ${data_dir}/llama/llama_tokenizer.model
+    library: 'huggingface'
+    type: Qwen/Qwen1.5-72B
+    model: null # /path/to/tokenizer.model
     delimiter: null
     vocab_file: null
     merge_file: null
@@ -108,8 +111,8 @@ model:
   grad_allreduce_chunk_size_mb: 125
   grad_div_ar_fusion: true
   gradient_accumulation_fusion: true
-  bias_activation_fusion: true
-  bias_dropout_add_fusion: true
+  bias_activation_fusion: false
+  bias_dropout_add_fusion: false
   masked_softmax_fusion: true
   seed: 1234
   resume_from_checkpoint: null
@@ -123,7 +126,7 @@ model:
   activations_checkpoint_num_layers: 0
   num_micro_batches_with_partial_activation_checkpoints: 0
   activations_checkpoint_layers_per_pipeline: 0
-  sequence_parallel: false
+  sequence_parallel: true
   transformer_engine: true
   fp8: false
   fp8_e4m3: false
@@ -133,15 +136,16 @@ model:
   fp8_amax_history_len: 1
   fp8_amax_compute_algo: most_recent
   use_emha: false
-  ub_tp_comm_overlap: false
-  overlap_p2p_comm: true
-  batch_p2p_comm: false
+  ub_tp_comm_overlap: true
   tp_comm_atomic_ag: False
   tp_comm_atomic_rs: False
   use_flash_attention: true
+  overlap_p2p_comm: true
+  batch_p2p_comm: false
+  gc_interval: 3
   optim:
     name: distributed_fused_adam
-    lr: 0.0001
+    lr: 0.00015
     weight_decay: 0.1
     betas:
     - 0.9
@@ -149,17 +153,16 @@ model:
     bucket_cap_mb: 125
     overlap_grad_sync: true
     overlap_param_sync: true
-    contiguous_grad_buffer: true    
-    contiguous_param_buffer: true    
+    contiguous_grad_buffer: true
     sched:
       name: CosineAnnealing
-      warmup_steps: 107
+      warmup_steps: 2000
       constant_steps: 11873
       min_lr: 1.0e-05
   data:
     data_impl: mmap
     splits_string: 99990,8,2
-    seq_length: 4096
+    seq_length: 32768
     skip_warmup: true
     num_workers: 2
     dataloader_type: single
@@ -169,63 +172,63 @@ model:
     index_mapping_dir: null
     data_prefix:
     - .0333
-    - ${data_dir}/my-llama_00_text_document
+    - ${data_dir}/my-qwen2_00_text_document
     - .0333
-    - ${data_dir}/my-llama_01_text_document
+    - ${data_dir}/my-qwen2_01_text_document
     - .0333
-    - ${data_dir}/my-llama_02_text_document
+    - ${data_dir}/my-qwen2_02_text_document
     - .0333
-    - ${data_dir}/my-llama_03_text_document
+    - ${data_dir}/my-qwen2_03_text_document
     - .0333
-    - ${data_dir}/my-llama_04_text_document
+    - ${data_dir}/my-qwen2_04_text_document
     - .0333
-    - ${data_dir}/my-llama_05_text_document
+    - ${data_dir}/my-qwen2_05_text_document
     - .0333
-    - ${data_dir}/my-llama_06_text_document
+    - ${data_dir}/my-qwen2_06_text_document
     - .0333
-    - ${data_dir}/my-llama_07_text_document
+    - ${data_dir}/my-qwen2_07_text_document
     - .0333
-    - ${data_dir}/my-llama_08_text_document
+    - ${data_dir}/my-qwen2_08_text_document
     - .0333
-    - ${data_dir}/my-llama_09_text_document
+    - ${data_dir}/my-qwen2_09_text_document
     - .0333
-    - ${data_dir}/my-llama_10_text_document
+    - ${data_dir}/my-qwen2_10_text_document
     - .0333
-    - ${data_dir}/my-llama_11_text_document
+    - ${data_dir}/my-qwen2_11_text_document
     - .0333
-    - ${data_dir}/my-llama_12_text_document
+    - ${data_dir}/my-qwen2_12_text_document
     - .0333
-    - ${data_dir}/my-llama_13_text_document
+    - ${data_dir}/my-qwen2_13_text_document
     - .0333
-    - ${data_dir}/my-llama_14_text_document
+    - ${data_dir}/my-qwen2_14_text_document
     - .0333
-    - ${data_dir}/my-llama_15_text_document
+    - ${data_dir}/my-qwen2_15_text_document
     - .0333
-    - ${data_dir}/my-llama_16_text_document
+    - ${data_dir}/my-qwen2_16_text_document
     - .0333
-    - ${data_dir}/my-llama_17_text_document
+    - ${data_dir}/my-qwen2_17_text_document
     - .0333
-    - ${data_dir}/my-llama_18_text_document
+    - ${data_dir}/my-qwen2_18_text_document
     - .0333
-    - ${data_dir}/my-llama_19_text_document
+    - ${data_dir}/my-qwen2_19_text_document
     - .0333
-    - ${data_dir}/my-llama_20_text_document
+    - ${data_dir}/my-qwen2_20_text_document
     - .0333
-    - ${data_dir}/my-llama_21_text_document
+    - ${data_dir}/my-qwen2_21_text_document
     - .0333
-    - ${data_dir}/my-llama_22_text_document
+    - ${data_dir}/my-qwen2_22_text_document
     - .0333
-    - ${data_dir}/my-llama_23_text_document
+    - ${data_dir}/my-qwen2_23_text_document
     - .0333
-    - ${data_dir}/my-llama_24_text_document
+    - ${data_dir}/my-qwen2_24_text_document
     - .0333
-    - ${data_dir}/my-llama_25_text_document
+    - ${data_dir}/my-qwen2_25_text_document
     - .0333
-    - ${data_dir}/my-llama_26_text_document
+    - ${data_dir}/my-qwen2_26_text_document
     - .0333
-    - ${data_dir}/my-llama_27_text_document
+    - ${data_dir}/my-qwen2_27_text_document
     - .0333
-    - ${data_dir}/my-llama_28_text_document
+    - ${data_dir}/my-qwen2_28_text_document
     - .0334
-    - ${data_dir}/my-llama_29_text_document
+    - ${data_dir}/my-qwen2_29_text_document
 
