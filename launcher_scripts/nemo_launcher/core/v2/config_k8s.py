@@ -17,7 +17,7 @@ from hera.workflows.models import (
 )
 from omegaconf import OmegaConf
 from hydra.utils import get_class
-from typing import overload
+from typing import overload, Optional, Union
 from enum import Enum
 
 # TODO: Use these BaseModels until a solution to this exists: https://github.com/argoproj-labs/hera/issues/984
@@ -77,12 +77,22 @@ def convert_pydantic_vol_to_openapi(vol: None):
 
 
 def convert_pydantic_vol_to_openapi(
-    vol: NFSVolumeSource
-    | HostPathVolumeSource
-    | PersistentVolumeClaimVolumeSource
-    | EmptyDirVolumeSource
-    | None,
-) -> V1NFSVolumeSource | V1HostPathVolumeSource | V1PersistentVolumeClaimVolumeSource | V1EmptyDirVolumeSource | None:
+    vol: Optional[
+        Union[
+            NFSVolumeSource,
+            HostPathVolumeSource,
+            PersistentVolumeClaimVolumeSource,
+            EmptyDirVolumeSource,
+        ]
+    ]
+) -> Optional[
+    Union[
+        V1NFSVolumeSource,
+        V1HostPathVolumeSource,
+        V1PersistentVolumeClaimVolumeSource,
+        V1EmptyDirVolumeSource,
+    ]
+]:
     if vol is None:
         return vol
     elif isinstance(vol, NFSVolumeSource):
@@ -100,15 +110,15 @@ def convert_pydantic_vol_to_openapi(
 # A convenience class that contains all info needed to define V1VolumeMount/V1Volumes
 class K8sVolume(BaseModel):
     # By default, the path is mirrored into containers, use mount_path to specify a different path
-    mount_path: str | None = None
+    mount_path: Optional[str] = None
     # Path within the volume from which the container's volume should be mounted. default = /. Useful for PVC
-    sub_path: str | None = None
+    sub_path: Optional[str] = None
     read_only: bool = False
 
-    nfs: NFSVolumeSource | None = None
-    persistent_volume_claim: PersistentVolumeClaimVolumeSource | None = None
-    host_path: HostPathVolumeSource | None = None
-    empty_dir: EmptyDirVolumeSource | None = None
+    nfs: Optional[NFSVolumeSource] = None
+    persistent_volume_claim: Optional[PersistentVolumeClaimVolumeSource] = None
+    host_path: Optional[HostPathVolumeSource] = None
+    empty_dir: Optional[EmptyDirVolumeSource] = None
 
     @validator("sub_path")
     def sub_path_should_not_start_with_slash(cls, v: str) -> str:
@@ -160,13 +170,13 @@ class K8sClusterConfig(BaseModel):
     # These volumes are mounted to all containers. Mapping of name to K8sVolume
     volumes: dict[str, K8sVolume]
     # Default is to use the current context's namespace
-    namespace: str | None = None
+    namespace: Optional[str] = None
 
-    ib_interfaces: K8sNetworkInterfaces | None = None
+    ib_interfaces: Optional[K8sNetworkInterfaces] = None
     # dns_policy: str | None = None # Specify a dnsPolicy to use in all pods, if necessary
     pull_secret: str = "ngc-registry"  # Kubernetes secret for the container registry to pull private containers.
     shm_size: str = "512Gi"  # Amount of system memory to allocate in Pods. Should end in "Gi" for gigabytes.
-    capabilities: list[str] | None = [
+    capabilities: Optional[list[str]] = [
         "IPC_LOCK"
     ]  # capabilities to add to all containers (useful for debugging), ex. ["IPC_LOCK", "SYS_PTRACE"]
 
@@ -185,9 +195,10 @@ class VolumeFormat(Enum):
 
 
 def adapt_volume_to(
-    volumes: dict[str, K8sVolume], to_format: VolumeFormat | str = VolumeFormat.HERA,
-) -> tuple[list[V1Volume], list[V1VolumeMount]] | tuple[
-    list[Volume], list[VolumeMount]
+    volumes: dict[str, K8sVolume],
+    to_format: Union[VolumeFormat, str] = VolumeFormat.HERA,
+) -> Union[
+    tuple[list[V1Volume], list[V1VolumeMount]], tuple[list[Volume], list[VolumeMount]]
 ]:
     if VolumeFormat(to_format) == VolumeFormat.HERA:
         vol_cls = Volume
