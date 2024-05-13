@@ -81,6 +81,7 @@ model:
 
   megatron_amp_O2: True
   mcore_gpt: True
+  transformer_engine: True
 
   get_attention_mask_from_fusion: True
   apply_rope_fusion: True
