@@ -35,7 +35,7 @@ from kubernetes.client import (
 )
 from pydantic import BaseModel
 import yaml
-from typing import Callable, Any
+from typing import Callable, Any, Optional
 from nemo_launcher.core.v2.config_k8s import (
     K8sVolume,
     K8sNetworkInterfaces,
@@ -102,16 +102,16 @@ def create_pytorchjob_resource(
     image: str,
     n_workers: int,
     gpus_per_worker: int,
-    env: dict | None = None,
-    command: list[str] | None = None,
-    args: list[str] | None = None,
-    image_pull_secret: str | None = None,
-    volumes: dict[str, K8sVolume] | None = None,
-    network_interfaces: K8sNetworkInterfaces | None = None,
-    ports: list[int] | None = None,
-    success_condition: str | None = _unset,
-    resource_inputs: list[Parameter] | None = None,
-    capabilities: list[str] | None = None,
+    env: Optional[dict] = None,
+    command: Optional[list[str]] = None,
+    args: Optional[list[str]] = None,
+    image_pull_secret: Optional[str] = None,
+    volumes: Optional[dict[str, K8sVolume]] = None,
+    network_interfaces: Optional[K8sNetworkInterfaces] = None,
+    ports: Optional[list[int]] = None,
+    success_condition: Optional[str] = _unset,
+    resource_inputs: Optional[list[Parameter]] = None,
+    capabilities: Optional[list[str]] = None,
 ) -> Resource:
     if success_condition == _unset:
         success_condition = f"status.replicaStatuses.Worker.succeeded = {n_workers}"
@@ -218,15 +218,15 @@ def create_mpijob_resource(
     namespace: str,
     image: str,
     n_workers: int,
-    env: dict | None = None,
-    command: list[str] | None = None,
-    args: list[str] | None = None,
-    image_pull_secret: str | None = None,
-    volumes: dict[str, K8sVolume] | None = None,
-    network_interfaces: K8sNetworkInterfaces | None = None,
-    success_condition: str | None = _unset,
-    resource_inputs: list[Parameter] | None = None,
-    capabilities: list[str] | None = None,
+    env: Optional[dict] = None,
+    command: Optional[list[str]] = None,
+    args: Optional[list[str]] = None,
+    image_pull_secret: Optional[str] = None,
+    volumes: Optional[dict[str, K8sVolume]] = None,
+    network_interfaces: Optional[K8sNetworkInterfaces] = None,
+    success_condition: Optional[str] = _unset,
+    resource_inputs: Optional[list[Parameter]] = None,
+    capabilities: Optional[list[str]] = None,
 ) -> Resource:
     if success_condition == _unset:
         success_condition = f"status.replicaStatuses.Launcher.succeeded = 1"

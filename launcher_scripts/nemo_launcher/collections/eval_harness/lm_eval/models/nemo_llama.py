@@ -61,7 +61,11 @@ class NeMo_LLAMALM_TP_PP(LM):
             22172,
             13,
             13,
-            12199,
+            12199,  # Llama1/2 Tokenizer
+        ] or self.tokenizer.text_to_ids("hello\n\nhello") == [
+            15339,
+            271,
+            15339,  # Llama3 Tokenizer
         ], "Tokenizer text_to_ids is not working as expected."
 
         self.truncate = truncate

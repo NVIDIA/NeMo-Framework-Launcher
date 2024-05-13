@@ -14,13 +14,16 @@
 
 import os
 from shutil import which
+from typing import Optional
 
 import requests
 import tqdm
 import zstandard as zstd
 
 
-def download_single_file(url: str, save_dir: str, file_name: str | None = None) -> str:
+def download_single_file(
+    url: str, save_dir: str, file_name: Optional[str] = None
+) -> str:
     os.makedirs(save_dir, exist_ok=True)
     if file_name is None:
         file_name = os.path.basename(url)
