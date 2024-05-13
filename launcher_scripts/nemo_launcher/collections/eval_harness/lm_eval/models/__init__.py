@@ -25,6 +25,7 @@ from . import (
     nemo_chatglm,
     nemo_mistral,
     nemo_mixtral,
+    nemo_qwen2,
 )
 
 MODEL_REGISTRY = {
@@ -37,6 +38,7 @@ MODEL_REGISTRY = {
     "nemo-falcon": nemo_falcon.NeMo_FalconLM_TP_PP,
     "nemo-mistral": nemo_mistral.NeMo_MISTRAL_TP_PP,
     "nemo-mixtral": nemo_mixtral.NeMo_MIXTRAL_TP_PP,
+    "nemo-qwen2": nemo_qwen2.NeMo_QWEN2_TP_PP,
     "dummy": dummy.DummyLM,
 }
 

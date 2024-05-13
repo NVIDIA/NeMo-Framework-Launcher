@@ -109,7 +109,7 @@ model:
   grad_div_ar_fusion: true
   gradient_accumulation_fusion: true
   bias_activation_fusion: true
-  bias_dropout_add_fusion: false
+  bias_dropout_add_fusion: true
   masked_softmax_fusion: true
   seed: 1234
   resume_from_checkpoint: null
@@ -123,7 +123,7 @@ model:
   activations_checkpoint_num_layers: 0
   num_micro_batches_with_partial_activation_checkpoints: 0
   activations_checkpoint_layers_per_pipeline: 0
-  sequence_parallel: true
+  sequence_parallel: false
   transformer_engine: true
   fp8: false
   fp8_e4m3: false
