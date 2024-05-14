@@ -2458,7 +2458,7 @@ class PostTrainingQuantization(NeMoStage):
         # TODO: rename to megatron_quantization.py as this script works for other model families as well
         return (
             self._nemo_code_path
-            / "examples/nlp/language_modeling/megatron_llama_quantization.py"
+            / "examples/nlp/language_modeling/megatron_quantization.py"
         )
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
