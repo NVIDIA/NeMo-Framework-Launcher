@@ -1,6 +1,6 @@
 run:
   name: sft_bert_embedding
-  results_dir: ${base_results_dir}/${.name}
+  results_dir: ${base_results_dir}/${fine_tuning.run.name}
   time_limit: "00:30:00"
   dependency: "singleton"
 
@@ -40,7 +40,7 @@ exp_manager:
     mode: min
     always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
     filename: 'megatron_bert--{val_loss:.2f}-{step}-{consumed_samples}'
-    model_parallel_size: ${multiply:${model.tensor_model_parallel_size}, ${model.pipeline_model_parallel_size}}
+    model_parallel_size: ${multiply:${fine_tuning.model.tensor_model_parallel_size}, ${fine_tuning.model.pipeline_model_parallel_size}}
 
 restore_from_path: ???
 
@@ -136,7 +136,7 @@ model:
     index_mapping_dir: null # path to save index mapping .npy files, by default will save in the same location as data_prefix
     data_impl: mmap
     splits_string: 900,50,50
-    seq_length: ${model.encoder_seq_length}
+    seq_length: ${fine_tuning.model.encoder_seq_length}
     skip_warmup: True
     num_workers: 0
     dataloader_type: single  # cyclic, LDDL
