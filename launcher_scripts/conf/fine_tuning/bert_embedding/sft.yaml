@@ -16,7 +16,7 @@ trainer:
   max_epochs: -1 # PTL default. In practice we don't usually train for more than 1 epoch.
   max_steps: 1000 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
   log_every_n_steps: 10
-  val_check_interval: 100
+  val_check_interval: 2
   limit_val_batches: 50
   limit_test_batches: 500
   accumulate_grad_batches: 1
@@ -47,8 +47,8 @@ restore_from_path: ???
 model:
   # model parallelism 
   mcore_bert: True
-  micro_batch_size: 4
-  global_batch_size: 32
+  micro_batch_size: 2
+  global_batch_size: 16
   tensor_model_parallel_size: 1
   pipeline_model_parallel_size: 1
   virtual_pipeline_model_parallel_size: null
