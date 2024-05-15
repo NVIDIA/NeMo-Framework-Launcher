@@ -52,9 +52,9 @@ model:
   micro_batch_size: 1
   global_batch_size: 256
   rampup_batch_size: null
-  tensor_model_parallel_size: 2
-  pipeline_model_parallel_size: 1
-  expert_model_parallel_size: 8
+  tensor_model_parallel_size: 8
+  pipeline_model_parallel_size: 4
+  expert_model_parallel_size: 1
   virtual_pipeline_model_parallel_size: null
   encoder_seq_length: 4096
   max_position_embeddings: 32768
@@ -145,9 +145,7 @@ model:
     - 0
     gen_shape: false
   optim:
-    name: mcore_distributed_optim
-    overlap_grad_sync: true
-    overlap_param_sync: true
+    name: distributed_fused_adam
     lr: 0.0001
     weight_decay: 0.1
     betas:
