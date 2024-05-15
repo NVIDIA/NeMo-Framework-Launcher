@@ -145,9 +145,7 @@ model:
     - 0
     gen_shape: false
   optim:
-    name: mcore_distributed_optim
-    overlap_grad_sync: true
-    overlap_param_sync: true
+    name: distributed_fused_adam
     lr: 0.0001
     weight_decay: 0.1
     betas:
