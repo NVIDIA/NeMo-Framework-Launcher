@@ -24,7 +24,7 @@ trainer:
   benchmark: False
 
 exp_manager:
-  explicit_log_dir: null
+  explicit_log_dir: ${fine_tuning.run.results_dir}/results
   exp_dir: null
   name: megatron_bert
   create_wandb_logger: False
