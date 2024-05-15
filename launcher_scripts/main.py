@@ -45,7 +45,10 @@ from nemo_launcher.core.stages import (
     Training,
     SteerLMRegSFT,
     ConversionHF2NeMo,
+    PostTrainingQuantization,
 )
+from nemo_launcher.core.v2 import stages as stages_v2
+from nemo_launcher.core.v2.config_k8s import K8sClusterConfig
 
 omegaconf.OmegaConf.register_new_resolver("multiply", lambda x, y: x * y, replace=True)
 omegaconf.OmegaConf.register_new_resolver(
@@ -55,6 +58,15 @@ omegaconf.OmegaConf.register_new_resolver(
     "divide_floor", lambda x, y: int(math.floor(x / y)), replace=True
 )
 
+STR2STAGECLASSV2 = {
+    "peft": stages_v2.PEFT,
+    "data_preparation": {
+        stages_v2.PileDataPreparation: ["gpt3", "t5", "bert", "llama", "falcon"],
+    },
+    "training": stages_v2.Training,
+    "rlhf_ppo": stages_v2.RLHFPPO,
+    "rlhf_rm": stages_v2.RLHFRewardModel,
+}
 STR2STAGECLASS = {
     "training": Training,
     "fine_tuning": FineTuning,
@@ -78,6 +90,7 @@ STR2STAGECLASS = {
             "chatglm",
             "mistral",
             "mixtral",
+            "qwen2",
         ],
         NeMoEvaluation: [
             "t5",
@@ -99,6 +112,7 @@ STR2STAGECLASS = {
             "starcoder2",
             "peft_mistral",
             "peft_mixtral",
+            "peft_qwen2",
         ],
         DiffusionModelEvaluation: ["stable_diffusion", "imagen"],
     },
@@ -112,6 +126,9 @@ STR2STAGECLASS = {
             "falcon",
             "baichuan2",
             "chatglm",
+            "qwen2",
+            "mistral",
+            "mixtral",
         ],
         MC4DataPreparation: ["mt5"],
         SteerLMDataPreparation: ["steerlm"],
@@ -124,16 +141,28 @@ STR2STAGECLASS = {
     "rlhf_ppo": RLHFPPO,
     "data_curation": DataCurationStage,
     "steerlm_reg": SteerLMRegSFT,
+    "ptq": PostTrainingQuantization,
 }
 
 
 @hydra.main(config_path="conf", config_name="config", version_base="1.2")
-def main(cfg):
+def main(cfg: omegaconf.DictConfig):
     requested_stages = cfg.get("stages")
 
     dependency = None
+    is_k8s_v2 = "_target_" in cfg.cluster and hydra.utils.get_class(
+        cfg.cluster._target_
+    ) in (K8sClusterConfig,)
     for stage_name in requested_stages:
-        stage_class = STR2STAGECLASS[stage_name]
+        # TODO: User needs to specifically request cluster type k8s_v2 and the stage needs to be supported
+        if is_k8s_v2:
+            if stage_name not in STR2STAGECLASSV2:
+                raise ValueError(
+                    f"Using cluster=k8s_v2, but stage '{stage_name}' is not supported yet"
+                )
+            stage_class = STR2STAGECLASSV2[stage_name]
+        else:
+            stage_class = STR2STAGECLASS[stage_name]
 
         if isinstance(stage_class, dict):
             stage_config_choice = cfg.get(f"{stage_name}_config")
@@ -147,10 +176,19 @@ def main(cfg):
         if dependency is not None:
             cfg[stage_name]["run"]["dependency"] = dependency
 
-        stage = stage_class(cfg)
+        # TODO: User needs to specifically request cluster type k8s_v2 and the stage needs to be supported
+        if is_k8s_v2:
+            if stage_name not in STR2STAGECLASSV2:
+                raise ValueError(
+                    f"Using cluster=k8s_v2, but stage '{stage_name}' is not supported yet"
+                )
+            stage = stage_class._from_omegaconf(cfg)
+            job_path = stage.job_path
+        else:
+            stage = stage_class(cfg)
+            job_path = stage.get_job_path()
         job_id = stage.run()
 
-        job_path = stage.get_job_path()
         command = " \\\n  ".join(sys.argv)
 
         with open(job_path.folder / "launcher_cmd.log", "w") as f:

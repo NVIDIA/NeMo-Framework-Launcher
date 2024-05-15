@@ -45,6 +45,7 @@ __LANGUAGE_MODELS_LIST__ = [
     "starcoder2",
     "chatglm",
     "griffin",
+    "qwen2",
 ]
 __VISION_MODELS_LIST__ = ["vit"]
 __MULTIMODAL_MODELS_LIST__ = [
@@ -474,8 +475,7 @@ class NemoMegatronStage:
         For example, if `training=gpt3/5b`, then `choice_model_type=gpt3` and `choice_name=5b`
         """
         stage_config_choice = self.cfg.get(f"{self.stage_name}_config")
-        choice_model_type = stage_config_choice.rsplit("/", 1)[0]
-        choice_name = stage_config_choice.rsplit("/", 1)[1]
+        choice_model_type, choice_name = stage_config_choice.rsplit("/", 1)
         return choice_model_type, choice_name
 
     @property
@@ -547,7 +547,7 @@ class NemoMegatronStage:
         """Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel"""
         vpp = self.cfg.training.model.get("virtual_pipeline_model_parallel_size")
         if (
-            self.cfg.training.model.get("pipeline_model_parallel_size") > 1
+            self.cfg.training.model.get("pipeline_model_parallel_size", 1) > 1
             and vpp is not None
             and vpp > 1
         ):
@@ -883,6 +883,8 @@ class Training(NeMoStage):
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "mixtral": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "qwen2": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -939,21 +941,21 @@ class FineTuning(NeMoStage):
 
         model_type_to_code_path = {
             "gpt3": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "llama": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "code_llama": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "mt5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "falcon": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "chatglm": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "starcoder2": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "gemma": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "vit": self._nemo_code_path
@@ -963,11 +965,13 @@ class FineTuning(NeMoStage):
             "nsfw": self._nemo_code_path
             / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
             "baichuan2": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "mistral": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "mixtral": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            "qwen2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1116,6 +1120,8 @@ class PEFT(NeMoStage):
             "mistral": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            "qwen2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
         }
         return model_type_to_code_path[model_type]
@@ -1671,6 +1677,8 @@ class NeMoEvaluation(NeMoStage):
             "peft_mistral": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "peft_mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
+            "peft_qwen2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "vit": self._nemo_code_path
             / "examples/vision/vision_transformer/megatron_vit_classification_evaluate.py",
@@ -2429,3 +2437,29 @@ class ConversionHF2NeMo(NeMoStage):
         command_groups = clean_command_groups(command_groups)
 
         return command_groups
+
+
+class PostTrainingQuantization(NeMoStage):
+    """
+    Stage class of post-training quantization.
+    """
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "ptq"
+        self.stage_cfg = cfg.get("ptq")
+
+    def _get_nemo_code_path(self, model_type: str) -> Path:
+        """
+        Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
+        For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
+
+        :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
+        :return: path current stage's essential nemo scripts code
+        :rtype: Path
+        """
+        # TODO: rename to megatron_quantization.py as this script works for other model families as well
+        return (
+            self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_llama_quantization.py"
+        )
