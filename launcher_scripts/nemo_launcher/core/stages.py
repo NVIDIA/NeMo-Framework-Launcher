@@ -36,6 +36,7 @@ __LANGUAGE_MODELS_LIST__ = [
     "t5",
     "mt5",
     "bert",
+    "bert_embedding",
     "llama",
     "gemma",
     "falcon",
@@ -939,6 +940,8 @@ class FineTuning(NeMoStage):
         """
 
         model_type_to_code_path = {
+            "bert_embedding": self._nemo_code_path
+            / "examples/nlp/information_retrieval/megatron_bert_embedding_finetuning.py",
             "gpt3": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "llama": self._nemo_code_path
