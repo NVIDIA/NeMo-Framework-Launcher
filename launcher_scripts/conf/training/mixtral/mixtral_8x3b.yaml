@@ -81,6 +81,7 @@ model:
   openai_gelu: false
   normalize_attention_scores: true
   position_embedding_type: rope
+  apply_rope_fusion: true
   rotary_percentage: 1.0
   rotary_base: 1000000.0
   moe_router_topk: 2
