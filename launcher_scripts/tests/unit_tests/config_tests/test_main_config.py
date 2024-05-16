@@ -26,7 +26,7 @@ class TestConfig:
           - rlhf_rm: gpt3/2b_rm
           - rlhf_ppo: gpt3/2b_ppo
           - steerlm_reg : ac_sft/gpt_sft #rw_sft/training_rm
-          - ptq: llama2/quantization
+          - ptq: model/quantization
           - override hydra/job_logging: stdout
         
         hydra:

@@ -36,6 +36,7 @@ __LANGUAGE_MODELS_LIST__ = [
     "t5",
     "mt5",
     "bert",
+    "bert_embedding",
     "llama",
     "gemma",
     "falcon",
@@ -44,6 +45,7 @@ __LANGUAGE_MODELS_LIST__ = [
     "mixtral",
     "starcoder2",
     "chatglm",
+    "qwen2",
 ]
 __VISION_MODELS_LIST__ = ["vit"]
 __MULTIMODAL_MODELS_LIST__ = [
@@ -881,6 +883,8 @@ class Training(NeMoStage):
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "mixtral": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "qwen2": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -936,22 +940,24 @@ class FineTuning(NeMoStage):
         """
 
         model_type_to_code_path = {
+            "bert_embedding": self._nemo_code_path
+            / "examples/nlp/information_retrieval/megatron_bert_embedding_finetuning.py",
             "gpt3": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "llama": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "code_llama": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "mt5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "falcon": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "chatglm": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "starcoder2": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "gemma": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "vit": self._nemo_code_path
@@ -961,11 +967,13 @@ class FineTuning(NeMoStage):
             "nsfw": self._nemo_code_path
             / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
             "baichuan2": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "mistral": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "mixtral": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            "qwen2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1112,6 +1120,8 @@ class PEFT(NeMoStage):
             "mistral": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            "qwen2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
         }
         return model_type_to_code_path[model_type]
@@ -1667,6 +1677,8 @@ class NeMoEvaluation(NeMoStage):
             "peft_mistral": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "peft_mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
+            "peft_qwen2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "vit": self._nemo_code_path
             / "examples/vision/vision_transformer/megatron_vit_classification_evaluate.py",
@@ -2449,5 +2461,5 @@ class PostTrainingQuantization(NeMoStage):
         # TODO: rename to megatron_quantization.py as this script works for other model families as well
         return (
             self._nemo_code_path
-            / "examples/nlp/language_modeling/megatron_llama_quantization.py"
+            / "examples/nlp/language_modeling/megatron_quantization.py"
         )

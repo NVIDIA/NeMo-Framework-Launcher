@@ -10,7 +10,7 @@ from nemo_launcher.core.v2.config_k8s import (
     adapt_volume_to,
 )
 from omegaconf import DictConfig
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Optional
 from hera.workflows import (
     Container,
     Parameter,
@@ -34,7 +34,7 @@ from nemo_launcher.core.stages import create_args_list
 
 class Stage(BaseModel):
     # stage_cfg can be None for generic jobs that don't pass-thru configs to the called script
-    stage_cfg: DictConfig | None
+    stage_cfg: Optional[DictConfig]
     cluster_cfg: BaseModel
     stage_name: ClassVar[str]
 
@@ -93,7 +93,7 @@ class Training(Stage):
     n_workers: int
     gpus_per_worker: int
     nemo_train_script: str = "examples/nlp/language_modeling/megatron_gpt_pretraining.py"
-    wandb_api_key: str | None = None
+    wandb_api_key: Optional[str] = None
     stage_name: ClassVar[str] = "training"
 
     @classmethod
@@ -199,7 +199,7 @@ class PEFT(Stage):
     task_name: str = "squad"
     launcher_download_module: str = "nemo_launcher.utils.data_utils.prepare_squad"
     nemo_train_script: str = "examples/nlp/language_modeling/tuning/megatron_gpt_peft_tuning.py"
-    wandb_api_key: str | None = None
+    wandb_api_key: Optional[str] = None
     stage_name: ClassVar[str] = "peft"
 
     @classmethod
@@ -321,14 +321,20 @@ class PileDataPreparation(Stage):
     n_proc_per_worker: int
 
     # Set scripts to empty/None to skip the step
-    download_script: str | None = "/opt/NeMo-Megatron-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/pile_dataprep/download.py"
-    extract_script: str | None = "/opt/NeMo-Megatron-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/pile_dataprep/extract.py"
-    preprocess_script: str | None = "/opt/NeMo-Megatron-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/pile_dataprep/preprocess.py"
+    download_script: Optional[
+        str
+    ] = "/opt/NeMo-Megatron-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/pile_dataprep/download.py"
+    extract_script: Optional[
+        str
+    ] = "/opt/NeMo-Megatron-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/pile_dataprep/extract.py"
+    preprocess_script: Optional[
+        str
+    ] = "/opt/NeMo-Megatron-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/pile_dataprep/preprocess.py"
 
-    download_vocab_url: str | None = None
-    download_merges_url: str | None = None
-    vocab_save_dir: str | None = None
-    merges_save_dir: str | None = None
+    download_vocab_url: Optional[str] = None
+    download_merges_url: Optional[str] = None
+    vocab_save_dir: Optional[str] = None
+    merges_save_dir: Optional[str] = None
     tokenizer_type: str = "GPT2BPETokenizer"
     tokenizer_library: str = "megatron"
     the_pile_url: str = "https://huggingface.co/datasets/monology/pile-uncopyrighted/resolve/main/train/"  # Source URL to download The Pile dataset from.
@@ -399,7 +405,7 @@ class PileDataPreparation(Stage):
 
         # This is a thin wrapper to avoid the `return` in download_single_file and to be hermetic
         def _download_single_file(
-            url: str, save_dir: str, file_name: str | None = None
+            url: str, save_dir: str, file_name: Optional[str] = None
         ):
             from nemo_launcher.utils.file_utils import download_single_file
 
@@ -496,12 +502,12 @@ class RLHFPPO(Stage):
     image: str
     env: dict[str, Any]
     n_critic_workers: int
-    n_critic_gpus_per_worker: int | None = None
+    n_critic_gpus_per_worker: Optional[int] = None
     n_actor_workers: int
-    n_actor_gpus_per_worker: int | None = None
+    n_actor_gpus_per_worker: Optional[int] = None
     critic_port: int = 5567
 
-    wandb_api_key: str | None = None
+    wandb_api_key: Optional[str] = None
 
     critic_script: str = "/opt/NeMo-Aligner/examples/nlp/gpt/serve_ppo_critic.py"
     actor_script: str = "/opt/NeMo-Aligner/examples/nlp/gpt/train_gpt_ppo_actor.py"
@@ -646,7 +652,7 @@ class RLHFRewardModel(Stage):
     n_workers: int
     gpus_per_worker: int
     nemo_train_script: str = "/opt/NeMo-Aligner/examples/nlp/gpt/train_reward_model.py"
-    wandb_api_key: str | None = None
+    wandb_api_key: Optional[str] = None
     stage_name: ClassVar[str] = "rlhf_rm"
 
     @classmethod
