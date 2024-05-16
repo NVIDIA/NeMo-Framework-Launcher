@@ -37,7 +37,7 @@ def main(cfg):
     assert vocab_dir is not None, "vocab_save_dir must be a valid path."
     if "gpt" in tokenizer_type.lower():
         vocab_path = os.path.join(launcher_scripts_path, vocab_dir, "vocab.json")
-    elif tokenizer_library.lower() == 'huggingface':
+    elif tokenizer_library.lower() == "huggingface":
         vocab_path = None
     else:
         vocab_path = os.path.join(launcher_scripts_path, vocab_dir, "vocab.txt")
