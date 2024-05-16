@@ -98,7 +98,6 @@ def main(cfg):
             f"--output-prefix {output_prefix} "
             f"--vocab {vocab_path} "
             f"--dataset-impl mmap "
-            f"--tokenizer-library megatron "
             f"--tokenizer-type {tokenizer_type} "
             f"--tokenizer-library {tokenizer_library} "
             f"--tokenizer-model {tokenizer_model} "
