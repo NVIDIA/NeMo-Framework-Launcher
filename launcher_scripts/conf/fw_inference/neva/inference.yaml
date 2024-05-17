@@ -18,7 +18,8 @@ inference:
   min_tokens_to_generate: 0  # The minimum length of the sequence to be generated.
   compute_logprob: False  # a flag used to compute logprob of all the input text, a very special case of running inference, default False
   end_strings: ["<extra_id_1>","<extra_id_7>",]  # generation will stop when one of these tokens is generated
-  images_base_path: ${data_dir}/neva/datasets/llava-bench-in-the-wild/images
+  media_base_path: ${data_dir}/neva/datasets/llava-bench-in-the-wild/images # or /path/to/video if media_type is video
+  media_type: image # `image` or `video`
 
 trainer:
   devices: ${divide_ceil:${fw_inference.model_parallel_size}, ${.num_nodes}}
@@ -32,6 +33,7 @@ pipeline_model_parallel_size: 1
 model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
 pipeline_model_parallel_split_rank: 0 # used for encoder and decoder model (0 for others)
 neva_model_file: ${base_results_dir}/${.model_train_name}/results/nemo_neva.nemo
+base_model_file: ${data_dir}/path/to/base_model.nemo
 checkpoint_dir: null # checkpoint file dir. This is used to load the PTL checkpoint generated during the Kosmos training
 checkpoint_name: null # PTL checkpoint file name, only used for PTL checkpoint loading
 hparams_file: null # model configuration file, only used for PTL checkpoint loading
