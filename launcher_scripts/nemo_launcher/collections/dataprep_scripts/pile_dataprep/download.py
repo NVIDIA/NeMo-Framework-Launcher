@@ -42,13 +42,13 @@ def main(cfg):
 
         if cfg.get("cluster_type") == "bcp":
             wrank = int(os.environ.get("RANK", 0))
-            wsize = int(os.environ.get("WORLD_SIZE", 0))
+            wsize = int(os.environ.get("WORLD_SIZE", 1))
         else:
             # Assumes launched via mpirun:
             #   mpirun -N <nnodes> -npernode <preproc_npernode> ...
             # where preproc_npernode is set in dataprep config -> bcp config
             wrank = int(os.environ.get("OMPI_COMM_WORLD_RANK", 0))
-            wsize = int(os.environ.get("OMPI_COMM_WORLD_SIZE", 0))
+            wsize = int(os.environ.get("OMPI_COMM_WORLD_SIZE", 1))
         files_list_groups = utils.split_list(files_list, wsize)
         files_to_download = files_list_groups[wrank]
         proc_list = []

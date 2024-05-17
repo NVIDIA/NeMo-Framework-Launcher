@@ -116,13 +116,13 @@ def main(cfg):
         files_list = utils.convert_file_numbers(file_numbers)
         if cfg.get("cluster_type") == "bcp":
             wrank = int(os.environ.get("RANK", 0))
-            wsize = int(os.environ.get("WORLD_SIZE", 0))
+            wsize = int(os.environ.get("WORLD_SIZE", 1))
             lrank = int(os.environ.get("LOCAL_RANK", 0))
         else:
             # Assumes launched via mpirun:
             #   mpirun -N <nnodes> -npernode 1 ...
             wrank = int(os.environ.get("OMPI_COMM_WORLD_RANK", 0))
-            wsize = int(os.environ.get("OMPI_COMM_WORLD_SIZE", 0))
+            wsize = int(os.environ.get("OMPI_COMM_WORLD_SIZE", 1))
             lrank = int(os.environ.get("OMPI_COMM_WORLD_LOCAL_RANK", 0))
 
         if lrank == 0:
