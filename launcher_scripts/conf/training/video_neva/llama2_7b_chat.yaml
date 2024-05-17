@@ -193,6 +193,7 @@ model:
     conv_template: llama_2
     media_type: video # currently supported: image
     num_frames: 4
+    splice_single_frame: null
     sep_image_conv_front: False
     image_token_len: 576
     video_folder: ${data_dir}/video_neva/datasets/videos/

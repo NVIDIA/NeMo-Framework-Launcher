@@ -194,6 +194,7 @@ model:
     media_type: video # currently supported: image
     num_frames: 4
     sep_image_conv_front: False
+    splice_single_frame: null
     image_token_len: 576
     video_folder: ${data_dir}/video_neva/datasets/videos/
     image_aspect_ratio: 'square'
