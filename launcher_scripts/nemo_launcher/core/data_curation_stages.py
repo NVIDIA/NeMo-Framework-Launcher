@@ -295,7 +295,13 @@ class QualityFiltering(DataCurationSubStage):
 
         self.memory.data_dir = output_dir
 
-        core_command = ["filter_documents", *args]
+        runscript = " \\\n  ".join(["filter_documents", *args])
+        runscript_path = os.path.join(self.log_folder, f"{self.stage_name}.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
 
         core_command_string = " \\\n  ".join(core_command)
         command_groups[-1] += [core_command_string]
