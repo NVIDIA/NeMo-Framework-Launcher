@@ -45,6 +45,7 @@ from nemo_launcher.core.stages import (
     Training,
     SteerLMRegSFT,
     ConversionHF2NeMo,
+    PostTrainingQuantization,
 )
 from nemo_launcher.core.v2 import stages as stages_v2
 from nemo_launcher.core.v2.config_k8s import K8sClusterConfig
@@ -89,6 +90,7 @@ STR2STAGECLASS = {
             "chatglm",
             "mistral",
             "mixtral",
+            "qwen2",
         ],
         NeMoEvaluation: [
             "t5",
@@ -110,6 +112,7 @@ STR2STAGECLASS = {
             "starcoder2",
             "peft_mistral",
             "peft_mixtral",
+            "peft_qwen2",
         ],
         DiffusionModelEvaluation: ["stable_diffusion", "imagen"],
     },
@@ -123,6 +126,9 @@ STR2STAGECLASS = {
             "falcon",
             "baichuan2",
             "chatglm",
+            "qwen2",
+            "mistral",
+            "mixtral",
         ],
         MC4DataPreparation: ["mt5"],
         SteerLMDataPreparation: ["steerlm"],
@@ -135,6 +141,7 @@ STR2STAGECLASS = {
     "rlhf_ppo": RLHFPPO,
     "data_curation": DataCurationStage,
     "steerlm_reg": SteerLMRegSFT,
+    "ptq": PostTrainingQuantization,
 }
 
 

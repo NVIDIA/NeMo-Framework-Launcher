@@ -60,8 +60,8 @@ See the [Feature Matrix](https://docs.nvidia.com/nemo-framework/user-guide/lates
 The NeMo Framework Launcher should be installed on a head node or a local machine in a virtual python environment.
 
 ```bash
-git clone https://github.com/NVIDIA/NeMo-Megatron-Launcher.git
-cd NeMo-Megatron-Launcher
+git clone https://github.com/NVIDIA/NeMo-Framework-Launcher.git
+cd NeMo-Framework-Launcher
 pip install -r requirements.txt
 ```
 

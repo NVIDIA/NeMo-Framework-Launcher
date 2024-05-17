@@ -19,9 +19,6 @@ import tqdm
 from lm_eval import utils
 from lm_eval.base import LM
 from megatron.core import parallel_state
-from nemo.collections.common.tokenizers.sentencepiece_tokenizer import (
-    SentencePieceTokenizer,
-)
 from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import (
     MegatronGPTModel,
 )
@@ -46,203 +43,20 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
 
-
-class RequestDataset(Dataset):
-    def __init__(self, requests, tokenizer, max_length=2048) -> None:
-        super().__init__()
-        self.requests = requests
-        self.tokenizer = tokenizer
-        self.max_length = max_length
-
-    def __len__(self):
-        return len(self.requests)
-
-    def __getitem__(self, index):
-        context, continuation = self.requests[index]
-        context_enc = (
-            self.tokenizer.text_to_ids(context) if isinstance(context, str) else context
-        )
-        continuation_enc = (
-            self.tokenizer.text_to_ids(continuation)
-            if isinstance(continuation, str)
-            else continuation
-        )
-        if isinstance(self.tokenizer, SentencePieceTokenizer):
-            continuation_enc = continuation_enc[1:]
-
-        # sanity check
-        assert len(context_enc) > 0
-        assert len(continuation_enc) > 0
-        assert len(continuation_enc) <= self.max_length
-
-        conti_len = len(continuation_enc)
-        inp_enc = torch.tensor(
-            (context_enc + continuation_enc)[-(self.max_length + 1) :]
-        )
-        return inp_enc, conti_len
+from .nemo_gpt3 import DDP_initialize, RequestDataset, setup_trainer_and_model
 
 
-def setup_trainer_and_model(args):
-    """Setup model and optimizer."""
-    torch.set_grad_enabled(False)
-
-    assert args.nemo_model is not None or (
-        args.checkpoint_folder is not None and args.checkpoint_name is not None
-    ), "Path to checkpoints is required."
-
-    # cast precision to int if 32 or 16
-    if args.precision in ["32", "16"]:
-        args.precision = int(args.precision)
-
-    model_parallel_size = (
-        args.tensor_model_parallel_size * args.pipeline_model_parallel_size
-    )
-    num_nodes = max(model_parallel_size // 8, 1)
-    num_gpus = min(model_parallel_size, 8)
-    trainer = Trainer(
-        strategy=NLPDDPStrategy(),
-        devices=num_gpus,
-        num_nodes=num_nodes,
-        precision=args.precision,
-        accelerator="gpu",
-    )
-
-    app_state = AppState()
-    if args.tensor_model_parallel_size > 1 or args.pipeline_model_parallel_size > 1:
-        app_state.model_parallel_size = (
-            args.tensor_model_parallel_size * args.pipeline_model_parallel_size
-        )
-        (
-            app_state.tensor_model_parallel_rank,
-            app_state.pipeline_model_parallel_rank,
-            app_state.model_parallel_size,
-            *_,
-        ) = fake_initialize_model_parallel(
-            world_size=app_state.model_parallel_size,
-            rank=trainer.global_rank,
-            tensor_model_parallel_size_=args.tensor_model_parallel_size,
-            pipeline_model_parallel_size_=args.pipeline_model_parallel_size,
-        )
-
-    if args.nemo_model is not None and args.nemo_model != "None":
-        logging.info(f"**** Loading checkpoint from nemo model: {args.nemo_model}")
-        save_restore_connector = NLPSaveRestoreConnector()
-        if os.path.isdir(args.nemo_model):
-            save_restore_connector._model_extracted_dir = args.nemo_model
-        pretrained_cfg = MegatronGPTModel.restore_from(
-            restore_path=args.nemo_model,
-            trainer=trainer,
-            return_config=True,
-            save_restore_connector=save_restore_connector,
-        )
-        OmegaConf.set_struct(pretrained_cfg, True)
-        with open_dict(pretrained_cfg):
-            pretrained_cfg.sequence_parallel = False
-            pretrained_cfg.activations_checkpoint_granularity = None
-            pretrained_cfg.activations_checkpoint_method = None
-            pretrained_cfg.precision = trainer.precision
-            pretrained_cfg.dist_ckpt_load_on_device = False
-            pretrained_cfg.batch_size = args.batch_size
-            pretrained_cfg.tensor_model_parallel_size = args.tensor_model_parallel_size
-            pretrained_cfg.pipeline_model_parallel_size = (
-                args.pipeline_model_parallel_size
-            )
-            if trainer.precision == "16":
-                pretrained_cfg.megatron_amp_O2 = False
-        model = MegatronGPTModel.restore_from(
-            restore_path=args.nemo_model,
-            trainer=trainer,
-            override_config_path=pretrained_cfg,
-            save_restore_connector=save_restore_connector,
-            map_location=f"cuda:{trainer.local_rank}",
-        )
-
-    else:
-        if args.tensor_model_parallel_size > 1 or args.pipeline_model_parallel_size > 1:
-            app_state.pipeline_model_parallel_size = args.pipeline_model_parallel_size
-            app_state.tensor_model_parallel_size = args.tensor_model_parallel_size
-
-        logging.info(
-            f"**** Loading checkpoint from {args.checkpoint_folder} - {args.checkpoint_name}"
-        )
-        # inject model parallel rank
-        checkpoint_path = inject_model_parallel_rank(
-            os.path.join(args.checkpoint_folder, args.checkpoint_name)
-        )
-        model = MegatronGPTModel.load_from_checkpoint(
-            checkpoint_path, hparams_file=args.hparams_file, trainer=trainer
-        )
-
-    model.freeze()
-
-    return trainer, model
-
-
-def DDP_initialize(model):
-    if parallel_state.is_unitialized():
-
-        def dummy():
-            return
-
-        if model.trainer.strategy.launcher is not None:
-            model.trainer.strategy.launcher.launch(dummy, trainer=model.trainer)
-        model.trainer.strategy.setup_environment()
-
-        if (
-            model.cfg.get("transformer_engine", False)
-            and model.cfg.get("tensor_model_parallel_size", 1) > 1
-        ):
-            logging.info(
-                f"Setting up transformer engine modules for tensor parallelism."
-            )
-            if model.cfg.get("megatron_amp_O2", "False"):
-                # when using O2 additional module key is added that casts the weights
-                if model.cfg.get("mcore_gpt", False):
-                    for layer in model.model.module.decoder.layers:
-                        layer.set_tensor_parallel_group(
-                            parallel_state.get_tensor_model_parallel_group()
-                        )
-                else:
-                    for layer in model.model.module.language_model.encoder.layers:
-                        layer.set_tensor_parallel_group(
-                            parallel_state.get_tensor_model_parallel_group()
-                        )
-
-            else:
-                if model.cfg.get("mcore_gpt", False):
-                    for module in model.get_gpt_module_list():
-                        """Set TP group
-                        Copied from: https://github.com/NVIDIA/TransformerEngine/blob/main/transformer_engine/pytorch/transformer.py#L398
-                        """
-                        # Deep iterate but skip self to avoid infinite recursion.
-                        for index, child in enumerate(module.modules()):
-                            if index == 0:
-                                continue
-                            if hasattr(child, "set_tensor_parallel_group"):
-                                tp_group = (
-                                    parallel_state.get_tensor_model_parallel_group()
-                                )
-                                child.set_tensor_parallel_group(tp_group)
-                else:
-                    for layer in model.model.language_model.encoder.layers:
-                        layer.set_tensor_parallel_group(
-                            parallel_state.get_tensor_model_parallel_group()
-                        )
-
-
-class NeMo_GPT3LM_TP_PP(LM):
+class NeMo_QWEN2_TP_PP(LM):
     def __init__(self, args, truncate=False, batch_size=1):
         super().__init__()
 
         # get nemo megatron
-        logging.info(f"**** Building GPT model ...")
+        logging.info(f"**** Building Qwen2 model ...")
         self.trainer, self.model = setup_trainer_and_model(args)
         self.tokenizer = self.model.tokenizer
         self.model.eval()
 
         self.max_length = self.model.cfg.get("max_position_embeddings")
-        self.pad_id = self.tokenizer.pad_id
-        self.eos_id = self.tokenizer.eos_id
 
         self.truncate = truncate
         self.batch_size = batch_size
@@ -272,8 +86,7 @@ class NeMo_GPT3LM_TP_PP(LM):
     """
 
     def _loglikelihood(self, requests):
-        def pad_collate(batch):
-            eos_id = self.eos_id
+        def pad_collate(batch, eos_id=2):
             tokens = [item[0] for item in batch]
             conti_lens = [item[1] for item in batch]
             lens = [
@@ -387,9 +200,10 @@ class NeMo_GPT3LM_TP_PP(LM):
                 top_k=0,
                 top_p=0.9,
                 greedy=True,
-                compute_logprob=True,
                 repetition_penalty=1.0,
                 min_tokens_to_generate=0,
+                compute_logprob=True,
+                end_strings=["</s>"],
             )
             response = get_computeprob_response(self.tokenizer, response, inputs)
 
@@ -411,7 +225,7 @@ class NeMo_GPT3LM_TP_PP(LM):
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
                         token_list=self.tokenizer.text_to_ids(string),
-                        prefix_token=self.eos_id,
+                        prefix_token=2,
                         max_seq_len=self.max_length,
                         context_len=1,
                     ),
