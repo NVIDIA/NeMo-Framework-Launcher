@@ -37,6 +37,8 @@ def main(cfg):
     assert vocab_dir is not None, "vocab_save_dir must be a valid path."
     if "gpt" in tokenizer_type.lower():
         vocab_path = os.path.join(launcher_scripts_path, vocab_dir, "vocab.json")
+    elif tokenizer_library.lower() == "huggingface":
+        vocab_path = None
     else:
         vocab_path = os.path.join(launcher_scripts_path, vocab_dir, "vocab.txt")
 
@@ -59,10 +61,11 @@ def main(cfg):
     code_path = (
         "/opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py"
     )
+    hf_cache = os.environ.get("TRANSFORMERS_CACHE", "/temp_root/.cache/")
     runcmd = (
         f"cd {megatron_dir}; "
         f'export PYTHONPATH="/opt/NeMo/.:$PYTHONPATH"; '
-        f'export TRANSFORMERS_CACHE="/temp_root/.cache/"; '
+        f'export TRANSFORMERS_CACHE="{hf_cache}"; '
         f"python3 {code_path} "
     )
 
@@ -89,15 +92,14 @@ def main(cfg):
         flags = (
             f"--input {extracted_path} "
             f"--output-prefix {output_prefix} "
-            f"--vocab {vocab_path} "
             f"--dataset-impl mmap "
-            f"--tokenizer-library megatron "
             f"--tokenizer-type {tokenizer_type} "
             f"--tokenizer-library {tokenizer_library} "
             f"--tokenizer-model {tokenizer_model} "
             f"--workers $SLURM_CPUS_ON_NODE "
         )
-
+        if vocab_path is not None:
+            flags += f"--vocab {vocab_path} "
         if model_type == "bert":
             # Used for bert binary head (Next sentence predition)
             flags += "--split-sentences "
@@ -150,15 +152,14 @@ def main(cfg):
             flags = (
                 f"--input {extracted_path} "
                 f"--output-prefix {output_prefix} "
-                f"--vocab {vocab_path} "
                 f"--dataset-impl mmap "
-                f"--tokenizer-library megatron "
                 f"--tokenizer-type {tokenizer_type} "
                 f"--tokenizer-library {tokenizer_library} "
                 f"--tokenizer-model {tokenizer_model} "
                 f"--workers {ncpus} "
             )
-
+            if vocab_path is not None:
+                flags += f"--vocab {vocab_path} "
             if model_type == "bert":
                 # Used for bert binary head (Next sentence predition)
                 flags += "--split-sentences "
