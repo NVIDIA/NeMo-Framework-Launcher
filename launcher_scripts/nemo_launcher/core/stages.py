@@ -55,6 +55,7 @@ __MULTIMODAL_MODELS_LIST__ = [
     "controlnet",
     "nsfw",
     "neva",
+    "video_neva",
 ]
 
 
@@ -877,6 +878,8 @@ class Training(NeMoStage):
             / "examples/multimodal/text_to_image/controlnet/controlnet_train.py",
             "nerf": self._nemo_code_path / "examples/multimodal/x_to_nerf/nerf/main.py",
             "neva": self._nemo_code_path
+            / "examples/multimodal/multimodal_llm/neva/neva_pretrain.py",
+            "video_neva": self._nemo_code_path
             / "examples/multimodal/multimodal_llm/neva/neva_pretrain.py",
             "mistral": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
