@@ -1,5 +1,5 @@
 run:
-  name: mixtral_8x7b
+  name: grok-1-proxy
   results_dir: ${base_results_dir}/${.name}
   time_limit: "0-04:00:00"
   dependency: "singleton"
@@ -23,10 +23,10 @@ trainer:
 exp_manager:
   explicit_log_dir: ${training.run.results_dir}/results
   exp_dir: null
-  name: megatron_mixtral
+  name: megatron_grok1
   create_wandb_logger: False
   wandb_logger_kwargs:
-    project: nemo_mixtral_pretrain
+    project: nemo_grok1_pretrain
     name: ${training.run.name}
   resume_if_exists: false
   resume_ignore_no_checkpoint: true
@@ -48,21 +48,23 @@ model:
   mcore_gpt: true
   moe_grouped_gemm: true
   moe_token_dispatcher_type: alltoall
+  moe_pad_expert_input_to_capacity: true
+  moe_expert_capacity_factor: 1.0
   moe_aux_loss_coeff: 0.01
   micro_batch_size: 1
-  global_batch_size: 256
+  global_batch_size: 1024
   rampup_batch_size: null
-  tensor_model_parallel_size: 8
-  pipeline_model_parallel_size: 4
-  expert_model_parallel_size: 1
+  tensor_model_parallel_size: 2
+  pipeline_model_parallel_size: 1
+  expert_model_parallel_size: 8
   virtual_pipeline_model_parallel_size: null
-  encoder_seq_length: 4096
+  encoder_seq_length: 8192
   max_position_embeddings: 32768
-  num_layers: 32
-  hidden_size: 4096
-  ffn_hidden_size: 14336
-  num_attention_heads: 32
-  init_method_std: 0.02
+  num_layers: 64
+  hidden_size: 6144
+  ffn_hidden_size: 32768
+  num_attention_heads: 48
+  init_method_std: 0.008
   use_scaled_init_method: true
   hidden_dropout: 0.0
   attention_dropout: 0.0
@@ -77,13 +79,12 @@ model:
   post_process: true
   persist_layer_norm: true
   bias: false
-  activation: fast-swiglu
+  activation: fast-geglu
   headscale: false
   transformer_block_type: pre_ln
   openai_gelu: false
   normalize_attention_scores: true
   position_embedding_type: rope
-  apply_rope_fusion: true
   rotary_percentage: 1.0
   rotary_base: 1000000.0
   moe_router_topk: 2
@@ -96,14 +97,14 @@ model:
   num_query_groups: 8
   tokenizer:
     library: huggingface
-    type: mistralai/Mixtral-8x7B-v0.1
+    type: meta-llama/Meta-Llama-3-70B
     use_fast: true
   native_amp_init_scale: 4294967296
   native_amp_growth_interval: 1000
   hysteresis: 2
   fp32_residual_connection: false
   fp16_lm_cross_entropy: false
-  megatron_amp_O2: True
+  megatron_amp_O2: true
   grad_allreduce_chunk_size_mb: 125
   grad_div_ar_fusion: true
   gradient_accumulation_fusion: false
@@ -111,6 +112,7 @@ model:
   bias_dropout_add_fusion: true
   masked_softmax_fusion: false
   get_attention_mask_from_fusion: true
+  apply_rope_fusion: true
   seed: 1234
   resume_from_checkpoint: null
   use_cpu_initialization: false
@@ -145,8 +147,10 @@ model:
     - 0
     gen_shape: false
   optim:
-    name: distributed_fused_adam
-    lr: 0.0001
+    name: mcore_distributed_optim
+    overlap_grad_sync: true 
+    overlap_param_sync: false
+    lr: 0.00012
     weight_decay: 0.1
     betas:
     - 0.9
@@ -155,7 +159,7 @@ model:
       name: CosineAnnealing
       warmup_steps: 636
       constant_steps: 11873
-      min_lr: 1.0e-05
+      min_lr: 1.2e-05
   gc_interval: 0
   precision: bf16
   mcore_customization_config:
@@ -164,7 +168,7 @@ model:
   data:
     data_impl: mmap
     splits_string: "99990,8,2"
-    seq_length: 4096
+    seq_length: 8192
     skip_warmup: true
     num_workers: 2
     dataloader_type: single
@@ -174,63 +178,63 @@ model:
     index_mapping_dir: null
     data_prefix:
     - .0333
-    - ${data_dir}/my-mixtral_00_text_document
+    - ${data_dir}/my-grok_00_text_document
     - .0333
-    - ${data_dir}/my-mixtral_01_text_document
+    - ${data_dir}/my-grok_01_text_document
     - .0333
-    - ${data_dir}/my-mixtral_02_text_document
+    - ${data_dir}/my-grok_02_text_document
     - .0333
-    - ${data_dir}/my-mixtral_03_text_document
+    - ${data_dir}/my-grok_03_text_document
     - .0333
-    - ${data_dir}/my-mixtral_04_text_document
+    - ${data_dir}/my-grok_04_text_document
     - .0333
-    - ${data_dir}/my-mixtral_05_text_document
+    - ${data_dir}/my-grok_05_text_document
     - .0333
-    - ${data_dir}/my-mixtral_06_text_document
+    - ${data_dir}/my-grok_06_text_document
     - .0333
-    - ${data_dir}/my-mixtral_07_text_document
+    - ${data_dir}/my-grok_07_text_document
     - .0333
-    - ${data_dir}/my-mixtral_08_text_document
+    - ${data_dir}/my-grok_08_text_document
     - .0333
-    - ${data_dir}/my-mixtral_09_text_document
+    - ${data_dir}/my-grok_09_text_document
     - .0333
-    - ${data_dir}/my-mixtral_10_text_document
+    - ${data_dir}/my-grok_10_text_document
     - .0333
-    - ${data_dir}/my-mixtral_11_text_document
+    - ${data_dir}/my-grok_11_text_document
     - .0333
-    - ${data_dir}/my-mixtral_12_text_document
+    - ${data_dir}/my-grok_12_text_document
     - .0333
-    - ${data_dir}/my-mixtral_13_text_document
+    - ${data_dir}/my-grok_13_text_document
     - .0333
-    - ${data_dir}/my-mixtral_14_text_document
+    - ${data_dir}/my-grok_14_text_document
     - .0333
-    - ${data_dir}/my-mixtral_15_text_document
+    - ${data_dir}/my-grok_15_text_document
     - .0333
-    - ${data_dir}/my-mixtral_16_text_document
+    - ${data_dir}/my-grok_16_text_document
     - .0333
-    - ${data_dir}/my-mixtral_17_text_document
+    - ${data_dir}/my-grok_17_text_document
     - .0333
-    - ${data_dir}/my-mixtral_18_text_document
+    - ${data_dir}/my-grok_18_text_document
     - .0333
-    - ${data_dir}/my-mixtral_19_text_document
+    - ${data_dir}/my-grok_19_text_document
     - .0333
-    - ${data_dir}/my-mixtral_20_text_document
+    - ${data_dir}/my-grok_20_text_document
     - .0333
-    - ${data_dir}/my-mixtral_21_text_document
+    - ${data_dir}/my-grok_21_text_document
     - .0333
-    - ${data_dir}/my-mixtral_22_text_document
+    - ${data_dir}/my-grok_22_text_document
     - .0333
-    - ${data_dir}/my-mixtral_23_text_document
+    - ${data_dir}/my-grok_23_text_document
     - .0333
-    - ${data_dir}/my-mixtral_24_text_document
+    - ${data_dir}/my-grok_24_text_document
     - .0333
-    - ${data_dir}/my-mixtral_25_text_document
+    - ${data_dir}/my-grok_25_text_document
     - .0333
-    - ${data_dir}/my-mixtral_26_text_document
+    - ${data_dir}/my-grok_26_text_document
     - .0333
-    - ${data_dir}/my-mixtral_27_text_document
+    - ${data_dir}/my-grok_27_text_document
     - .0333
-    - ${data_dir}/my-mixtral_28_text_document
+    - ${data_dir}/my-grok_28_text_document
     - .0334
-    - ${data_dir}/my-mixtral_29_text_document
+    - ${data_dir}/my-grok_29_text_document
 
