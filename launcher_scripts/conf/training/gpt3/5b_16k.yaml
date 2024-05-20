@@ -1,19 +1,19 @@
 defaults:
   - _self_
-  - optional tp_overlap@model.ub_tp_comm_overlap_cfg: ub_cfg_h100_h6144_tp2_mbs2_seqlen2048
+  - optional tp_overlap@model.ub_tp_comm_overlap_cfg:
 
 hydra:
   searchpath:
     - file:///opt/NeMo/examples/nlp/language_modeling/conf
 
 run:
-  name: gpt3_20b
+  name: 5b_h100_prec${training.trainer.precision}_nodes${training.trainer.num_nodes}_cp${training.model.context_parallel_size}_tp${training.model.tensor_model_parallel_size}_pp${training.model.pipeline_model_parallel_size}_vp${training.model.virtual_pipeline_model_parallel_size}_gbs${training.model.global_batch_size}_mbs${training.model.micro_batch_size}_ckpt${training.model.activations_checkpoint_num_layers}_seq${training.model.encoder_seq_length}_${training.model.data.data_impl}
   results_dir: ${base_results_dir}/${.name}
-  time_limit: "7-00:00:00"
+  time_limit: "04:00:00"
   dependency: "singleton"
 
 trainer:
-  num_nodes: 64
+  num_nodes: 2
   devices: 8
   accelerator: gpu
   precision: bf16
@@ -21,10 +21,10 @@ trainer:
   enable_checkpointing: False
   use_distributed_sampler: False
   max_epochs: null
-  max_steps: 75000 # consumed_samples = global_step * global_batch_size
-  max_time: "06:23:30:00"
+  max_steps: 100 # consumed_samples = global_step * global_batch_size
+  max_time: "05:23:30:00"
   log_every_n_steps: 10
-  val_check_interval: 2000
+  val_check_interval: 100
   limit_val_batches: 50
   limit_test_batches: 50
   accumulate_grad_batches: 1
@@ -36,11 +36,11 @@ exp_manager:
   name: megatron_gpt
   create_wandb_logger: False
   wandb_logger_kwargs:
-    project: nemo_gpt3
+    project: nemo_gpt3_5b_seq${training.model.encoder_seq_length}
     name: ${training.run.name}
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
-  create_checkpoint_callback: True
+  create_checkpoint_callback: False
   checkpoint_callback_params:
     monitor: val_loss
     save_top_k: 10
@@ -53,24 +53,26 @@ exp_manager:
   step_timing_kwargs:
     sync_cuda: True
     buffer_size: 5
+  seconds_to_sleep: 30
 
 model:
-  micro_batch_size: 2
-  global_batch_size: 2048
+  micro_batch_size: 1
+  global_batch_size: 32
   rampup_batch_size: null
   context_parallel_size: 1
-  tensor_model_parallel_size: 2
+  tensor_model_parallel_size: 4
   pipeline_model_parallel_size: 1
   virtual_pipeline_model_parallel_size: null # interleaved pipeline
   resume_from_checkpoint: null # manually set the checkpoint file to load from
+
   # model architecture
-  encoder_seq_length: 2048
-  max_position_embeddings: 2048
-  num_layers: 44
-  hidden_size: 6144
+  encoder_seq_length: 16384
+  max_position_embeddings: ${.encoder_seq_length}
+  num_layers: 24
+  hidden_size: 4096
   ffn_hidden_size: ${multiply:4, ${.hidden_size}}  # Transformer FFN hidden size. 4 * hidden_size.
-  num_attention_heads: 48
-  init_method_std: 0.008165  # Standard deviation of the zero mean normal distribution used for weight initialization.')
+  num_attention_heads: 32
+  init_method_std: 0.01  # Standard deviation of the zero mean normal distribution used for weight initialization.')
   hidden_dropout: 0.1  # Dropout probability for hidden state transformer.
   attention_dropout: 0.1 # Dropout probability for attention
   kv_channels: null  # Projection weights dimension in multi-head attention. Set to hidden_size // num_attention_heads if null
@@ -92,7 +94,7 @@ model:
   ## Activation Checkpointing
   activations_checkpoint_granularity: null # 'selective' or 'full'
   activations_checkpoint_method: null # 'uniform', 'block'
-  activations_checkpoint_num_layers: null
+  activations_checkpoint_num_layers: null 
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
 
@@ -101,9 +103,9 @@ model:
   fsdp_sharding_strategy: 'full' # Method to shard model states. Available options are 'full', 'hybrid', and 'grad'.
   fsdp_grad_reduce_dtype: 32 # Gradient reduction data type.
   fsdp_sharded_checkpoint: False # Store and load FSDP shared checkpoint.
-  
+
   ## Sequence Parallelism
-  sequence_parallel: True
+  sequence_parallel: False
 
   overlap_p2p_comm: False # Overlap p2p communication with computes. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
   batch_p2p_comm: True # Batch consecutive inter-peer send/recv operations. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
@@ -123,14 +125,14 @@ model:
   hysteresis: 2 # Gradient scale hysteresis
   fp32_residual_connection: False # Move residual connections to fp32
   fp16_lm_cross_entropy: False # Move the cross entropy unreduced loss calculation for lm head to fp16
-  
+
   # Megatron O2-style half-precision
   megatron_amp_O2: True # Enable O2-level automatic mixed precision using master parameters
   grad_allreduce_chunk_size_mb: 125
 
   ## Network
   sharp: False # Enable the use of SHARP for NCCL data-parallel communications. This is going to be ignored if the network doesn't support SHARP.
-
+  
   ## Using Megatron Core
   mcore_gpt: True
 
@@ -146,7 +148,7 @@ model:
   fp8_amax_history_len: 1024 # Number of steps for which amax history is recorded per tensor
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   fp8_wgrad: True
-  ub_tp_comm_overlap: True
+  ub_tp_comm_overlap: False
   tp_comm_atomic_ag: False
   tp_comm_atomic_rs: False
 
@@ -156,25 +158,24 @@ model:
   use_cpu_initialization: False # Init weights on the CPU (slow for large models)
   onnx_safe: False # Use work-arounds for known problems with Torch ONNX exporter.
   apex_transformer_log_level: 30 # Python logging level displays logs with severity greater than or equal to this
-  gc_interval: 100
 
   # Nsys profiling options
   nsys_profile:
-    enabled: False
+    enabled: True
     trace: [nvtx,cuda]
-    start_step: 10  # Global batch to start profiling
-    end_step: 10 # Global batch to end profiling
+    start_step: 21  # Global batch to start profiling
+    end_step: 22 # Global batch to end profiling
     ranks: [0] # Global rank IDs to profile
     gen_shape: False # Generate model and kernel details including input shapes
 
   optim:
     name: distributed_fused_adam
-    bucket_cap_mb: 220
+    bucket_cap_mb: 400
     overlap_grad_sync: True
-    overlap_param_sync: true
+    overlap_param_sync: True
     contiguous_grad_buffer: True
     contiguous_param_buffer: True
-    lr: 1.4e-4
+    lr: 1.6e-4
     weight_decay: 0.1 
     betas: 
     - 0.9
@@ -183,12 +184,12 @@ model:
       name: CosineAnnealing
       warmup_steps: 115
       constant_steps: 12500
-      min_lr: 1.4e-5
+      min_lr: 1.6e-5
 
   data:
     data_impl: mmap
     splits_string: "99990,8,2"
-    seq_length: 2048
+    seq_length: ${training.model.encoder_seq_length}
     skip_warmup: True
     num_workers: 2
     dataloader_type: single # cyclic
