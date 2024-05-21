@@ -45,6 +45,7 @@ __LANGUAGE_MODELS_LIST__ = [
     "mixtral",
     "starcoder2",
     "chatglm",
+    "griffin",
     "qwen2",
 ]
 __VISION_MODELS_LIST__ = ["vit"]
@@ -1116,6 +1117,8 @@ class PEFT(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "gemma": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            "griffin": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_griffin_finetuning.py",
             "nemotron": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "neva": self._nemo_code_path
