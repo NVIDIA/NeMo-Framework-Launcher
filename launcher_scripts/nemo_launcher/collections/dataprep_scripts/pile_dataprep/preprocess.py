@@ -59,11 +59,11 @@ def main(cfg):
     code_path = (
         "/opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py"
     )
-    hf_cache = os.environ.get("TRANSFORMERS_CACHE", "/temp_root/.cache/")
+    hf_cache = os.environ.get("TRANSFORMERS_CACHE", os.environ.get("HF_HOME", "/temp_root/.cache/"))
     runcmd = (
         f"cd {megatron_dir}; "
         f'export PYTHONPATH="/opt/NeMo/.:$PYTHONPATH"; '
-        f'export TRANSFORMERS_CACHE="{hf_cache}"; '
+        f'export HF_HOME="{hf_cache}"; '
         f"python3 {code_path} "
     )
 
