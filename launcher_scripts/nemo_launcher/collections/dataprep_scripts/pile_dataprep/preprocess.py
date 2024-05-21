@@ -21,6 +21,23 @@ import nemo_launcher.utils.file_utils as utils  # TODO: check if this in python 
 import psutil
 
 
+def get_model_type(data_config):
+    known_types = [
+        "t5",
+        "bert",
+        "gpt3",
+        "llama",
+        "falcon",
+        "baichuan2",
+        "chatglm",
+        "mistral",
+        "mixtral",
+    ]
+    for m_type in known_types:
+        if m_type in data_config:
+            return m_type
+
+
 @hydra.main(config_path="conf", config_name="config", version_base="1.2")
 def main(cfg):
     launcher_scripts_path = cfg.get("launcher_scripts_path")
@@ -61,7 +78,9 @@ def main(cfg):
     code_path = (
         "/opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py"
     )
-    hf_cache = os.environ.get("TRANSFORMERS_CACHE", "/temp_root/.cache/")
+    hf_cache = os.environ.get(
+        "TRANSFORMERS_CACHE", os.environ.get("HF_HOME", "/temp_root/.cache/")
+    )
     runcmd = (
         f"cd {megatron_dir}; "
         f'export PYTHONPATH="/opt/NeMo/.:$PYTHONPATH"; '
@@ -73,20 +92,7 @@ def main(cfg):
         file_number = int(os.environ.get("SLURM_ARRAY_TASK_ID"))
         extracted_path = os.path.join(data_dir, f"{file_number:02d}.jsonl")
 
-        model_type = "t5"
-        if "bert" in data_config:
-            model_type = "bert"
-        elif "gpt3" in data_config:
-            model_type = "gpt3"
-        elif "llama" in data_config:
-            model_type = "llama"
-        elif "falcon" in data_config:
-            model_type = "falcon"
-        elif "baichuan2" in data_config:
-            model_type = "baichuan2"
-        elif "chatglm" in data_config:
-            model_type = "chatglm"
-
+        model_type = get_model_type(data_config)
         output_prefix = os.path.join(data_dir, f"my-{model_type}_{file_number:02d}")
 
         flags = (
@@ -139,14 +145,7 @@ def main(cfg):
         for file_number in files_to_preproc:
             extracted_path = os.path.join(data_dir, f"{file_number:02d}.jsonl")
 
-            model_type = "t5"
-            if "bert" in data_config:
-                model_type = "bert"
-            elif "gpt3" in data_config:
-                model_type = "gpt3"
-            elif "llama" in data_config:
-                model_type = "llama"
-
+            model_type = get_model_type(data_config)
             output_prefix = os.path.join(data_dir, f"my-{model_type}_{file_number:02d}")
 
             flags = (
