@@ -43,7 +43,7 @@ exp_manager:
     mode: min
     always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
     save_nemo_on_train_end: True # not recommended when training large models on clusters with short time limits
-    filename: 'megatron_clip--{val_loss:.2f}-{step}-{consumed_samples}'
+    filename: 'neva--{val_loss:.2f}-{step}-{consumed_samples}'
     model_parallel_size: ${multiply:${peft.model.tensor_model_parallel_size}, ${peft.model.pipeline_model_parallel_size}}
   ema:
     enable: False
@@ -73,7 +73,7 @@ model:
     llm:
       from_pretrained: ${data_dir}/neva/checkpoints/llama-2-13b-chat-tp8.nemo # path to nemo checkpoint
       freeze: True
-      model_type: llama_2 # `nvgpt` or `llama_2` supported
+      model_type: llama_2 
     vision_encoder:
       from_pretrained: "openai/clip-vit-large-patch14-336" # path or name
       from_hf: True
@@ -100,7 +100,7 @@ model:
 
   # LLM configs
   # use GPTModel from megatron.core
-  mcore_gpt: False
+  mcore_gpt: True
 
   # model architecture
   encoder_seq_length: 4096
@@ -164,7 +164,7 @@ model:
   bias_activation_fusion: False
   megatron_legacy: False
 
-  transformer_engine: False
+  transformer_engine: True
   fp8: False # enables fp8 in TransformerLayer forward
   fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
   fp8_hybrid: False # sets fp8_format = recipe.Format.HYBRID
@@ -201,6 +201,7 @@ model:
     data_path: ${data_dir}/neva/datasets/LLaVA-Instruct-mixture/llava_v1_5_mix665k.json
     lazy_preprocess: True
     is_multimodal: True
+    media_type: image
     sep_image_conv_front: False
     conv_template: ${peft.model.mm_cfg.llm.model_type}
     image_token_len: 576
