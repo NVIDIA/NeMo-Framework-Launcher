@@ -137,8 +137,6 @@ model:
   fp8_amax_compute_algo: most_recent
   use_emha: false
   ub_tp_comm_overlap: true
-  tp_comm_atomic_ag: False
-  tp_comm_atomic_rs: False
   use_flash_attention: true
   overlap_p2p_comm: true
   batch_p2p_comm: false

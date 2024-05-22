@@ -189,18 +189,18 @@ model:
       aggregate: 0
     fc2_dgrad:
       method: ring_exchange
-      aggregate: 1
+      aggregate: 0
     proj_fprop:
       method: pipeline
       num_sm: 24
       cga_size: 2
       num_splits: 4
       set_sm_margin: 1
+      atomic_gemm: 1
+      fp8_buf: 1
     fc2_fprop:
-      method: pipeline
-      num_sm: 4
-      cga_size: 2
-      num_splits: 4
+      method: ring_exchange
+      num_sm: 1
       set_sm_margin: 1
   use_flash_attention: false
   cpu_offloading: false
@@ -268,7 +268,3 @@ model:
   gc_interval: 100
   name: megatron_gpt_full_te_layer_autocast
   fp8_params: true
-  tp_comm_split_ag: true
-  tp_comm_split_rs: false
-  tp_comm_atomic_ag: false
-  tp_comm_atomic_rs: true
