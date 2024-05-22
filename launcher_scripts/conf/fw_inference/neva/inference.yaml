@@ -34,7 +34,7 @@ pipeline_model_parallel_size: 1
 model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
 pipeline_model_parallel_split_rank: 0 # used for encoder and decoder model (0 for others)
 neva_model_file: ${base_results_dir}/${.model_train_name}/results/nemo_neva.nemo
-base_model_file: ${data_dir}/path/to/base_model.nemo
+base_model_file: null
 checkpoint_dir: null # checkpoint file dir. This is used to load the PTL checkpoint generated during the Kosmos training
 checkpoint_name: null # PTL checkpoint file name, only used for PTL checkpoint loading
 hparams_file: null # model configuration file, only used for PTL checkpoint loading
