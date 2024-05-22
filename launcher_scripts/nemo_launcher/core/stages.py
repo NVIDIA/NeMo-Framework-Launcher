@@ -208,15 +208,17 @@ class NemoMegatronStage:
     
     def _make_git_log_command(self, stage_cfg_path: Path):
         """log last 5 commits for repos- NeMo, megatron-lm, NeMo-Framework-Launcher or NeMo-Megatron-Launcher
-            'NeMo-Megatron-Launcher' was renamed to 'NeMo-Framework-Launcher'. We run git log for both for
-            backwards compatibility.
+        'NeMo-Megatron-Launcher' was renamed to 'NeMo-Framework-Launcher'. We run git log for both for
+        backwards compatibility.
         """
         append_to_file = f"{stage_cfg_path.parent}/git_log.txt"
-        return [f"(echo PYT$\"NVIDIA_PYTORCH_VERSION\" && \
+        return [
+            f"(echo PYT$\"NVIDIA_PYTORCH_VERSION\" && \
                 git --git-dir=/opt/NeMo/.git log -n 5 --format='NeMo;%h;%aD;%s' && \
                 git --git-dir=/opt/megatron-lm/.git log -n 5 --format='megatron-lm;%h;%aD;%s' && \
                 git --git-dir=/opt/NeMo-Framework-Launcher/.git log -n 5 --format='NeMo-Framework-Launcher;%h;%aD;%s' && \
-                git --git-dir=/opt/NeMo-Megatron-Launcher/.git log -n 5 --format='NeMo-Megatron-Launcher;%h;%aD;%s') > {append_to_file}"]
+                git --git-dir=/opt/NeMo-Megatron-Launcher/.git log -n 5 --format='NeMo-Megatron-Launcher;%h;%aD;%s') > {append_to_file}"
+        ]
 
     def _make_k8s_spec_file(
         self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
