@@ -81,6 +81,7 @@ model:
 
   megatron_amp_O2: True
   mcore_gpt: True
+  transformer_engine: True
 
   get_attention_mask_from_fusion: True
   apply_rope_fusion: True
@@ -112,7 +113,7 @@ model:
   # 'block' checkpoints the specified number of layers per pipeline stage at the specified granularity
   activations_checkpoint_num_layers: null # not used with 'selective'
   activations_checkpoint_layers_per_pipeline: null
-  answer_only_loss: False
+  answer_only_loss: True
   gradient_as_bucket_view: True
 
   hidden_dropout: 0.0

@@ -18,21 +18,21 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-ARG BIGNLP_BACKEND=pytorch
-ARG BIGNLP_BACKEND_BRANCH_TAG=24.01
+ARG LAUNCHER_BACKEND=pytorch
+ARG LAUNCHER_BACKEND_BRANCH_TAG=24.03
 
-FROM nvcr.io/nvidia/${BIGNLP_BACKEND}:${BIGNLP_BACKEND_BRANCH_TAG}-py3 as pytorch
+FROM nvcr.io/nvidia/${LAUNCHER_BACKEND}:${LAUNCHER_BACKEND_BRANCH_TAG}-py3 as pytorch
 
 ##################################
 #### Build training container ####
 ##################################
 FROM pytorch as training
 
-ENV NVIDIA_PRODUCT_NAME="NeMo Megatron"
+ENV NVIDIA_PRODUCT_NAME="NeMo Framework"
 
-ARG NVIDIA_BIGNLP_VERSION
-ENV NVIDIA_BIGNLP_VERSION=$NVIDIA_BIGNLP_VERSION
-LABEL com.nvidia.bignlp.version="${NVIDIA_BIGNLP_VERSION}"
+ARG NVIDIA_LAUNCHER_VERSION
+ENV NVIDIA_LAUNCHER_VERSION=$NVIDIA_LAUNCHER_VERSION
+LABEL com.nvidia.launcher.version="${NVIDIA_LAUNCHER_VERSION}"
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -43,17 +43,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libb64-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Install bits from BigNLP sources here...
 WORKDIR /opt
 ### Note: if you don't want to ship the source code,
 ### you can do this COPY and RUN building in a separate build stage using multistage docker,
 ### and just install the resulting binary here using COPY --from or RUN --mount=from=
 ### experimental syntax
-#COPY bignlp-scripts/src dst
-#RUN ...
-
-# Get fastertransformer_backend
-#RUN git clone https://github.com/triton-inference-server/fastertransformer_backend.git
 
 # Install SentencePiece
 RUN git clone https://github.com/google/sentencepiece.git && \
@@ -101,9 +95,6 @@ RUN git clone https://github.com/NVIDIA/NeMo-Aligner.git && \
     fi && \
     pip install --no-deps -e .
 
-# HF cache
-RUN python -c "from transformers import AutoTokenizer; tok_gpt=AutoTokenizer.from_pretrained('gpt2'); tok_bert=AutoTokenizer.from_pretrained('bert-base-cased'); tok_large_bert=AutoTokenizer.from_pretrained('bert-large-cased'); tok_large_uncased_bert=AutoTokenizer.from_pretrained('bert-large-uncased'); AutoTokenizer.from_pretrained('mistralai/Mixtral-8x7B-v0.1'); AutoTokenizer.from_pretrained('mistralai/Mistral-7B-v0.1');"
-
 # Install TE
 ARG TE_COMMIT
 RUN git clone https://github.com/NVIDIA/TransformerEngine.git && \
@@ -123,7 +114,10 @@ RUN git clone https://github.com/NVIDIA/Megatron-LM.git && \
         git fetch origin $MEGATRONCORE_COMMIT && \
         git checkout FETCH_HEAD; \
     fi && \
-    pip install -e .
+    pip install -e . && \
+    cd megatron/core/datasets && \
+    make && \
+    pip install git+https://github.com/fanshiqing/grouped_gemm@v1.0
 
 # Install launch scripts
 ARG LAUNCHER_COMMIT
@@ -139,55 +133,8 @@ RUN git clone https://github.com/NVIDIA/NeMo-Megatron-Launcher.git && \
 ENV LAUNCHER_SCRIPTS_PATH=/opt/NeMo-Megatron-Launcher/launcher_scripts
 ENV PYTHONPATH=/opt/NeMo-Megatron-Launcher/launcher_scripts:${PYTHONPATH}
 
-# pyenv setup for pytriton
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        libffi-dev \
-        libreadline-dev \
-        libsqlite3-dev && \
-    rm -rf /var/lib/apt/lists/*
-RUN curl https://pyenv.run | bash && \
-    export PYENV_ROOT="$HOME/.pyenv" && \
-    command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH" && \
-    eval "$(pyenv init -)" && \
-    pyenv install 3.8 && \
-    pyenv global 3.8 && \
-    pip3 install virtualenv && \
-    mkdir -p ~/.cache/pytriton/ && \
-    python -mvenv ~/.cache/pytriton/python_backend_interpreter --copies --clear && \
-    source ~/.cache/pytriton/python_backend_interpreter/bin/activate && \
-    pip3 install numpy~=1.21 pyzmq~=23.0 && \
-    deactivate && \
-    pyenv global system
-
-# pip install required python packages
-RUN pip install --no-cache-dir wandb==0.15.3 \
-        black==20.8b1 \
-        'click>=8.0.1' \
-        'datasets>=1.2.1' \
-        jsonlines==2.0.0 \
-        lm_dataformat==0.0.19 \
-        mock==4.0.3 \
-        'numba>=0.57.1' \
-        'numexpr>=2.7.2' \
-        pybind11==2.8.0 \
-        pycountry==20.7.3 \
-        pytest==6.2.5 \
-        sacrebleu==1.5.0 \
-        'scikit-learn>=0.24.1' \
-        spacy==3.1.3 \
-        sqlitedict==1.6.0 \
-        'transformers>=4.1' \
-        tqdm-multiprocess==0.0.11 \
-        zstandard==0.17.0 \
-        tritonclient[all]~=2.33 \
-	    'nvidia-pytriton==0.4.1' \
-        'nltk>=3.6.7' \
-        'ipython>=7.31.1' \
-        'torchmetrics==0.9.1'
-
-RUN pip install pytorch_lightning==2.2.1
-# Copy FasterTransformer
-#COPY --from=ft_builder /workspace/FasterTransformer FasterTransformer
+# HF cache
+RUN python -c "from transformers import AutoTokenizer; tok_gpt=AutoTokenizer.from_pretrained('gpt2'); tok_bert=AutoTokenizer.from_pretrained('bert-base-cased'); tok_large_bert=AutoTokenizer.from_pretrained('bert-large-cased'); tok_large_uncased_bert=AutoTokenizer.from_pretrained('bert-large-uncased');"
 
 # Setup SSH config to allow mpi-operator to communicate with containers in k8s
 RUN echo "    UserKnownHostsFile /dev/null" >> /etc/ssh/ssh_config && \

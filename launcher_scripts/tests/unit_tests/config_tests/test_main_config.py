@@ -26,7 +26,7 @@ class TestConfig:
           - rlhf_rm: gpt3/2b_rm
           - rlhf_ppo: gpt3/2b_ppo
           - steerlm_reg : ac_sft/gpt_sft #rw_sft/training_rm
-          - ptq: llama2/quantization
+          - ptq: model/quantization
           - override hydra/job_logging: stdout
         
         hydra:
@@ -68,7 +68,7 @@ class TestConfig:
           NCCL_IB_TIMEOUT: null # InfiniBand Verbs Timeout. Set to 22 for Azure
           NCCL_DEBUG: null # Logging level for NCCL. Set to "INFO" for debug information
           NCCL_PROTO: null # Protocol NCCL will use. Set to "simple" for AWS
-          TRANSFORMERS_OFFLINE: 1
+          TRANSFORMERS_OFFLINE: 0
           TORCH_NCCL_AVOID_RECORD_STREAMS: 1
           NCCL_NVLS_ENABLE: 0
           NVTE_DP_AMAX_REDUCE_INTERVAL: 0 # Diable FP8 AMAX reduction in the data-parallel domain

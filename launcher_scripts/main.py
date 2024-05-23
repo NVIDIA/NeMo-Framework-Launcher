@@ -129,6 +129,8 @@ STR2STAGECLASS = {
             "baichuan2",
             "chatglm",
             "qwen2",
+            "mistral",
+            "mixtral",
         ],
         MC4DataPreparation: ["mt5"],
         SteerLMDataPreparation: ["steerlm"],
