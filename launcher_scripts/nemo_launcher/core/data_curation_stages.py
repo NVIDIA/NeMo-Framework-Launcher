@@ -327,10 +327,7 @@ class FastTextDownload(NemoMegatronStage):
             self.cfg.get("data_curation").get(dataset_name).get(self.stage_name)
         )
 
-    def _make_cluster_parameters(
-        self,
-        cluster: str,
-    ) -> Dict:
+    def _make_cluster_parameters(self, cluster: str,) -> Dict:
         """
         Make a cluster-specific parameters for jobs on different clusters.
         Current clusters include bcm(slurm), bcp and interactive.
@@ -366,9 +363,7 @@ class FastTextDownload(NemoMegatronStage):
                 **slurm_cfg,
             }
             cluster_params.update(
-                {
-                    **shared_parameters,
-                }
+                {**shared_parameters,}
             )
             cluster_params["job_name"] = job_name_prefix + cluster_params["job_name"]
             cluster_params["nodes"] = nodes
