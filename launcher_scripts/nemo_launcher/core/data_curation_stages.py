@@ -1180,14 +1180,16 @@ class AddId(DataCurationSubStage):
         # Create the list of arguments for the filter_documents command
         args = create_args_list(
             replace_underscore=True,
+            input_data_dir=self.memory.data_dir,
             output_data_dir=stage_cfg.get("output_data_dir"),
             id_field_name=stage_cfg.get("id_field_name"),
             id_prefix=stage_cfg.get("id_prefix"),
-            shuffle=stage_cfg.get("shuffle"),
             input_file_type=stage_cfg.get("input_file_type"),
             output_file_type=stage_cfg.get("output_file_type"),
             scheduler_file=self.log_folder / "scheduler.json",
         )
+
+        self.memory.data_dir = stage_cfg.get("output_data_dir")
 
         runscript = " \\\n  ".join(["add_id", *args])
         runscript_path = os.path.join(self.log_folder, "add_id.sh")
