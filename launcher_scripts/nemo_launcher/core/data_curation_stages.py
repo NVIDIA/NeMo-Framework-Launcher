@@ -1189,8 +1189,8 @@ class AddId(DataCurationSubStage):
             scheduler_file=self.log_folder / "scheduler.json",
         )
 
-        runscript = " \\\n  ".join(["verify_all_pairs_jaccard", *args])
-        runscript_path = os.path.join(self.log_folder, "verify_all_pairs_jaccard.sh")
+        runscript = " \\\n  ".join(["add_id", *args])
+        runscript_path = os.path.join(self.log_folder, "add_id.sh")
 
         with open(runscript_path, "w") as f:
             f.write(runscript)
