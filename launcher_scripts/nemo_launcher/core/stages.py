@@ -1314,8 +1314,7 @@ class RAGIndexing(NeMoStage):
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
         model_type_to_code_path = {
-            "bert": self._nemo_code_path
-            / "examples/nlp/rag/rag_indexing.py",
+            "bert": self._nemo_code_path / "examples/nlp/rag/rag_indexing.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1326,10 +1325,9 @@ class RAGGenerating(NeMoStage):
         self.stage_name = "rag_generating"
         self.stage_cfg = cfg.get("rag_generating")
 
-    def _get_nemo_code_path(self, model_type: str) -> Path: 
+    def _get_nemo_code_path(self, model_type: str) -> Path:
         model_type_to_code_path = {
-            "gpt3": self._nemo_code_path
-            / "examples/nlp/rag/rag_generating.py",
+            "gpt3": self._nemo_code_path / "examples/nlp/rag/rag_generating.py",
         }
         return model_type_to_code_path[model_type]
 

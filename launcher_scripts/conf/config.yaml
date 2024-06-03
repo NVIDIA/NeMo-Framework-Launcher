@@ -20,8 +20,8 @@ defaults:
   - rlhf_ppo: gpt3/2b_ppo
   - steerlm_reg : ac_sft/gpt_sft # either rw_sft/training_rm or ac_sft/gpt_sft
   - ptq: model/quantization
-  - rag_indexing: null
-  - rag_generating: null
+  - rag_indexing: bert/340m
+  - rag_generating: gpt3/125m
   - override hydra/job_logging: stdout
 
 hydra:
