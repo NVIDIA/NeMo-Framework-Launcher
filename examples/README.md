@@ -84,5 +84,5 @@ The results in the table below show pre-training performance of Mixtral MoE on D
 | LLAMA2-13B | SFT   | 8  | 32 | 1 | 4096 | 1 | 4 | 9384  | 726 | ***2.3*** |
 | LLAMA2-70B | SFT   | 16 | 32 | 1 | 4096 | 4 | 4 | 1739  | 717 | ***7.1*** |
 | LLAMA2-7B  | LoRA  | 8  | 32 | 1 | 4096 | 1 | 1 | 23711 | 633 | ***1.0*** |
-| LLAMA2-13B | LoRA  | 8  | 32 | 1 | 4096 | 1 | 1 | 11554 | 598 | ***1.7*** |
+| LLAMA2-13B | LoRA  | 8  | 32 | 1 | 4096 | 1 | 4 | 11554 | 598 | ***1.7*** |
 | LLAMA2-70B | LoRA  | 8  | 32 | 1 | 4096 | 2 | 4 | 2470  | 681 | ***9.1*** |
