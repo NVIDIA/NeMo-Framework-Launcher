@@ -63,14 +63,6 @@ For further details see [Interpreting the Results](https://docs.nvidia.com/nemo-
 | LLAMA3-70B  | 64 | 128  | 1 | 8192 | 4 | 4 | 1444 | 695 | ***78***  |
 
 
-The results in the table below show pre-training performance of Mixtral MoE on DGXH100, with BF16
-
-
-| Model | #-GPUs | GBS | MBS | Sequence <br> Length | TP | PP | Tokens <br>/ sec / GPU | Model TFLOP <br> / sec / GPU | ***Est. time to train <br> in days <br> (10T tokens, 1K GPUs)*** |
-| ---      | ---      |----   |----   | ---      |----   | ---      | ---      | ---     | ---     |
-| MIXTRAL-8x3B  | 16 | 128  | 1 | 4096 | 1 | 1 | 10996 | 375 | ***10***  |
-| MIXTRAL-8x7B  | 64 | 256  | 1 | 4096 | 1 | 4 | 4452 | 369 | ***26***  |
-
 ### Benchmark performance numbers (finetuning)
 
 - The following table provides performance benchmarking of LLAMA2 models with SFT (supervised fine-tuning), and LoRA (Low-rank adaptors) on DGXH100, with FP8.
