@@ -107,7 +107,7 @@ class TestConfig:
         external_conversion_config: ${hydra:runtime.choices.external_conversion}
         ptq_config: ${hydra:runtime.choices.ptq}
         rag_indexing_config: ${hydra:runtime.choices.rag_indexing}
-        rag_generating_config': ${hydra:runtime.choices.rag_generating}
+        rag_generating_config: ${hydra:runtime.choices.rag_generating}
         """
         expected = OmegaConf.create(s)
         assert (
