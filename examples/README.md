@@ -69,7 +69,7 @@ The results in the table below show pre-training performance of Mixtral MoE on D
 | Model | #-GPUs | GBS | MBS | Sequence <br> Length | TP | PP | Tokens <br>/ sec / GPU | Model TFLOP <br> / sec / GPU | ***Est. time to train <br> in days <br> (10T tokens, 1K GPUs)*** |
 | ---      | ---      |----   |----   | ---      |----   | ---      | ---      | ---     | ---     |
 | MIXTRAL-8x3B  | 16 | 128  | 1 | 4096 | 1 | 1 | 10996 | 375 | ***10***  |
-| MIXTRAL-8x7B  | 64 | 256  | 1 | 4096 | 1 | 4 | 4369 | 362 | ***26***  |
+| MIXTRAL-8x7B  | 64 | 256  | 1 | 4096 | 1 | 4 | 4452 | 369 | ***26***  |
 
 ### Benchmark performance numbers (finetuning)
 
