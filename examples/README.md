@@ -72,9 +72,9 @@ For further details see [Interpreting the Results](https://docs.nvidia.com/nemo-
 
 | Model | Mode | #-GPUs | GBS | MBS | Sequence <br> Length | TP | PP | Tokens <br>/ sec / GPU | Model TFLOP <br> / sec / GPU | ***Est. time to <br> complete in mins <br> (10M tokens)*** |
 | ---     | ---      |----   | ---      |----   | ---      |----   | ---      | ---      | ---     | ---     |
-| LLAMA2-7B  | SFT   | 8  | 32 | 1 | 4096 | 1 | 1 | 16891 | 673 | ***1.4*** |
-| LLAMA2-13B | SFT   | 8  | 32 | 1 | 4096 | 1 | 4 | 9384  | 726 | ***2.3*** |
-| LLAMA2-70B | SFT   | 16 | 32 | 1 | 4096 | 4 | 4 | 1739  | 717 | ***7.1*** |
-| LLAMA2-7B  | LoRA  | 8  | 32 | 1 | 4096 | 1 | 1 | 23711 | 633 | ***1.0*** |
-| LLAMA2-13B | LoRA  | 8  | 32 | 1 | 4096 | 1 | 4 | 11554 | 598 | ***1.7*** |
-| LLAMA2-70B | LoRA  | 8  | 32 | 1 | 4096 | 2 | 4 | 2470  | 681 | ***9.1*** |
+| LLAMA2-7B  | SFT   | 8  | 32 | 1 | 4096 | 1 | 1 | 16891 | 673 | ***1.2*** |
+| LLAMA2-13B | SFT   | 8  | 32 | 1 | 4096 | 1 | 4 | 9384  | 726 | ***2.2*** |
+| LLAMA2-70B | SFT   | 16 | 32 | 1 | 4096 | 4 | 4 | 1739  | 717 | ***6.0*** |
+| LLAMA2-7B  | LoRA  | 8  | 32 | 1 | 4096 | 1 | 1 | 23711 | 633 | ***0.9*** |
+| LLAMA2-13B | LoRA  | 8  | 32 | 1 | 4096 | 1 | 1 | 14499 | 751 | ***1.4*** |
+| LLAMA2-70B | LoRA  | 8  | 32 | 1 | 4096 | 2 | 4 | 2470  | 681 | ***8.4*** |
