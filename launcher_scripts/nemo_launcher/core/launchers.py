@@ -371,7 +371,7 @@ class SlurmLauncher(Launcher):
         self,
         folder: Union[Path, str],
         job_name: str,
-        use_fault_tolerance: bool,
+        use_fault_tolerance: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(folder, job_name)
