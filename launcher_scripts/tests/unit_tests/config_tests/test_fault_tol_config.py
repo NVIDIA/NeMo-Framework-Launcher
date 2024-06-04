@@ -72,12 +72,13 @@ def test_fault_tol_config_with_bcm():
     cfg.cluster = OmegaConf.load("conf/cluster/bcm.yaml")
     cfg.training_config = "gpt3/126m"
     cfg.training = OmegaConf.load("conf/training/gpt3/126m.yaml")
-    cfg.training.exp_manager.create_fault_tolerance_callback=True
+    cfg.training.exp_manager.create_fault_tolerance_callback = True
     cfg.training.exp_manager.fault_tolerance = OmegaConf.create(
         {"max_subsequent_job_failures": 1}
     )
     stage = Training(cfg)
     _ = stage.run()
+
 
 def test_fault_tol_config_with_bcm_no_ft_section():
     """ Fault tolerance + BCM cluster, no "fault_tolerance" section in cfg, should be fine """
@@ -89,7 +90,7 @@ def test_fault_tol_config_with_bcm_no_ft_section():
     cfg.cluster = OmegaConf.load("conf/cluster/bcm.yaml")
     cfg.training_config = "gpt3/126m"
     cfg.training = OmegaConf.load("conf/training/gpt3/126m.yaml")
-    cfg.training.exp_manager.create_fault_tolerance_callback=True
+    cfg.training.exp_manager.create_fault_tolerance_callback = True
     stage = Training(cfg)
     _ = stage.run()
 
@@ -104,8 +105,7 @@ def test_fault_tol_config_with_bcp():
     cfg.cluster = dict()
     cfg.training_config = "gpt3/126m"
     cfg.training = OmegaConf.load("conf/training/gpt3/126m.yaml")
-    cfg.training.exp_manager.create_fault_tolerance_callback=True
+    cfg.training.exp_manager.create_fault_tolerance_callback = True
     with pytest.raises(ValueError):
         stage = Training(cfg)
         _ = stage.run()
-
