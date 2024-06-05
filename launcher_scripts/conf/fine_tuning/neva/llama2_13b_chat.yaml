@@ -78,6 +78,7 @@ model:
       from_pretrained: "openai/clip-vit-large-patch14-336" # path or name
       from_hf: True
       patch_dim: 14
+      crop_size: [336, 336]
       hidden_size: 1024 # could be found from model but tricky in code
       vision_select_layer: -2   # default to the last layer
       class_token_length: 1
@@ -193,7 +194,6 @@ model:
     media_type: image
     sep_image_conv_front: False
     conv_template: ${fine_tuning.model.mm_cfg.llm.model_type}
-    image_token_len: 576
     image_folder: ${data_dir}/neva/datasets/LLaVA-Instruct-mixture/images
     image_aspect_ratio: 'pad'
 
