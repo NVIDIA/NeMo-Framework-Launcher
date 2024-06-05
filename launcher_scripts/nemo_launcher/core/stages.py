@@ -125,6 +125,8 @@ class NemoMegatronStage:
         # Make command groups
         command_groups = self.make_stage_command_groups(stage_cfg_path)
         # Create launcher
+        print("job_path.folder: ", job_path.folder)
+        print("self.cluster: ", self.cluster)
         launcher = AutoLauncher(
             folder=job_path.folder, cluster=self.cluster, **cluster_parameters,
         )
@@ -1300,6 +1302,32 @@ class FWInference(NeMoStage):
             / "examples/multimodal/multimodal_llm/neva/neva_evaluation.py",
             "retro": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_retro_eval.py",
+        }
+        return model_type_to_code_path[model_type]
+
+
+class RAGIndexing(NeMoStage):
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "rag_indexing"
+        self.stage_cfg = cfg.get("rag_indexing")
+
+    def _get_nemo_code_path(self, model_type: str) -> Path:
+        model_type_to_code_path = {
+            "bert": self._nemo_code_path / "examples/nlp/rag/rag_indexing.py",
+        }
+        return model_type_to_code_path[model_type]
+
+
+class RAGGenerating(NeMoStage):
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "rag_generating"
+        self.stage_cfg = cfg.get("rag_generating")
+
+    def _get_nemo_code_path(self, model_type: str) -> Path:
+        model_type_to_code_path = {
+            "gpt3": self._nemo_code_path / "examples/nlp/rag/rag_generating.py",
         }
         return model_type_to_code_path[model_type]
 
