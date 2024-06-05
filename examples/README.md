@@ -51,7 +51,7 @@ For further details see [Interpreting the Results](https://docs.nvidia.com/nemo-
   
 | Model | #-GPUs | GBS | MBS | Sequence <br> Length | TP | PP | CP | Tokens <br>/ sec / GPU | Model TFLOP <br> / sec / GPU | ***Est. time to train <br> in days <br> (10T tokens, 1K GPUs)*** |
 | ---      | ---      |----   |----   | ---      |----   | ---      | ---      | ---      | ---     | ---     |
-| GPT3-175B     | 128 | 256 | 1 | 2048 | 4 | 8 | 1 | 697   | [750*](https://developer.nvidia.com/blog/setting-new-records-at-data-center-scale-using-nvidia-h100-gpus-and-quantum-2-infiniband/) | ***162***  |
+| GPT3-175B     | 512 | 2048 | 1 | 2048 | 4 | 8 | 1 | 741   | [797*](https://developer.nvidia.com/blog/setting-new-records-at-data-center-scale-using-nvidia-h100-gpus-and-quantum-2-infiniband/) | ***153***  |
 | GPT3-5B       | 64 | 2048 | 4 | 2048 | 1 | 1 | 1 | 23117 | 755 | ***5***   |
 | GPT3-20B      | 64 | 256  | 2 | 2048 | 2 | 1 | 1 | 5611  | 719 | ***20***  |
 | LLAMA2-7B     | 8  | 128  | 1 | 4096 | 1 | 1 | 1 | 16154 | 744 | ***7***   | 
