@@ -210,17 +210,24 @@ class NemoMegatronStage:
         ]
 
     def _make_git_log_command(self, stage_cfg_path: Path):
-        """log last 5 commits for repos- NeMo, megatron-lm, NeMo-Framework-Launcher or NeMo-Megatron-Launcher
-        'NeMo-Megatron-Launcher' was renamed to 'NeMo-Framework-Launcher'. We run git log for both for
+        """
+        log HEAD commit for subset of repos in NeMo container, PyTorch and  NeMo container version names
+        'NeMo-Megatron-Launcher' was renamed to 'NeMo-Framework-Launcher'. Try logging for both for
         backwards compatibility.
         """
         append_to_file = f"{stage_cfg_path.parent}/git_log.txt"
+        if os.path.isfile(append_to_file) and os.path.getsize(append_to_file) > 0:
+            return [f"echo {append_to_file} already exists. Skipping generating new file..."]
+
+        container_name = self.cfg.get("container", "")
         return [
-            f"(echo PYT$\"NVIDIA_PYTORCH_VERSION\" && \
-                git --git-dir=/opt/NeMo/.git log -n 5 --format='NeMo;%h;%aD;%s' && \
-                git --git-dir=/opt/megatron-lm/.git log -n 5 --format='megatron-lm;%h;%aD;%s' && \
-                git --git-dir=/opt/NeMo-Framework-Launcher/.git log -n 5 --format='NeMo-Framework-Launcher;%h;%aD;%s' && \
-                git --git-dir=/opt/NeMo-Megatron-Launcher/.git log -n 5 --format='NeMo-Megatron-Launcher;%h;%aD;%s') > {append_to_file}"
+            f"(echo {container_name} && \
+                echo PYT$\"NVIDIA_PYTORCH_VERSION\"; \
+                git --git-dir=/opt/NeMo/.git log -n 1 --format='NeMo;%h;%aD;%s'; \
+                git --git-dir=/opt/megatron-lm/.git log -n 1 --format='megatron-lm;%h;%aD;%s'; \
+                git --git-dir=/opt/TransformerEngine/.git log -n 1 --format='megatron-lm;%h;%aD;%s'; \
+                git --git-dir=/opt/NeMo-Framework-Launcher/.git log -n 1 --format='NeMo-Framework-Launcher;%h;%aD;%s'; \
+                git --git-dir=/opt/NeMo-Megatron-Launcher/.git log -n 1 --format='NeMo-Megatron-Launcher;%h;%aD;%s') > {append_to_file}"
         ]
 
     def _make_k8s_spec_file(
