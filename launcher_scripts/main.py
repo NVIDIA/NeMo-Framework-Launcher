@@ -46,6 +46,8 @@ from nemo_launcher.core.stages import (
     SteerLMRegSFT,
     ConversionHF2NeMo,
     PostTrainingQuantization,
+    RAGIndexing,
+    RAGGenerating,
 )
 from nemo_launcher.core.v2 import stages as stages_v2
 from nemo_launcher.core.v2.config_k8s import K8sClusterConfig
@@ -142,6 +144,8 @@ STR2STAGECLASS = {
     "data_curation": DataCurationStage,
     "steerlm_reg": SteerLMRegSFT,
     "ptq": PostTrainingQuantization,
+    "rag_indexing": RAGIndexing,
+    "rag_generating": RAGGenerating,
 }
 
 

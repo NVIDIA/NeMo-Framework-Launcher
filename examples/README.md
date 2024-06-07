@@ -49,16 +49,18 @@ For further details see [Interpreting the Results](https://docs.nvidia.com/nemo-
 - To calculate Model TFLOPs, please see Appendix A in [paper](https://arxiv.org/pdf/2205.05198.pdf).
   
   
-| Model | #-GPUs | GBS | MBS | Sequence <br> Length | TP | PP | Tokens <br>/ sec / GPU | Model TFLOP <br> / sec / GPU | ***Est. time to train <br> in days <br> (10T tokens, 1K GPUs)*** |
-| ---      | ---      |----   |----   | ---      |----   | ---      | ---      | ---     | ---     |
-| GPT3-175B    | 512 | 2048 | 1 | 2048 | 4 | 8 | 741 |  [797*](https://developer.nvidia.com/blog/setting-new-records-at-data-center-scale-using-nvidia-h100-gpus-and-quantum-2-infiniband/) | ***153***  |
-| GPT3-5B       | 64 | 2048 | 4 | 2048 | 1 | 1 | 23574 | 746 | ***5***  |
-| GPT3-20B      | 64 | 256  | 2 | 2048 | 2 | 1 | 5528 | 708 | ***20***  |
-| LLAMA2-7B     | 8  | 128  | 1 | 4096 | 1 | 1 | 16290 | 751 | ***7***  |
-| LLAMA2-13B    | 16 | 128  | 1 | 4096 | 4 | 1 | 8317 | 725 | ***14***  |
-| LLAMA2-70B    | 64 | 128  | 1 | 4096 | 4 | 4 | 1725 | 767 | ***66***  |
-| Nemotron-8B   | 8  | 32   | 2 | 4096 | 2 | 1 | 11538 | 593 | ***10***  |
-| Nemotron-22B  | 16 | 32   | 2 | 4096 | 1 | 4 | 3828 | 499 | ***30***  |
+| Model | #-GPUs | GBS | MBS | Sequence <br> Length | TP | PP | CP | Tokens <br>/ sec / GPU | Model TFLOP <br> / sec / GPU | ***Est. time to train <br> in days <br> (10T tokens, 1K GPUs)*** |
+| ---      | ---      |----   |----   | ---      |----   | ---      | ---      | ---      | ---     | ---     |
+| GPT3-175B     | 512 | 2048 | 1 | 2048 | 4 | 8 | 1 | 741   | [797*](https://developer.nvidia.com/blog/setting-new-records-at-data-center-scale-using-nvidia-h100-gpus-and-quantum-2-infiniband/) | ***153***  |
+| GPT3-5B       | 64 | 2048 | 4 | 2048 | 1 | 1 | 1 | 23117 | 755 | ***5***   |
+| GPT3-20B      | 64 | 256  | 2 | 2048 | 2 | 1 | 1 | 5611  | 719 | ***20***  |
+| LLAMA2-7B     | 8  | 128  | 1 | 4096 | 1 | 1 | 1 | 16154 | 744 | ***7***   | 
+| LLAMA2-13B    | 16 | 128  | 1 | 4096 | 1 | 4 | 1 | 8344  | 727 | ***14***  |
+| LLAMA2-70B    | 64 | 128  | 1 | 4096 | 4 | 4 | 1 | 1659  | 737 | ***68***  |
+| Nemotron-8B   | 64 | 256  | 4 | 4096 | 2 | 1 | 1 | 11753 | 604 | ***10***  |
+| Nemotron-22B  | 64 | 256  | 2 | 4096 | 2 | 4 | 1 | 4113  | 536 | ***27***  |
+| LLAMA3-8B     | 8  | 128  | 1 | 8192 | 1 | 1 | 2 | 11879 | 688 | ***10***  |
+| LLAMA3-70B    | 64 | 128  | 1 | 8192 | 4 | 4 | 2 | 1444  | 695 | ***78***  |
 
 
 ### Benchmark performance numbers (finetuning)
@@ -70,9 +72,9 @@ For further details see [Interpreting the Results](https://docs.nvidia.com/nemo-
 
 | Model | Mode | #-GPUs | GBS | MBS | Sequence <br> Length | TP | PP | Tokens <br>/ sec / GPU | Model TFLOP <br> / sec / GPU | ***Est. time to <br> complete in mins <br> (10M tokens)*** |
 | ---     | ---      |----   | ---      |----   | ---      |----   | ---      | ---      | ---     | ---     |
-| LLAMA2-7B  | SFT   | 8  | 32 | 1 | 4096 | 1 | 1 | 14761 | 591 | ***1.4*** |
-| LLAMA2-13B | SFT   | 8  | 32 | 1 | 4096 | 1 | 4 | 8989  | 698 | ***2.3*** |
-| LLAMA2-70B | SFT   | 16 | 32 | 1 | 4096 | 4 | 4 | 1470  | 609 | ***7.1*** |
-| LLAMA2-7B  | LoRA  | 8  | 32 | 1 | 4096 | 1 | 1 | 20750 | 556 | ***1.0*** |
-| LLAMA2-13B | LoRA  | 8  | 32 | 1 | 4096 | 1 | 1 | 12584 | 654 | ***1.7*** |
-| LLAMA2-70B | LoRA  | 8  | 32 | 1 | 4096 | 2 | 4 | 2279  | 631 | ***9.1*** |
+| LLAMA2-7B  | SFT   | 8  | 32 | 1 | 4096 | 1 | 1 | 16891 | 673 | ***1.2*** |
+| LLAMA2-13B | SFT   | 8  | 32 | 1 | 4096 | 1 | 4 | 9384  | 726 | ***2.2*** |
+| LLAMA2-70B | SFT   | 16 | 32 | 1 | 4096 | 4 | 4 | 1739  | 717 | ***6.0*** |
+| LLAMA2-7B  | LoRA  | 8  | 32 | 1 | 4096 | 1 | 1 | 23711 | 633 | ***0.9*** |
+| LLAMA2-13B | LoRA  | 8  | 32 | 1 | 4096 | 1 | 1 | 14499 | 751 | ***1.4*** |
+| LLAMA2-70B | LoRA  | 8  | 32 | 1 | 4096 | 2 | 4 | 2470  | 681 | ***8.4*** |
