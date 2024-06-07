@@ -1332,15 +1332,15 @@ class RAGIndexing(NeMoStage):
         """
         # Training has one command group
         # Shared with fine-tuning and prompt learning
-        command_groups = [[], []]
+        command_groups = [[]]
+        command_groups[0] += self._make_wandb_login_command()
+        command_groups[0] += self._make_nemo_path_command()
+        command_groups[0] += self._make_git_log_command(stage_cfg_path)
+        # command_groups[0] += self._make_numa_mapping_command()
 
-        # install dependencies
+        # commands for installing dependencies
         package_command_string = "pip install llama-index==0.10.33"
         command_groups[0] += [package_command_string]
-
-        command_groups[1] += self._make_wandb_login_command()
-        command_groups[1] += self._make_nemo_path_command()
-        command_groups[1] += self._make_git_log_command(stage_cfg_path)
 
         # _cuda_device_max_connections and _cuda_visible_devices cannot be used as command prefix on BCP
         if self.cluster == "bcp":
@@ -1363,9 +1363,8 @@ class RAGIndexing(NeMoStage):
             ),
             self._make_nemo_call_string(stage_cfg_path),
         ]
-
         core_command_string = " ".join([c for c in core_command if c])
-        command_groups[1] += [core_command_string]
+        command_groups[0] += [core_command_string]
         command_groups = clean_command_groups(command_groups)
 
         return command_groups
@@ -1397,15 +1396,15 @@ class RAGGenerating(NeMoStage):
         """
         # Training has one command group
         # Shared with fine-tuning and prompt learning
-        command_groups = [[], []]
+        command_groups = [[]]
+        command_groups[0] += self._make_wandb_login_command()
+        command_groups[0] += self._make_nemo_path_command()
+        command_groups[0] += self._make_git_log_command(stage_cfg_path)
+        # command_groups[0] += self._make_numa_mapping_command()
 
-        # install dependencies
+        # commands for installing dependencies
         package_command_string = "pip install llama-index==0.10.33"
         command_groups[0] += [package_command_string]
-
-        command_groups[1] += self._make_wandb_login_command()
-        command_groups[1] += self._make_nemo_path_command()
-        command_groups[1] += self._make_git_log_command(stage_cfg_path)
 
         # _cuda_device_max_connections and _cuda_visible_devices cannot be used as command prefix on BCP
         if self.cluster == "bcp":
@@ -1428,9 +1427,8 @@ class RAGGenerating(NeMoStage):
             ),
             self._make_nemo_call_string(stage_cfg_path),
         ]
-
         core_command_string = " ".join([c for c in core_command if c])
-        command_groups[1] += [core_command_string]
+        command_groups[0] += [core_command_string]
         command_groups = clean_command_groups(command_groups)
 
         return command_groups
