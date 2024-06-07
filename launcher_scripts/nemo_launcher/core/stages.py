@@ -42,6 +42,7 @@ __LANGUAGE_MODELS_LIST__ = [
     "falcon",
     "baichuan2",
     "mistral",
+    "mistral_embedding",
     "mixtral",
     "starcoder2",
     "chatglm",
@@ -1118,6 +1119,8 @@ class PEFT(NeMoStage):
                 "PEFT is not supported in NeMo Megatron mt5 models."
             )
         model_type_to_code_path = {
+            "mistral_embedding": self._nemo_code_path
+            / "examples/nlp/information_retrieval/megatron_gpt_embedding_finetuning.py",
             "gpt3": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "llama": self._nemo_code_path
