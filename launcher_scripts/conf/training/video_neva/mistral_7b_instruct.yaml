@@ -195,10 +195,11 @@ model:
     data_path: ${data_dir}/neva/datasets/LLaVA-Pretrain-LCS-558K/blip_laion_cc_sbu_558k.json
     lazy_preprocess: True
     is_multimodal: True
-    media_type: image
+    media_type: video # currently supported: image
+    num_frames: 4
+    splice_single_frame: null
     sep_image_conv_front: False
-    conv_template: mistral
-    image_folder: ${data_dir}/neva/datasets/LLaVA-Pretrain-LCS-558K/images
+    video_folder: ${data_dir}/video_neva/datasets/videos/
     image_aspect_ratio: 'square'
 
   # Nsys profiling options
