@@ -1,9 +1,9 @@
 run:
   name: neva_mistral_7b_instruct_fine_tuning
-  results_dir: ${base_results_dir}/${.model_train_name}/${.name}
-  model_train_name: neva_mistral_7b_instruct
   time_limit: "1-00:00:00"
   dependency: "singleton"
+  model_train_name: neva_mistral_7b_instruct
+  results_dir: ${base_results_dir}/${.model_train_name}/${.name}
 
 trainer:
   devices: 8
@@ -193,13 +193,13 @@ model:
   data:
     num_workers: 8
     dataloader_type: cyclic
-    data_path: ${data_dir}/neva/datasets/LLaVA-Pretrain-LCS-558K/blip_laion_cc_sbu_558k.json
+    data_path: ${data_dir}/neva/datasets/LLaVA-Instruct-mixture/llava_v1_5_mix665k.json
     lazy_preprocess: True
     is_multimodal: True
     media_type: image
     sep_image_conv_front: False
     conv_template: ${fine_tuning.model.mm_cfg.llm.model_type}
-    image_folder: ${data_dir}/neva/datasets/LLaVA-Pretrain-LCS-558K/images
+    image_folder: ${data_dir}/neva/datasets/LLaVA-Instruct-mixture/images
     image_aspect_ratio: 'square'
 
   # Nsys profiling options
@@ -212,7 +212,7 @@ model:
 
   optim:
     name: fused_adam
-    lr: 1e-3
+    lr: 2e-5
     weight_decay: 0.
     betas:
       - 0.9
@@ -221,4 +221,4 @@ model:
       name: CosineAnnealing
       warmup_steps: 70
       constant_steps: 0
-      min_lr: 2e-5
+      min_lr: 2e-7

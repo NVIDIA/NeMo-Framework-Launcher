@@ -63,7 +63,7 @@ model:
   global_batch_size: 256 # will use more micro batches to reach global batch size
 
   tensor_model_parallel_size: 8 # intra-layer model parallelism
-  pipeline_model_parallel_size: 1 # inter-layer model parallelism
+  pipeline_model_parallel_size: 2 # inter-layer model parallelism
   virtual_pipeline_model_parallel_size: null # interleaved pipeline
 
   restore_from_path: ${base_results_dir}/${fine_tuning.run.model_train_name}/results/checkpoints/nemo_neva.nemo # used in fine-tuning
@@ -193,13 +193,13 @@ model:
   data:
     num_workers: 8
     dataloader_type: cyclic
-    data_path: ${data_dir}/neva/datasets/LLaVA-Pretrain-LCS-558K/blip_laion_cc_sbu_558k.json
+    data_path: ${data_dir}/neva/datasets/LLaVA-Instruct-mixture/llava_v1_5_mix665k.json
     lazy_preprocess: True
     is_multimodal: True
     media_type: image
     sep_image_conv_front: False
     conv_template: ${fine_tuning.model.mm_cfg.llm.model_type}
-    image_folder: ${data_dir}/neva/datasets/LLaVA-Pretrain-LCS-558K/images
+    image_folder: ${data_dir}/neva/datasets/LLaVA-Instruct-mixture/images
     image_aspect_ratio: 'square'
 
   # Nsys profiling options
@@ -211,8 +211,8 @@ model:
     gen_shape: False # Generate model and kernel details including input shapes
 
   optim:
-    name: fused_adam
-    lr: 1e-3
+    name: distributed_fused_adam
+    lr: 2e-5
     weight_decay: 0.
     betas:
       - 0.9
@@ -221,4 +221,4 @@ model:
       name: CosineAnnealing
       warmup_steps: 70
       constant_steps: 0
-      min_lr: 2e-5
+      min_lr: 2e-7

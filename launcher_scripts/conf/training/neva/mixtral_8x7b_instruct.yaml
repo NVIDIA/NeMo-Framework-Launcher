@@ -6,7 +6,7 @@ run:
 
 trainer:
   devices: 8
-  num_nodes: 2
+  num_nodes: 1
   accelerator: gpu
   precision: bf16
   logger: False # logger provided by exp_manager
