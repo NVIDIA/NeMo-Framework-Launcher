@@ -1,6 +1,6 @@
 run:
   name: neva_mistral_7b_instruct_fine_tuning
-  results_dir: ${base_results_dir}/${.name}
+  results_dir: ${base_results_dir}/${.model_train_name}/${.name}
   model_train_name: neva_mistral_7b_instruct
   time_limit: "1-00:00:00"
   dependency: "singleton"
