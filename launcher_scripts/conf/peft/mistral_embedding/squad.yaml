@@ -1,5 +1,15 @@
 name: megatron_gpt_peft_${model.peft.peft_scheme}_tuning
 
+run:
+  name: ${.task_name}_${.model_train_name}
+  time_limit: "01:00:00"
+  dependency: "singleton"
+  convert_name: convert_nemo
+  model_train_name: mistral_7b
+  convert_dir: ${base_results_dir}/${peft.run.model_train_name}/${peft.run.convert_name}
+  task_name: "squad"
+  results_dir: ${base_results_dir}/${.model_train_name}/peft_${.task_name}
+
 trainer:
   devices: 1
   accelerator: gpu
