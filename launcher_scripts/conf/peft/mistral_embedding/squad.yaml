@@ -1,4 +1,4 @@
-name: megatron_gpt_peft_${model.peft.peft_scheme}_tuning
+name: megatron_gpt_embedding_${peft.model.peft.peft_scheme}_tuning
 
 run:
   name: ${.task_name}_${.model_train_name}
@@ -19,16 +19,16 @@ trainer:
   enable_checkpointing: False
   use_distributed_sampler: False
   max_epochs: null
-  max_steps: 20000 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
+  max_steps: 20 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
   log_every_n_steps: 10 # frequency with which training steps are logged
-  val_check_interval: ${trainer.max_steps} # If is an int n > 1, will run val every n training steps, if a float 0.0 - 1.0 will run val every epoch fraction, e.g. 0.25 will run val every quarter epoch
+  val_check_interval: 10  # If is an int n > 1, will run val every n training steps, if a float 0.0 - 1.0 will run val every epoch fraction, e.g. 0.25 will run val every quarter epoch
   gradient_clip_val: null
   num_sanity_val_steps: 0
 
 exp_manager:
   explicit_log_dir: null
   exp_dir: null
-  name: ${name}
+  name: ${peft.name}
   create_wandb_logger: False
   wandb_logger_kwargs:
     project: null
@@ -37,12 +37,12 @@ exp_manager:
   resume_ignore_no_checkpoint: True
   create_checkpoint_callback: True
   checkpoint_callback_params:
-    monitor: validation_${model.data.validation_ds.metric.name}
+    monitor: validation_${peft.model.data.validation_ds.metric.name}
     save_top_k: 1
     mode: min
     save_nemo_on_train_end: True
-    filename: '${name}--{${exp_manager.checkpoint_callback_params.monitor}:.3f}-{step}-{consumed_samples}'
-    model_parallel_size: ${model.tensor_model_parallel_size}
+    filename: '${peft.name}--{${peft.exp_manager.checkpoint_callback_params.monitor}:.3f}-{step}-{consumed_samples}'
+    model_parallel_size: ${peft.model.tensor_model_parallel_size}
     always_save_nemo: False
     save_best_model: True
   create_early_stopping_callback: False
@@ -147,8 +147,8 @@ model:
       # {'input': 'John von Neumann\nVon Neumann made fundamental contributions .... Q: What did the math of artificial viscosity do?', 'output': 'smoothed the shock transition without sacrificing basic physics'}
       file_names:
       - ${data_dir}/squad_ir_data/squad_train_for_ir.jsonl # Path to a list of JSONL files corresponding to the source data.
-      global_batch_size: ${model.global_batch_size}
-      micro_batch_size: ${model.micro_batch_size}
+      global_batch_size: ${peft.model.global_batch_size}
+      micro_batch_size: ${peft.model.micro_batch_size}
       shuffle: True
       num_workers: 0
       memmap_workers: 2
@@ -174,18 +174,18 @@ model:
       doc_file_names:
       - ${data_dir}/squad_ir_data/squad_validation_for_ir.doc.7.jsonl # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
       names: ["queries", "doc"] # Names of the corresponding datasets used to log metrics.
-      global_batch_size: ${model.global_batch_size}
-      micro_batch_size: ${model.micro_batch_size}
+      global_batch_size: ${peft.model.global_batch_size}
+      micro_batch_size: ${peft.model.micro_batch_size}
       shuffle: False
       num_workers: 0
-      memmap_workers: ${model.data.train_ds.memmap_workers}
+      memmap_workers: ${peft.model.data.train_ds.memmap_workers}
       pin_memory: True
-      max_seq_length: ${model.data.train_ds.max_seq_length}
+      max_seq_length: ${peft.model.data.train_ds.max_seq_length}
       min_seq_length: 1
       drop_last: False
-      label_key: ${model.data.train_ds.label_key}
-      add_eos: ${model.data.train_ds.add_eos}
-      add_bos: ${model.data.train_ds.add_bos}
+      label_key: ${peft.model.data.train_ds.label_key}
+      add_eos: ${peft.model.data.train_ds.add_eos}
+      add_bos: ${peft.model.data.train_ds.add_bos}
       write_embeddings_to_file: False
       output_file_path_prefix: "validation_embeddings" # Prefix of the file to write predictions to.
       index_mapping_dir: null # Path to a directory to write index mapping files.
@@ -197,17 +197,17 @@ model:
     test_ds:
       file_names: null # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
       names: null # Names of the corresponding datasets used to log metrics.
-      global_batch_size: ${model.global_batch_size}
-      micro_batch_size: ${model.micro_batch_size}
+      global_batch_size: ${peft.model.global_batch_size}
+      micro_batch_size: ${peft.model.micro_batch_size}
       shuffle: False
       num_workers: 0
-      memmap_workers: ${model.data.train_ds.memmap_workers}
+      memmap_workers: ${peft.model.data.train_ds.memmap_workers}
       pin_memory: True
-      max_seq_length: ${model.data.train_ds.max_seq_length}
+      max_seq_length: ${peft.model.data.train_ds.max_seq_length}
       min_seq_length: 1
       drop_last: False
-      add_eos: ${model.data.train_ds.add_eos}
-      add_bos: ${model.data.train_ds.add_bos}
+      add_eos: ${peft.model.data.train_ds.add_eos}
+      add_bos: ${peft.model.data.train_ds.add_bos}
       write_predictions_to_file: True
       output_file_path_prefix: "test_embeddings" # Prefix of the file to write predictions to.
       index_mapping_dir: null # Path to a directory to write index mapping files.
