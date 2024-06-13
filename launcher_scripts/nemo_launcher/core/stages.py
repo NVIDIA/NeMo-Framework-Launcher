@@ -42,6 +42,7 @@ __LANGUAGE_MODELS_LIST__ = [
     "falcon",
     "baichuan2",
     "mistral",
+    "mistral_embedding",
     "mixtral",
     "starcoder2",
     "chatglm",
@@ -1118,6 +1119,8 @@ class PEFT(NeMoStage):
                 "PEFT is not supported in NeMo Megatron mt5 models."
             )
         model_type_to_code_path = {
+            "mistral_embedding": self._nemo_code_path
+            / "examples/nlp/information_retrieval/megatron_gpt_embedding_finetuning.py",
             "gpt3": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "llama": self._nemo_code_path
@@ -1318,6 +1321,57 @@ class RAGIndexing(NeMoStage):
         }
         return model_type_to_code_path[model_type]
 
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """
+        Make the command groups for current stage
+        Command groups is a list of command group. A command group is defined as:
+              0. Command group is a list of command strings
+              1. Each command group occupies one bcprun, srun or bash
+              2. Each command group eventually has multiple commands connected by ";"
+
+        :param Path stage_cfg_path: path to interpolated and saved configuration
+        :return: command groups for current stage
+        :rtype: List[List[str]]
+        """
+        # Training has one command group
+        # Shared with fine-tuning and prompt learning
+        command_groups = [[]]
+        command_groups[0] += self._make_wandb_login_command()
+        command_groups[0] += self._make_nemo_path_command()
+        command_groups[0] += self._make_git_log_command(stage_cfg_path)
+        # command_groups[0] += self._make_numa_mapping_command()
+
+        # commands for installing dependencies
+        package_command_string = "pip install llama-index==0.10.33"
+        command_groups[0] += [package_command_string]
+
+        # _cuda_device_max_connections and _cuda_visible_devices cannot be used as command prefix on BCP
+        if self.cluster == "bcp":
+            core_command = []
+        else:
+            core_command = [
+                self._cuda_device_max_connections,
+                self._cuda_visible_devices,
+                self._set_ln_sm_margin,
+                self._skip_ag_overlap,
+                self._nvte_bias_gelu_nvfusion,
+            ]
+
+        core_command += [
+            self._make_api_log_command_prefix(
+                results_dir=self.get_job_path().results_folder
+            ),
+            self._make_nsys_command_prefix(
+                results_dir=self.get_job_path().results_folder
+            ),
+            self._make_nemo_call_string(stage_cfg_path),
+        ]
+        core_command_string = " ".join([c for c in core_command if c])
+        command_groups[0] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
 
 class RAGGenerating(NeMoStage):
     def setup_stage_vars(self, cfg):
@@ -1330,6 +1384,57 @@ class RAGGenerating(NeMoStage):
             "gpt3": self._nemo_code_path / "examples/nlp/rag/rag_generating.py",
         }
         return model_type_to_code_path[model_type]
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """
+        Make the command groups for current stage
+        Command groups is a list of command group. A command group is defined as:
+              0. Command group is a list of command strings
+              1. Each command group occupies one bcprun, srun or bash
+              2. Each command group eventually has multiple commands connected by ";"
+
+        :param Path stage_cfg_path: path to interpolated and saved configuration
+        :return: command groups for current stage
+        :rtype: List[List[str]]
+        """
+        # Training has one command group
+        # Shared with fine-tuning and prompt learning
+        command_groups = [[]]
+        command_groups[0] += self._make_wandb_login_command()
+        command_groups[0] += self._make_nemo_path_command()
+        command_groups[0] += self._make_git_log_command(stage_cfg_path)
+        # command_groups[0] += self._make_numa_mapping_command()
+
+        # commands for installing dependencies
+        package_command_string = "pip install llama-index==0.10.33"
+        command_groups[0] += [package_command_string]
+
+        # _cuda_device_max_connections and _cuda_visible_devices cannot be used as command prefix on BCP
+        if self.cluster == "bcp":
+            core_command = []
+        else:
+            core_command = [
+                self._cuda_device_max_connections,
+                self._cuda_visible_devices,
+                self._set_ln_sm_margin,
+                self._skip_ag_overlap,
+                self._nvte_bias_gelu_nvfusion,
+            ]
+
+        core_command += [
+            self._make_api_log_command_prefix(
+                results_dir=self.get_job_path().results_folder
+            ),
+            self._make_nsys_command_prefix(
+                results_dir=self.get_job_path().results_folder
+            ),
+            self._make_nemo_call_string(stage_cfg_path),
+        ]
+        core_command_string = " ".join([c for c in core_command if c])
+        command_groups[0] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
 
 
 class Conversion(NemoMegatronStage):

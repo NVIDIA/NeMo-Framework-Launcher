@@ -8,9 +8,9 @@ run:
   dependency: "singleton"
   nodes: 1
   ntasks_per_node: 1
-  eval_name: rag_pipeline
-  model_train_name: rag
-  results_dir: ${base_results_dir}/${.model_train_name}/${.eval_name}
+  eval_name: rag_generating
+  model_train_name: gpt3
+  results_dir: ${base_results_dir}/${.name}
 
 trainer:
   devices: 1

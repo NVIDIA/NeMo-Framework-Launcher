@@ -139,6 +139,13 @@ model:
   tp_comm_atomic_ag: False
   tp_comm_atomic_rs: False
   use_flash_attention: true
+  nsys_profile:
+    enabled: False
+    trace: [nvtx,cuda]
+    start_step: 10  # Global batch to start profiling
+    end_step: 10 # Global batch to end profiling
+    ranks: [0] # Global rank IDs to profile
+    gen_shape: False # Generate model and kernel details including input shapes
   optim:
     name: distributed_fused_adam
     lr: 1e-4
