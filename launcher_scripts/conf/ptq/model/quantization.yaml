@@ -2,8 +2,8 @@ run:
   name: ${.task_name}_${.model_train_name}
   time_limit: 00:30:00
   dependency: singleton
-  nodes: ${model.pipeline_model_parallel_size}
-  ntasks_per_node: ${model.tensor_model_parallel_size}
+  nodes: ${..model.pipeline_model_parallel_size}
+  ntasks_per_node: ${..model.tensor_model_parallel_size}
   model_train_name: llama2_7b
   task_name: ptq
   results_dir: ${base_results_dir}/${.model_train_name}/${.task_name}_${quantization.algorithm}
@@ -23,8 +23,8 @@ inference:
   max_context_length: 512 # max length of the context, input sequence will be truncated if it is longer than this
 
 trainer:
-  devices: ${model.tensor_model_parallel_size}
-  num_nodes: ${model.pipeline_model_parallel_size}
+  devices: ${..model.tensor_model_parallel_size}
+  num_nodes: ${..model.pipeline_model_parallel_size}
   accelerator: gpu
   logger: false # logger provided by exp_manager
   precision: bf16 # 16, 32, or bf16
@@ -36,7 +36,7 @@ model:
   restore_from_path: llama2-7b-fp16.nemo # Nemo file path
 
 quantization:
-  decoder_type: ${export.decoder_type} # gptnext, gpt2, llama
+  decoder_type: ${..export.decoder_type} # gptnext, gpt2, llama
   algorithm: fp8 # null, int8, int8_sq, fp8, int4_awq, w4a8_awq, int4
   calib_dataset: cnn_dailymail # wikitext, cnn_dailymail, or a local dataset
   num_calib_size: 512 # number of samples used for calibration
@@ -47,5 +47,5 @@ export:
   decoder_type: llama # gptnext, gpt2, llama
   inference_tensor_parallel: 1 # Default using 1 TP for inference
   inference_pipeline_parallel: 1 # Default using 1 PP for inference
-  dtype: ${trainer.precision} # Default precision data type
+  dtype: ${..trainer.precision} # Default precision data type
   save_path: llama2-7b-fp8.qnemo # Path where the quantized model will be saved
