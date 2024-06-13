@@ -70,7 +70,7 @@ model:
   # Multimodal configs
   mm_cfg:
     llm:
-      from_pretrained: ${data_dir}/neva/checkpoints/mixtral_8x7b_instruct.nemo # path to nemo checkpoint
+      from_pretrained: ${data_dir}/video_neva/checkpoints/mixtral_8x7b_instruct.nemo # path to nemo checkpoint
       freeze: True
       model_type: mistral
     vision_encoder:
@@ -183,7 +183,7 @@ model:
   tokenizer:
     library: 'sentencepiece'
     type: null
-    model: ${data_dir}/neva/tokenizers/tokenizer_neva.model
+    model: ${data_dir}/video_neva/tokenizers/tokenizer_neva.model
     vocab_file: null
     merge_file: null
     delimiter: null # only used for tabular tokenizer
@@ -196,7 +196,7 @@ model:
     data_path: ${data_dir}/video_neva/datasets/videos/annotations.json
     lazy_preprocess: True
     is_multimodal: True
-    conv_template: llama_2
+    conv_template: mistral
     media_type: video # currently supported: image
     num_frames: 4
     splice_single_frame: null

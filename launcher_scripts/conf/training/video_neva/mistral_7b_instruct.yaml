@@ -70,7 +70,7 @@ model:
   # Multimodal configs
   mm_cfg:
     llm:
-      from_pretrained: ${data_dir}/neva/checkpoints/mistral-7b-instruct.nemo # path to nemo checkpoint
+      from_pretrained: ${data_dir}/video_neva/checkpoints/mistral-7b-instruct.nemo # path to nemo checkpoint
       freeze: True
       model_type: mistral
     vision_encoder:
@@ -183,18 +183,20 @@ model:
   tokenizer:
     library: 'sentencepiece'
     type: null
-    model: ${data_dir}/neva/tokenizers/tokenizer_neva.model
+    model: ${data_dir}/video_neva/tokenizers/tokenizer_neva.model
     vocab_file: null
     merge_file: null
     delimiter: null # only used for tabular tokenizer
     sentencepiece_legacy: False # Legacy=True allows you to add special tokens to sentencepiece tokenizers.
 
   data:
+    packed_sequence: False
     num_workers: 8
     dataloader_type: cyclic
-    data_path: ${data_dir}/neva/datasets/LLaVA-Pretrain-LCS-558K/blip_laion_cc_sbu_558k.json
+    data_path: ${data_dir}/video_neva/datasets/videos/annotations.json
     lazy_preprocess: True
     is_multimodal: True
+    conv_template: mistral
     media_type: video # currently supported: image
     num_frames: 4
     splice_single_frame: null
