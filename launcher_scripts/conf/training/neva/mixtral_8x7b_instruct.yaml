@@ -6,7 +6,7 @@ run:
 
 trainer:
   devices: 8
-  num_nodes: 1
+  num_nodes: 2
   accelerator: gpu
   precision: bf16
   logger: False # logger provided by exp_manager
@@ -90,6 +90,7 @@ model:
   # LLM configs
   # use GPTModel from megatron.core
   mcore_gpt: True
+  
   moe_grouped_gemm: false
   moe_token_dispatcher_type: alltoall
   moe_aux_loss_coeff: 0.01

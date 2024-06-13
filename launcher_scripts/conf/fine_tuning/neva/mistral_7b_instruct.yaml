@@ -198,7 +198,7 @@ model:
     is_multimodal: True
     media_type: image
     sep_image_conv_front: False
-    conv_template: ${fine_tuning.model.mm_cfg.llm.model_type}
+    conv_template: mistral
     image_folder: ${data_dir}/neva/datasets/LLaVA-Instruct-mixture/images
     image_aspect_ratio: 'square'
 
@@ -219,6 +219,6 @@ model:
       - 0.95
     sched:
       name: CosineAnnealing
-      warmup_steps: 70
+      warmup_steps: 150
       constant_steps: 0
       min_lr: 2e-7
