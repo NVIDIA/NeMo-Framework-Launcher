@@ -2614,8 +2614,7 @@ class PostTrainingQuantization(NeMoStage):
         :return: path current stage's essential nemo scripts code
         :rtype: Path
         """
-        # TODO: rename to megatron_quantization.py as this script works for other model families as well
         return (
             self._nemo_code_path
-            / "examples/nlp/language_modeling/megatron_quantization.py"
+            / "examples/nlp/language_modeling/megatron_gpt_quantization.py"
         )
