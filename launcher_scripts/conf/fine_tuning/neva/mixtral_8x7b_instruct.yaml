@@ -3,7 +3,7 @@ run:
   time_limit: "1-00:00:00"
   dependency: "singleton"
   model_train_name: neva_mistral_8x7b_instruct
-  results_dir: ${base_results_dir}/${.name}
+  results_dir: ${base_results_dir}/${.model_train_name}/${.name}
 
 trainer:
   devices: 8
@@ -139,7 +139,7 @@ model:
   activations_checkpoint_num_layers: null # not used with 'selective'
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
-  sequence_parallel: True
+  sequence_parallel: False
 
   # precision
   native_amp_init_scale: 4294967296 # 2 ** 32
