@@ -211,24 +211,35 @@ class NemoMegatronStage:
 
     def _make_git_log_command(self, stage_cfg_path: Path):
         """
-        log HEAD commit for subset of repos in NeMo container, PyTorch and  NeMo container version names
+        log HEAD commit for subset of repos in NeMo container, version names for PyTorch and  NeMo container
         'NeMo-Megatron-Launcher' was renamed to 'NeMo-Framework-Launcher'. Try logging for both for
         backwards compatibility.
         """
-        append_to_file = f"{stage_cfg_path.parent}/git_log.txt"
-        if os.path.isfile(append_to_file) and os.path.getsize(append_to_file) > 0:
-            return [f"echo {append_to_file} already exists. Skipping generating new file..."]
+        filepath = os.path.join(f"{stage_cfg_path.parent}", "results", "git-info.log")
 
-        container_name = self.cfg.get("container", "")
-        return [
-            f"(echo {container_name} && \
-                echo PYT$\"NVIDIA_PYTORCH_VERSION\"; \
-                git --git-dir=/opt/NeMo/.git log -n 1 --format='NeMo;%h;%aD;%s'; \
-                git --git-dir=/opt/megatron-lm/.git log -n 1 --format='megatron-lm;%h;%aD;%s'; \
-                git --git-dir=/opt/TransformerEngine/.git log -n 1 --format='megatron-lm;%h;%aD;%s'; \
-                git --git-dir=/opt/NeMo-Framework-Launcher/.git log -n 1 --format='NeMo-Framework-Launcher;%h;%aD;%s'; \
-                git --git-dir=/opt/NeMo-Megatron-Launcher/.git log -n 1 --format='NeMo-Megatron-Launcher;%h;%aD;%s') > {append_to_file}"
+        git_repos = [
+            "NeMo",
+            "megatron-lm",
+            "TransformerEngine",
+            "NeMo-Framework-Launcher",
+            "NeMo-Megatron-Launcher",
+            "apex",
         ]
+
+        git_log_cmd = [
+            f"git --git-dir=/opt/{repo}/.git log -n 1 --format='{repo};%h;%aD;%s'"
+            for repo in git_repos
+        ]
+
+        container_info_cmd = [
+            f"echo NeMo-Container-Version\;{self.cfg.get('container', '')}",
+            'echo PyTorch-Container-Version\;PYT$"NVIDIA_PYTORCH_VERSION"',
+        ]
+
+        # semi-colon delimiter ensures we run all above commands even after a failure
+        # circular brackets groups commands and ensures we write to file ONLY after all
+        # commands finish execution
+        return [f"({';'.join(git_log_cmd + container_info_cmd)}) > {filepath}"]
 
     def _make_k8s_spec_file(
         self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
