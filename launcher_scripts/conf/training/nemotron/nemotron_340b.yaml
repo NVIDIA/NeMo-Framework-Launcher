@@ -9,7 +9,7 @@ run:
   dependency: "singleton"
 
 trainer:
-  num_nodes: 12 # 768
+  num_nodes: 768
   devices: 8
   accelerator: gpu
   precision: bf16
@@ -54,7 +54,7 @@ exp_manager:
 
 model:
   micro_batch_size: 1
-  global_batch_size: 36 # 2304
+  global_batch_size: 2304
   rampup_batch_size: null
   context_parallel_size: 1
   tensor_model_parallel_size: 8
@@ -185,5 +185,7 @@ model:
     eod_mask_loss: false
     index_mapping_dir: /lustre/fsw/coreai_dlalgo_llm/aot/cache/nemotron340b
     data_prefix:
-      - 1
-      - /lustre/share/llmservice_nlp_fm/adlr-nlp-sharing/nvllm-8t/data/tokens-shuffle/english/cc/CC-MAIN-2016-26_hq_shuf_text_document
+      - .0333
+      - ${data_dir}/my-nemotron_00_text_document
+      - .0333
+      - ${data_dir}/my-nemotron_00_text_document
