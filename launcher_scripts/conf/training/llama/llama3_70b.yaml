@@ -106,6 +106,8 @@ model:
   grad_allreduce_chunk_size_mb: 125
   grad_div_ar_fusion: true
   gradient_accumulation_fusion: true
+  cross_entropy_loss_fusion: true
+  defer_embedding_wgrad_compute: true
   bias_activation_fusion: true
   bias_dropout_add_fusion: true
   masked_softmax_fusion: true
