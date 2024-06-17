@@ -36,14 +36,18 @@ __LANGUAGE_MODELS_LIST__ = [
     "t5",
     "mt5",
     "bert",
+    "bert_embedding",
     "llama",
     "gemma",
     "falcon",
     "baichuan2",
     "mistral",
+    "mistral_embedding",
     "mixtral",
     "starcoder2",
     "chatglm",
+    "griffin",
+    "qwen2",
 ]
 __VISION_MODELS_LIST__ = ["vit"]
 __MULTIMODAL_MODELS_LIST__ = [
@@ -55,6 +59,7 @@ __MULTIMODAL_MODELS_LIST__ = [
     "controlnet",
     "nsfw",
     "neva",
+    "video_neva",
 ]
 
 
@@ -121,6 +126,8 @@ class NemoMegatronStage:
         # Make command groups
         command_groups = self.make_stage_command_groups(stage_cfg_path)
         # Create launcher
+        print("job_path.folder: ", job_path.folder)
+        print("self.cluster: ", self.cluster)
         launcher = AutoLauncher(
             folder=job_path.folder, cluster=self.cluster, **cluster_parameters,
         )
@@ -200,6 +207,20 @@ class NemoMegatronStage:
             f"cd {self._nemo_code_path}",
             "git rev-parse HEAD",
             f"export PYTHONPATH={self._nemo_code_path}:\${{PYTHONPATH}}",
+        ]
+
+    def _make_git_log_command(self, stage_cfg_path: Path):
+        """log last 5 commits for repos- NeMo, megatron-lm, NeMo-Framework-Launcher or NeMo-Megatron-Launcher
+        'NeMo-Megatron-Launcher' was renamed to 'NeMo-Framework-Launcher'. We run git log for both for
+        backwards compatibility.
+        """
+        append_to_file = f"{stage_cfg_path.parent}/git_log.txt"
+        return [
+            f"(echo PYT$\"NVIDIA_PYTORCH_VERSION\" && \
+                git --git-dir=/opt/NeMo/.git log -n 5 --format='NeMo;%h;%aD;%s' && \
+                git --git-dir=/opt/megatron-lm/.git log -n 5 --format='megatron-lm;%h;%aD;%s' && \
+                git --git-dir=/opt/NeMo-Framework-Launcher/.git log -n 5 --format='NeMo-Framework-Launcher;%h;%aD;%s' && \
+                git --git-dir=/opt/NeMo-Megatron-Launcher/.git log -n 5 --format='NeMo-Megatron-Launcher;%h;%aD;%s') > {append_to_file}"
         ]
 
     def _make_k8s_spec_file(
@@ -473,8 +494,7 @@ class NemoMegatronStage:
         For example, if `training=gpt3/5b`, then `choice_model_type=gpt3` and `choice_name=5b`
         """
         stage_config_choice = self.cfg.get(f"{self.stage_name}_config")
-        choice_model_type = stage_config_choice.rsplit("/", 1)[0]
-        choice_name = stage_config_choice.rsplit("/", 1)[1]
+        choice_model_type, choice_name = stage_config_choice.rsplit("/", 1)
         return choice_model_type, choice_name
 
     @property
@@ -546,7 +566,7 @@ class NemoMegatronStage:
         """Set LayerNorm SM margin when using P2P communication overlap to support the overlap with LayerNorm kernel"""
         vpp = self.cfg.training.model.get("virtual_pipeline_model_parallel_size")
         if (
-            self.cfg.training.model.get("pipeline_model_parallel_size") > 1
+            self.cfg.training.model.get("pipeline_model_parallel_size", 1) > 1
             and vpp is not None
             and vpp > 1
         ):
@@ -602,6 +622,7 @@ class NeMoStage(NemoMegatronStage):
         command_groups = [[]]
         command_groups[0] += self._make_wandb_login_command()
         command_groups[0] += self._make_nemo_path_command()
+        command_groups[0] += self._make_git_log_command(stage_cfg_path)
         # command_groups[0] += self._make_numa_mapping_command()
 
         # _cuda_device_max_connections and _cuda_visible_devices cannot be used as command prefix on BCP
@@ -878,9 +899,13 @@ class Training(NeMoStage):
             "nerf": self._nemo_code_path / "examples/multimodal/x_to_nerf/nerf/main.py",
             "neva": self._nemo_code_path
             / "examples/multimodal/multimodal_llm/neva/neva_pretrain.py",
+            "video_neva": self._nemo_code_path
+            / "examples/multimodal/multimodal_llm/neva/neva_pretrain.py",
             "mistral": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "qwen2": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
         }
         return model_type_to_code_path[model_type]
@@ -937,22 +962,24 @@ class FineTuning(NeMoStage):
         """
 
         model_type_to_code_path = {
+            "bert_embedding": self._nemo_code_path
+            / "examples/nlp/information_retrieval/megatron_bert_embedding_finetuning.py",
             "gpt3": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "llama": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "code_llama": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "mt5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "falcon": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "chatglm": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "starcoder2": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "gemma": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "vit": self._nemo_code_path
@@ -962,11 +989,13 @@ class FineTuning(NeMoStage):
             "nsfw": self._nemo_code_path
             / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
             "baichuan2": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "mistral": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "mixtral": self._nemo_code_path
-            / "examples/nlp/language_modeling/tuning/megatron_gpt_sft.py",
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            "qwen2": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
         }
         return model_type_to_code_path[model_type]
 
@@ -1090,6 +1119,8 @@ class PEFT(NeMoStage):
                 "PEFT is not supported in NeMo Megatron mt5 models."
             )
         model_type_to_code_path = {
+            "mistral_embedding": self._nemo_code_path
+            / "examples/nlp/information_retrieval/megatron_gpt_embedding_finetuning.py",
             "gpt3": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "llama": self._nemo_code_path
@@ -1106,6 +1137,8 @@ class PEFT(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "gemma": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            "griffin": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_griffin_finetuning.py",
             "nemotron": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "neva": self._nemo_code_path
@@ -1113,6 +1146,8 @@ class PEFT(NeMoStage):
             "mistral": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
+            "qwen2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
         }
         return model_type_to_code_path[model_type]
@@ -1266,10 +1301,140 @@ class FWInference(NeMoStage):
             / "examples/multimodal/text_to_image/controlnet/controlnet_infer.py",
             "neva": self._nemo_code_path
             / "examples/multimodal/multimodal_llm/neva/neva_evaluation.py",
+            "video_neva": self._nemo_code_path
+            / "examples/multimodal/multimodal_llm/neva/neva_evaluation.py",
             "retro": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_retro_eval.py",
         }
         return model_type_to_code_path[model_type]
+
+
+class RAGIndexing(NeMoStage):
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "rag_indexing"
+        self.stage_cfg = cfg.get("rag_indexing")
+
+    def _get_nemo_code_path(self, model_type: str) -> Path:
+        model_type_to_code_path = {
+            "bert": self._nemo_code_path / "examples/nlp/rag/rag_indexing.py",
+        }
+        return model_type_to_code_path[model_type]
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """
+        Make the command groups for current stage
+        Command groups is a list of command group. A command group is defined as:
+              0. Command group is a list of command strings
+              1. Each command group occupies one bcprun, srun or bash
+              2. Each command group eventually has multiple commands connected by ";"
+
+        :param Path stage_cfg_path: path to interpolated and saved configuration
+        :return: command groups for current stage
+        :rtype: List[List[str]]
+        """
+        # Training has one command group
+        # Shared with fine-tuning and prompt learning
+        command_groups = [[]]
+        command_groups[0] += self._make_wandb_login_command()
+        command_groups[0] += self._make_nemo_path_command()
+        command_groups[0] += self._make_git_log_command(stage_cfg_path)
+        # command_groups[0] += self._make_numa_mapping_command()
+
+        # commands for installing dependencies
+        package_command_string = "pip install llama-index==0.10.33"
+        command_groups[0] += [package_command_string]
+
+        # _cuda_device_max_connections and _cuda_visible_devices cannot be used as command prefix on BCP
+        if self.cluster == "bcp":
+            core_command = []
+        else:
+            core_command = [
+                self._cuda_device_max_connections,
+                self._cuda_visible_devices,
+                self._set_ln_sm_margin,
+                self._skip_ag_overlap,
+                self._nvte_bias_gelu_nvfusion,
+            ]
+
+        core_command += [
+            self._make_api_log_command_prefix(
+                results_dir=self.get_job_path().results_folder
+            ),
+            self._make_nsys_command_prefix(
+                results_dir=self.get_job_path().results_folder
+            ),
+            self._make_nemo_call_string(stage_cfg_path),
+        ]
+        core_command_string = " ".join([c for c in core_command if c])
+        command_groups[0] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class RAGGenerating(NeMoStage):
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "rag_generating"
+        self.stage_cfg = cfg.get("rag_generating")
+
+    def _get_nemo_code_path(self, model_type: str) -> Path:
+        model_type_to_code_path = {
+            "gpt3": self._nemo_code_path / "examples/nlp/rag/rag_generating.py",
+        }
+        return model_type_to_code_path[model_type]
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """
+        Make the command groups for current stage
+        Command groups is a list of command group. A command group is defined as:
+              0. Command group is a list of command strings
+              1. Each command group occupies one bcprun, srun or bash
+              2. Each command group eventually has multiple commands connected by ";"
+
+        :param Path stage_cfg_path: path to interpolated and saved configuration
+        :return: command groups for current stage
+        :rtype: List[List[str]]
+        """
+        # Training has one command group
+        # Shared with fine-tuning and prompt learning
+        command_groups = [[]]
+        command_groups[0] += self._make_wandb_login_command()
+        command_groups[0] += self._make_nemo_path_command()
+        command_groups[0] += self._make_git_log_command(stage_cfg_path)
+        # command_groups[0] += self._make_numa_mapping_command()
+
+        # commands for installing dependencies
+        package_command_string = "pip install llama-index==0.10.33"
+        command_groups[0] += [package_command_string]
+
+        # _cuda_device_max_connections and _cuda_visible_devices cannot be used as command prefix on BCP
+        if self.cluster == "bcp":
+            core_command = []
+        else:
+            core_command = [
+                self._cuda_device_max_connections,
+                self._cuda_visible_devices,
+                self._set_ln_sm_margin,
+                self._skip_ag_overlap,
+                self._nvte_bias_gelu_nvfusion,
+            ]
+
+        core_command += [
+            self._make_api_log_command_prefix(
+                results_dir=self.get_job_path().results_folder
+            ),
+            self._make_nsys_command_prefix(
+                results_dir=self.get_job_path().results_folder
+            ),
+            self._make_nemo_call_string(stage_cfg_path),
+        ]
+        core_command_string = " ".join([c for c in core_command if c])
+        command_groups[0] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
 
 
 class Conversion(NemoMegatronStage):
@@ -1668,6 +1833,8 @@ class NeMoEvaluation(NeMoStage):
             "peft_mistral": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "peft_mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
+            "peft_qwen2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "vit": self._nemo_code_path
             / "examples/vision/vision_transformer/megatron_vit_classification_evaluate.py",
@@ -2426,3 +2593,28 @@ class ConversionHF2NeMo(NeMoStage):
         command_groups = clean_command_groups(command_groups)
 
         return command_groups
+
+
+class PostTrainingQuantization(NeMoStage):
+    """
+    Stage class of post-training quantization.
+    """
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "ptq"
+        self.stage_cfg = cfg.get("ptq")
+
+    def _get_nemo_code_path(self, model_type: str) -> Path:
+        """
+        Provide the essential nemo code path for running the stage, usually different model types use different nemo scripts.
+        For example, `megatron_t5_pretraining.py` for t5 and `megatron_gpt_pretraining.py` for gpt3.
+
+        :param str model_type: i.e. `gpt3`, `t5`, `mt5`, etc.
+        :return: path current stage's essential nemo scripts code
+        :rtype: Path
+        """
+        return (
+            self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_quantization.py"
+        )

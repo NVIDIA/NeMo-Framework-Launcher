@@ -21,6 +21,23 @@ import nemo_launcher.utils.file_utils as utils  # TODO: check if this in python 
 import psutil
 
 
+def get_model_type(data_config):
+    known_types = [
+        "t5",
+        "bert",
+        "gpt3",
+        "llama",
+        "falcon",
+        "baichuan2",
+        "chatglm",
+        "mistral",
+        "mixtral",
+    ]
+    for m_type in known_types:
+        if m_type in data_config:
+            return m_type
+
+
 @hydra.main(config_path="conf", config_name="config", version_base="1.2")
 def main(cfg):
     launcher_scripts_path = cfg.get("launcher_scripts_path")
@@ -37,6 +54,8 @@ def main(cfg):
     assert vocab_dir is not None, "vocab_save_dir must be a valid path."
     if "gpt" in tokenizer_type.lower():
         vocab_path = os.path.join(launcher_scripts_path, vocab_dir, "vocab.json")
+    elif tokenizer_library.lower() == "huggingface":
+        vocab_path = None
     else:
         vocab_path = os.path.join(launcher_scripts_path, vocab_dir, "vocab.txt")
 
@@ -59,10 +78,13 @@ def main(cfg):
     code_path = (
         "/opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py"
     )
+    hf_cache = os.environ.get(
+        "TRANSFORMERS_CACHE", os.environ.get("HF_HOME", "/temp_root/.cache/")
+    )
     runcmd = (
         f"cd {megatron_dir}; "
         f'export PYTHONPATH="/opt/NeMo/.:$PYTHONPATH"; '
-        f'export TRANSFORMERS_CACHE="/temp_root/.cache/"; '
+        f'export TRANSFORMERS_CACHE="{hf_cache}"; '
         f"python3 {code_path} "
     )
 
@@ -70,34 +92,20 @@ def main(cfg):
         file_number = int(os.environ.get("SLURM_ARRAY_TASK_ID"))
         extracted_path = os.path.join(data_dir, f"{file_number:02d}.jsonl")
 
-        model_type = "t5"
-        if "bert" in data_config:
-            model_type = "bert"
-        elif "gpt3" in data_config:
-            model_type = "gpt3"
-        elif "llama" in data_config:
-            model_type = "llama"
-        elif "falcon" in data_config:
-            model_type = "falcon"
-        elif "baichuan2" in data_config:
-            model_type = "baichuan2"
-        elif "chatglm" in data_config:
-            model_type = "chatglm"
-
+        model_type = get_model_type(data_config)
         output_prefix = os.path.join(data_dir, f"my-{model_type}_{file_number:02d}")
 
         flags = (
             f"--input {extracted_path} "
             f"--output-prefix {output_prefix} "
-            f"--vocab {vocab_path} "
             f"--dataset-impl mmap "
-            f"--tokenizer-library megatron "
             f"--tokenizer-type {tokenizer_type} "
             f"--tokenizer-library {tokenizer_library} "
             f"--tokenizer-model {tokenizer_model} "
             f"--workers $SLURM_CPUS_ON_NODE "
         )
-
+        if vocab_path is not None:
+            flags += f"--vocab {vocab_path} "
         if model_type == "bert":
             # Used for bert binary head (Next sentence predition)
             flags += "--split-sentences "
@@ -114,13 +122,13 @@ def main(cfg):
         files_list = utils.convert_file_numbers(file_numbers)
         if cfg.get("cluster_type") == "bcp":
             wrank = int(os.environ.get("RANK", 0))
-            wsize = int(os.environ.get("WORLD_SIZE", 0))
+            wsize = int(os.environ.get("WORLD_SIZE", 1))
             lrank = int(os.environ.get("LOCAL_RANK", 0))
         else:
             # Assumes launched via mpirun:
             #   mpirun -N <nnodes> -npernode 1 ...
             wrank = int(os.environ.get("OMPI_COMM_WORLD_RANK", 0))
-            wsize = int(os.environ.get("OMPI_COMM_WORLD_SIZE", 0))
+            wsize = int(os.environ.get("OMPI_COMM_WORLD_SIZE", 1))
             lrank = int(os.environ.get("OMPI_COMM_WORLD_LOCAL_RANK", 0))
 
         if lrank == 0:
@@ -137,28 +145,20 @@ def main(cfg):
         for file_number in files_to_preproc:
             extracted_path = os.path.join(data_dir, f"{file_number:02d}.jsonl")
 
-            model_type = "t5"
-            if "bert" in data_config:
-                model_type = "bert"
-            elif "gpt3" in data_config:
-                model_type = "gpt3"
-            elif "llama" in data_config:
-                model_type = "llama"
-
+            model_type = get_model_type(data_config)
             output_prefix = os.path.join(data_dir, f"my-{model_type}_{file_number:02d}")
 
             flags = (
                 f"--input {extracted_path} "
                 f"--output-prefix {output_prefix} "
-                f"--vocab {vocab_path} "
                 f"--dataset-impl mmap "
-                f"--tokenizer-library megatron "
                 f"--tokenizer-type {tokenizer_type} "
                 f"--tokenizer-library {tokenizer_library} "
                 f"--tokenizer-model {tokenizer_model} "
                 f"--workers {ncpus} "
             )
-
+            if vocab_path is not None:
+                flags += f"--vocab {vocab_path} "
             if model_type == "bert":
                 # Used for bert binary head (Next sentence predition)
                 flags += "--split-sentences "

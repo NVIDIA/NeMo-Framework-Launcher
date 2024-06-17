@@ -20,7 +20,16 @@ from autoconfig.base_config import calculate_model_size, generate_base_config
 from autoconfig.inference_sweep import search_inference_config
 from autoconfig.training_config import search_training_config
 
-SUPPORTED_MODELS = ["gpt3", "t5", "mt5", "bert", "llama", "baichuan2", "chatglm"]
+SUPPORTED_MODELS = [
+    "gpt3",
+    "t5",
+    "mt5",
+    "bert",
+    "llama",
+    "baichuan2",
+    "chatglm",
+    "qwen2",
+]
 
 
 def search_config(
