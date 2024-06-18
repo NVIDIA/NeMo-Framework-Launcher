@@ -212,8 +212,6 @@ class NemoMegatronStage:
     def _make_git_log_command(self, stage_cfg_path: Path):
         """
         log HEAD commit for subset of repos in NeMo container, version names for PyTorch and  NeMo container
-        'NeMo-Megatron-Launcher' was renamed to 'NeMo-Framework-Launcher'. Try logging for both for
-        backwards compatibility.
         """
         filepath = os.path.join(f"{stage_cfg_path.parent}", "git-info.log")
 
@@ -222,7 +220,6 @@ class NemoMegatronStage:
             "megatron-lm",
             "TransformerEngine",
             "NeMo-Framework-Launcher",
-            "NeMo-Megatron-Launcher",
             "apex",
             "NeMo-Aligner",
             "NeMo-Curator",
