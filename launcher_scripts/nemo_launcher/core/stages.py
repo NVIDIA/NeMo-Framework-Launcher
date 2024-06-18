@@ -215,7 +215,7 @@ class NemoMegatronStage:
         'NeMo-Megatron-Launcher' was renamed to 'NeMo-Framework-Launcher'. Try logging for both for
         backwards compatibility.
         """
-        filepath = os.path.join(f"{stage_cfg_path.parent}", "git-info.txt")
+        filepath = os.path.join(f"{stage_cfg_path.parent}", "git-info.log")
 
         git_repos = [
             "NeMo",
