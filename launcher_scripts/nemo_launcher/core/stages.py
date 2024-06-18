@@ -210,18 +210,35 @@ class NemoMegatronStage:
         ]
 
     def _make_git_log_command(self, stage_cfg_path: Path):
-        """log last 5 commits for repos- NeMo, megatron-lm, NeMo-Framework-Launcher or NeMo-Megatron-Launcher
-        'NeMo-Megatron-Launcher' was renamed to 'NeMo-Framework-Launcher'. We run git log for both for
-        backwards compatibility.
         """
-        append_to_file = f"{stage_cfg_path.parent}/git_log.txt"
-        return [
-            f"(echo PYT$\"NVIDIA_PYTORCH_VERSION\" && \
-                git --git-dir=/opt/NeMo/.git log -n 5 --format='NeMo;%h;%aD;%s' && \
-                git --git-dir=/opt/megatron-lm/.git log -n 5 --format='megatron-lm;%h;%aD;%s' && \
-                git --git-dir=/opt/NeMo-Framework-Launcher/.git log -n 5 --format='NeMo-Framework-Launcher;%h;%aD;%s' && \
-                git --git-dir=/opt/NeMo-Megatron-Launcher/.git log -n 5 --format='NeMo-Megatron-Launcher;%h;%aD;%s') > {append_to_file}"
+        log HEAD commit for subset of repos in NeMo container, version names for PyTorch and  NeMo container
+        """
+        filepath = os.path.join(f"{stage_cfg_path.parent}", "git-info.log")
+
+        git_repos = [
+            "NeMo",
+            "megatron-lm",
+            "TransformerEngine",
+            "NeMo-Framework-Launcher",
+            "apex",
+            "NeMo-Aligner",
+            "NeMo-Curator",
         ]
+
+        git_log_cmd = [
+            f"git --git-dir=/opt/{repo}/.git log -n 1 --format='{repo};%h;%aD;%s'"
+            for repo in git_repos
+        ]
+
+        container_info_cmd = [
+            f"echo NeMo-Container-Version\;{self.cfg.get('container', '')}",
+            'echo PyTorch-Container-Version\;PYT$"NVIDIA_PYTORCH_VERSION"',
+        ]
+
+        # semi-colon delimiter ensures we run all above commands even after a failure
+        # circular brackets groups commands and ensures we write to file ONLY after all
+        # commands finish execution
+        return [f"({';'.join(git_log_cmd + container_info_cmd)}) > {filepath}"]
 
     def _make_k8s_spec_file(
         self, template_root: str, cluster_parameters: Dict, job_path: JobPaths
