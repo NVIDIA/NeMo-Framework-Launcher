@@ -2,7 +2,7 @@ run:
   name: neva_mixtral_8x7b_instruct_fine_tuning
   time_limit: "1-00:00:00"
   dependency: "singleton"
-  model_train_name: neva_mistral_8x7b_instruct
+  model_train_name: neva_mixtral_8x7b_instruct
   results_dir: ${base_results_dir}/${.model_train_name}/${.name}
 
 trainer:
