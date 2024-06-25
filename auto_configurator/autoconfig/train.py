@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Module to launch training jobs using nemo_megatron_launcher."""
+"""Module to launch training jobs using nemo_framework_launcher."""
 
 import os
 import subprocess
@@ -25,22 +25,22 @@ def run_training(
     file_name: str, model_name: str, results_dir: str, cfg: OmegaConf
 ) -> int:
     """
-    Launch a training job for the given model name and config file, using nemo_megatron_launcher.
-    :param str file_name: name of the file configuration to be selected for training with nemo_megatron_launcher.
+    Launch a training job for the given model name and config file, using nemo_framework_launcher.
+    :param str file_name: name of the file configuration to be selected for training with nemo_framework_launcher.
     :param str model_name: model type to be run, usually gpt3, t5 or mt5.
     :param str results_dir: path to the directory where the results will be stored.
     :param OmegaConf cfg: OmegaConf object with full configuration for the HP tool.
     :return: SLURM job_id of the training job that was launched.
     :rtype: str
     """
-    # Copy cluster config to nemo_megatron_launcher.
+    # Copy cluster config to nemo_framework_launcher.
     launcher_scripts_path = cfg.get("launcher_scripts_path")
     cluster_cfg = cfg.get("cluster")
     dst = os.path.join(launcher_scripts_path, "conf/cluster/bcm.yaml")
     copy_config_to_file(cluster_cfg, dst)
     print(f"Copied cluster config to {dst}")
 
-    # Generate string of hydra overrides for nemo_megatron_launcher.
+    # Generate string of hydra overrides for nemo_framework_launcher.
     overrides_str = generate_overrides_str(file_name, model_name, results_dir, cfg)
 
     nemo_megatron_ci = (
@@ -92,8 +92,8 @@ def generate_overrides_str(
     file_name: str, model_name: str, results_dir: str, cfg: OmegaConf
 ) -> str:
     """
-    Generates string with hydra-like parameter overrides for nemo_megatron_launcher.
-    :param str file_name: name of the file configuration to be selected for training with nemo_megatron_launcher.
+    Generates string with hydra-like parameter overrides for nemo_framework_launcher.
+    :param str file_name: name of the file configuration to be selected for training with nemo_framework_launcher.
     :param str model_name: model type to be run, usually gpt3, t5 or mt5.
     :param str results_dir: path to the directory where the results will be stored.
     :param OmegaConf cfg: OmegaConf object with full configuration for the HP tool.

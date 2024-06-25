@@ -90,4 +90,4 @@ then it will be merged.
 
 ## License
 
-The NeMo Framework Launcher is licensed under the [Apache 2.0 License](https://github.com/NVIDIA/NeMo-Megatron-Launcher/blob/master/LICENSE)
+The NeMo Framework Launcher is licensed under the [Apache 2.0 License](https://github.com/NVIDIA/NeMo-Framework-Launcher/blob/master/LICENSE)

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Prepares and launches the training HP search using nemo_megatron_launcher."""
+"""Prepares and launches the training HP search using nemo_framework_launcher."""
 
 import os
 import shutil
@@ -34,7 +34,7 @@ def search_training_config(
     """
     Entry point for the training HP search. This function calls other functions to perform three
     actions: generates the grid of possible configurations; launches those configurations using
-    nemo_megatron_launcher; and launches a final job to compare the results of all the training
+    nemo_framework_launcher; and launches a final job to compare the results of all the training
     jobs.
     :param dict base_cfg: base configuration of the model to be trained.
     :param float model_size_in_b: number of parameters in the model, if known.
