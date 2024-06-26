@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Required settings
-NEMO_MEGATRON_LAUNCHER_DIR=${NEMO_MEGATRON_LAUNCHER_DIR:-"/opt/NeMo-Megatron-Launcher"}
+NEMO_FRAMEWORK_LAUNCHER_DIR=${NEMO_FRAMEWORK_LAUNCHER_DIR:-"/opt/NeMo-Framework-Launcher"}
 #MODEL= # pretrained model
 #TRAIN_DS= # [/path/to/training.jsonl]
 #VALID_DS= # [/path/to/validation.jsonl]
@@ -10,11 +10,11 @@ NEMO_MEGATRON_LAUNCHER_DIR=${NEMO_MEGATRON_LAUNCHER_DIR:-"/opt/NeMo-Megatron-Lau
 EXTRA_ARGS=${EXTRA_ARGS:-""}
 
 # Cluster settings may be set under launcher_scripts/conf/config.yaml
-python3 ${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts/main.py \
+python3 ${NEMO_FRAMEWORK_LAUNCHER_DIR}/launcher_scripts/main.py \
     peft=llama/sft \
     stages=[peft] \
-    launcher_scripts_path=${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts \
-    base_results_dir=${NEMO_MEGATRON_LAUNCHER_DIR}/results \
+    launcher_scripts_path=${NEMO_FRAMEWORK_LAUNCHER_DIR}/launcher_scripts \
+    base_results_dir=${NEMO_FRAMEWORK_LAUNCHER_DIR}/results \
     peft.run.name=h100_70b_2node \
     peft.run.time_limit=0:20:00 \
     peft.trainer.devices=8 \
