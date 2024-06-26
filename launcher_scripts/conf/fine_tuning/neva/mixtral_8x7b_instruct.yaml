@@ -2,8 +2,8 @@ run:
   name: neva_mixtral_8x7b_instruct_fine_tuning
   time_limit: "1-00:00:00"
   dependency: "singleton"
-  model_train_name: neva_mistral_8x7b_instruct
-  results_dir: ${base_results_dir}/${.name}
+  model_train_name: neva_mixtral_8x7b_instruct
+  results_dir: ${base_results_dir}/${.model_train_name}/${.name}
 
 trainer:
   devices: 8
@@ -59,7 +59,7 @@ model:
   # gradient accumulation will be done automatically based on data_parallel_size
 
   # Batch size guideline for different types of dataset
-  micro_batch_size: 1 # limited by GPU memory
+  micro_batch_size: 2 # limited by GPU memory
   global_batch_size: 128 # will use more micro batches to reach global batch size
 
   tensor_model_parallel_size: 8 # intra-layer model parallelism
