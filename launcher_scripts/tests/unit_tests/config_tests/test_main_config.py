@@ -27,6 +27,8 @@ class TestConfig:
           - rlhf_ppo: gpt3/2b_ppo
           - steerlm_reg : ac_sft/gpt_sft #rw_sft/training_rm
           - ptq: model/quantization
+          - rag_indexing: bert/340m
+          - rag_generating: gpt3/125m
           - override hydra/job_logging: stdout
         
         hydra:
@@ -104,6 +106,8 @@ class TestConfig:
         fw_inference_config: ${hydra:runtime.choices.fw_inference}
         external_conversion_config: ${hydra:runtime.choices.external_conversion}
         ptq_config: ${hydra:runtime.choices.ptq}
+        rag_indexing_config: ${hydra:runtime.choices.rag_indexing}
+        rag_generating_config: ${hydra:runtime.choices.rag_generating}
         """
         expected = OmegaConf.create(s)
         assert (

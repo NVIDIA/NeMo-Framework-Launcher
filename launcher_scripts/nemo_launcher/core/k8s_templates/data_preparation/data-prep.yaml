@@ -17,7 +17,7 @@ spec:
             image: {{ .Values.image.trainingImage }}
             command: ["bash", "-c"]
             args:
-              - '{{- range tuple "download" "extract" "preprocess" }} mpirun --allow-run-as-root -np {{ $config.totalProcesses }} -npernode {{ $config.procsPerNode }} -bind-to none -map-by slot --oversubscribe -x PYTHONPATH -mca pml ob1 -mca btl ^openib python3 /opt/NeMo-Megatron-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/pile_dataprep/{{ . }}.py --config-path=/config --config-name=config.yaml && {{- end}} echo Data preparation complete'
+              - '{{- range tuple "download" "extract" "preprocess" }} mpirun --allow-run-as-root -np {{ $config.totalProcesses }} -npernode {{ $config.procsPerNode }} -bind-to none -map-by slot --oversubscribe -x PYTHONPATH -mca pml ob1 -mca btl ^openib python3 /opt/NeMo-Framework-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/pile_dataprep/{{ . }}.py --config-path=/config --config-name=config.yaml && {{- end}} echo Data preparation complete'
             imagePullPolicy: Always
           imagePullSecrets:
           - name: {{ .Values.image.pullSecret }}

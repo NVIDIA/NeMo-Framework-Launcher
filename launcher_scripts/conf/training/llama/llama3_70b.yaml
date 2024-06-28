@@ -106,6 +106,7 @@ model:
   grad_allreduce_chunk_size_mb: 125
   grad_div_ar_fusion: true
   gradient_accumulation_fusion: true
+  cross_entropy_loss_fusion: true
   bias_activation_fusion: true
   bias_dropout_add_fusion: true
   masked_softmax_fusion: true
@@ -137,6 +138,13 @@ model:
   overlap_p2p_comm: true
   batch_p2p_comm: false
   gc_interval: 100
+  nsys_profile:
+    enabled: False
+    trace: [nvtx,cuda]
+    start_step: 10  # Global batch to start profiling
+    end_step: 10 # Global batch to end profiling
+    ranks: [0] # Global rank IDs to profile
+    gen_shape: False # Generate model and kernel details including input shapes
   optim:
     name: distributed_fused_adam
     lr: 0.00015

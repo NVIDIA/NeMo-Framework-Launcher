@@ -266,7 +266,7 @@ class PEFT(Stage):
                     "-euxc",
                     dedent(
                         f"""
-                    cd /opt/NeMo-Megatron-Launcher/launcher_scripts
+                    cd /opt/NeMo-Framework-Launcher/launcher_scripts
                     python -c '
                     from {self.launcher_download_module} import *
                     prepare_squad_for_fine_tuning(data_dir="{squad_data_dir}")
@@ -323,13 +323,13 @@ class PileDataPreparation(Stage):
     # Set scripts to empty/None to skip the step
     download_script: Optional[
         str
-    ] = "/opt/NeMo-Megatron-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/pile_dataprep/download.py"
+    ] = "/opt/NeMo-Framework-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/pile_dataprep/download.py"
     extract_script: Optional[
         str
-    ] = "/opt/NeMo-Megatron-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/pile_dataprep/extract.py"
+    ] = "/opt/NeMo-Framework-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/pile_dataprep/extract.py"
     preprocess_script: Optional[
         str
-    ] = "/opt/NeMo-Megatron-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/pile_dataprep/preprocess.py"
+    ] = "/opt/NeMo-Framework-Launcher/launcher_scripts/nemo_launcher/collections/dataprep_scripts/pile_dataprep/preprocess.py"
 
     download_vocab_url: Optional[str] = None
     download_merges_url: Optional[str] = None

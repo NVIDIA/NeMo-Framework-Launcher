@@ -1,0 +1,32 @@
+hydra:
+  searchpath:
+    - file:///opt/NeMo/examples/nlp/language_modeling/conf
+
+run:
+  name: ${.eval_name}_${.model_train_name}
+  time_limit: "4:00:00"
+  dependency: "singleton"
+  nodes: 1
+  ntasks_per_node: 1
+  eval_name: rag_indexing
+  model_train_name: bert
+  results_dir: ${base_results_dir}/${.name}
+  
+trainer:
+  devices: 1
+  num_nodes: 1
+  accelerator: gpu
+  logger: False # logger provided by exp_manager
+  precision: 'bf16-mixed'
+  use_distributed_sampler: False
+
+indexing:
+  embedder:
+    model_type: bert
+    model_path: null
+    embed_batch_size: 128
+  data:
+    data_path: null
+    chunk_size: 256
+    chunk_overlap: 10
+  index_path: null

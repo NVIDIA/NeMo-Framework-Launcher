@@ -13,9 +13,9 @@ def ptq(model_type, task_type, nemo_launcher_debug=False):
         "launcher_scripts_path=. "
         "base_results_dir=test_folder "
         "ptq.run.model_train_name=model "
-        "ptq.model_file=model.nemo "
-        "ptq.model_save=model.qnemo "
-        "ptq.tensor_model_parallel_size=8 "
+        "ptq.model.restore_from_path=model.nemo "
+        "ptq.model.tensor_model_parallel_size=8 "
+        "ptq.export.save_path=model.qnemo "
         "ptq.export.decoder_type=model "
         "ptq.export.inference_tensor_parallel=1"
     )
