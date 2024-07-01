@@ -980,15 +980,13 @@ def _make_sbatch_string_ft_launcher(
     # now create
     lines = ["#!/bin/bash", "", "# Parameters"]
     if heterogeneous:
-        raise ValueError("This PoC does not support heterogeneous jobs")
+        raise ValueError("Fault tolerance is not supported with heterogeneous jobs.")
     else:
         # run 1 FT launcher per node, it will spawn the actual tasks
         parameters["ntasks_per_node"] = 1
         for k in sorted(parameters):
             lines.append(_as_sbatch_flag(k, parameters[k]))
         parameters["ntasks_per_node"] = ntasks_per_node
-
-    lines += ["", "# This script uses experimental fault tolerance launcher", ""]
 
     # environment setup:
     if setup is not None:
@@ -1071,16 +1069,8 @@ def _make_sbatch_string_ft_launcher(
             "",
         ]
 
-    # Fault tolerance uses Torch Elastic based launcher with SLURM.
-    # Torch Lightning does not handle that case correctly,
-    # so we need to force TorchElasticEnvironment over SLURMEnvironment.
-    # We do this by setting SLURM_JOB_NAME=interactive.
-    # This is a temporary workaround, until the following PR is merged with NeMo
-    # https://github.com/Lightning-AI/pytorch-lightning/pull/18618
-    # --ignore-missing-fault-tol-cfg is used so FT launcher can handle NeMo YAML without fault_tolerance section
-    # in such case default FT config will be used
     ft_launcher_cmd_part = (
-        "SLURM_JOB_NAME=interactive ft_launcher "
+        "ft_launcher "
         + f"--fault-tol-cfg-path=$FAULT_TOL_CFG_PATH --ignore-missing-fault-tol-cfg {additional_ft_launcher_args} "
         + "--rdzv_id=$SLURM_JOB_ID --rdzv_backend=c10d --rdzv_endpoint=$RDZV_HOST "
         + f"--nnodes={nodes} --nproc_per_node={ntasks_per_node} --max-restarts={max_rank_restarts}"
