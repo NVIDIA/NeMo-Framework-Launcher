@@ -143,7 +143,8 @@ def generate_grid_search_configs(
                     else:
                         att_heads = base_cfg["model"]["encoder"]["num_attention_heads"]
                         num_layers = base_cfg["model"]["encoder"]["num_layers"]
-                    mod_gbs = gbs % (mbs * num_gpus / (tp * pp))
+                    model_parallelism = (tp * pp * cp) if cp else (tp * pp)
+                    mod_gbs = gbs % (mbs * num_gpus / model_parallelism)
                     mod_att_heads = att_heads % tp
                     mod_layers = (multiplier * num_layers) % pp
                     if (
@@ -151,7 +152,7 @@ def generate_grid_search_configs(
                         and mod_att_heads == 0
                         and mod_layers == 0
                         and (tp, pp) not in valid_tp_pp_list
-                        and min_model_parallel <= tp * pp <= max_model_parallel
+                        and min_model_parallel <= model_parallelism <= max_model_parallel
                     ):
                         valid_tp_pp_list.append((tp, pp, cp))
 
