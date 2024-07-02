@@ -167,7 +167,7 @@ def main(cfg):
                         gpus_per_node=gpus_per_node,
                         time_per_step=avg_global_step_time,
                     )
-                    config_name = f"tp{tp}_pp{pp}_cp_{cp}_mbs{mbs}_act_{act_ckpt_layers}_num_mbs_act_{num_mbs_act}_act_per_pipe_{act_per_pipe}"
+                    config_name = f"tp{tp}_pp{pp}_cp{cp}_mbs{mbs}_act_{act_ckpt_layers}_num_mbs_act_{num_mbs_act}_act_per_pipe_{act_per_pipe}"
                     result.append(
                         [
                             model_name,
