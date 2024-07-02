@@ -7,7 +7,7 @@
 #SBATCH --exclusive
 #SBATCH --time=10:00
 
-srun --container-image nvcr.io/nvidia/nemo:24.05 --container-mounts /home/dpykhtar/NeMo-Framework-Launcher/auto_configurator:/home/dpykhtar/NeMo-Framework-Launcher/auto_configurator,/home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/results:/home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/results --no-container-mount-home -o /home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/results/llama/llama3_8b_80gb/final_result/compare_throughput_8b_16nodes-%j.log -e /home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/results/llama/llama3_8b_80gb/final_result/compare_throughput_8b_16nodes-%j.error  sh -c 'HYDRA_FULL_ERROR=1 python3 -u /home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/autoconfig/scripts/compare_throughput.py auto_configurator_path=/home/dpykhtar/NeMo-Framework-Launcher/auto_configurator search_config.train_settings.model_size_in_b=8 search_config=llama/8b search_config_value=llama/8b +nodes=16 base_results_dir=/home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/results search_config=llama/llama3_8b \
+srun --container-image nvcr.io/nvidia/nemo:24.05 --container-mounts /home/dpykhtar/NeMo-Framework-Launcher/auto_configurator:/home/dpykhtar/NeMo-Framework-Launcher/auto_configurator,/home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/results:/home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/results --no-container-mount-home -o /home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/results/gpt3/0.126b_80gb/final_result/compare_throughput_0.126b_8nodes-%j.log -e /home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/results/gpt3/0.126b_80gb/final_result/compare_throughput_0.126b_8nodes-%j.error  sh -c 'HYDRA_FULL_ERROR=1 python3 -u /home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/autoconfig/scripts/compare_throughput.py auto_configurator_path=/home/dpykhtar/NeMo-Framework-Launcher/auto_configurator search_config.train_settings.model_size_in_b=0.126 search_config=gpt3/0.126b search_config_value=gpt3/0.126b +nodes=8 base_results_dir=/home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/results search_config=gpt3/0.126b \
   run_training_hp_search=True \
   run_inference_hp_search=False \
   cluster_type=bcm \
@@ -19,7 +19,7 @@ srun --container-image nvcr.io/nvidia/nemo:24.05 --container-mounts /home/dpykht
   wandb.enable=False \
   wandb.api_key_file=null \
   wandb.project=nemo-megatron-autoconfig \
-  search_config_value=llama/llama3_8b \
+  search_config_value=gpt3/0.126b \
   cluster.partition=null \
   cluster.account=null \
   cluster.exclusive=True \
@@ -28,26 +28,40 @@ srun --container-image nvcr.io/nvidia/nemo:24.05 --container-mounts /home/dpykht
   cluster.mem=0 \
   cluster.job_name_prefix=nemo_megatron_autoconfig: \
   cluster.srun_args=['--no-container-mount-home'] \
-  search_config.train_settings.model_size_in_b=8 \
-  search_config.train_settings.num_nodes=16 \
+  search_config.train_settings.model_size_in_b=0.126 \
+  search_config.train_settings.num_nodes=8 \
   search_config.train_settings.gpus_per_node=8 \
   search_config.train_settings.gpu_memory_gb=80 \
-  search_config.train_settings.max_training_days=6 \
+  search_config.train_settings.max_training_days=2 \
   search_config.train_settings.limit_search_runs=100 \
   search_config.train_settings.output_top_n=10 \
   search_config.train_settings.max_steps_per_run=50 \
-  search_config.train_settings.max_minutes_per_run=30 \
-  search_config.train_settings.tflops_per_gpu=150 \
-  search_config.train_settings.num_tokens_in_b=2400 \
-  search_config.train_settings.vocab_size=32000 \
-  search_config.train_settings.seq_length=8192 \
-  search_config.train_settings.custom_config=/home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/base_configs/llama3_8b.yaml \
-  search_config.train_settings.logs=/home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/results/llama/llama3_8b_80gb \
+  search_config.train_settings.max_minutes_per_run=20 \
+  search_config.train_settings.tflops_per_gpu=140 \
+  search_config.train_settings.num_tokens_in_b=300 \
+  search_config.train_settings.vocab_size=51200 \
+  search_config.train_settings.seq_length=2048 \
+  search_config.train_settings.custom_config=null \
+  search_config.train_settings.logs=/home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/results/gpt3/0.126b_80gb \
   search_config.train_settings.tensor_parallel_sizes=auto \
   search_config.train_settings.pipeline_parallel_sizes=auto \
   search_config.train_settings.min_model_parallel_size=auto \
   search_config.train_settings.max_model_parallel_size=auto \
   search_config.train_settings.micro_batch_sizes=auto \
-  search_config.train_settings.act_ckpt_layers=auto '
+  search_config.train_settings.act_ckpt_layers=auto \
+  search_config.inference_settings.run.model_type=gpt3 \
+  search_config.inference_settings.run.model_train_name=gpt3_0.126b \
+  search_config.inference_settings.run.gpus_per_node=8 \
+  search_config.inference_settings.run.data_type=fp16 \
+  search_config.inference_settings.run.time_limit=0:30:00 \
+  search_config.inference_settings.run.results_dir=/home/dpykhtar/NeMo-Framework-Launcher/auto_configurator/results/gpt3/0.126b_80gb \
+  search_config.inference_settings.run.tensor_parallel_sizes=[1,2] \
+  search_config.inference_settings.run.pipeline_parallel_sizes=[1] \
+  search_config.inference_settings.benchmark.input_len=60 \
+  search_config.inference_settings.benchmark.output_len=20 \
+  search_config.inference_settings.benchmark.batch_sizes=[4,8,16,32,64,128,256,512] \
+  search_config.inference_settings.benchmark.beam_width=1 \
+  search_config.inference_settings.benchmark.topk=4 \
+  search_config.inference_settings.benchmark.topp=0.0 '
 
 set +x

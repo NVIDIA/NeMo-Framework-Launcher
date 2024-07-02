@@ -151,7 +151,7 @@ def generate_grid_search_configs(
                         mod_gbs == 0
                         and mod_att_heads == 0
                         and mod_layers == 0
-                        and (tp, pp) not in valid_tp_pp_list
+                        and (tp, pp, cp) not in valid_tp_pp_list
                         and min_model_parallel <= model_parallelism <= max_model_parallel
                     ):
                         valid_tp_pp_list.append((tp, pp, cp))
