@@ -437,8 +437,10 @@ def modify_cfg(
 
     new_cfg["model"]["tensor_model_parallel_size"] = tp
     new_cfg["model"]["pipeline_model_parallel_size"] = pp
-    new_cfg["model"]["context_parallel_size"] = cp
     new_cfg["model"]["micro_batch_size"] = mbs
+
+    if cp is not None:
+        new_cfg["model"]["context_parallel_size"] = cp
 
     if model_name in ["gpt3", "bert", "llama", "baichuan2", "chatglm", "qwen2"]:
         att_heads = new_cfg["model"]["num_attention_heads"]

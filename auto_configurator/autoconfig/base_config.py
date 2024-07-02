@@ -219,6 +219,7 @@ def _gbs_tp_pp_gpt3_80gb(model_size_in_b: float, seq_length: int) -> Tuple[int]:
         int pp is the Pipeline Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
+    cp = 1
     if seq_length == 2048:
         if model_size_in_b <= 1.0:
             gbs, tp, pp = 256, 1, 1
@@ -312,7 +313,7 @@ def _gbs_tp_pp_gpt3_80gb(model_size_in_b: float, seq_length: int) -> Tuple[int]:
         raise ValueError(
             f"seq_length = {seq_length} is not supported. Available seq_length list for GPT-3 models: [2048, 4096, 8192, 16384, 32768]"
         )
-    return gbs, tp, pp
+    return gbs, tp, pp, cp
 
 
 def _gbs_tp_pp_gpt3_40gb(
@@ -328,6 +329,7 @@ def _gbs_tp_pp_gpt3_40gb(
         int pp is the Pipeline Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
+    cp = 1
     if seq_length == 2048:
         if model_size_in_b <= 1.0:
             gbs, tp, pp = 256, 1, 1
@@ -355,7 +357,7 @@ def _gbs_tp_pp_gpt3_40gb(
             raise ValueError("No GPT-3 model larger than 1.1T parameters is supported.")
     else:
         raise ValueError("seq_length != 2048 is not supported on 40GB GPU.")
-    return gbs, tp, pp
+    return gbs, tp, pp, cp
 
 
 def _gbs_tp_pp_t5_80gb(model_size_in_b: float, seq_length: int) -> Tuple[int, int, int]:
@@ -369,6 +371,7 @@ def _gbs_tp_pp_t5_80gb(model_size_in_b: float, seq_length: int) -> Tuple[int, in
         int pp is the Pipeline Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
+    cp = None
     if seq_length == 512:
         if model_size_in_b <= 1.0:
             gbs, tp, pp = 2048, 1, 1
@@ -396,7 +399,7 @@ def _gbs_tp_pp_t5_80gb(model_size_in_b: float, seq_length: int) -> Tuple[int, in
         raise ValueError(
             f"seq_length = {seq_length} is not supported. Available seq_length list for T5 models: [512]"
         )
-    return gbs, tp, pp
+    return gbs, tp, pp, cp
 
 
 def _gbs_tp_pp_t5_40gb(model_size_in_b: float, seq_length: int) -> Tuple[int, int, int]:
@@ -410,6 +413,7 @@ def _gbs_tp_pp_t5_40gb(model_size_in_b: float, seq_length: int) -> Tuple[int, in
         int pp is the Pipeline Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
+    cp = None
     if seq_length == 512:
         if model_size_in_b <= 0.5:
             gbs, tp, pp = 2048, 1, 1
@@ -439,7 +443,7 @@ def _gbs_tp_pp_t5_40gb(model_size_in_b: float, seq_length: int) -> Tuple[int, in
         raise ValueError(
             f"seq_length = {seq_length} is not supported. Available seq_length list for T5 models: [512]"
         )
-    return gbs, tp, pp
+    return gbs, tp, pp, cp
 
 
 def _gbs_tp_pp_bert_80gb(
@@ -455,6 +459,7 @@ def _gbs_tp_pp_bert_80gb(
         int pp is the Pipeline Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
+    cp = None
     if seq_length == 512:
         if model_size_in_b <= 1.0:
             gbs, tp, pp = 256, 1, 1
@@ -480,7 +485,7 @@ def _gbs_tp_pp_bert_80gb(
         raise ValueError(
             f"seq_length = {seq_length} is not supported. Available seq_length list for BERT models: [512]"
         )
-    return gbs, tp, pp
+    return gbs, tp, pp, cp
 
 
 def _gbs_tp_pp_bert_40gb(
@@ -496,6 +501,7 @@ def _gbs_tp_pp_bert_40gb(
         int pp is the Pipeline Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
+    cp = None
     if seq_length == 512:
         if model_size_in_b <= 1.0:
             gbs, tp, pp = 256, 1, 1
@@ -521,7 +527,7 @@ def _gbs_tp_pp_bert_40gb(
         raise ValueError(
             f"seq_length = {seq_length} is not supported. Available seq_length list for BERT models: [512]"
         )
-    return gbs, tp, pp
+    return gbs, tp, pp, cp
 
 
 def generate_base_config(
@@ -565,7 +571,8 @@ def generate_base_config(
         gbs = base_cfg["model"]["global_batch_size"]
         tp = base_cfg["model"]["tensor_model_parallel_size"]
         pp = base_cfg["model"]["pipeline_model_parallel_size"]
-        cp = base_cfg["model"].get("context_parallel_size", 1)
+        default_cp = None if model_name in ["bert", "t5", "mt5"] else 1
+        cp = base_cfg["model"].get("context_parallel_size", default_cp)
 
     # RUN
     base_cfg["run"]["name"] = f"{model_name}_{model_size_in_b}b"
