@@ -127,7 +127,8 @@ def generate_grid_search_configs(
             for cp in cp_list:
                 for mbs in mbs_list:
                     num_gpus = (
-                        base_cfg["trainer"]["num_nodes"] * base_cfg["trainer"]["devices"]
+                        base_cfg["trainer"]["num_nodes"]
+                        * base_cfg["trainer"]["devices"]
                     )
                     gbs = base_cfg["model"]["global_batch_size"]
                     if model_name in [
@@ -152,7 +153,9 @@ def generate_grid_search_configs(
                         and mod_att_heads == 0
                         and mod_layers == 0
                         and (tp, pp, cp) not in valid_tp_pp_list
-                        and min_model_parallel <= model_parallelism <= max_model_parallel
+                        and min_model_parallel
+                        <= model_parallelism
+                        <= max_model_parallel
                     ):
                         valid_tp_pp_list.append((tp, pp, cp))
 
