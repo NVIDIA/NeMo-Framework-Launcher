@@ -47,13 +47,13 @@ exp_manager:
 model:
   mcore_gpt: true
   micro_batch_size: 1
-  global_batch_size: 1
+  global_batch_size: 1024
   rampup_batch_size: null
   tensor_model_parallel_size: 8
   pipeline_model_parallel_size: 2
   virtual_pipeline_model_parallel_size: null
-  encoder_seq_length: 65536
-  max_position_embeddings: 65536
+  encoder_seq_length: 4096
+  max_position_embeddings: 4096
   num_layers: 56
   hidden_size: 6144
   ffn_hidden_size: 16384
