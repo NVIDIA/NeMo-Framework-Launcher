@@ -143,7 +143,7 @@ model:
   apex_transformer_log_level: 30
   gradient_as_bucket_view: true
   sync_batch_comm: false
-  nccl_communicator_config_path: /workspace/llm/conf/nccl/custom_communicator_cta.yaml
+  nccl_communicator_config_path: null
   validation_param_sync_overlap: false
   fsdp: false
   fsdp_sharding_strategy: full
