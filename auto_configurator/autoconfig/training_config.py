@@ -625,7 +625,7 @@ def _tp_pp_mbs_grid_t5_80gb(
         mbs = [1, 2, 4, 6, 8]
         min_model_parallel = 64
         max_model_parallel = 256
-    return tp, pp, mbs, min_model_parallel, max_model_parallel
+    return tp, pp, cp, mbs, min_model_parallel, max_model_parallel
 
 
 def _tp_pp_mbs_grid_t5_40gb(
@@ -692,7 +692,7 @@ def _tp_pp_mbs_grid_t5_40gb(
         mbs = [1, 2, 4]
         min_model_parallel = 128
         max_model_parallel = 256
-    return tp, pp, mbs, min_model_parallel, max_model_parallel
+    return tp, pp, cp, mbs, min_model_parallel, max_model_parallel
 
 
 def _tp_pp_mbs_grid_bert_80gb(
@@ -754,7 +754,7 @@ def _tp_pp_mbs_grid_bert_80gb(
         max_model_parallel = 256
     else:
         raise ValueError("No BERT model larger than 250B parameters is supported.")
-    return tp, pp, mbs, min_model_parallel, max_model_parallel
+    return tp, pp, cp, mbs, min_model_parallel, max_model_parallel
 
 
 def _tp_pp_mbs_grid_bert_40gb(
@@ -817,7 +817,7 @@ def _tp_pp_mbs_grid_bert_40gb(
         max_model_parallel = 512
     else:
         raise ValueError("No BERT model larger than 250B parameters is supported.")
-    return tp, pp, mbs, min_model_parallel, max_model_parallel
+    return tp, pp, cp, mbs, min_model_parallel, max_model_parallel
 
 
 def _calculate_tp_pp_mbs_grid(

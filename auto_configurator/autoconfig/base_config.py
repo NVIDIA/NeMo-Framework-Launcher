@@ -555,7 +555,7 @@ def generate_base_config(
 
     # GBS: global batch size
     if custom_cfg is None:
-        gbs, tp, pp = _calculate_gbs_tp_pp(
+        gbs, tp, pp, cp = _calculate_gbs_tp_pp(
             model_size_in_b=model_size_in_b,
             gpu_memory_gb=gpu_memory_gb,
             model_name=model_name,
@@ -565,6 +565,7 @@ def generate_base_config(
         gbs = base_cfg["model"]["global_batch_size"]
         tp = base_cfg["model"]["tensor_model_parallel_size"]
         pp = base_cfg["model"]["pipeline_model_parallel_size"]
+        cp = base_cfg["model"].get("context_parallel_size", 1)
 
     # RUN
     base_cfg["run"]["name"] = f"{model_name}_{model_size_in_b}b"
