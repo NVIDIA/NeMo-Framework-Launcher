@@ -60,6 +60,7 @@ class TestBaseConfigs:
           global_batch_size: 256
           tensor_model_parallel_size: 1
           pipeline_model_parallel_size: 1
+          context_parallel_size: 1
           virtual_pipeline_model_parallel_size: null
           resume_from_checkpoint: null
 

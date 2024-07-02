@@ -802,7 +802,7 @@ class TestCalculateTpPpMbsGrid:
             "model_name": model_name,
             "train_cfg": train_cfg,
         }
-        tp, pp, mbs, min_par, max_par = tc._calculate_tp_pp_mbs_grid(**params)
+        tp, pp, cp, mbs, min_par, max_par = tc._calculate_tp_pp_mbs_grid(**params)
 
         assert tp == expected["tp"], f"TP should be {expected['tp']} but it is {tp}."
         assert pp == expected["pp"], f"PP should be {expected['pp']} but it is {pp}."
