@@ -153,7 +153,7 @@ def generate_grid_search_configs(
                         and (tp, pp) not in valid_tp_pp_list
                         and min_model_parallel <= tp * pp <= max_model_parallel
                     ):
-                        valid_tp_pp_list.append((tp, pp))
+                        valid_tp_pp_list.append((tp, pp, cp))
 
     # Generate grid search configs.
     results_cfgs = [[] for _ in range(multiplier * num_layers + 1)]
@@ -210,7 +210,7 @@ def generate_grid_search_configs(
 
 
 def _set_activations_checkpoint_params(
-    tp, pp, num_layers, act_method, multiplier, model_size_in_b, model_name
+    tp, pp, cp, num_layers, act_method, multiplier, model_size_in_b, model_name
 ):
     act_multiple = 4 // pp
     if act_method == "block":
