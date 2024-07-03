@@ -395,7 +395,15 @@ def modify_cfg(
     """
     new_cfg = copy.deepcopy(base_cfg)
     if act is not None:
-        if model_name in ["gpt3", "bert", "llama", "baichuan2", "chatglm", "qwen2", "mixtral"]:
+        if model_name in [
+            "gpt3",
+            "bert",
+            "llama",
+            "baichuan2",
+            "chatglm",
+            "qwen2",
+            "mixtral",
+        ]:
             new_cfg["model"]["activations_checkpoint_num_layers"] = act
         else:
             new_cfg["model"]["encoder"]["activations_checkpoint_num_layers"] = act // 2
@@ -440,7 +448,15 @@ def modify_cfg(
     new_cfg["model"]["pipeline_model_parallel_size"] = pp
     new_cfg["model"]["micro_batch_size"] = mbs
 
-    if model_name in ["gpt3", "bert", "llama", "baichuan2", "chatglm", "qwen2", "mixtral"]:
+    if model_name in [
+        "gpt3",
+        "bert",
+        "llama",
+        "baichuan2",
+        "chatglm",
+        "qwen2",
+        "mixtral",
+    ]:
         att_heads = new_cfg["model"]["num_attention_heads"]
         num_layers = new_cfg["model"]["num_layers"]
     else:
