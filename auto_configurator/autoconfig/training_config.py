@@ -155,9 +155,13 @@ def generate_grid_search_configs(
                             att_heads = base_cfg["model"]["num_attention_heads"]
                             num_layers = base_cfg["model"]["num_layers"]
                         else:
-                            att_heads = base_cfg["model"]["encoder"]["num_attention_heads"]
+                            att_heads = base_cfg["model"]["encoder"][
+                                "num_attention_heads"
+                            ]
                             num_layers = base_cfg["model"]["encoder"]["num_layers"]
-                        model_parallelism = (tp * pp * cp * ep) if (cp and ep) else (tp * pp)
+                        model_parallelism = (
+                            (tp * pp * cp * ep) if (cp and ep) else (tp * pp)
+                        )
                         mod_gbs = gbs % (mbs * num_gpus / model_parallelism)
                         mod_att_heads = att_heads % tp
                         mod_layers = (multiplier * num_layers) % pp
@@ -168,7 +172,9 @@ def generate_grid_search_configs(
                             and mod_att_heads == 0
                             and mod_layers == 0
                             and (tp, pp, cp, ep) not in valid_tp_pp_list
-                            and (mod_cp // mod_ep == mod_cp or mod_ep // mod_cp == mod_ep)
+                            and (
+                                mod_cp // mod_ep == mod_cp or mod_ep // mod_cp == mod_ep
+                            )
                             and min_model_parallel
                             <= model_parallelism
                             <= max_model_parallel
@@ -184,7 +190,15 @@ def generate_grid_search_configs(
             num_micro_batches_partial_act_ckpt,
             act_ckpt_layers_per_pipeline,
         ) = _set_activations_checkpoint_params(
-            tp, pp, cp, ep, num_layers, act_method, multiplier, model_size_in_b, model_name
+            tp,
+            pp,
+            cp,
+            ep,
+            num_layers,
+            act_method,
+            multiplier,
+            model_size_in_b,
+            model_name,
         )
         for mbs in mbs_list:
             kwargs = {

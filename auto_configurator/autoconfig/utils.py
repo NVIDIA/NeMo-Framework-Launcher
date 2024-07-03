@@ -454,7 +454,7 @@ def modify_cfg(
 
     if cp is not None:
         new_cfg["model"]["context_parallel_size"] = cp
-    
+
     if ep is not None:
         new_cfg["model"]["expert_model_parallel_size"] = ep
 
