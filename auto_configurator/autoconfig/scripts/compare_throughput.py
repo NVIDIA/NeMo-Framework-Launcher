@@ -29,6 +29,7 @@ def main(cfg):
         "TP",
         "PP",
         "CP",
+        "EP",
         "MBS",
         "Act Ckpt Layers",
         "Act Ckpt Micro Bathes",
@@ -52,6 +53,7 @@ def main(cfg):
         "TP",
         "PP",
         "CP",
+        "EP",
         "MBS",
         "Act Ckpt Layers",
         "Act Ckpt Micro Bathes",
@@ -104,6 +106,7 @@ def main(cfg):
             )
             act_per_pipe = model_cfg.get("activations_checkpoint_layers_per_pipeline")
             cp = model_cfg.get("context_parallel_size")
+            ep = model.cfg.get("expert_model_parallel_size")
         else:
             hs = encoder_cfg.get("hidden_size")
             ffn_hs = encoder_cfg.get("ffn_hidden_size")
@@ -114,6 +117,7 @@ def main(cfg):
             num_mbs_act = None
             act_per_pipe = None
             cp = None
+            ep = None
         tp = model_cfg.get("tensor_model_parallel_size")
         pp = model_cfg.get("pipeline_model_parallel_size")
         mbs = model_cfg.get("micro_batch_size")
@@ -135,6 +139,7 @@ def main(cfg):
                             enc_seq_len,
                             tp,
                             cp,
+                            ep,
                             pp,
                             mbs,
                             act_ckpt_layers,
@@ -176,7 +181,7 @@ def main(cfg):
                         gpus_per_node=gpus_per_node,
                         time_per_step=avg_global_step_time,
                     )
-                    config_name = f"tp{tp}_pp{pp}_cp{cp}_mbs{mbs}_act_{act_ckpt_layers}_num_mbs_act_{num_mbs_act}_act_per_pipe_{act_per_pipe}"
+                    config_name = f"tp{tp}_pp{pp}_cp{cp}_ep{ep}_mbs{mbs}_act_{act_ckpt_layers}_num_mbs_act_{num_mbs_act}_act_per_pipe_{act_per_pipe}"
                     result.append(
                         [
                             model_name,
@@ -185,6 +190,7 @@ def main(cfg):
                             tp,
                             pp,
                             cp,
+                            ep,
                             mbs,
                             act_ckpt_layers,
                             num_mbs_act,
@@ -214,7 +220,7 @@ def main(cfg):
         if i + 1 == output_top_n:
             break
 
-    top_config = f"{model_name}_{model_size}b_{nodes}nodes_tp_{result[0][3]}_pp_{result[0][4]}_cp_{result[0][5]}_mbs_{result[0][6]}_act_ckpt_{result[0][7]}_num_mbs_act_{result[0][8]}_act_per_pipe_{result[0][9]}"
+    top_config = f"{model_name}_{model_size}b_{nodes}nodes_tp_{result[0][3]}_pp_{result[0][4]}_cp_{result[0][5]}_ep_{result[0][6]}_mbs_{result[0][7]}_act_ckpt_{result[0][8]}_num_mbs_act_{result[0][9]}_act_per_pipe_{result[0][10]}"
     print("\n==================================================")
     print(f"Optimal config: {top_config} with {result[0][14]:.4f}s per global step.")
     print(
