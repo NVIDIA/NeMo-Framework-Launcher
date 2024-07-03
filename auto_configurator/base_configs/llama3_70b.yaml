@@ -22,10 +22,10 @@ trainer:
   max_epochs: null
   max_steps: 300000 # consumed_samples = global_step * global_batch_size
   max_time: "05:23:30:00" # days:hours:minutes:seconds
-  log_every_n_steps: 10
-  val_check_interval: 2000
-  limit_val_batches: 32
-  limit_test_batches: 50
+  log_every_n_steps: 1
+  val_check_interval: 50
+  limit_val_batches: 1
+  limit_test_batches: 1
   accumulate_grad_batches: 1
   gradient_clip_val: 1.0
 exp_manager:
@@ -94,9 +94,13 @@ model:
   attention_type: multihead
   share_embeddings_and_output_weights: false
   tokenizer:
-    library: huggingface
-    type: meta-llama/Meta-Llama-3-70B
-    use_fast: true
+    library: sentencepiece
+    type: null
+    model: ${data_dir}/tokenizer/tokenizer.model
+    delimiter: null
+    vocab_file: ${data_dir}/tokenizer/tokenizer.vocab
+    merge_file: null
+    sentencepiece_legacy: false
   native_amp_init_scale: 4294967296
   native_amp_growth_interval: 1000
   hysteresis: 2
@@ -174,64 +178,80 @@ model:
     eod_mask_loss: false
     index_mapping_dir: null
     data_prefix:
-    - .0333
-    - ${data_dir}/my-llama_00_text_document
-    - .0333
-    - ${data_dir}/my-llama_01_text_document
-    - .0333
-    - ${data_dir}/my-llama_02_text_document
-    - .0333
-    - ${data_dir}/my-llama_03_text_document
-    - .0333
-    - ${data_dir}/my-llama_04_text_document
-    - .0333
-    - ${data_dir}/my-llama_05_text_document
-    - .0333
-    - ${data_dir}/my-llama_06_text_document
-    - .0333
-    - ${data_dir}/my-llama_07_text_document
-    - .0333
-    - ${data_dir}/my-llama_08_text_document
-    - .0333
-    - ${data_dir}/my-llama_09_text_document
-    - .0333
-    - ${data_dir}/my-llama_10_text_document
-    - .0333
-    - ${data_dir}/my-llama_11_text_document
-    - .0333
-    - ${data_dir}/my-llama_12_text_document
-    - .0333
-    - ${data_dir}/my-llama_13_text_document
-    - .0333
-    - ${data_dir}/my-llama_14_text_document
-    - .0333
-    - ${data_dir}/my-llama_15_text_document
-    - .0333
-    - ${data_dir}/my-llama_16_text_document
-    - .0333
-    - ${data_dir}/my-llama_17_text_document
-    - .0333
-    - ${data_dir}/my-llama_18_text_document
-    - .0333
-    - ${data_dir}/my-llama_19_text_document
-    - .0333
-    - ${data_dir}/my-llama_20_text_document
-    - .0333
-    - ${data_dir}/my-llama_21_text_document
-    - .0333
-    - ${data_dir}/my-llama_22_text_document
-    - .0333
-    - ${data_dir}/my-llama_23_text_document
-    - .0333
-    - ${data_dir}/my-llama_24_text_document
-    - .0333
-    - ${data_dir}/my-llama_25_text_document
-    - .0333
-    - ${data_dir}/my-llama_26_text_document
-    - .0333
-    - ${data_dir}/my-llama_27_text_document
-    - .0333
-    - ${data_dir}/my-llama_28_text_document
-    - .0334
-    - ${data_dir}/my-llama_29_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_01_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_02_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_03_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_04_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_05_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_06_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_07_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_08_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_09_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_10_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_11_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_12_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_13_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_01_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_02_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_03_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_04_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_05_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_06_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_07_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_08_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_09_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_10_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_11_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_12_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_13_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_14_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_15_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_16_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_17_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_18_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_19_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_20_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_21_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_22_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_23_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_24_text_document
+    - 0.0263
+    - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_25_text_document
 
