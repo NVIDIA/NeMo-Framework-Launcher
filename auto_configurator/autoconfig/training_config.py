@@ -144,7 +144,7 @@ def generate_grid_search_configs(
                     else:
                         att_heads = base_cfg["model"]["encoder"]["num_attention_heads"]
                         num_layers = base_cfg["model"]["encoder"]["num_layers"]
-                    model_parallelism = (tp * pp * cp) if cp else (tp * pp)
+                    model_parallelism = (tp * pp * cp * ep) if (cp and ep) else (tp * pp)
                     mod_gbs = gbs % (mbs * num_gpus / model_parallelism)
                     mod_att_heads = att_heads % tp
                     mod_layers = (multiplier * num_layers) % pp
@@ -152,23 +152,24 @@ def generate_grid_search_configs(
                         mod_gbs == 0
                         and mod_att_heads == 0
                         and mod_layers == 0
-                        and (tp, pp, cp) not in valid_tp_pp_list
+                        and (tp, pp, cp, ep) not in valid_tp_pp_list
+                        and (cp // ep == cp or ep // cp == ep)
                         and min_model_parallel
                         <= model_parallelism
                         <= max_model_parallel
                     ):
-                        valid_tp_pp_list.append((tp, pp, cp))
+                        valid_tp_pp_list.append((tp, pp, cp, ep))
 
     # Generate grid search configs.
     results_cfgs = [[] for _ in range(multiplier * num_layers + 1)]
-    for tp, pp, cp in valid_tp_pp_list:
+    for tp, pp, cp, ep in valid_tp_pp_list:
         (
             virtual_pipelines,
             act_ckpt_layers,
             num_micro_batches_partial_act_ckpt,
             act_ckpt_layers_per_pipeline,
         ) = _set_activations_checkpoint_params(
-            tp, pp, cp, num_layers, act_method, multiplier, model_size_in_b, model_name
+            tp, pp, cp, ep, num_layers, act_method, multiplier, model_size_in_b, model_name
         )
         for mbs in mbs_list:
             kwargs = {
@@ -179,6 +180,7 @@ def generate_grid_search_configs(
                 "tp": tp,
                 "pp": pp,
                 "cp": cp,
+                "ep": ep,
                 "virtual_pipelines": virtual_pipelines,
                 "mbs": mbs,
                 "max_minutes": max_minutes,
@@ -197,14 +199,14 @@ def generate_grid_search_configs(
                             kwargs["act_per_pipe"] = act_per_pipe
                             new_cfg = utils.modify_cfg(**kwargs)
                             if new_cfg:  # Save candidate cfg.
-                                file_name = f"{model_name}_{model_size_in_b}b_{num_nodes}nodes_tp_{tp}_pp_{pp}_cp_{cp}_mbs_{mbs}_act_ckpt_{act}_num_mbs_act_{num_mbs_act}_act_per_pipe_{act_per_pipe}.yaml"
+                                file_name = f"{model_name}_{model_size_in_b}b_{num_nodes}nodes_tp_{tp}_pp_{pp}_cp_{cp}_ep_{ep}_mbs_{mbs}_act_ckpt_{act}_num_mbs_act_{num_mbs_act}_act_per_pipe_{act_per_pipe}.yaml"
                                 results_cfgs[act].append(file_name)
                                 with open(f"{base_dir}/{file_name}", "w") as f:
                                     yaml.dump(new_cfg, f)
             else:
                 new_cfg = utils.modify_cfg(**kwargs)
                 if new_cfg:  # Save candidate cfg.
-                    file_name = f"{model_name}_{model_size_in_b}b_{num_nodes}nodes_tp_{tp}_pp_{pp}_cp_{cp}_mbs_{mbs}_act_ckpt_{kwargs['act']}_num_mbs_act_{kwargs['num_mbs_act']}_act_per_pipe_{kwargs['act_per_pipe']}.yaml"
+                    file_name = f"{model_name}_{model_size_in_b}b_{num_nodes}nodes_tp_{tp}_pp_{pp}_cp_{cp}_ep_{ep}_mbs_{mbs}_act_ckpt_{kwargs['act']}_num_mbs_act_{kwargs['num_mbs_act']}_act_per_pipe_{kwargs['act_per_pipe']}.yaml"
                     results_cfgs[mbs].append(file_name)
                     with open(f"{base_dir}/{file_name}", "w") as f:
                         yaml.dump(new_cfg, f)
@@ -214,7 +216,7 @@ def generate_grid_search_configs(
 
 
 def _set_activations_checkpoint_params(
-    tp, pp, cp, num_layers, act_method, multiplier, model_size_in_b, model_name
+    tp, pp, cp, ep, num_layers, act_method, multiplier, model_size_in_b, model_name
 ):
     act_multiple = 4 // pp
     if act_method == "block":
