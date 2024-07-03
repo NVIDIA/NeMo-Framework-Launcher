@@ -61,6 +61,7 @@ class TestBaseConfigs:
           tensor_model_parallel_size: 1
           pipeline_model_parallel_size: 1
           context_parallel_size: 1
+          expert_model_parallel_size: 1
           virtual_pipeline_model_parallel_size: null
           resume_from_checkpoint: null
 
@@ -121,7 +122,7 @@ class TestBaseConfigs:
           mcore_gpt: True
 
           ## Transformer Engine
-          transformer_engine: False
+          transformer_engine: True
           fp8: False # enables fp8 in TransformerLayer forward
           fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
           fp8_hybrid: True # sets fp8_format = recipe.Format.HYBRID
