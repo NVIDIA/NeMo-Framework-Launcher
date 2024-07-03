@@ -29,6 +29,7 @@ SUPPORTED_MODELS = [
     "baichuan2",
     "chatglm",
     "qwen2",
+    "mixtral",
 ]
 
 
