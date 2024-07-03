@@ -879,9 +879,13 @@ class TestCalculateTpPpMbsGrid:
         assert pp == expected["pp"], f"PP should be {expected['pp']} but it is {pp}."
 
         if "cp" in expected:
-            assert cp == expected["cp"], f"PP should be {expected['cp']} but it is {cp}."
+            assert (
+                cp == expected["cp"]
+            ), f"PP should be {expected['cp']} but it is {cp}."
         if "ep" in expected:
-            assert ep == expected["ep"], f"PP should be {expected['ep']} but it is {ep}."
+            assert (
+                ep == expected["ep"]
+            ), f"PP should be {expected['ep']} but it is {ep}."
 
         assert (
             mbs == expected["mbs"]

@@ -96,7 +96,7 @@ class TestLlamaConfig:
         assert (
             expected == conf
         ), f"conf/search_config/llama/llama2_7b.yaml must be set to {expected} but it currently is {conf}."
-      
+
     def test_llama_config_llama2_13b(self):
         conf = OmegaConf.load("conf/search_config/llama/llama2_13b.yaml")
         s = """
