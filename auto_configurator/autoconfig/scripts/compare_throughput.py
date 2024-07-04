@@ -106,7 +106,7 @@ def main(cfg):
             )
             act_per_pipe = model_cfg.get("activations_checkpoint_layers_per_pipeline")
             cp = model_cfg.get("context_parallel_size")
-            ep = model.cfg.get("expert_model_parallel_size")
+            ep = model_cfg.get("expert_model_parallel_size")
         else:
             hs = encoder_cfg.get("hidden_size")
             ffn_hs = encoder_cfg.get("ffn_hidden_size")
