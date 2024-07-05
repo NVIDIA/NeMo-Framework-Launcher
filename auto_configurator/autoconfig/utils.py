@@ -369,6 +369,8 @@ def modify_cfg(
     act_per_pipe: int,
     tp: int,
     pp: int,
+    cp: int,
+    ep: int,
     virtual_pipelines: int,
     mbs: int,
     max_minutes: int,
@@ -384,6 +386,8 @@ def modify_cfg(
     :param int act_per_pipe:
     :param int tp: Tensor Parallelism (TP) value to be set for the model.
     :param int pp: Pipeline Parallelism (PP) value to be set for the model.
+    :param int cp: Context Parallelism (CP) value to be set for the model.
+    :param int ep: Expert Parallelism (EP) value to be set for the model.
     :param int virtual_pipelines: Virtual Pipelines value to be set for the model.
     :param int mbs: Micro Batch Size (MBS) value to be set for the model.
     :param int max_minutes: maximum amount of time to run this model for.
@@ -448,6 +452,12 @@ def modify_cfg(
     new_cfg["model"]["pipeline_model_parallel_size"] = pp
     new_cfg["model"]["micro_batch_size"] = mbs
 
+    if cp is not None:
+        new_cfg["model"]["context_parallel_size"] = cp
+
+    if ep is not None:
+        new_cfg["model"]["expert_model_parallel_size"] = ep
+
     if model_name in [
         "gpt3",
         "bert",
@@ -483,9 +493,9 @@ def modify_cfg(
         new_cfg["run"]["time_limit"] = f"{days}-{hours}:{mins}:00"
         new_cfg["run"][
             "name"
-        ] = f"{new_cfg['run']['name']}_{num_nodes}nodes_tp_{tp}_pp_{pp}_mbs_{mbs}_act_ckpt_{act}_num_mbs_act_{num_mbs_act}_act_per_pipe_{act_per_pipe}"
+        ] = f"{new_cfg['run']['name']}_{num_nodes}nodes_tp_{tp}_pp_{pp}_cp_{cp}_ep_{ep}_mbs_{mbs}_act_ckpt_{act}_num_mbs_act_{num_mbs_act}_act_per_pipe_{act_per_pipe}"
         print(
-            f"Valid config: GBS={gbs}, MBS={mbs}, TP={tp}, PP={pp}, act_ckpt_layers={act}, num_mbs_act={num_mbs_act}, act_per_pipe={act_per_pipe}. Adding to directory."
+            f"Valid config: GBS={gbs}, MBS={mbs}, TP={tp}, PP={pp}, CP={cp}, EP={ep}, act_ckpt_layers={act}, num_mbs_act={num_mbs_act}, act_per_pipe={act_per_pipe}. Adding to directory."
         )
         return new_cfg
     return None
