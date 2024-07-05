@@ -212,13 +212,17 @@ def _gbs_tp_pp_gpt3_80gb(model_size_in_b: float, seq_length: int) -> Tuple[int]:
     """
     Outputs GBS, TP and PP values for any GPT-3 model size for 80GB GPUs.
     :param float model_size_in_b: the number of parameters in the model.
-    :returns: tuple (gbs, tp, pp)
+    :returns: tuple (gbs, tp, pp, cp, ep)
         WHERE
         int gbs is the Global Batch Size to use for training.
         int tp is the Tensor Parallelism value to use for training.
         int pp is the Pipeline Parallelism value to use for training.
+        int cp is the Context Parallelism value to use for training.
+        int ep is the Expert Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
+    cp = 1
+    ep = 1
     if seq_length == 2048:
         if model_size_in_b <= 1.0:
             gbs, tp, pp = 256, 1, 1
@@ -312,7 +316,7 @@ def _gbs_tp_pp_gpt3_80gb(model_size_in_b: float, seq_length: int) -> Tuple[int]:
         raise ValueError(
             f"seq_length = {seq_length} is not supported. Available seq_length list for GPT-3 models: [2048, 4096, 8192, 16384, 32768]"
         )
-    return gbs, tp, pp
+    return gbs, tp, pp, cp, ep
 
 
 def _gbs_tp_pp_gpt3_40gb(
@@ -321,13 +325,17 @@ def _gbs_tp_pp_gpt3_40gb(
     """
     Outputs GBS, TP and PP values for any GPT-3 model size for 40GB GPUs.
     :param float model_size_in_b: the number of parameters in the model.
-    :returns: tuple (gbs, tp, pp)
+    :returns: tuple (gbs, tp, pp, cp, ep)
         WHERE
         int gbs is the Global Batch Size to use for training.
         int tp is the Tensor Parallelism value to use for training.
         int pp is the Pipeline Parallelism value to use for training.
+        int cp is the Context Parallelism value to use for training.
+        int ep is the Expert Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
+    cp = 1
+    ep = 1
     if seq_length == 2048:
         if model_size_in_b <= 1.0:
             gbs, tp, pp = 256, 1, 1
@@ -355,20 +363,24 @@ def _gbs_tp_pp_gpt3_40gb(
             raise ValueError("No GPT-3 model larger than 1.1T parameters is supported.")
     else:
         raise ValueError("seq_length != 2048 is not supported on 40GB GPU.")
-    return gbs, tp, pp
+    return gbs, tp, pp, cp, ep
 
 
 def _gbs_tp_pp_t5_80gb(model_size_in_b: float, seq_length: int) -> Tuple[int, int, int]:
     """
     Outputs GBS, TP and PP values for any T5/mT5 model size for 80GB GPUs.
     :param float model_size_in_b: the number of parameters in the model.
-    :returns: tuple (gbs, tp, pp)
+    :returns: tuple (gbs, tp, pp, cp, ep)
         WHERE
         int gbs is the Global Batch Size to use for training.
         int tp is the Tensor Parallelism value to use for training.
         int pp is the Pipeline Parallelism value to use for training.
+        int cp is the Context Parallelism value to use for training.
+        int ep is the Expert Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
+    cp = None
+    ep = None
     if seq_length == 512:
         if model_size_in_b <= 1.0:
             gbs, tp, pp = 2048, 1, 1
@@ -396,20 +408,24 @@ def _gbs_tp_pp_t5_80gb(model_size_in_b: float, seq_length: int) -> Tuple[int, in
         raise ValueError(
             f"seq_length = {seq_length} is not supported. Available seq_length list for T5 models: [512]"
         )
-    return gbs, tp, pp
+    return gbs, tp, pp, cp, ep
 
 
 def _gbs_tp_pp_t5_40gb(model_size_in_b: float, seq_length: int) -> Tuple[int, int, int]:
     """
     Outputs GBS, TP and PP values for any T5/mT5 model size for 40GB GPUs.
     :param float model_size_in_b: the number of parameters in the model.
-    :returns: tuple (gbs, tp, pp)
+    :returns: tuple (gbs, tp, pp, cp, ep)
         WHERE
         int gbs is the Global Batch Size to use for training.
         int tp is the Tensor Parallelism value to use for training.
         int pp is the Pipeline Parallelism value to use for training.
+        int cp is the Context Parallelism value to use for training.
+        int ep is the Expert Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
+    cp = None
+    ep = None
     if seq_length == 512:
         if model_size_in_b <= 0.5:
             gbs, tp, pp = 2048, 1, 1
@@ -439,7 +455,7 @@ def _gbs_tp_pp_t5_40gb(model_size_in_b: float, seq_length: int) -> Tuple[int, in
         raise ValueError(
             f"seq_length = {seq_length} is not supported. Available seq_length list for T5 models: [512]"
         )
-    return gbs, tp, pp
+    return gbs, tp, pp, cp, ep
 
 
 def _gbs_tp_pp_bert_80gb(
@@ -448,13 +464,17 @@ def _gbs_tp_pp_bert_80gb(
     """
     Outputs GBS, TP and PP values for any BERT model size for 80GB GPUs.
     :param float model_size_in_b: the number of parameters in the model.
-    :returns: tuple (gbs, tp, pp)
+    :returns: tuple (gbs, tp, pp, cp, ep)
         WHERE
         int gbs is the Global Batch Size to use for training.
         int tp is the Tensor Parallelism value to use for training.
         int pp is the Pipeline Parallelism value to use for training.
+        int cp is the Context Parallelism value to use for training.
+        int ep is the Expert Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
+    cp = None
+    ep = None
     if seq_length == 512:
         if model_size_in_b <= 1.0:
             gbs, tp, pp = 256, 1, 1
@@ -480,7 +500,7 @@ def _gbs_tp_pp_bert_80gb(
         raise ValueError(
             f"seq_length = {seq_length} is not supported. Available seq_length list for BERT models: [512]"
         )
-    return gbs, tp, pp
+    return gbs, tp, pp, cp, ep
 
 
 def _gbs_tp_pp_bert_40gb(
@@ -489,13 +509,17 @@ def _gbs_tp_pp_bert_40gb(
     """
     Outputs GBS, TP and PP values for any BERT model size for 40GB GPUs.
     :param float model_size_in_b: the number of parameters in the model.
-    :returns: tuple (gbs, tp, pp)
+    :returns: tuple (gbs, tp, pp, cp, ep)
         WHERE
         int gbs is the Global Batch Size to use for training.
         int tp is the Tensor Parallelism value to use for training.
         int pp is the Pipeline Parallelism value to use for training.
+        int cp is the Context Parallelism value to use for training.
+        int ep is the Expert Parallelism value to use for training.
     :raises ValueError: if the model_size_in_b is larger than the supported max model size.
     """
+    cp = None
+    ep = None
     if seq_length == 512:
         if model_size_in_b <= 1.0:
             gbs, tp, pp = 256, 1, 1
@@ -521,7 +545,7 @@ def _gbs_tp_pp_bert_40gb(
         raise ValueError(
             f"seq_length = {seq_length} is not supported. Available seq_length list for BERT models: [512]"
         )
-    return gbs, tp, pp
+    return gbs, tp, pp, cp, ep
 
 
 def generate_base_config(
@@ -555,7 +579,7 @@ def generate_base_config(
 
     # GBS: global batch size
     if custom_cfg is None:
-        gbs, tp, pp = _calculate_gbs_tp_pp(
+        gbs, tp, pp, cp, ep = _calculate_gbs_tp_pp(
             model_size_in_b=model_size_in_b,
             gpu_memory_gb=gpu_memory_gb,
             model_name=model_name,
@@ -565,7 +589,10 @@ def generate_base_config(
         gbs = base_cfg["model"]["global_batch_size"]
         tp = base_cfg["model"]["tensor_model_parallel_size"]
         pp = base_cfg["model"]["pipeline_model_parallel_size"]
-
+        default_cp = None if model_name in ["bert", "t5", "mt5"] else 1
+        default_ep = None if model_name in ["bert", "t5", "mt5"] else 1
+        cp = base_cfg["model"].get("context_parallel_size", default_cp)
+        ep = base_cfg["model"].get("expert_model_parallel_size", default_ep)
     # RUN
     base_cfg["run"]["name"] = f"{model_name}_{model_size_in_b}b"
     base_cfg["run"]["results_dir"] = "${base_results_dir}/${.name}"

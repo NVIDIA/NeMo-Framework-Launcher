@@ -60,6 +60,8 @@ class TestBaseConfigs:
           global_batch_size: 256
           tensor_model_parallel_size: 1
           pipeline_model_parallel_size: 1
+          context_parallel_size: 1
+          expert_model_parallel_size: 1
           virtual_pipeline_model_parallel_size: null
           resume_from_checkpoint: null
 
@@ -120,7 +122,7 @@ class TestBaseConfigs:
           mcore_gpt: True
 
           ## Transformer Engine
-          transformer_engine: False
+          transformer_engine: True
           fp8: False # enables fp8 in TransformerLayer forward
           fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
           fp8_hybrid: True # sets fp8_format = recipe.Format.HYBRID
@@ -180,6 +182,511 @@ class TestBaseConfigs:
         assert (
             expected == conf
         ), f"base_configs/gpt3.yaml must be set to {expected} but it currently is {conf}."
+
+    def test_llama_base_config(self):
+        conf = OmegaConf.load("base_configs/llama3_8b.yaml")
+        s = """
+        defaults:
+          - _self_
+          - optional tp_overlap@model.ub_tp_comm_overlap_cfg:
+
+        hydra:
+          searchpath:
+            - file:///opt/NeMo/examples/nlp/language_modeling/conf
+
+        run:
+          name: llama3_8b
+          results_dir: ${base_results_dir}/${.name}
+          time_limit: "0-01:30:00"
+          dependency: "singleton"
+        trainer:
+          num_nodes: 16
+          devices: 8
+          accelerator: gpu
+          precision: bf16
+          logger: false # logger provided by exp_manager
+          enable_checkpointing: false
+          use_distributed_sampler: false
+          max_epochs: null
+          max_steps: 300000 # consumed_samples = global_step * global_batch_size
+          max_time: "05:23:30:00" # days:hours:minutes:seconds
+          log_every_n_steps: 1
+          val_check_interval: 50
+          limit_val_batches: 1
+          limit_test_batches: 1
+          accumulate_grad_batches: 1
+          gradient_clip_val: 1.0
+        exp_manager:
+          explicit_log_dir: ${training.run.results_dir}/results
+          exp_dir: null
+          name: megatron_llama
+          create_wandb_logger: false
+          wandb_logger_kwargs:
+            project: nemo_llama_pretrain
+            name: ${training.run.name}
+          resume_if_exists: false
+          resume_ignore_no_checkpoint: true
+          create_checkpoint_callback: true
+          checkpoint_callback_params:
+            monitor: val_loss
+            save_top_k: 10
+            mode: min
+            always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
+            save_nemo_on_train_end: False # not recommended when training large models on clusters with short time limits
+            filename: 'megatron_llama--{val_loss:.2f}-{step}-{consumed_samples}'
+            model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
+          log_step_timing: true
+          step_timing_kwargs:
+            sync_cuda: true
+            buffer_size: 5
+          seconds_to_sleep: 60
+        model:
+          mcore_gpt: true
+          micro_batch_size: 1
+          global_batch_size: 2048
+          rampup_batch_size: null
+          tensor_model_parallel_size: 1
+          pipeline_model_parallel_size: 1
+          virtual_pipeline_model_parallel_size: null
+          context_parallel_size: 2
+          encoder_seq_length: 8192
+          max_position_embeddings: 8192
+          num_layers: 32
+          hidden_size: 4096
+          ffn_hidden_size: 14336
+          num_attention_heads: 32
+          num_query_groups: 8
+          init_method_std: 0.01
+          use_scaled_init_method: true
+          hidden_dropout: 0.0
+          attention_dropout: 0.0
+          ffn_dropout: 0.0
+          kv_channels: null
+          apply_query_key_layer_scaling: true
+          normalization: rmsnorm
+          layernorm_epsilon: 1.0e-05
+          do_layer_norm_weight_decay: false
+          make_vocab_size_divisible_by: 128
+          pre_process: true
+          post_process: true
+          persist_layer_norm: true
+          bias: false
+          activation: fast-swiglu
+          headscale: false
+          transformer_block_type: pre_ln
+          openai_gelu: false
+          normalize_attention_scores: true
+          position_embedding_type: rope
+          rotary_percentage: 1.0
+          apply_rope_fusion: true
+          cross_entropy_loss_fusion: true
+          attention_type: multihead
+          share_embeddings_and_output_weights: false
+          tokenizer:
+            library: sentencepiece
+            type: null
+            model: ${data_dir}/tokenizer/tokenizer.model
+            delimiter: null
+            vocab_file: ${data_dir}/tokenizer/tokenizer.vocab
+            merge_file: null
+            sentencepiece_legacy: false
+          native_amp_init_scale: 4294967296
+          native_amp_growth_interval: 1000
+          hysteresis: 2
+          fp32_residual_connection: false
+          fp16_lm_cross_entropy: false
+          megatron_amp_O2: true
+          grad_allreduce_chunk_size_mb: 125
+          grad_div_ar_fusion: true
+          gradient_accumulation_fusion: true
+          bias_activation_fusion: true
+          bias_dropout_add_fusion: true
+          masked_softmax_fusion: true
+          seed: 1234
+          resume_from_checkpoint: null
+          use_cpu_initialization: false
+          onnx_safe: false
+          apex_transformer_log_level: 30
+          gradient_as_bucket_view: true
+          sync_batch_comm: false
+          activations_checkpoint_granularity: null
+          activations_checkpoint_method: null
+          activations_checkpoint_num_layers: null
+          num_micro_batches_with_partial_activation_checkpoints: null
+          activations_checkpoint_layers_per_pipeline: null
+          sequence_parallel: false
+
+          ## Transformer Engine
+          transformer_engine: true
+          fp8: False # enables fp8 in TransformerLayer forward
+          fp8_e4m3: False # sets fp8_format = recipe.Format.E4M3
+          fp8_hybrid: False # sets fp8_format = recipe.Format.HYBRID
+          fp8_margin: 0 # scaling margin
+          fp8_interval: 1 # scaling update interval
+          fp8_amax_history_len: 1024 # Number of steps for which amax history is recorded per tensor
+          fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
+          ub_tp_comm_overlap: false
+          use_flash_attention: true
+          gc_interval: 100
+          nsys_profile:
+            enabled: False
+            trace: [nvtx,cuda]
+            start_step: 10  # Global batch to start profiling
+            end_step: 10 # Global batch to end profiling
+            ranks: [0] # Global rank IDs to profile
+            gen_shape: False # Generate model and kernel details including input shapes
+          optim:
+            name: distributed_fused_adam
+            lr: 1e-4
+            weight_decay: 0.1
+            betas:
+              - 0.9
+              - 0.95
+            bucket_cap_mb: 125
+            overlap_grad_sync: true
+            overlap_param_sync: true
+            contiguous_grad_buffer: true
+            contiguous_param_buffer: true
+            sched:
+              name: CosineAnnealing
+              warmup_steps: 500
+              constant_steps: 0
+              min_lr: 1e-5
+          data:
+            data_impl: mmap
+            splits_string: 99990,8,2
+            seq_length: 8192
+            skip_warmup: true
+            num_workers: 2
+            dataloader_type: single
+            reset_position_ids: false
+            reset_attention_mask: false
+            eod_mask_loss: false
+            index_mapping_dir: null
+            data_prefix:
+            - 0.0263
+            - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_01_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_02_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_03_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_04_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_05_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_06_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_07_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_08_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_09_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_10_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_11_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_12_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_head_gopher_linefilter_decompressed/bin_idx/nemo/head_13_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_01_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_02_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_03_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_04_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_05_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_06_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_07_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_08_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_09_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_10_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_11_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_12_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_13_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_14_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_15_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_16_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_17_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_18_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_19_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_20_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_21_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_22_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_23_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_24_text_document
+            - 0.0263
+            - ${data_dir}/kenlm_perp_middle_gopher_linefilter_decompressed/bin_idx/nemo/middle_25_text_document
+        """
+        expected = OmegaConf.create(s)
+        assert (
+            expected == conf
+        ), f"base_configs/llama3_8b.yaml must be set to {expected} but it currently is {conf}."
+
+    def test_mixtral_base_config(self):
+        conf = OmegaConf.load("base_configs/mixtral_3b.yaml")
+        s = """
+        run:
+          name: mixtral_8x3b
+          results_dir: ${base_results_dir}/${.name}
+          time_limit: "0-04:00:00"
+          dependency: "singleton"
+        trainer:
+          num_nodes: 2
+          devices: 8
+          accelerator: gpu
+          precision: bf16
+          logger: False # logger provided by exp_manager
+          enable_checkpointing: False
+          use_distributed_sampler: False
+          max_epochs: null
+          max_steps: 300000 # consumed_samples = global_step * global_batch_size
+          max_time: "05:23:30:00" # days:hours:minutes:seconds
+          log_every_n_steps: 1
+          val_check_interval: 50
+          limit_val_batches: 1
+          limit_test_batches: 1
+          accumulate_grad_batches: 1
+          gradient_clip_val: 1.0
+        exp_manager:
+          explicit_log_dir: ${training.run.results_dir}/results
+          exp_dir: null
+          name: megatron_mixtral
+          create_wandb_logger: False
+          wandb_logger_kwargs:
+            project: nemo_mixtral_pretrain
+            name: ${training.run.name}
+          resume_if_exists: false
+          resume_ignore_no_checkpoint: true
+          create_checkpoint_callback: True
+          checkpoint_callback_params:
+            monitor: val_loss
+            save_top_k: 10
+            mode: min
+            always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
+            save_nemo_on_train_end: False # not recommended when training large models on clusters with short time limits
+            filename: 'megatron_mixtral--{val_loss:.2f}-{step}-{consumed_samples}'
+            model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
+          log_step_timing: True
+          step_timing_kwargs:
+            sync_cuda: True
+            buffer_size: 5
+
+        model:
+          mcore_gpt: true
+          moe_grouped_gemm: true
+          micro_batch_size: 1
+          global_batch_size: 128
+          rampup_batch_size: null
+          tensor_model_parallel_size: 1
+          pipeline_model_parallel_size: 4
+          expert_model_parallel_size: 1
+          virtual_pipeline_model_parallel_size: 8
+          encoder_seq_length: 4096
+          max_position_embeddings: 32768
+          num_layers: 32
+          hidden_size: 2560
+          ffn_hidden_size: 8960
+          num_attention_heads: 32
+          init_method_std: 0.02
+          use_scaled_init_method: true
+          hidden_dropout: 0.0
+          attention_dropout: 0.0
+          ffn_dropout: 0
+          kv_channels: null
+          apply_query_key_layer_scaling: false
+          normalization: rmsnorm
+          layernorm_epsilon: 1.0e-05
+          do_layer_norm_weight_decay: false
+          make_vocab_size_divisible_by: 128
+          pre_process: true
+          post_process: true
+          persist_layer_norm: true
+          bias: false
+          activation: fast-swiglu
+          headscale: false
+          transformer_block_type: pre_ln
+          openai_gelu: false
+          normalize_attention_scores: true
+          position_embedding_type: rope
+          apply_rope_fusion: true
+          rotary_percentage: 1.0
+          rotary_base: 1000000.0
+          moe_router_topk: 2
+          num_moe_experts: 8
+          attention_type: multihead
+          share_embeddings_and_output_weights: false
+          overlap_p2p_comm: true
+          batch_p2p_comm: false
+          seq_len_interpolation_factor: null
+          num_query_groups: 8
+          tokenizer:
+            library: huggingface
+            type: mistralai/Mixtral-8x7B-v0.1
+            use_fast: true
+          native_amp_init_scale: 4294967296
+          native_amp_growth_interval: 1000
+          hysteresis: 2
+          fp32_residual_connection: false
+          fp16_lm_cross_entropy: false
+          megatron_amp_O2: True
+          grad_allreduce_chunk_size_mb: 125
+          grad_div_ar_fusion: true
+          gradient_accumulation_fusion: false
+          bias_activation_fusion: true
+          bias_dropout_add_fusion: true
+          masked_softmax_fusion: false
+          get_attention_mask_from_fusion: true
+          seed: 1234
+          resume_from_checkpoint: null
+          use_cpu_initialization: false
+          onnx_safe: false
+          apex_transformer_log_level: 30
+          gradient_as_bucket_view: true
+          sync_batch_comm: false
+          activations_checkpoint_granularity: null
+          activations_checkpoint_method: null
+          activations_checkpoint_num_layers: null
+          num_micro_batches_with_partial_activation_checkpoints: null
+          activations_checkpoint_layers_per_pipeline: null
+          sequence_parallel: false
+          transformer_engine: true
+          fp8: false
+          fp8_e4m3: false
+          fp8_hybrid: true
+          fp8_margin: 0
+          fp8_interval: 1
+          fp8_amax_history_len: 1024
+          fp8_amax_compute_algo: max
+          reduce_amax: true
+          use_emha: false
+          ub_tp_comm_overlap: false
+          ub_tp_comm_overlap_cfg: null
+          use_flash_attention: true
+          nsys_profile:
+            enabled: false
+            start_step: 10
+            end_step: 10
+            ranks:
+            - 0
+            gen_shape: false
+          optim:
+            name: distributed_fused_adam
+            lr: 0.0001
+            weight_decay: 0.1
+            betas:
+            - 0.9
+            - 0.95
+            sched:
+              name: CosineAnnealing
+              warmup_steps: 107
+              constant_steps: 11873
+              min_lr: 1.0e-05
+          gc_interval: 0
+          precision: bf16
+          mcore_customization_config:
+            new_decoder_architecture: false
+            parallel_attention: false
+          data:
+            data_impl: mmap
+            splits_string: "99990,8,2"
+            seq_length: 4096
+            skip_warmup: true
+            num_workers: 2
+            dataloader_type: single
+            reset_position_ids: false
+            reset_attention_mask: false
+            eod_mask_loss: false
+            index_mapping_dir: null
+            data_prefix:
+            - .0333
+            - ${data_dir}/my-mixtral_00_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_01_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_02_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_03_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_04_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_05_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_06_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_07_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_08_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_09_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_10_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_11_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_12_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_13_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_14_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_15_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_16_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_17_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_18_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_19_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_20_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_21_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_22_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_23_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_24_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_25_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_26_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_27_text_document
+            - .0333
+            - ${data_dir}/my-mixtral_28_text_document
+            - .0334
+            - ${data_dir}/my-mixtral_29_text_document
+        """
+        expected = OmegaConf.create(s)
+        assert (
+            expected == conf
+        ), f"base_configs/mixtral_3b.yaml must be set to {expected} but it currently is {conf}."
 
     def test_t5_base_config(self):
         conf = OmegaConf.load("base_configs/t5.yaml")

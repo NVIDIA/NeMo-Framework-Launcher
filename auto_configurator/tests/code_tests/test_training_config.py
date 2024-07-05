@@ -388,6 +388,77 @@ class TestCalculateTpPpMbsGrid:
                     "max_par": 256,
                 },
             ),
+            # Llama tests
+            (
+                7,
+                32,
+                4096,
+                "llama",
+                {
+                    "tensor_parallel_sizes": [1, 2, 4, 5],
+                    "pipeline_parallel_sizes": [1, 2, 4, 8],
+                    "micro_batch_sizes": [1, 2, 4, 8],
+                    "context_parallel_sizes": [1, 2],
+                    "gpu_memory_gb": 80,
+                    "min_model_parallel_size": 1,
+                    "max_model_parallel_size": 32,
+                },
+                {
+                    "tp": [1, 2, 4, 5],
+                    "pp": [1, 2, 4, 8],
+                    "cp": [1, 2],
+                    "mbs": [1, 2, 4, 8],
+                    "min_par": 1,
+                    "max_par": 32,
+                },
+            ),
+            (
+                8,
+                32,
+                8192,
+                "llama",
+                {
+                    "tensor_parallel_sizes": [1, 2, 4, 5],
+                    "pipeline_parallel_sizes": [1, 2, 4, 8],
+                    "micro_batch_sizes": [1, 2, 4, 8],
+                    "context_parallel_sizes": [1, 2],
+                    "gpu_memory_gb": 80,
+                    "min_model_parallel_size": 1,
+                    "max_model_parallel_size": 40,
+                },
+                {
+                    "tp": [1, 2, 4, 5],
+                    "pp": [1, 2, 4, 8],
+                    "cp": [1, 2],
+                    "mbs": [1, 2, 4, 8],
+                    "min_par": 1,
+                    "max_par": 40,
+                },
+            ),
+            # Mixtral tests
+            (
+                7,
+                32,
+                4096,
+                "mixtral",
+                {
+                    "tensor_parallel_sizes": [1, 2, 4, 5],
+                    "pipeline_parallel_sizes": [1, 2, 4, 8],
+                    "expert_parallel_sizes": [1, 2],
+                    "micro_batch_sizes": [1, 2, 4, 8],
+                    "gpu_memory_gb": 80,
+                    "min_model_parallel_size": 1,
+                    "max_model_parallel_size": 32,
+                },
+                {
+                    "tp": [1, 2, 4, 5],
+                    "pp": [1, 2, 4, 8],
+                    "ep": [1, 2],
+                    "mbs": [1, 2, 4, 8],
+                    "min_par": 1,
+                    "max_par": 32,
+                },
+            ),
             # T5 tests
             (
                 0.22,
@@ -802,10 +873,20 @@ class TestCalculateTpPpMbsGrid:
             "model_name": model_name,
             "train_cfg": train_cfg,
         }
-        tp, pp, mbs, min_par, max_par = tc._calculate_tp_pp_mbs_grid(**params)
+        tp, pp, cp, ep, mbs, min_par, max_par = tc._calculate_tp_pp_mbs_grid(**params)
 
         assert tp == expected["tp"], f"TP should be {expected['tp']} but it is {tp}."
         assert pp == expected["pp"], f"PP should be {expected['pp']} but it is {pp}."
+
+        if "cp" in expected:
+            assert (
+                cp == expected["cp"]
+            ), f"PP should be {expected['cp']} but it is {cp}."
+        if "ep" in expected:
+            assert (
+                ep == expected["ep"]
+            ), f"PP should be {expected['ep']} but it is {ep}."
+
         assert (
             mbs == expected["mbs"]
         ), f"MBS should be {expected['mbs']} but it is {mbs}."
