@@ -121,8 +121,8 @@ RUN git clone https://github.com/NVIDIA/Megatron-LM.git && \
 
 # Install launch scripts
 ARG LAUNCHER_COMMIT
-RUN git clone https://github.com/NVIDIA/NeMo-Megatron-Launcher.git && \
-    cd NeMo-Megatron-Launcher && \
+RUN git clone https://github.com/NVIDIA/NeMo-Framework-Launcher.git && \
+    cd NeMo-Framework-Launcher && \
     git pull && \
     if [ ! -z $LAUNCHER_COMMIT ]; then \
         git fetch origin $LAUNCHER_COMMIT && \
@@ -130,8 +130,8 @@ RUN git clone https://github.com/NVIDIA/NeMo-Megatron-Launcher.git && \
     fi && \
     pip install --no-cache-dir -r requirements.txt
 
-ENV LAUNCHER_SCRIPTS_PATH=/opt/NeMo-Megatron-Launcher/launcher_scripts
-ENV PYTHONPATH=/opt/NeMo-Megatron-Launcher/launcher_scripts:${PYTHONPATH}
+ENV LAUNCHER_SCRIPTS_PATH=/opt/NeMo-Framework-Launcher/launcher_scripts
+ENV PYTHONPATH=/opt/NeMo-Framework-Launcher/launcher_scripts:${PYTHONPATH}
 
 # HF cache
 RUN python -c "from transformers import AutoTokenizer; tok_gpt=AutoTokenizer.from_pretrained('gpt2'); tok_bert=AutoTokenizer.from_pretrained('bert-base-cased'); tok_large_bert=AutoTokenizer.from_pretrained('bert-large-cased'); tok_large_uncased_bert=AutoTokenizer.from_pretrained('bert-large-uncased');"

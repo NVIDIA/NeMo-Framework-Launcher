@@ -91,6 +91,7 @@ model:
   position_embedding_type: rope
   rotary_percentage: 1.0
   apply_rope_fusion: true
+  cross_entropy_loss_fusion: true
   attention_type: multihead
   share_embeddings_and_output_weights: false
   tokenizer:

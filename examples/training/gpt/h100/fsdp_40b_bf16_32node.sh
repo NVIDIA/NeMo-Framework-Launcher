@@ -4,16 +4,16 @@
 
 # Users should specify the path to the launcher directory and the dataset in the
 # commandline or in this run script.
-NEMO_MEGATRON_LAUNCHER_DIR=${NEMO_MEGATRON_LAUNCHER_DIR:-"/opt/NeMo-Megatron-Launcher"}
+NEMO_FRAMEWORK_LAUNCHER_DIR=${NEMO_FRAMEWORK_LAUNCHER_DIR:-"/opt/NeMo-Framework-Launcher"}
 DATA_DIR=${DATA_DIR}
 
 #Users should setup their cluster type in /launcher_scripts/conf/config.yaml
-python3 ${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts/main.py \
+python3 ${NEMO_FRAMEWORK_LAUNCHER_DIR}/launcher_scripts/main.py \
 training=gpt3/40b \
 stages=[training] \
-launcher_scripts_path=${NEMO_MEGATRON_LAUNCHER_DIR}/launcher_scripts \
+launcher_scripts_path=${NEMO_FRAMEWORK_LAUNCHER_DIR}/launcher_scripts \
 data_dir=${DATA_DIR} \
-base_results_dir=${NEMO_MEGATRON_LAUNCHER_DIR}/results \
+base_results_dir=${NEMO_FRAMEWORK_LAUNCHER_DIR}/results \
 training.trainer.precision="bf16-mixed" \
 training.run.name="fsdp_40b_h100_bf16_32node" \
 training.trainer.num_nodes=32 \

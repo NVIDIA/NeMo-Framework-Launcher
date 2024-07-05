@@ -9,7 +9,7 @@ image:
   gpuNum: 1
   nodes: training.trainer.num_nodes
 
-# This config is used only for small datasets that have preparation scripts in NeMo-Megatron-Launcher
+# This config is used only for small datasets that have preparation scripts in NeMo-Framework-Launcher
 # TODO: make this its own stage
 datasetConfig:
   # This is the same dir as cfg_data_dir + $task_specific_subdir (e.g., squad_data)
