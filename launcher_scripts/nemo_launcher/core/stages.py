@@ -17,10 +17,13 @@ import functools
 import glob
 import json
 import logging
-import omegaconf
 import os
 import re
 import shutil
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import omegaconf
 from nemo_launcher.core.launchers import AutoLauncher
 from nemo_launcher.utils.data_utils.prepare_squad import (
     prepare_squad_for_fine_tuning,
@@ -28,8 +31,6 @@ from nemo_launcher.utils.data_utils.prepare_squad import (
 )
 from nemo_launcher.utils.job_utils import JobPaths
 from omegaconf import DictConfig, OmegaConf
-from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 __LANGUAGE_MODELS_LIST__ = [
     "gpt3",
@@ -77,7 +78,12 @@ class NemoMegatronStage:
         self.stage_cfg = None
         self.setup_stage_vars(cfg)
         self.job_name = self.stage_cfg.run.get("name")
-
+        if self.cluster.lower() == "bcm":
+            # this to ensure that submission filename (.sh) matches the config filename (.yaml)
+            # expected result: <prefix><run_name>_submission.sh, <prefix><run_name>_hydra.yaml
+            self.job_name = (
+                cfg.get("cluster").get("job_name_prefix", "") + self.job_name
+            )
         self.nodes_scheduler = {}
 
     def setup_stage_vars(self, cfg: OmegaConf):
@@ -326,7 +332,7 @@ class NemoMegatronStage:
         cfg = self.cfg
         stage_cfg = self.stage_cfg
         run_cfg = stage_cfg.get("run")
-        job_name = run_cfg.get("name")
+        job_name = self.job_name
         time_limit = run_cfg.get("time_limit")
         nodes = run_cfg.get("nodes")
         dependency = run_cfg.get("dependency")
@@ -363,7 +369,7 @@ class NemoMegatronStage:
                     cluster_cfg["srun_args"] = []
                 cluster_cfg["srun_args"] += ["--mpi=pmix"]
             slurm_cfg = {**copy.deepcopy(cluster_cfg)}
-            job_name_prefix = slurm_cfg.pop("job_name_prefix")
+            slurm_cfg.pop("job_name_prefix")
             cluster_parameters = {**slurm_cfg}
             cluster_parameters.update(
                 {
@@ -372,9 +378,6 @@ class NemoMegatronStage:
                     "container_image": container_image,
                     "container_mounts": container_mounts,
                 }
-            )
-            cluster_parameters["job_name"] = (
-                job_name_prefix + cluster_parameters["job_name"]
             )
         elif cluster == "bcp":
             cluster_parameters.update(
@@ -402,6 +405,35 @@ class NemoMegatronStage:
                 }
             )
 
+        cluster_parameters = self._update_fault_tolerance_params(
+            stage_cfg, cluster, cluster_parameters
+        )
+
+        return cluster_parameters
+
+    def _get_fault_tol_config_section(self, stage_cfg, cluster):
+        exp_man_conf = stage_cfg.get("exp_manager", dict())
+        use_ft = exp_man_conf.get("create_fault_tolerance_callback", False)
+        if use_ft:
+            if cluster.lower() != "bcm":
+                raise ValueError(
+                    f"Fault tolerance requires 'bcm' cluster, but it's '{cluster}')"
+                )
+        return use_ft, exp_man_conf.get("fault_tolerance", dict())
+
+    def _update_fault_tolerance_params(self, stage_cfg, cluster, cluster_parameters):
+        use_ft, ft_conf = self._get_fault_tol_config_section(stage_cfg, cluster)
+        cluster_parameters["use_fault_tolerance"] = use_ft
+        if use_ft:
+            cluster_parameters["max_rank_restarts"] = ft_conf.get(
+                "max_rank_restarts", 0
+            )
+            cluster_parameters["max_subsequent_job_failures"] = ft_conf.get(
+                "max_subsequent_job_failures", 0
+            )
+            cluster_parameters["additional_ft_launcher_args"] = ft_conf.get(
+                "additional_ft_launcher_args", ""
+            )
         return cluster_parameters
 
     def _find_optimal_nodes(self, cfg, gpus) -> None:
