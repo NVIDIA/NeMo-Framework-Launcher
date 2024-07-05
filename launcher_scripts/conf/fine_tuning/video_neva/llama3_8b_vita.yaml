@@ -91,7 +91,7 @@ model:
       sample_frames: 4  # for lita 1.5 sample_frames are used for spatial tokens, and spatial tokens will no longer do pooling and instead, it will use full tokens
     use_lita: True
     pretrain_mm_mlp_adapter: null # path to pretrained mm adapter
-    mm_mlp_adapter_type: mlp2x_gelu
+    mm_mlp_adapter_type: mlp_downsample
     use_im_start_end: False
 
 
