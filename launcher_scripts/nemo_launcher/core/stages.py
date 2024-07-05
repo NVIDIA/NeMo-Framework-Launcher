@@ -2647,6 +2647,5 @@ class PostTrainingQuantization(NeMoStage):
         :rtype: Path
         """
         return (
-            self._nemo_code_path
-            / "examples/nlp/language_modeling/megatron_gpt_quantization.py"
+            self._nemo_code_path / "examples/nlp/language_modeling/megatron_gpt_ptq.py"
         )
