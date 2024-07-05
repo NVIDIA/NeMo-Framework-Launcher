@@ -66,7 +66,7 @@ model:
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
   virtual_pipeline_model_parallel_size: null # interleaved pipeline
 
-  restore_from_path: ${data_dir}/neva/checkpoints/Llama-3-VILA1.5-8B.nemo # used in fine-tuning
+  restore_from_path: ${data_dir}/LITA/nemo_models/Llama-3-VILA1.5-8B.nemo # used in fine-tuning
 
   # Multimodal configs
   mm_cfg:
@@ -75,7 +75,7 @@ model:
       freeze: False
       model_type: vita
     vision_encoder:
-      from_pretrained: ${data_dir}/neva/hf_checkpoints/Llama-3-VILA1.5-8B/vision_tower # path or name
+      from_pretrained: ${data_dir}/LITA/hf_checkpoints/Llama-3-VILA1.5-8B/vision_tower # path or name
       from_hf: True
       model_type: siglip_vision_model
       patch_dim: 14
@@ -186,7 +186,7 @@ model:
 
   tokenizer:
     library: 'huggingface'
-    type: ${data_dir}/neva/checkpoints/converted_vita_tokenizer/
+    type: ${data_dir}/LITA/tokenizers/converted_vita_tokenizer/
     model: null
     vocab_file: null
     merge_file: null
