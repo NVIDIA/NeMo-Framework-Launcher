@@ -113,6 +113,8 @@ def generate_grid_search_configs(
     (
         tp_list,
         pp_list,
+        cp_list,
+        ep_list,
         mbs_list,
         min_model_parallel,
         max_model_parallel,
@@ -133,47 +135,70 @@ def generate_grid_search_configs(
     valid_tp_pp_list = []
     for tp in tp_list:
         for pp in pp_list:
-            for mbs in mbs_list:
-                num_gpus = (
-                    base_cfg["trainer"]["num_nodes"] * base_cfg["trainer"]["devices"]
-                )
-                gbs = base_cfg["model"]["global_batch_size"]
-                if model_name in [
-                    "gpt3",
-                    "bert",
-                    "llama",
-                    "baichuan2",
-                    "chatglm",
-                    "qwen2",
-                    "mixtral",
-                ]:
-                    att_heads = base_cfg["model"]["num_attention_heads"]
-                    num_layers = base_cfg["model"]["num_layers"]
-                else:
-                    att_heads = base_cfg["model"]["encoder"]["num_attention_heads"]
-                    num_layers = base_cfg["model"]["encoder"]["num_layers"]
-                mod_gbs = gbs % (mbs * num_gpus / (tp * pp))
-                mod_att_heads = att_heads % tp
-                mod_layers = (multiplier * num_layers) % pp
-                if (
-                    mod_gbs == 0
-                    and mod_att_heads == 0
-                    and mod_layers == 0
-                    and (tp, pp) not in valid_tp_pp_list
-                    and min_model_parallel <= tp * pp <= max_model_parallel
-                ):
-                    valid_tp_pp_list.append((tp, pp))
+            for cp in cp_list:
+                for ep in ep_list:
+                    for mbs in mbs_list:
+                        num_gpus = (
+                            base_cfg["trainer"]["num_nodes"]
+                            * base_cfg["trainer"]["devices"]
+                        )
+                        gbs = base_cfg["model"]["global_batch_size"]
+                        if model_name in [
+                            "gpt3",
+                            "bert",
+                            "llama",
+                            "baichuan2",
+                            "chatglm",
+                            "qwen2",
+                            "mixtral",
+                        ]:
+                            att_heads = base_cfg["model"]["num_attention_heads"]
+                            num_layers = base_cfg["model"]["num_layers"]
+                        else:
+                            att_heads = base_cfg["model"]["encoder"][
+                                "num_attention_heads"
+                            ]
+                            num_layers = base_cfg["model"]["encoder"]["num_layers"]
+                        model_parallelism = (
+                            (tp * pp * cp * ep) if (cp and ep) else (tp * pp)
+                        )
+                        mod_gbs = gbs % (mbs * num_gpus / model_parallelism)
+                        mod_att_heads = att_heads % tp
+                        mod_layers = (multiplier * num_layers) % pp
+                        mod_cp = cp if cp else 1
+                        mod_ep = ep if ep else 1
+                        if (
+                            mod_gbs == 0
+                            and mod_att_heads == 0
+                            and mod_layers == 0
+                            and (tp, pp, cp, ep) not in valid_tp_pp_list
+                            and (
+                                mod_cp // mod_ep == mod_cp or mod_ep // mod_cp == mod_ep
+                            )
+                            and min_model_parallel
+                            <= model_parallelism
+                            <= max_model_parallel
+                        ):
+                            valid_tp_pp_list.append((tp, pp, cp, ep))
 
     # Generate grid search configs.
     results_cfgs = [[] for _ in range(multiplier * num_layers + 1)]
-    for tp, pp in valid_tp_pp_list:
+    for tp, pp, cp, ep in valid_tp_pp_list:
         (
             virtual_pipelines,
             act_ckpt_layers,
             num_micro_batches_partial_act_ckpt,
             act_ckpt_layers_per_pipeline,
         ) = _set_activations_checkpoint_params(
-            tp, pp, num_layers, act_method, multiplier, model_size_in_b, model_name
+            tp,
+            pp,
+            cp,
+            ep,
+            num_layers,
+            act_method,
+            multiplier,
+            model_size_in_b,
+            model_name,
         )
         for mbs in mbs_list:
             kwargs = {
@@ -183,6 +208,8 @@ def generate_grid_search_configs(
                 "act_per_pipe": None,
                 "tp": tp,
                 "pp": pp,
+                "cp": cp,
+                "ep": ep,
                 "virtual_pipelines": virtual_pipelines,
                 "mbs": mbs,
                 "max_minutes": max_minutes,
@@ -201,14 +228,14 @@ def generate_grid_search_configs(
                             kwargs["act_per_pipe"] = act_per_pipe
                             new_cfg = utils.modify_cfg(**kwargs)
                             if new_cfg:  # Save candidate cfg.
-                                file_name = f"{model_name}_{model_size_in_b}b_{num_nodes}nodes_tp_{tp}_pp_{pp}_mbs_{mbs}_act_ckpt_{act}_num_mbs_act_{num_mbs_act}_act_per_pipe_{act_per_pipe}.yaml"
+                                file_name = f"{model_name}_{model_size_in_b}b_{num_nodes}nodes_tp_{tp}_pp_{pp}_cp_{cp}_ep_{ep}_mbs_{mbs}_act_ckpt_{act}_num_mbs_act_{num_mbs_act}_act_per_pipe_{act_per_pipe}.yaml"
                                 results_cfgs[act].append(file_name)
                                 with open(f"{base_dir}/{file_name}", "w") as f:
                                     yaml.dump(new_cfg, f)
             else:
                 new_cfg = utils.modify_cfg(**kwargs)
                 if new_cfg:  # Save candidate cfg.
-                    file_name = f"{model_name}_{model_size_in_b}b_{num_nodes}nodes_tp_{tp}_pp_{pp}_mbs_{mbs}_act_ckpt_{kwargs['act']}_num_mbs_act_{kwargs['num_mbs_act']}_act_per_pipe_{kwargs['act_per_pipe']}.yaml"
+                    file_name = f"{model_name}_{model_size_in_b}b_{num_nodes}nodes_tp_{tp}_pp_{pp}_cp_{cp}_ep_{ep}_mbs_{mbs}_act_ckpt_{kwargs['act']}_num_mbs_act_{kwargs['num_mbs_act']}_act_per_pipe_{kwargs['act_per_pipe']}.yaml"
                     results_cfgs[mbs].append(file_name)
                     with open(f"{base_dir}/{file_name}", "w") as f:
                         yaml.dump(new_cfg, f)
@@ -218,7 +245,7 @@ def generate_grid_search_configs(
 
 
 def _set_activations_checkpoint_params(
-    tp, pp, num_layers, act_method, multiplier, model_size_in_b, model_name
+    tp, pp, cp, ep, num_layers, act_method, multiplier, model_size_in_b, model_name
 ):
     act_multiple = 4 // pp
     if act_method == "block":
@@ -304,14 +331,18 @@ def _tp_pp_mbs_grid_gpt3_80gb(
     Selects grid search space for TP, PP, MBS parameters for GPT-3 and 80GB GPUs.
     :param float model_size_in_b: number of parameters in the model.
     :param List[int] valid_pp: list of valid Pipeline Parallelism (PP) values for this config.
-    :returns: tuple (tp, pp, mbs)
+    :returns: tuple (tp, pp, cp, ep, mbs)
         WHERE
         int tp is the Tensor Parallelism value to use for training.
         int pp is the Pipeline Parallelism value to use for training.
+        int cp is the Context Parallelism value to use for training.
+        int ep is the Expert Parallelism value to use for training.
         int mbs is the Micro Batch Size to use for training.
     """
     tp = [1, 2, 4, 8]
     pp = [1]
+    cp = [1]
+    ep = [1]
     mbs = [1, 2, 3, 4, 6, 8]
     min_model_parallel = 1
     max_model_parallel = 8
@@ -484,7 +515,7 @@ def _tp_pp_mbs_grid_gpt3_80gb(
             min_model_parallel = 16
             max_model_parallel = 32
 
-    return tp, pp, mbs, min_model_parallel, max_model_parallel
+    return tp, pp, cp, ep, mbs, min_model_parallel, max_model_parallel
 
 
 def _tp_pp_mbs_grid_gpt3_40gb(
@@ -494,14 +525,18 @@ def _tp_pp_mbs_grid_gpt3_40gb(
     Selects grid search space for TP, PP, MBS parameters for GPT-3 and 40GB GPUs.
     :param float model_size_in_b: number of parameters in the model.
     :param List[int] valid_pp: list of valid Pipeline Parallelism (PP) values for this config.
-    :returns: tuple (tp, pp, mbs)
+    :returns: tuple (tp, pp, cp, ep, mbs)
         WHERE
         int tp is the Tensor Parallelism value to use for training.
         int pp is the Pipeline Parallelism value to use for training.
+        int cp is the Context Parallelism value to use for training.
+        int ep is the Expert Parallelism value to use for training.
         int mbs is the Micro Batch Size to use for training.
     """
     tp = [1, 2, 4, 8]
     pp = [1]
+    cp = [1]
+    ep = [1]
     mbs = [1, 2, 4, 6, 8, 10, 12, 16]
     min_model_parallel = 1
     max_model_parallel = 8
@@ -569,7 +604,7 @@ def _tp_pp_mbs_grid_gpt3_40gb(
         mbs = [1, 2]
         min_model_parallel = 512
         max_model_parallel = 8192
-    return tp, pp, mbs, min_model_parallel, max_model_parallel
+    return tp, pp, cp, ep, mbs, min_model_parallel, max_model_parallel
 
 
 def _tp_pp_mbs_grid_t5_80gb(
@@ -579,14 +614,18 @@ def _tp_pp_mbs_grid_t5_80gb(
     Selects grid search space for TP, PP, MBS parameters for T5/mT5 and 80GB GPUs.
     :param float model_size_in_b: number of parameters in the model.
     :param List[int] valid_pp: list of valid Pipeline Parallelism (PP) values for this config.
-    :returns: tuple (tp, pp, mbs)
+    :returns: tuple (tp, pp, cp, ep, mbs)
         WHERE
         int tp is the Tensor Parallelism value to use for training.
         int pp is the Pipeline Parallelism value to use for training.
+        int cp is the Context Parallelism value to use for training.
+        int ep is the Expert Parallelism value to use for training.
         int mbs is the Micro Batch Size to use for training.
     """
     tp = [1, 2, 4, 8]
     pp = [1]
+    cp = [None]
+    ep = [None]
     mbs = [1, 2, 4, 6, 8, 12, 16]
     min_model_parallel = 1
     max_model_parallel = 8
@@ -632,7 +671,7 @@ def _tp_pp_mbs_grid_t5_80gb(
         mbs = [1, 2, 4, 6, 8]
         min_model_parallel = 64
         max_model_parallel = 256
-    return tp, pp, mbs, min_model_parallel, max_model_parallel
+    return tp, pp, cp, ep, mbs, min_model_parallel, max_model_parallel
 
 
 def _tp_pp_mbs_grid_t5_40gb(
@@ -642,14 +681,18 @@ def _tp_pp_mbs_grid_t5_40gb(
     Selects grid search space for TP, PP, MBS parameters for T5/mT5 and 40GB GPUs.
     :param float model_size_in_b: number of parameters in the model.
     :param List[int] valid_pp: list of valid Pipeline Parallelism (PP) values for this config.
-    :returns: tuple (tp, pp, mbs)
+    :returns: tuple (tp, pp, cp, ep, mbs)
         WHERE
         int tp is the Tensor Parallelism value to use for training.
         int pp is the Pipeline Parallelism value to use for training.
+        int cp is the Context Parallelism value to use for training.
+        int ep is the Expert Parallelism value to use for training.
         int mbs is the Micro Batch Size to use for training.
     """
     tp = [1, 2, 4, 8]
     pp = [1]
+    cp = [None]
+    ep = [None]
     mbs = [1, 2, 4, 6, 8, 12, 16]
     min_model_parallel = 1
     max_model_parallel = 8
@@ -698,7 +741,7 @@ def _tp_pp_mbs_grid_t5_40gb(
         mbs = [1, 2, 4]
         min_model_parallel = 128
         max_model_parallel = 256
-    return tp, pp, mbs, min_model_parallel, max_model_parallel
+    return tp, pp, cp, ep, mbs, min_model_parallel, max_model_parallel
 
 
 def _tp_pp_mbs_grid_bert_80gb(
@@ -708,13 +751,17 @@ def _tp_pp_mbs_grid_bert_80gb(
     Selects grid search space for TP, PP, MBS parameters for BERT and 80GB GPUs.
     :param float model_size_in_b: number of parameters in the model.
     :param List[int] valid_pp: list of valid Pipeline Parallelism (PP) values for this config.
-    :returns: tuple (tp, pp, mbs)
+    :returns: tuple (tp, pp, cp, ep, mbs)
         WHERE
         int tp is the Tensor Parallelism value to use for training.
         int pp is the Pipeline Parallelism value to use for training.
+        int cp is the Context Parallelism value to use for training.
+        int ep is the Expert Parallelism value to use for training.
         int mbs is the Micro Batch Size to use for training.
     """
     pp = [1]
+    cp = [None]
+    ep = [None]
     mbs = [1, 2, 3, 4, 6, 8]
     min_model_parallel = 1
     max_model_parallel = 8
@@ -759,7 +806,7 @@ def _tp_pp_mbs_grid_bert_80gb(
         max_model_parallel = 256
     else:
         raise ValueError("No BERT model larger than 250B parameters is supported.")
-    return tp, pp, mbs, min_model_parallel, max_model_parallel
+    return tp, pp, cp, ep, mbs, min_model_parallel, max_model_parallel
 
 
 def _tp_pp_mbs_grid_bert_40gb(
@@ -769,13 +816,17 @@ def _tp_pp_mbs_grid_bert_40gb(
     Selects grid search space for TP, PP, MBS parameters for BERT and 40GB GPUs.
     :param float model_size_in_b: number of parameters in the model.
     :param List[int] valid_pp: list of valid Pipeline Parallelism (PP) values for this config.
-    :returns: tuple (tp, pp, mbs)
+    :returns: tuple (tp, pp, cp, ep, mbs)
         WHERE
         int tp is the Tensor Parallelism value to use for training.
         int pp is the Pipeline Parallelism value to use for training.
+        int cp is the Context Parallelism value to use for training.
+        int ep is the Expert Parallelism value to use for training.
         int mbs is the Micro Batch Size to use for training.
     """
     pp = [1]
+    cp = [None]
+    ep = [None]
     mbs = [1, 2, 4, 6, 8]
     min_model_parallel = 1
     max_model_parallel = 8
@@ -821,7 +872,7 @@ def _tp_pp_mbs_grid_bert_40gb(
         max_model_parallel = 512
     else:
         raise ValueError("No BERT model larger than 250B parameters is supported.")
-    return tp, pp, mbs, min_model_parallel, max_model_parallel
+    return tp, pp, cp, ep, mbs, min_model_parallel, max_model_parallel
 
 
 def _calculate_tp_pp_mbs_grid(
@@ -838,16 +889,20 @@ def _calculate_tp_pp_mbs_grid(
     :param int num_layers: number of layers in the model config.
     :param str model_name: name of the model to be used, such as gpt3, t5, mt5...
     :param omegaconf.dictconfig.DictConfig train_cfg: config of the model that will be launched.
-    :returns: tuple (tp, pp, mbs)
+    :returns: tuple (tp, pp, cp, ep, mbs)
         WHERE
         int tp is the Tensor Parallelism value to use for training.
         int pp is the Pipeline Parallelism value to use for training.
+        int cp is the Context Parallelism value to use for training.
+        int ep is the Expert Parallelism value to use for training.
         int mbs is the Micro Batch Size to use for training.
         int min_model_parallel is the minimum parallelism level needed.
     :raises NotImplementedError: if the model_name is not one of the supported models.
     """
     tp_sizes = train_cfg.get("tensor_parallel_sizes")
     pp_sizes = train_cfg.get("pipeline_parallel_sizes")
+    cp_sizes = train_cfg.get("context_parallel_sizes", None)
+    ep_sizes = train_cfg.get("expert_parallel_sizes", None)
     min_model_parallel_size = train_cfg.get("min_model_parallel_size")
     max_model_parallel_size = train_cfg.get("max_model_parallel_size")
     mbs_sizes = train_cfg.get("micro_batch_sizes")
@@ -873,6 +928,8 @@ def _calculate_tp_pp_mbs_grid(
             (
                 tp,
                 pp,
+                cp,
+                ep,
                 mbs,
                 min_model_parallel,
                 max_model_parallel,
@@ -885,6 +942,8 @@ def _calculate_tp_pp_mbs_grid(
             (
                 tp,
                 pp,
+                cp,
+                ep,
                 mbs,
                 min_model_parallel,
                 max_model_parallel,
@@ -896,6 +955,8 @@ def _calculate_tp_pp_mbs_grid(
             (
                 tp,
                 pp,
+                cp,
+                ep,
                 mbs,
                 min_model_parallel,
                 max_model_parallel,
@@ -906,6 +967,8 @@ def _calculate_tp_pp_mbs_grid(
             (
                 tp,
                 pp,
+                cp,
+                ep,
                 mbs,
                 min_model_parallel,
                 max_model_parallel,
@@ -917,6 +980,8 @@ def _calculate_tp_pp_mbs_grid(
             (
                 tp,
                 pp,
+                cp,
+                ep,
                 mbs,
                 min_model_parallel,
                 max_model_parallel,
@@ -927,6 +992,8 @@ def _calculate_tp_pp_mbs_grid(
             (
                 tp,
                 pp,
+                cp,
+                ep,
                 mbs,
                 min_model_parallel,
                 max_model_parallel,
@@ -941,13 +1008,17 @@ def _calculate_tp_pp_mbs_grid(
         tp = tp_sizes
     if pp_sizes is not None and pp_sizes != "auto":
         pp = pp_sizes
+    if cp_sizes is not None and cp_sizes != "auto":
+        cp = cp_sizes
+    if ep_sizes is not None and ep_sizes != "auto":
+        ep = ep_sizes
     if mbs_sizes is not None and mbs_sizes != "auto":
         mbs = mbs_sizes
     if min_model_parallel_size is not None and min_model_parallel_size != "auto":
         min_model_parallel = min_model_parallel_size
     if max_model_parallel_size is not None and max_model_parallel_size != "auto":
         max_model_parallel = max_model_parallel_size
-    return tp, pp, mbs, min_model_parallel, max_model_parallel
+    return tp, pp, cp, ep, mbs, min_model_parallel, max_model_parallel
 
 
 def launch_grid_search_configs(
