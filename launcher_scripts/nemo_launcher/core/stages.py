@@ -42,6 +42,7 @@ __LANGUAGE_MODELS_LIST__ = [
     "gemma",
     "falcon",
     "baichuan2",
+    "mamba",
     "mistral",
     "mistral_embedding",
     "mixtral",
@@ -1004,6 +1005,8 @@ class FineTuning(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
+            "mamba": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_mamba_finetuning.py",
             "mt5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "falcon": self._nemo_code_path
