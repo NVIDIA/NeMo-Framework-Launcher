@@ -23,7 +23,7 @@ trainer:
 exp_manager:
   explicit_log_dir: ${fine_tuning.run.results_dir}/results
   exp_dir: null
-  name: ${name}
+  name: mamba
   create_wandb_logger: True
   wandb_logger_kwargs:
     project: mamba
