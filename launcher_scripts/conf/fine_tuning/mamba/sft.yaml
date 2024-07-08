@@ -164,7 +164,7 @@ model:
       pad_to_max_length: True
     validation_ds:
         file_names: ??? # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
-        names: null # Names of the corresponding datasets used to log metrics.
+        name: "squad" # Names of the corresponding datasets used to log metrics.
         global_batch_size: ${fine_tuning.model.global_batch_size}
         micro_batch_size: ${fine_tuning.model.micro_batch_size}
         shuffle: False
