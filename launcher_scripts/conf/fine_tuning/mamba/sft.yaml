@@ -36,7 +36,7 @@ exp_manager:
     save_top_k: 1
     mode: min
     save_nemo_on_train_end: True
-    filename: '${name}--{${exp_manager.checkpoint_callback_params.monitor}:.3f}-{step}-{consumed_samples}'
+    filename: '${fine_tuning.run.name}--{${fine_tuning.exp_manager.checkpoint_callback_params.monitor}:.3f}-{step}-{consumed_samples}'
     model_parallel_size: ${fine_tuning.model.tensor_model_parallel_size}
     always_save_nemo: False
     save_best_model: True
