@@ -85,7 +85,7 @@ model:
   ffn_dropout: 0.0
   
   peft:
-    peft_scheme: "null"  # can be either adapter,ia3, lora, or ptuning
+    peft_scheme: "none"  # can be either adapter,ia3, lora, or ptuning
     restore_from_path: null
 
     # Used for adapter peft training
