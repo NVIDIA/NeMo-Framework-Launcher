@@ -24,7 +24,7 @@ exp_manager:
   explicit_log_dir: ${fine_tuning.run.results_dir}/results
   exp_dir: null
   name: mamba
-  create_wandb_logger: True
+  create_wandb_logger: False
   wandb_logger_kwargs:
     project: mamba
     name: sft-test
