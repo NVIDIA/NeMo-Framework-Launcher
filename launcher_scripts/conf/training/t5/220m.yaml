@@ -51,6 +51,10 @@ exp_manager:
     buffer_size: 5
 
 model:
+  # use T5 model from megatron.core
+  mcore_t5: True
+  transformer_engine: False
+
   # model parallelism
   micro_batch_size: 64
   global_batch_size: 2048 # will use more micro batches to reach global batch size

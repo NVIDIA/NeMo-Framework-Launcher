@@ -45,6 +45,10 @@ exp_manager:
     save_best_model: True
 
 model: # For different fine_tuning tasks, tuning the hyper parameters accordingly; below is only for MNLI
+  # use T5 model from megatron.core
+  mcore_t5: True
+  transformer_engine: False
+  
   restore_from_path: ${fine_tuning.run.convert_dir}/results/megatron_t5.nemo # Path to a trained T5 .nemo file
   pretrained_checkpoint:
     checkpoint_dir: null # Path to a folder that contains a .ckpt file
