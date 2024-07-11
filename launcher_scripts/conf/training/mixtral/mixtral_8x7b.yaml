@@ -48,6 +48,8 @@ model:
   mcore_gpt: true
   moe_grouped_gemm: true
   moe_token_dispatcher_type: alltoall
+  moe_pad_expert_input_to_capacity: True
+  moe_expert_capacity_factor: 1.0
   moe_aux_loss_coeff: 0.01
   micro_batch_size: 1
   global_batch_size: 256
