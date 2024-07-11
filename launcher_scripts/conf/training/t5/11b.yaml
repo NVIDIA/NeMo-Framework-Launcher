@@ -51,6 +51,9 @@ exp_manager:
     buffer_size: 5
 
 model:
+  mcore_t5: False
+  transformer_engine: False
+  
   # model parallelism
   micro_batch_size: 24
   global_batch_size: 1920 # will use more micro batches to reach global batch size
