@@ -53,8 +53,7 @@ exp_manager:
     buffer_size: 5
 
 model:
-  # use MT5 model from megatron.core
-  mcore_t5: True
+  mcore_t5: False
   transformer_engine: False
   
   # model parallelism
