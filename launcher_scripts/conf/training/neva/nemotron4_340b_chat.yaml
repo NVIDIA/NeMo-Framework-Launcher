@@ -80,7 +80,7 @@ model:
       crop_size:
       - 384
       - 384
-      hidden_size: 6912 # could be found from model but tricky in code
+      hidden_size: 1152 # could be found from model but tricky in code
       vision_select_layer: -2   # default to the last layer
       class_token_length: 0
       freeze: True
