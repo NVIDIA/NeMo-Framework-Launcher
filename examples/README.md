@@ -27,9 +27,7 @@ These scripts run a recommended config for GPT, LLAMA2, Nemotron pretraining, an
             ++training.cluster_type=BCP \
             training.model.data.data_impl="mock" \
             training.model.data.data_prefix=[]
-    ```
-    
-For further details see [General Configuration](https://docs.nvidia.com/nemo-framework/user-guide/latest/modelguide/usingautoconfigurator.html#general-configuration) 
+    ``` 
 
 #### Results
 For performance, the "step_time_per_sec" variable on the console out provides a quick way to read performance of a workload.
