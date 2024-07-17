@@ -14,7 +14,7 @@ trainer:
   devices: 8
   accelerator: gpu
   num_nodes: 1
-  precision: bf16
+  precision: 16
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
   use_distributed_sampler: False
@@ -58,7 +58,7 @@ model:
   tensor_model_parallel_size: 1 # intra-layer model parallelism
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
   
-  global_batch_size: 128
+  global_batch_size: 32
   micro_batch_size: 4
   restore_from_path: ??? # Path to an existing .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
