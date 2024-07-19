@@ -1021,6 +1021,8 @@ class FineTuning(NeMoStage):
             / "examples/vision/vision_transformer/megatron_vit_classification_finetune.py",
             "neva": self._nemo_code_path
             / "examples/multimodal/multimodal_llm/neva/neva_finetune.py",
+            "video_neva": self._nemo_code_path
+            / "examples/multimodal/multimodal_llm/neva/neva_finetune.py",
             "nsfw": self._nemo_code_path
             / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
             "baichuan2": self._nemo_code_path
