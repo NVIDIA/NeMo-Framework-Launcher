@@ -42,6 +42,7 @@ __LANGUAGE_MODELS_LIST__ = [
     "gemma",
     "falcon",
     "baichuan2",
+    "mamba",
     "mistral",
     "mistral_embedding",
     "mixtral",
@@ -1004,6 +1005,8 @@ class FineTuning(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_finetuning.py",
             "t5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
+            "mamba": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_mamba_finetuning.py",
             "mt5": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_t5_seq2seq_finetune.py",
             "falcon": self._nemo_code_path
@@ -1017,6 +1020,8 @@ class FineTuning(NeMoStage):
             "vit": self._nemo_code_path
             / "examples/vision/vision_transformer/megatron_vit_classification_finetune.py",
             "neva": self._nemo_code_path
+            / "examples/multimodal/multimodal_llm/neva/neva_finetune.py",
+            "video_neva": self._nemo_code_path
             / "examples/multimodal/multimodal_llm/neva/neva_finetune.py",
             "nsfw": self._nemo_code_path
             / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",

@@ -166,7 +166,7 @@ def create_pytorchjob_resource(
         ),
     )
     pytorch_job = KubeflowOrgV1PyTorchJob(
-        api_version=f"{constants.KUBEFLOW_GROUP}/{constants.OPERATOR_VERSION}",
+        api_version=f"{constants.API_VERSION}",
         kind=constants.PYTORCHJOB_KIND,
         metadata=V1ObjectMeta(generate_name=generate_name, namespace=namespace),
         spec=KubeflowOrgV1PyTorchJobSpec(
@@ -290,7 +290,7 @@ def create_mpijob_resource(
     launcher = replica_template(n_replicas=1, container=launch_container,)
     worker = replica_template(n_replicas=n_workers, container=worker_container,)
     mpijob = KubeflowOrgV1MPIJob(
-        api_version=f"{constants.KUBEFLOW_GROUP}/{constants.OPERATOR_VERSION}",
+        api_version=f"{constants.API_VERSION}",
         kind=constants.MPIJOB_KIND,
         metadata=V1ObjectMeta(generate_name=generate_name, namespace=namespace),
         spec=KubeflowOrgV1MPIJobSpec(
@@ -334,7 +334,7 @@ def create_mpijob_resource(
 def delete_pytorchjob(name: str = "delete-pytorchjob"):
     manifest = dedent(
         f"""
-        apiVersion: {constants.KUBEFLOW_GROUP}/{constants.OPERATOR_VERSION}
+        apiVersion: {constants.API_VERSION}
         kind: {constants.PYTORCHJOB_KIND}
         metadata:
           name: {{{{inputs.parameters.metadata_name}}}}
