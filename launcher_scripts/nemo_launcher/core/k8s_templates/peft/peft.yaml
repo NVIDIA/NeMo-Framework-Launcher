@@ -106,7 +106,7 @@ spec:
               - 'cd /opt/NeMo;
               git rev-parse HEAD;
               nvidia-smi;
-              export PYTHONPATH=/opt/NeMo:\${PYTHONPATH};
+              export PYTHONPATH=/opt/NeMo:${PYTHONPATH};
               {{ if ne $config.wandbKey "nil" }}
               wandb login {{ $config.wandbKey }} &&
               {{ end }}
