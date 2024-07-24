@@ -54,10 +54,10 @@ model:
   micro_batch_size: 1
   global_batch_size: 256
   rampup_batch_size: null
-  tensor_model_parallel_size: 1
+  tensor_model_parallel_size: 8
   pipeline_model_parallel_size: 4
-  expert_model_parallel_size: 8
-  virtual_pipeline_model_parallel_size: 8
+  expert_model_parallel_size: 1
+  virtual_pipeline_model_parallel_size: null
   encoder_seq_length: 4096
   max_position_embeddings: 32768
   num_layers: 32
