@@ -2,8 +2,7 @@
 
 The NeMo Framework Launcher is a cloud-native tool for launching end-to-end NeMo Framework training jobs.
 
-See the [NeMo Framework User Guide](https://docs.nvidia.com/nemo-framework/user-guide/latest/index.html) for
-the most up-to-date information and how to get started quickly.
+Please refer to the [NeMo Framework User Guide](https://docs.nvidia.com/nemo-framework/user-guide/latest/index.html) for more information. To get started quickly, see the [Quick Start Guide for NeMo Launcher](https://docs.nvidia.com/nemo-framework/user-guide/latest/launcherguide/quickstart.html).
 
 The NeMo Framework focuses on foundation model training for generative AI models. 
 Large language model (LLM) pretraining typically requires a lot of compute and model parallelism to efficiently scale training.
