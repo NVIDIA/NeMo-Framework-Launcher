@@ -12,5 +12,5 @@ zstandard==0.15.2
 sqlitedict
 hera
 pydantic
-kubeflow-training
+kubeflow-training>=1.8
 kubernetes

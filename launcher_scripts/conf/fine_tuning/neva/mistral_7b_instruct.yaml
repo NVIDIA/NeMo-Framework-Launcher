@@ -59,8 +59,8 @@ model:
   # gradient accumulation will be done automatically based on data_parallel_size
 
   # Batch size guideline for different types of dataset
-  micro_batch_size: 32 # limited by GPU memory
-  global_batch_size: 256 # will use more micro batches to reach global batch size
+  micro_batch_size: 4 # limited by GPU memory
+  global_batch_size: 128 # will use more micro batches to reach global batch size
 
   tensor_model_parallel_size: 4 # intra-layer model parallelism
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
@@ -135,7 +135,7 @@ model:
   activations_checkpoint_num_layers: null # not used with 'selective'
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
-  sequence_parallel: True
+  sequence_parallel: False
 
   # precision
   native_amp_init_scale: 4294967296 # 2 ** 32

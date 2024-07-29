@@ -302,7 +302,7 @@ model:
   name: megatron_gpt_full_te_layer_autocast
   use_tp_pp_dp_mapping: false
   fp8_params: true
-  enable_cuda_graph: 1
+  enable_cuda_graph: False # TODO: set to true once cuda graph functionality is fully supported
   defer_embedding_wgrad_compute: true
   use_te_rng_tracker: true
   tp_comm_overlap_ag: true

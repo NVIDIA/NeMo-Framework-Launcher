@@ -1,13 +1,12 @@
 run:
-  name: neva_mistral_7b_instruct_peft
+  name: neva_nemotron4_340b_chat
+  results_dir: ${base_results_dir}/${.name}
   time_limit: "1-00:00:00"
   dependency: "singleton"
-  model_train_name: neva_mistral_7b_instruct
-  results_dir: ${base_results_dir}/${.name}
 
 trainer:
   devices: 8
-  num_nodes: 2
+  num_nodes: 4
   accelerator: gpu
   precision: bf16
   logger: False # logger provided by exp_manager
@@ -15,7 +14,7 @@ trainer:
   use_distributed_sampler: False
   max_epochs: -1 # PTL default. In practice, max_steps will be reached first.
   max_steps: 2170 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
-  log_every_n_steps: 10
+  log_every_n_steps: 1
   val_check_interval: 100
   check_val_every_n_epoch: null
   limit_val_batches: 50
@@ -26,16 +25,16 @@ trainer:
   enable_model_summary: False # default PTL callback for this does not support model parallelism, instead we log manually
 
 exp_manager:
-  explicit_log_dir: ${peft.run.results_dir}/results
+  explicit_log_dir: ${training.run.results_dir}/results
   exp_dir: null
   name: nemo_neva
   create_wandb_logger: False
   wandb_logger_kwargs:
     project: nemo_neva
-    name: ${peft.run.name}
+    name: ${training.run.name}
   resume_if_exists: True
   resume_ignore_no_checkpoint: True
-  resume_from_checkpoint: ${peft.model.resume_from_checkpoint}
+  resume_from_checkpoint: ${training.model.resume_from_checkpoint}
   create_checkpoint_callback: True
   checkpoint_callback_params:
     monitor: val_loss
@@ -44,7 +43,7 @@ exp_manager:
     always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
     save_nemo_on_train_end: True # not recommended when training large models on clusters with short time limits
     filename: 'neva--{val_loss:.2f}-{step}-{consumed_samples}'
-    model_parallel_size: ${multiply:${peft.model.tensor_model_parallel_size}, ${peft.model.pipeline_model_parallel_size}}
+    model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
   ema:
     enable: False
     decay: 0.9999
@@ -53,52 +52,42 @@ exp_manager:
     cpu_offload: False
 
 model:
-  precision: ${peft.trainer.precision}
+  precision: ${training.trainer.precision}
 
   # specify micro_batch_size, global_batch_size, and model parallelism
   # gradient accumulation will be done automatically based on data_parallel_size
 
   # Batch size guideline for different types of dataset
-  micro_batch_size: 4 # limited by GPU memory
-  global_batch_size: 128 # will use more micro batches to reach global batch size
+  micro_batch_size: 1 # limited by GPU memory
+  global_batch_size: 256 # will use more micro batches to reach global batch size
 
-  tensor_model_parallel_size: 4 # intra-layer model parallelism
-  pipeline_model_parallel_size: 1 # inter-layer model parallelism
+  tensor_model_parallel_size: 8 # intra-layer model parallelism
+  pipeline_model_parallel_size: 2 # inter-layer model parallelism
   virtual_pipeline_model_parallel_size: null # interleaved pipeline
 
-  restore_from_path: ${base_results_dir}/${peft.run.model_train_name}/results/checkpoints/nemo_neva.nemo # used in fine-tuning
+  restore_from_path: null # used in fine-tuning
 
   # Multimodal configs
   mm_cfg:
     llm:
-      from_pretrained: ${data_dir}/neva/checkpoints/mistral-7b-instruct.nemo # path to nemo checkpoint
+      from_pretrained: ${data_dir}/neva/checkpoints/340b-chat-extracted # path to nemo checkpoint
       freeze: True
-      model_type: mistral
+      model_type: nv_gpt
     vision_encoder:
-      from_pretrained: "openai/clip-vit-large-patch14-336" # path or name
+      from_pretrained: "google/siglip-so400m-patch14-384" # path or name
       from_hf: True
       patch_dim: 14
-      crop_size: [336, 336]
-      hidden_size: 1024 # could be found from model but tricky in code
+      crop_size:
+      - 384
+      - 384
+      hidden_size: 1152 # could be found from model but tricky in code
       vision_select_layer: -2   # default to the last layer
-      class_token_length: 1
+      class_token_length: 0
       freeze: True
     pretrain_mm_mlp_adapter: null # path to pretrained mm adapter
-    mm_mlp_adapter_type: mlp_downsample
+    mm_mlp_adapter_type: linear
     use_im_start_end: False
 
-
-  peft:
-    peft_scheme: "lora"
-    restore_from_path: null
-    lora_tuning:
-      adapter_dim: 128
-      adapter_dropout: 0.05
-      column_init_method: 'xavier' # IGNORED if linear_adapter is used, options: xavier, zero or normal
-      row_init_method: 'zero' # IGNORED if linear_adapter is used, options: xavier, zero or normal
-      layer_selection:  null  # selects in which layers to add lora adapters. e.g. [1,12] will add lora to layer 1 (lowest) and 12. null will apply adapters to all layers
-      weight_tying: False
-      position_embedding_strategy: null # used only when weight_tying is True
 
   # LLM configs
   # use GPTModel from megatron.core
@@ -106,33 +95,32 @@ model:
 
   # model architecture
   encoder_seq_length: 4096
-  max_position_embeddings: 32768
+  max_position_embeddings: ${.encoder_seq_length}
   position_embedding_type: rope
-  num_layers: 32
-  hidden_size: 4096
-  ffn_hidden_size: 14336 # Transformer FFN hidden size. Usually 4 * hidden_size.
-  num_attention_heads: 32
-  init_method_std: 0.02 # Standard deviation of the zero mean normal distribution used for weight initialization.')
+  num_layers: 96
+  hidden_size: 18432
+  ffn_hidden_size: 73728 # Transformer FFN hidden size. Usually 4 * hidden_size.
+  num_attention_heads: 96
+  init_method_std: 0.014 # Standard deviation of the zero mean normal distribution used for weight initialization.')
   use_scaled_init_method: True # use scaled residuals initialization
   hidden_dropout: 0.0 # Dropout probability for hidden state transformer.
   attention_dropout: 0.0 # Dropout probability for attention
   ffn_dropout: 0.0 # Dropout probability in the feed-forward layer.
   kv_channels: null # Projection weights dimension in multi-head attention. Set to hidden_size // num_attention_heads if null
-  apply_query_key_layer_scaling: False # scale Q * K^T by 1 / layer-number.
-  normalization: rmsnorm # Type of normalization layers
-  layernorm_epsilon: 1.0e-05
+  apply_query_key_layer_scaling: True # scale Q * K^T by 1 / layer-number.
+  normalization: layernorm1p # Type of normalization layers
+  layernorm_epsilon: 1e-5
   do_layer_norm_weight_decay: False # True means weight decay on all params
   make_vocab_size_divisible_by: 128 # Pad the vocab size to be divisible by this value for computation efficiency.
   pre_process: True # add embedding
   post_process: True # add pooler
   persist_layer_norm: True # Use of persistent fused layer norm kernel.
   bias: False # Whether to use bias terms in all weight matrices.
-  activation: 'fast-swiglu' # Options ['gelu', 'geglu', 'swiglu', 'reglu', 'squared-relu', 'fast-geglu', 'fast-swiglu', 'fast-reglu']
+  activation: 'squared-relu' # Options ['gelu', 'geglu', 'swiglu', 'reglu', 'squared-relu', 'fast-geglu', 'fast-swiglu', 'fast-reglu']
   headscale: False # Whether to learn extra parameters that scale the output of the each self-attention head.
   transformer_block_type: 'pre_ln' # Options ['pre_ln', 'post_ln', 'normformer']
   normalize_attention_scores: True # Whether to scale the output Q * K^T by 1 / sqrt(hidden_size_per_head). This arg is provided as a configuration option mostly for compatibility with models that have been weight-converted from HF. You almost always want to se this to True.
-  rotary_percentage: 1.0 # If using position_embedding_type=rope, then the per head dim is multiplied by this.
-  rotary_base: 1000000.0
+  rotary_percentage: 0.5 # If using position_embedding_type=rope, then the per head dim is multiplied by this.
   attention_type: 'multihead' # Attention type. Options ['multihead']
   share_embeddings_and_output_weights: False # Share embedding and output layer weights.
   overlap_p2p_comm: False # Overlap p2p communication with computes. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
@@ -189,10 +177,6 @@ model:
   apex_transformer_log_level: 30 # Python logging level displays logs with severity greater than or equal to this
   gradient_as_bucket_view: True # PyTorch DDP argument. Allocate gradients in a contiguous bucket to save memory (less fragmentation and buffer memory)
 
-  window_size:
-  - 4096
-  - 0
-
   tokenizer:
     library: 'sentencepiece'
     type: null
@@ -210,7 +194,7 @@ model:
     is_multimodal: True
     media_type: image
     sep_image_conv_front: False
-    conv_template: ${peft.model.mm_cfg.llm.model_type}
+    conv_template: plain
     image_folder: ${data_dir}/neva/datasets/LLaVA-Pretrain-LCS-558K/images
     image_aspect_ratio: 'square'
 
