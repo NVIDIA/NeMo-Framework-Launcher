@@ -221,6 +221,8 @@ class NemoMegatronStage:
         'NeMo-Framework-Launcher' was renamed to 'NeMo-Framework-Launcher'. We run git log for both for
         backwards compatibility.
         """
+        if self.cfg.cluster_type == "bcp":
+            return []
         append_to_file = f"{stage_cfg_path.parent}/git_log.txt"
         return [
             f"(echo PYT$\"NVIDIA_PYTORCH_VERSION\" && \
