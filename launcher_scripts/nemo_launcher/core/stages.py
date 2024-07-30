@@ -222,11 +222,12 @@ class NemoMegatronStage:
         backwards compatibility.
         """
         append_to_file = f"{stage_cfg_path.parent}/git_log.txt"
+        # fmt: off
         return [
             f"(echo PYT$\"NVIDIA_PYTORCH_VERSION\"; \
-                git --git-dir=/opt/NeMo/.git log -n 5 --format='NeMo;%h;%aD;%s'; \
-                git --git-dir=/opt/megatron-lm/.git log -n 5 --format='megatron-lm;%h;%aD;%s'; \
-                git --git-dir=/opt/NeMo-Framework-Launcher/.git log -n 5 --format='NeMo-Framework-Launcher;%h;%aD;%s') > {append_to_file}"
+                git --git-dir=/opt/NeMo/.git log -n 5 --format=\"NeMo;%h;%aD;%s\"; \
+                git --git-dir=/opt/megatron-lm/.git log -n 5 --format=\"megatron-lm;%h;%aD;%s\"; \
+                git --git-dir=/opt/NeMo-Framework-Launcher/.git log -n 5 --format=\"NeMo-Framework-Launcher;%h;%aD;%s\") > {append_to_file}"
         ]
 
     def _make_k8s_spec_file(
