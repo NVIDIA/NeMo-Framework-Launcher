@@ -225,7 +225,7 @@ class NemoMegatronStage:
         return [
             f"(echo PYT$\"NVIDIA_PYTORCH_VERSION\" && \
                 git --git-dir=/opt/NeMo/.git log -n 5 --format='NeMo;%h;%aD;%s' && \
-                git --git-dir=/opt/megatron-lm/.git log -n 5 --format='megatron-lm;%h;%aD;%s' && \
+                ([ -d /opt/megatron-lm/.git ] && git --git-dir=/opt/megatron-lm/.git log -n 5 --format='megatron-lm;%h;%aD;%s') && \
                 git --git-dir=/opt/NeMo-Framework-Launcher/.git log -n 5 --format='NeMo-Framework-Launcher;%h;%aD;%s' && \
                 git --git-dir=/opt/NeMo-Framework-Launcher/.git log -n 5 --format='NeMo-Framework-Launcher;%h;%aD;%s') > {append_to_file}"
         ]
