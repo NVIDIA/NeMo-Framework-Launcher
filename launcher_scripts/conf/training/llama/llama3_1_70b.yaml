@@ -96,7 +96,7 @@ model:
   scale_positional_embedding: true
   tokenizer:
     library: huggingface
-    type: meta-llama/Meta-Llama-3-70B
+    type: meta-llama/Meta-Llama-3.1-70B
     use_fast: true
   native_amp_init_scale: 4294967296
   native_amp_growth_interval: 1000

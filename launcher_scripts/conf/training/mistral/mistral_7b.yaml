@@ -115,7 +115,7 @@ model:
   activations_checkpoint_num_layers: null
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
-  sequence_parallel: false
+  sequence_parallel: true
   transformer_engine: true
   fp8: false
   fp8_e4m3: false
