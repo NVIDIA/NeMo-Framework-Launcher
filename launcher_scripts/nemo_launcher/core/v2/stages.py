@@ -114,6 +114,7 @@ class Training(Stage):
             "clip": "examples/multimodal/vision_language_foundation/clip/megatron_clip_pretrain.py",
             "nsfw": "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
             "stable_diffusion": "examples/multimodal/text_to_image/stable_diffusion/sd_train.py",
+            "sdxl": "examples/multimodal/text_to_image/stable_diffusion/sd_xl_train.py",
             "instruct_pix2pix": "examples/multimodal/text_to_image/instruct_pix2pix/sd_finetune.py",
             "imagen": "examples/multimodal/text_to_image/imagen/imagen_training.py",
             "dreambooth": "examples/multimodal/text_to_image/dreambooth/dreambooth.py",

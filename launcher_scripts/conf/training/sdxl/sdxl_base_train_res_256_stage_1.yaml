@@ -1,0 +1,205 @@
+run:
+  name: stable-diffusion-xl-base-train-res-256
+  results_dir: ${base_results_dir}/${.name}
+  time_limit: "2-00:00:00"
+  dependency: "singleton"
+
+name: stable-diffusion-xl-base-train
+
+trainer:
+  devices: 8
+  num_nodes: 4
+  accelerator: gpu
+  precision: bf16-mixed
+  logger: False # logger provided by exp_manager
+  enable_checkpointing: False
+  use_distributed_sampler: False
+  max_epochs: -1 # PTL default. In practice, max_steps will be reached first.
+  max_steps: 600000 # consumed_samples = global_step * micro_batch_size * data_parallel_size * accumulate_grad_batches
+  log_every_n_steps: 10
+  accumulate_grad_batches: 1 # do not modify, grad acc is automatic for training megatron models
+  gradient_clip_val: 1.0
+  benchmark: False
+  enable_model_summary: True
+  limit_val_batches: 0
+
+exp_manager:
+  explicit_log_dir: ${training.run.results_dir}/results
+  exp_dir: null
+  name: stable-diffusion-xl-base-train
+  create_wandb_logger: False
+  wandb_logger_kwargs:
+    project: stable-diffusion
+    group: nemo-sd
+    name: nemo_stable_diffusion
+    resume: True
+  create_checkpoint_callback: True
+  create_tensorboard_logger: True
+  checkpoint_callback_params:
+    every_n_train_steps: 2000
+    every_n_epochs: 0
+    monitor: reduced_train_loss
+    filename: 'stable-diffusion-xl-base-train--{reduced_train_loss:.2f}-{step}-{consumed_samples}'
+  resume_if_exists: True
+  resume_ignore_no_checkpoint: True
+  ema:
+    enable: False
+    decay: 0.9999
+    validate_original_weights: False
+    every_n_steps: 1
+    cpu_offload: False
+
+
+model:
+  precision: ${training.trainer.precision}
+  micro_batch_size: 64
+  global_batch_size: 2048
+  scale_factor: 0.13025
+  disable_first_stage_autocast: true
+  is_legacy: false
+  inductor: false
+  capture_cudagraph_iters: -1
+  scale_by_std: false
+  channels_last: false
+  fsdp: true
+  precache_mode: null
+  loss_fn_config:
+    _target_: nemo.collections.multimodal.modules.stable_diffusion.diffusionmodules.loss.StandardDiffusionLoss
+    sigma_sampler:
+      _target_: nemo.collections.multimodal.modules.stable_diffusion.diffusionmodules.sigma_sampling.DiscreteSampling
+      num_idx: 1000
+      discretization:
+        _target_: nemo.collections.multimodal.modules.stable_diffusion.diffusionmodules.discretizer.LegacyDDPMDiscretization
+  denoiser_config:
+    _target_: nemo.collections.multimodal.modules.stable_diffusion.diffusionmodules.denoiser.DiscreteDenoiser
+    num_idx: 1000
+    weighting_config:
+      _target_: nemo.collections.multimodal.modules.stable_diffusion.diffusionmodules.denoiser_weighting.EpsWeighting
+    scaling_config:
+      _target_: nemo.collections.multimodal.modules.stable_diffusion.diffusionmodules.denoiser_scaling.EpsScaling
+    discretization_config:
+      _target_: nemo.collections.multimodal.modules.stable_diffusion.diffusionmodules.discretizer.LegacyDDPMDiscretization
+  unet_config:
+    _target_: nemo.collections.multimodal.modules.stable_diffusion.diffusionmodules.openaimodel.UNetModel
+    from_NeMo: false
+    adm_in_channels: 2816
+    num_classes: sequential
+    use_checkpoint: false
+    in_channels: 4
+    out_channels: 4
+    model_channels: 320
+    attention_resolutions:
+      - 4
+      - 2
+    num_res_blocks: 2
+    channel_mult:
+      - 1
+      - 2
+      - 4
+    num_head_channels: 64
+    use_spatial_transformer: true
+    use_linear_in_transformer: true
+    transformer_depth:
+      - 1
+      - 2
+      - 10
+    context_dim: 2048
+    image_size: 64
+    legacy: false
+    use_flash_attention: true
+  first_stage_config:
+    _target_: nemo.collections.multimodal.models.text_to_image.stable_diffusion.ldm.autoencoder.AutoencoderKLInferenceWrapper
+    from_pretrained: /sdxl_ckpts/stable-diffusion-xl-base-1.0/vae/diffusion_pytorch_model.safetensors
+    embed_dim: 4
+    monitor: val/rec_loss
+    ddconfig:
+      attn_type: vanilla
+      double_z: true
+      z_channels: 4
+      resolution: 256
+      in_channels: 3
+      out_ch: 3
+      ch: 128
+      ch_mult:
+        - 1
+        - 2
+        - 4
+        - 4
+      num_res_blocks: 2
+      attn_resolutions: [ ]
+      dropout: 0.0
+    lossconfig:
+      target: torch.nn.Identity
+  conditioner_config:
+    _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.GeneralConditioner
+    emb_models:
+      - is_trainable: false
+        input_key: captions
+        ucg_rate: 0.1
+        emb_model:
+          _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.FrozenCLIPEmbedder
+          layer: hidden
+          layer_idx: 11
+      - is_trainable: false
+        ucg_rate: 0.1
+        input_key: captions
+        emb_model:
+          _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.FrozenOpenCLIPEmbedder2
+          arch: ViT-bigG-14
+          version: laion2b_s39b_b160k
+          freeze: true
+          layer: penultimate
+          always_return_pooled: true
+          legacy: false
+      - is_trainable: false
+        ucg_rate: 0.1
+        input_key: original_size_as_tuple
+        emb_model:
+          _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.ConcatTimestepEmbedderND
+          outdim: 256
+      - is_trainable: false
+        ucg_rate: 0.1
+        input_key: crop_coords_top_left
+        emb_model:
+          _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.ConcatTimestepEmbedderND
+          outdim: 256
+      - is_trainable: false
+        ucg_rate: 0.1
+        input_key: target_size_as_tuple
+        emb_model:
+          _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.ConcatTimestepEmbedderND
+          outdim: 256
+  data:
+    num_workers: 16
+    train:
+      dataset_path:
+        - ${data_dir}/your_dataset/wdinfo.pkl
+      augmentations:
+        resize_smallest_side: 256
+        horizontal_flip: false
+      filterings: null
+    webdataset:
+      infinite_sampler: false
+      local_root_path: /datasets/coyo
+  seed: 1234
+  resume_from_checkpoint: null
+  apex_transformer_log_level: 30
+  gradient_as_bucket_view: true
+  optim:
+    name: fused_adam
+    lr: 2.048e-05
+    weight_decay: 0.0
+    betas:
+      - 0.9
+      - 0.999
+    sched:
+      name: WarmupHoldPolicy
+      warmup_steps: 10000
+      hold_steps: 10000000000000
+  nsys_profile:
+    enabled: false
+    start_step: 10
+    end_step: 10
+    ranks:
+      - 0
+    gen_shape: false
