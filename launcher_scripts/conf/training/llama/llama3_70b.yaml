@@ -59,7 +59,7 @@ model:
   rampup_batch_size: null
   tensor_model_parallel_size: 4
   pipeline_model_parallel_size: 4
-  virtual_pipeline_model_parallel_size: 10
+  virtual_pipeline_model_parallel_size: 5
   context_parallel_size: 2
   encoder_seq_length: 8192
   max_position_embeddings: 8192
@@ -123,6 +123,9 @@ model:
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
   sequence_parallel: true
+  defer_embedding_wgrad_compute: true
+  wgrad_deferral_limit: 22
+  deterministic_mode: false
 
   ## Transformer Engine
   transformer_engine: true
