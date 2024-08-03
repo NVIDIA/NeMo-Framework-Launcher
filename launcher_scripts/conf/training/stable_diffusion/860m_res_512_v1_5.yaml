@@ -189,6 +189,7 @@ model:
   data:
       num_workers: 16
       synthetic_data: False
+      synthetic_data_length: 10000
       train:
           dataset_path:
             - ${data_dir}/your_dataset/wdinfo.pkl
