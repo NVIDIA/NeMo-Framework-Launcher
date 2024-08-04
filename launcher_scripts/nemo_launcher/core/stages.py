@@ -639,7 +639,8 @@ class NeMoStage(NemoMegatronStage):
         command_groups = [[]]
         command_groups[0] += self._make_wandb_login_command()
         command_groups[0] += self._make_nemo_path_command()
-        command_groups[0] += self._make_git_log_command(stage_cfg_path)
+        if self.cluster == "bcm":
+            command_groups[0] += self._make_git_log_command(stage_cfg_path)
         # command_groups[0] += self._make_numa_mapping_command()
 
         # _cuda_device_max_connections and _cuda_visible_devices cannot be used as command prefix on BCP
