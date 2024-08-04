@@ -667,6 +667,7 @@ def _make_sbatch_string(
     additional_parameters: Optional[Dict[str, Any]] = None,
     srun_args: Optional[Iterable[str]] = None,
     heterogeneous: bool = False,
+    enable_vboost: bool = False,
 ) -> str:
     """Creates the content of an sbatch file with provided parameters
 
@@ -707,6 +708,7 @@ def _make_sbatch_string(
         "container_mounts",
         "srun_args",
         "heterogeneous",
+        "enable_vboost",
     ]
     parameters = {
         k: v for k, v in locals().items() if v is not None and k not in nonslurm
@@ -801,6 +803,29 @@ def _make_sbatch_string(
             f"  nvidia-smi --query-gpu=timestamp,index,,memory.total,memory.free,memory.used --format=csv -l 1 & ",
             "",
         ]
+
+    if enable_vboost:
+        vboost_stderr = stderr_flags.copy()
+        if vboost_stderr:
+            vboost_stderr[-1] = vboost_stderr[-1].replace("_%j", f"_vboost_err_%j")
+        srun_cmd = shlex.join(
+            [
+                "srun",
+                f"--ntasks={nodes}",
+                "--output",
+                stdout.replace("_%j", "_vboost_%j"),
+                *vboost_stderr,
+                *srun_args
+            ]
+        )
+        command = "sudo nvidia-smi boost-slider --vboost 1"
+        lines += [
+                "",
+                f"# enable vboost",
+                f'{srun_cmd} bash -c "',
+                f'  {command} "',
+                "",
+            ]
 
     for group_ind, command_group in enumerate(command_groups):
         if heterogeneous:
