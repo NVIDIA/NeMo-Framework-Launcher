@@ -73,8 +73,6 @@ class TestConfig:
           TRANSFORMERS_OFFLINE: 0
           TORCH_NCCL_AVOID_RECORD_STREAMS: 1
           NCCL_NVLS_ENABLE: 0
-          NVTE_DP_AMAX_REDUCE_INTERVAL: 0 # Diable FP8 AMAX reduction in the data-parallel domain
-          NVTE_ASYNC_AMAX_REDUCTION: 1 # Enable asynchronous FP8 AMAX reduction
           NVTE_FUSED_ATTN: 0 # Disable cudnn FA until we've tested it more
         
         # GPU Mapping

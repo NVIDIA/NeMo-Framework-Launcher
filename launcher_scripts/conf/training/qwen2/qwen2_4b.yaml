@@ -140,8 +140,6 @@ model:
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   use_emha: False
   ub_tp_comm_overlap: False
-  tp_comm_atomic_ag: False
-  tp_comm_atomic_rs: False
   use_flash_attention: true
   optim:
     name: distributed_fused_adam

@@ -61,7 +61,7 @@ model:
   context_parallel_size: 1
   tensor_model_parallel_size: 4
   pipeline_model_parallel_size: 8
-  virtual_pipeline_model_parallel_size: 12 # interleaved pipeline, set to maximum
+  virtual_pipeline_model_parallel_size: 6 # interleaved pipeline, set to maximum
   resume_from_checkpoint: null # manually set the checkpoint file to load from
   # model architecture
   encoder_seq_length: 2048
@@ -147,8 +147,6 @@ model:
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   fp8_wgrad: True
   ub_tp_comm_overlap: False
-  tp_comm_atomic_ag: False
-  tp_comm_atomic_rs: False
 
   # miscellaneous
   seed: 1234
