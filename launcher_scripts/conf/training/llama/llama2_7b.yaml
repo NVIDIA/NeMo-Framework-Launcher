@@ -124,6 +124,8 @@ model:
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
   sequence_parallel: false
+  deterministic_mode: false
+  cross_entropy_loss_fusion: true
 
   ## Transformer Engine
   transformer_engine: true
