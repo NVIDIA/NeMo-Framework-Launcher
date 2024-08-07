@@ -58,7 +58,7 @@ model:
   rampup_batch_size: null
   tensor_model_parallel_size: 4
   pipeline_model_parallel_size: 4
-  virtual_pipeline_model_parallel_size: 20
+  virtual_pipeline_model_parallel_size: 5
   encoder_seq_length: 4096
   max_position_embeddings: 4096
   num_layers: 80
@@ -124,6 +124,10 @@ model:
   num_micro_batches_with_partial_activation_checkpoints: 0
   activations_checkpoint_layers_per_pipeline: 0
   sequence_parallel: true
+  defer_embedding_wgrad_compute: true
+  wgrad_deferral_limit: 22
+  cross_entropy_loss_fusion: true
+  deterministic_mode: false
   transformer_engine: true
   fp8: false
   fp8_e4m3: false
