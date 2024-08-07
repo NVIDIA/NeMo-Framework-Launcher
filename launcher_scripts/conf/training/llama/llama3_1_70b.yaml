@@ -124,6 +124,9 @@ model:
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
   sequence_parallel: true
+  defer_embedding_wgrad_compute: true
+  wgrad_deferral_limit: 22
+  deterministic_mode: false
 
   ## Transformer Engine
   transformer_engine: true
