@@ -141,6 +141,7 @@ model:
   tp_comm_atomic_ag: False
   tp_comm_atomic_rs: False
   use_flash_attention: true
+  gc_interval: 100
   nsys_profile:
     enabled: False
     trace: [nvtx,cuda]

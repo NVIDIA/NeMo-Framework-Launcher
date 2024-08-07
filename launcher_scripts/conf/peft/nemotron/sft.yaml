@@ -120,6 +120,8 @@ model:
   attention_dropout: 0.0
   ffn_dropout: 0.0
 
+  gc_interval: 100
+
   peft:
     peft_scheme: null  # null (SFT, no PEFT), ptuning, lora
     restore_from_path: null

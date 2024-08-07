@@ -158,6 +158,7 @@ model:
   ub_tp_comm_overlap: True
   tp_comm_atomic_ag: False
   tp_comm_atomic_rs: False
+  gc_interval: 100
 
   nsys_profile:
     enabled: False
