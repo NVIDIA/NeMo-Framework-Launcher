@@ -107,6 +107,8 @@ class Training(Stage):
             "gpt3": "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "llama": "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "nemotron": "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "mistral": "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "mixtral": "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "bert": "examples/nlp/language_modeling/megatron_bert_pretraining.py",
             "falcon": "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "retro": "examples/nlp/language_modeling/megatron_retro_pretraining.py",
