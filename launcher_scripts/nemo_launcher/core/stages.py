@@ -137,9 +137,7 @@ class NemoMegatronStage:
         print("job_path.folder: ", job_path.folder)
         print("self.cluster: ", self.cluster)
         launcher = AutoLauncher(
-            folder=job_path.folder,
-            cluster=self.cluster,
-            **cluster_parameters,
+            folder=job_path.folder, cluster=self.cluster, **cluster_parameters,
         )
         job_id = launcher.launch(command_groups=command_groups)
 
@@ -1216,8 +1214,7 @@ class PromptLearning(NeMoStage):
         # Prepare squad dataset
         if task_name == "squad":
             prepare_squad_for_prompt_learning(
-                os.path.join(data_dir, "prompt_data"),
-                self._launcher_scripts_path,
+                os.path.join(data_dir, "prompt_data"), self._launcher_scripts_path,
             )
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
@@ -1686,8 +1683,7 @@ class Conversion(NemoMegatronStage):
             )
         if not run_cfg.get("pack_nemo_file", True):
             args += create_args_list(
-                replace_underscore=False,
-                no_pack_nemo_file="store_true",
+                replace_underscore=False, no_pack_nemo_file="store_true",
             )
 
         args += ["--bcp"] if self.cluster == "bcp" else []
@@ -1797,8 +1793,7 @@ class NeMoEvaluation(NeMoStage):
                 / "nemo_launcher/collections/metric_calculation/squad_metric_calc.py"
             )
             args = create_args_list(
-                pred=pred_file_path,
-                ground_truth=ground_truth_file_path,
+                pred=pred_file_path, ground_truth=ground_truth_file_path,
             )
             split_string = self.stage_cfg.get("split_string", None)
             if split_string:
@@ -1933,10 +1928,7 @@ class EvalHarnessEvaluation(NemoMegatronStage):
             self._launcher_scripts_path
             / "nemo_launcher/collections/eval_harness/download.py"
         )
-        args = create_args_list(
-            tasks=tasks,
-            cache_dir=cache_dir,
-        )
+        args = create_args_list(tasks=tasks, cache_dir=cache_dir,)
         download_command = [f"python3 {code_path}", *args]
         download_command_string = " \\\n  ".join(download_command)
         return download_command_string
@@ -2251,18 +2243,14 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             command_groups = self.make_stage_command_groups(stage_cfg_path, sub_stage)
             # Create launcher
             launcher = AutoLauncher(
-                folder=job_path.folder,
-                cluster=self.cluster,
-                **cluster_parameters,
+                folder=job_path.folder, cluster=self.cluster, **cluster_parameters,
             )
             job_id = launcher.launch(command_groups=command_groups)
 
         return job_id
 
     def make_stage_command_groups(
-        self,
-        stage_cfg_path: Path,
-        sub_stage: Optional[str] = None,
+        self, stage_cfg_path: Path, sub_stage: Optional[str] = None,
     ) -> List[List[str]]:
         """
         Make the command groups for current stage
@@ -2329,9 +2317,7 @@ class DiffusionModelEvaluation(NemoMegatronStage):
         return {}
 
     def _make_cluster_parameters(
-        self,
-        cluster: str,
-        sub_stage: Optional[str] = None,
+        self, cluster: str, sub_stage: Optional[str] = None,
     ) -> Dict:
         """
         Make a cluster-specific parameters for jobs on different clusters.
@@ -2353,9 +2339,9 @@ class DiffusionModelEvaluation(NemoMegatronStage):
         dependency = run_cfg.get("dependency")
 
         env_vars = self.get_env_vars()
-        env_vars["PYTHONPATH"] = (
-            f"{self._launcher_scripts_path}:${{PYTHONPATH}}"  # Required by pile download
-        )
+        env_vars[
+            "PYTHONPATH"
+        ] = f"{self._launcher_scripts_path}:${{PYTHONPATH}}"  # Required by pile download
         env_vars["NGC_ARRAY_TYPE"] = "MPIJob"  # Required by BCP
         setup = [f"export {k}={v}" for k, v in env_vars.items()]
 
@@ -2365,10 +2351,7 @@ class DiffusionModelEvaluation(NemoMegatronStage):
             "time": time_limit,
             "setup": setup,
         }
-        private_parameters = self._make_private_cluster_parameters(
-            cluster,
-            sub_stage,
-        )
+        private_parameters = self._make_private_cluster_parameters(cluster, sub_stage,)
         if cluster == "bcm":
             cluster_cfg = cfg.get("cluster")
             slurm_cfg = {**copy.deepcopy(cluster_cfg)}
@@ -2378,20 +2361,14 @@ class DiffusionModelEvaluation(NemoMegatronStage):
                 "dependency": dependency,
             }
             cluster_parameters.update(
-                {
-                    **shared_parameters,
-                    **private_parameters,
-                }
+                {**shared_parameters, **private_parameters,}
             )
             cluster_parameters["job_name"] = (
                 job_name_prefix + cluster_parameters["job_name"]
             )
         elif cluster == "bcp":
             cluster_parameters.update(
-                {
-                    **shared_parameters,
-                    **private_parameters,
-                }
+                {**shared_parameters, **private_parameters,}
             )
         elif cluster == "interactive":
             raise ValueError("Data preparation is not supported in interactive mode.")
@@ -2433,9 +2410,7 @@ def _hydra_interpolation(cfg: OmegaConf) -> None:
 
 
 def create_args_list(
-    hydra: bool = False,
-    replace_underscore: bool = True,
-    **kwargs: Any,
+    hydra: bool = False, replace_underscore: bool = True, **kwargs: Any,
 ) -> List[str]:
     """
     An easy tool function to convert arguments into a list of argument strings.

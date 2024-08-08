@@ -1116,10 +1116,7 @@ def _make_sbatch_string_ft_launcher(
             )
             command = ";\n  ".join(command_group)
             assert "python3 -u" in command
-            command = command.replace(
-                "python3 -u",
-                ft_launcher_cmd_part,
-            )
+            command = command.replace("python3 -u", ft_launcher_cmd_part,)
             lines += [
                 "",
                 f"# command {group_ind + 1}",
