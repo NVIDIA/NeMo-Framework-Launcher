@@ -585,7 +585,7 @@ class K8SLauncher(Launcher):
 class K8SLauncherV2:
     """
     K8s V2 job launcher
-    This class simply creates 
+    This class simply creates
 
     """
 
@@ -815,17 +815,17 @@ def _make_sbatch_string(
                 "--output",
                 stdout.replace("_%j", "_vboost_%j"),
                 *vboost_stderr,
-                *srun_args
+                *srun_args,
             ]
         )
         command = "sudo nvidia-smi boost-slider --vboost 1"
         lines += [
-                "",
-                f"# enable vboost",
-                f'{srun_cmd} bash -c "',
-                f'  {command} "',
-                "",
-            ]
+            "",
+            f"# enable vboost",
+            f'{srun_cmd} bash -c "',
+            f'  {command} "',
+            "",
+        ]
 
     for group_ind, command_group in enumerate(command_groups):
         if heterogeneous:
@@ -924,7 +924,6 @@ def _make_sbatch_string_ft_launcher(
     max_rank_restarts: int = 0,
     additional_ft_launcher_args: str = "",
 ) -> str:
-
     """Creates the content of an sbatch file with provided parameters
 
     Parameters
@@ -1117,7 +1116,10 @@ def _make_sbatch_string_ft_launcher(
             )
             command = ";\n  ".join(command_group)
             assert "python3 -u" in command
-            command = command.replace("python3 -u", ft_launcher_cmd_part,)
+            command = command.replace(
+                "python3 -u",
+                ft_launcher_cmd_part,
+            )
             lines += [
                 "",
                 f"# command {group_ind + 1}",
