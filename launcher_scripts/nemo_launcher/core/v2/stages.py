@@ -442,7 +442,7 @@ class PileDataPreparation(Stage):
             ]
 
             mpirun_template = (
-                lambda script_name: f'mpirun --allow-run-as-root -np { self.n_total_processes } -npernode { self.n_proc_per_worker } -bind-to none -map-by slot --oversubscribe -x PYTHONPATH -mca pml ob1 -mca btl ^openib python3 {script_name} {" ".join(hydra_config_as_args)}'
+                lambda script_name: f'mpirun --allow-run-as-root -np { self.n_total_processes } -npernode { self.n_proc_per_worker } -bind-to none -map-by slot --oversubscribe -x PYTHONPATH -x LD_LIBRARY_PATH -mca pml ob1 -mca btl ^openib python3 {script_name} {" ".join(hydra_config_as_args)}'
             )
             commands = []
             for script_path in (
