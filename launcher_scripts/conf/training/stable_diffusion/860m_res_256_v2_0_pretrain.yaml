@@ -148,14 +148,19 @@ model:
       target: torch.nn.Identity
 
   cond_stage_config:
-        For compatibility of history version that uses open clip model
-        _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.FrozenOpenCLIPEmbedder
-        arch: ViT-H-14
-        version: laion2b_s32b_b79k
-        device: cuda
-        max_length: 77
-        freeze: True
-        layer: "penultimate"
+    _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.FrozenMegatronCLIPEmbedder
+    restore_from_path: /path/to/nemo_clip.nemo
+    device: cuda
+    freeze: True
+    layer: "penultimate"
+    #    For compatibility of history version that uses open clip model
+    #    _target_: nemo.collections.multimodal.modules.stable_diffusion.encoders.modules.FrozenOpenCLIPEmbedder
+    #    arch: ViT-H-14
+    #    version: laion2b_s32b_b79k
+    #    device: cuda
+    #    max_length: 77
+    #    freeze: True
+    #    layer: "penultimate"
 
   # miscellaneous
   seed: 666
@@ -187,6 +192,7 @@ model:
   data:
       num_workers: 16
       synthetic_data: False
+      synthetic_data_length: 10000
       train:
           dataset_path:
             - ${data_dir}/your_dataset/wdinfo.pkl
