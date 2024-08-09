@@ -585,7 +585,7 @@ class K8SLauncher(Launcher):
 class K8SLauncherV2:
     """
     K8s V2 job launcher
-    This class simply creates 
+    This class simply creates
 
     """
 
@@ -667,6 +667,7 @@ def _make_sbatch_string(
     additional_parameters: Optional[Dict[str, Any]] = None,
     srun_args: Optional[Iterable[str]] = None,
     heterogeneous: bool = False,
+    enable_vboost: bool = False,
 ) -> str:
     """Creates the content of an sbatch file with provided parameters
 
@@ -707,6 +708,7 @@ def _make_sbatch_string(
         "container_mounts",
         "srun_args",
         "heterogeneous",
+        "enable_vboost",
     ]
     parameters = {
         k: v for k, v in locals().items() if v is not None and k not in nonslurm
@@ -799,6 +801,29 @@ def _make_sbatch_string(
             "# run memory measure",
             f"{mem_srun_cmd} \\",
             f"  nvidia-smi --query-gpu=timestamp,index,,memory.total,memory.free,memory.used --format=csv -l 1 & ",
+            "",
+        ]
+
+    if enable_vboost:
+        vboost_stderr = stderr_flags.copy()
+        if vboost_stderr:
+            vboost_stderr[-1] = vboost_stderr[-1].replace("_%j", f"_vboost_err_%j")
+        srun_cmd = shlex.join(
+            [
+                "srun",
+                f"--ntasks={nodes}",
+                "--output",
+                stdout.replace("_%j", "_vboost_%j"),
+                *vboost_stderr,
+                *srun_args,
+            ]
+        )
+        command = "sudo nvidia-smi boost-slider --vboost 1"
+        lines += [
+            "",
+            f"# enable vboost",
+            f'{srun_cmd} bash -c "',
+            f'  {command} "',
             "",
         ]
 
@@ -899,7 +924,6 @@ def _make_sbatch_string_ft_launcher(
     max_rank_restarts: int = 0,
     additional_ft_launcher_args: str = "",
 ) -> str:
-
     """Creates the content of an sbatch file with provided parameters
 
     Parameters

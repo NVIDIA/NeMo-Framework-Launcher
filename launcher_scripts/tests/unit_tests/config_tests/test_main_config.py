@@ -62,6 +62,8 @@ class TestConfig:
         wandb_api_bcp_secret_key: null  # For BCP clusters, read the W&B api key directly from the environment variable set as a secret from BCP. The value must match the name of the environment variable in BCP, such as WANDB_TOKEN.
 
         bcp_no_redirect: True  # If True, all stdout and stderr will not be redirected and appear in the standard logs. If False, all stdout and stderr output will be redirected to individual files on a per-rank basis. Ignored for non-BCP clusters.
+
+        enable_vboost: False # If True, enables video boost slider- benefits compute bound jobs
         
         env_vars:
           NCCL_TOPO_FILE: null # Should be a path to an XML file describing the topology

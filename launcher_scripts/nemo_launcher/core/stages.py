@@ -381,6 +381,8 @@ class NemoMegatronStage:
                     "container_mounts": container_mounts,
                 }
             )
+            if self.cfg.get("enable_vboost", False):
+                cluster_parameters.update({"enable_vboost": self.cfg["enable_vboost"]})
         elif cluster == "bcp":
             cluster_parameters.update(
                 {
