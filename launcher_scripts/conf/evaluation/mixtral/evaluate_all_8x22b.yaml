@@ -18,6 +18,7 @@ model:
   #hparams_file: ${evaluation.run.train_dir}/results/hparams.yaml
   tensor_model_parallel_size: 8
   pipeline_model_parallel_size: 1
+  sequence_parallel: True
   model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
   precision: bf16 # must match training precision - 32, 16 or bf16
   eval_batch_size: 4
