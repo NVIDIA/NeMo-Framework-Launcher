@@ -17,5 +17,6 @@ model:
   checkpoint_name: latest # latest OR name pattern of a checkpoint (e.g. megatron_llama-*last.ckpt)
   hparams_file: ${conversion.run.train_dir}/results/hparams.yaml
   tensor_model_parallel_size: 2
+  sequence_parallel: True
   pipeline_model_parallel_size: 1
   model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}

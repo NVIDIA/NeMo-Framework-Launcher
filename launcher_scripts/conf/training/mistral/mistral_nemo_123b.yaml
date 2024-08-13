@@ -1,10 +1,10 @@
 run:
-  name: mixtral_8x7b
+  name: mistral_7b
   results_dir: ${base_results_dir}/${.name}
   time_limit: "0-04:00:00"
   dependency: "singleton"
 trainer:
-  num_nodes: 8
+  num_nodes: 16
   devices: 8
   accelerator: gpu
   precision: bf16
@@ -23,10 +23,10 @@ trainer:
 exp_manager:
   explicit_log_dir: ${training.run.results_dir}/results
   exp_dir: null
-  name: megatron_mixtral
+  name: megatron_mistral
   create_wandb_logger: False
   wandb_logger_kwargs:
-    project: nemo_mixtral_pretrain
+    project: nemo_mistral_pretrain
     name: ${training.run.name}
   resume_if_exists: false
   resume_ignore_no_checkpoint: true
@@ -37,7 +37,7 @@ exp_manager:
     mode: min
     always_save_nemo: False # saves nemo file during validation, not implemented for model parallel
     save_nemo_on_train_end: False # not recommended when training large models on clusters with short time limits
-    filename: 'megatron_mixtral--{val_loss:.2f}-{step}-{consumed_samples}'
+    filename: 'megatron_mistral--{val_loss:.2f}-{step}-{consumed_samples}'
     model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
   log_step_timing: True
   step_timing_kwargs:
@@ -46,30 +46,24 @@ exp_manager:
 
 model:
   mcore_gpt: true
-  moe_grouped_gemm: false
-  moe_token_dispatcher_type: alltoall
-  moe_pad_expert_input_to_capacity: True
-  moe_expert_capacity_factor: 1.0
-  moe_aux_loss_coeff: 0.01
   micro_batch_size: 1
-  global_batch_size: 256
+  global_batch_size: 32
   rampup_batch_size: null
-  tensor_model_parallel_size: 1
-  pipeline_model_parallel_size: 4
-  expert_model_parallel_size: 8
-  virtual_pipeline_model_parallel_size: 8
+  tensor_model_parallel_size: 8
+  pipeline_model_parallel_size: 1
+  virtual_pipeline_model_parallel_size: null
   encoder_seq_length: 4096
   max_position_embeddings: 32768
-  num_layers: 32
-  hidden_size: 4096
-  ffn_hidden_size: 14336
-  num_attention_heads: 32
+  num_layers: 88
+  hidden_size: 12288
+  ffn_hidden_size: 28672
+  num_attention_heads: 96
   init_method_std: 0.02
   use_scaled_init_method: true
   hidden_dropout: 0.0
   attention_dropout: 0.0
   ffn_dropout: 0
-  kv_channels: null
+  kv_channels: 128
   apply_query_key_layer_scaling: false
   normalization: rmsnorm
   layernorm_epsilon: 1.0e-05
@@ -85,20 +79,16 @@ model:
   openai_gelu: false
   normalize_attention_scores: true
   position_embedding_type: rope
-  apply_rope_fusion: true
   rotary_percentage: 1.0
-  rotary_base: 1000000.0
-  moe_router_topk: 2
-  num_moe_experts: 8
   attention_type: multihead
   share_embeddings_and_output_weights: false
-  overlap_p2p_comm: true
-  batch_p2p_comm: false
+  overlap_p2p_comm: false
+  batch_p2p_comm: true
   seq_len_interpolation_factor: null
   num_query_groups: 8
   tokenizer:
     library: huggingface
-    type: mistralai/Mixtral-8x7B-v0.1
+    type: mistralai/Mistral-Large-Instruct-2407
     use_fast: true
   native_amp_init_scale: 4294967296
   native_amp_growth_interval: 1000
@@ -108,10 +98,10 @@ model:
   megatron_amp_O2: True
   grad_allreduce_chunk_size_mb: 125
   grad_div_ar_fusion: true
-  gradient_accumulation_fusion: true
-  bias_activation_fusion: true
-  bias_dropout_add_fusion: true
-  masked_softmax_fusion: false
+  gradient_accumulation_fusion: false
+  bias_activation_fusion: false
+  bias_dropout_add_fusion: false
+  masked_softmax_fusion: true
   get_attention_mask_from_fusion: true
   seed: 1234
   resume_from_checkpoint: null
@@ -138,7 +128,7 @@ model:
   use_emha: false
   ub_tp_comm_overlap: false
   ub_tp_comm_overlap_cfg: null
-  use_flash_attention: true
+  use_flash_attention: false
   nsys_profile:
     enabled: false
     start_step: 10
@@ -147,10 +137,7 @@ model:
     - 0
     gen_shape: false
   optim:
-    name: mcore_distributed_optim
-    overlap_grad_sync: true
-    overlap_param_sync: true
-    grad_sync_dtype: bf16
+    name: distributed_fused_adam
     lr: 0.0001
     weight_decay: 0.1
     betas:
@@ -158,18 +145,21 @@ model:
     - 0.95
     sched:
       name: CosineAnnealing
-      warmup_steps: 636
+      warmup_steps: 107
       constant_steps: 11873
       min_lr: 1.0e-05
+  window_size:
+  - 4096
+  - 0
   gc_interval: 0
   precision: bf16
   mcore_customization_config:
     new_decoder_architecture: false
-    parallel_attention: false
+    parallel_attention: true
   data:
     data_impl: mmap
     splits_string: "99990,8,2"
-    seq_length: 4096
+    seq_length: 2048
     skip_warmup: true
     num_workers: 2
     dataloader_type: single
@@ -179,63 +169,63 @@ model:
     index_mapping_dir: null
     data_prefix:
     - .0333
-    - ${data_dir}/my-mixtral_00_text_document
+    - ${data_dir}/my-mistral_00_text_document
     - .0333
-    - ${data_dir}/my-mixtral_01_text_document
+    - ${data_dir}/my-mistral_01_text_document
     - .0333
-    - ${data_dir}/my-mixtral_02_text_document
+    - ${data_dir}/my-mistral_02_text_document
     - .0333
-    - ${data_dir}/my-mixtral_03_text_document
+    - ${data_dir}/my-mistral_03_text_document
     - .0333
-    - ${data_dir}/my-mixtral_04_text_document
+    - ${data_dir}/my-mistral_04_text_document
     - .0333
-    - ${data_dir}/my-mixtral_05_text_document
+    - ${data_dir}/my-mistral_05_text_document
     - .0333
-    - ${data_dir}/my-mixtral_06_text_document
+    - ${data_dir}/my-mistral_06_text_document
     - .0333
-    - ${data_dir}/my-mixtral_07_text_document
+    - ${data_dir}/my-mistral_07_text_document
     - .0333
-    - ${data_dir}/my-mixtral_08_text_document
+    - ${data_dir}/my-mistral_08_text_document
     - .0333
-    - ${data_dir}/my-mixtral_09_text_document
+    - ${data_dir}/my-mistral_09_text_document
     - .0333
-    - ${data_dir}/my-mixtral_10_text_document
+    - ${data_dir}/my-mistral_10_text_document
     - .0333
-    - ${data_dir}/my-mixtral_11_text_document
+    - ${data_dir}/my-mistral_11_text_document
     - .0333
-    - ${data_dir}/my-mixtral_12_text_document
+    - ${data_dir}/my-mistral_12_text_document
     - .0333
-    - ${data_dir}/my-mixtral_13_text_document
+    - ${data_dir}/my-mistral_13_text_document
     - .0333
-    - ${data_dir}/my-mixtral_14_text_document
+    - ${data_dir}/my-mistral_14_text_document
     - .0333
-    - ${data_dir}/my-mixtral_15_text_document
+    - ${data_dir}/my-mistral_15_text_document
     - .0333
-    - ${data_dir}/my-mixtral_16_text_document
+    - ${data_dir}/my-mistral_16_text_document
     - .0333
-    - ${data_dir}/my-mixtral_17_text_document
+    - ${data_dir}/my-mistral_17_text_document
     - .0333
-    - ${data_dir}/my-mixtral_18_text_document
+    - ${data_dir}/my-mistral_18_text_document
     - .0333
-    - ${data_dir}/my-mixtral_19_text_document
+    - ${data_dir}/my-mistral_19_text_document
     - .0333
-    - ${data_dir}/my-mixtral_20_text_document
+    - ${data_dir}/my-mistral_20_text_document
     - .0333
-    - ${data_dir}/my-mixtral_21_text_document
+    - ${data_dir}/my-mistral_21_text_document
     - .0333
-    - ${data_dir}/my-mixtral_22_text_document
+    - ${data_dir}/my-mistral_22_text_document
     - .0333
-    - ${data_dir}/my-mixtral_23_text_document
+    - ${data_dir}/my-mistral_23_text_document
     - .0333
-    - ${data_dir}/my-mixtral_24_text_document
+    - ${data_dir}/my-mistral_24_text_document
     - .0333
-    - ${data_dir}/my-mixtral_25_text_document
+    - ${data_dir}/my-mistral_25_text_document
     - .0333
-    - ${data_dir}/my-mixtral_26_text_document
+    - ${data_dir}/my-mistral_26_text_document
     - .0333
-    - ${data_dir}/my-mixtral_27_text_document
+    - ${data_dir}/my-mistral_27_text_document
     - .0333
-    - ${data_dir}/my-mixtral_28_text_document
+    - ${data_dir}/my-mistral_28_text_document
     - .0334
-    - ${data_dir}/my-mixtral_29_text_document
+    - ${data_dir}/my-mistral_29_text_document
 
