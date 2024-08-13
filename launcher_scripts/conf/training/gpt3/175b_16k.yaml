@@ -149,8 +149,6 @@ model:
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   fp8_wgrad: True
   ub_tp_comm_overlap: False
-  tp_comm_atomic_ag: False
-  tp_comm_atomic_rs: False
 
   # miscellaneous
   seed: 1234

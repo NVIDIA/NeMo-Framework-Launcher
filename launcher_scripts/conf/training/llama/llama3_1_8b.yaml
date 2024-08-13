@@ -97,7 +97,7 @@ model:
   scale_positional_embedding: true
   tokenizer:
     library: huggingface
-    type: meta-llama/Meta-Llama-3-8B
+    type: meta-llama/Meta-Llama-3.1-8B
     use_fast: true
   native_amp_init_scale: 4294967296
   native_amp_growth_interval: 1000
@@ -124,6 +124,8 @@ model:
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
   sequence_parallel: false
+  sequence_parallel: false
+  deterministic_mode: false
 
   ## Transformer Engine
   transformer_engine: true
