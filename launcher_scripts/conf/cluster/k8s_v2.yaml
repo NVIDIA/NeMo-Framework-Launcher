@@ -21,5 +21,4 @@ ib_interfaces:
     # nvidia.com/hostdev: 8
 
 dns_policy: null  # Specify a dnsPolicy to use in all pods, if necessary
-pull_secret: ngc-registry  # Kubernetes secret for the container registry to pull private containers.
-capabilities: []
+pull_secret: ngc-registry  # Kubernetes secret for the container registry to pull private containers. Set to "null" if the imagePullSecret is managed by the scheduler or otherwise not needed.
