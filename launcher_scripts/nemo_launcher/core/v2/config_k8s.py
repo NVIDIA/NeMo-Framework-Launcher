@@ -174,8 +174,8 @@ class K8sClusterConfig(BaseModel):
 
     ib_interfaces: Optional[K8sNetworkInterfaces] = None
     # dns_policy: str | None = None # Specify a dnsPolicy to use in all pods, if necessary
-    pull_secret: str = "ngc-registry"  # Kubernetes secret for the container registry to pull private containers.
     shm_size: str = "512Gi"  # Amount of system memory to allocate in Pods. Should end in "Gi" for gigabytes.
+    pull_secret: Optional[str] = "ngc-registry"  # Kubernetes secret for the container registry to pull private containers. Set to "null" if the imagePullSecret is managed by the scheduler or otherwise not needed.
     capabilities: Optional[list[str]] = [
         "IPC_LOCK"
     ]  # capabilities to add to all containers (useful for debugging), ex. ["IPC_LOCK", "SYS_PTRACE"]
