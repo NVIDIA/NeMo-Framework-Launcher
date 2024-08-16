@@ -179,6 +179,7 @@ class K8sClusterConfig(BaseModel):
     capabilities: Optional[list[str]] = [
         "IPC_LOCK"
     ]  # capabilities to add to all containers (useful for debugging), ex. ["IPC_LOCK", "SYS_PTRACE"]
+    scheduler: Optional[str] = None  # Specify a custom kubernetes scheduler if different from default, such as "runai-scheduler". Leave as "null" if the default scheduler is desired.
 
     def check_path_in_volumes(self, path: str):
         # This is a helper method to help make sure users configure their k8s paths correctly.

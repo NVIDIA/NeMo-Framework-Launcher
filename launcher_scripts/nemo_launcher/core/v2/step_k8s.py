@@ -108,6 +108,7 @@ def create_pytorchjob_resource(
     image_pull_secret: Optional[str] = None,
     volumes: Optional[dict[str, K8sVolume]] = None,
     network_interfaces: Optional[K8sNetworkInterfaces] = None,
+    scheduler_name: Optional[str] = None,
     ports: Optional[list[int]] = None,
     success_condition: Optional[str] = _unset,
     resource_inputs: Optional[list[Parameter]] = None,
@@ -162,6 +163,7 @@ def create_pytorchjob_resource(
                 containers=[container],
                 volumes=vols,
                 image_pull_secrets=[V1LocalObjectReference(name=image_pull_secret)],
+                scheduler_name=scheduler_name,
             ),
         ),
     )
@@ -224,6 +226,7 @@ def create_mpijob_resource(
     image_pull_secret: Optional[str] = None,
     volumes: Optional[dict[str, K8sVolume]] = None,
     network_interfaces: Optional[K8sNetworkInterfaces] = None,
+    scheduler_name: Optional[str] = None,
     success_condition: Optional[str] = _unset,
     resource_inputs: Optional[list[Parameter]] = None,
     capabilities: Optional[list[str]] = None,
@@ -283,6 +286,7 @@ def create_mpijob_resource(
                     containers=[container],
                     volumes=vols,
                     image_pull_secrets=[V1LocalObjectReference(name=image_pull_secret)],
+                    scheduler_name=scheduler_name,
                 ),
             ),
         )
