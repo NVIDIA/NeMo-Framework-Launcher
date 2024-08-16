@@ -158,6 +158,7 @@ class Training(Stage):
             entrypoint="training-steps",
             namespace=self.cluster_cfg.namespace,
             volumes=vols,
+            service_account_name=self.cluster_cfg.service_account,
         ) as w:
             pytorchjob = create_pytorchjob_resource(
                 generate_name="training-",
@@ -255,6 +256,7 @@ class PEFT(Stage):
             entrypoint="peft-steps",
             namespace=self.cluster_cfg.namespace,
             volumes=vols,
+            service_account_name=self.cluster_cfg.service_account,
         ) as w:
             # TODO: to be backward compatible with current stage_cfg, "squad_data" dir is coded
             # here since it's not parametrized
@@ -425,6 +427,7 @@ class PileDataPreparation(Stage):
             entrypoint="data-steps",
             namespace=self.cluster_cfg.namespace,
             volumes=vols,
+            service_account_name=self.cluster_cfg.service_account,
         ) as w:
             # ++overide all parameters to avoid having to create config file in launcher & worker containers
             hydra_config_as_args = [
@@ -563,6 +566,7 @@ class RLHFPPO(Stage):
             entrypoint="rlhf-ppo-steps",
             namespace=self.cluster_cfg.namespace,
             volumes=vols,
+            service_account_name=self.cluster_cfg.service_account,
         ) as w:
             critic_job = create_pytorchjob_resource(
                 generate_name="critic-",
@@ -699,6 +703,7 @@ class RLHFRewardModel(Stage):
             entrypoint="rlhf-rm-steps",
             namespace=self.cluster_cfg.namespace,
             volumes=vols,
+            service_account_name=self.cluster_cfg.service_account,
         ) as w:
             pytorchjob = create_pytorchjob_resource(
                 generate_name="rlhf-rm-",

@@ -179,6 +179,7 @@ class K8sClusterConfig(BaseModel):
     capabilities: Optional[list[str]] = [
         "IPC_LOCK"
     ]  # capabilities to add to all containers (useful for debugging), ex. ["IPC_LOCK", "SYS_PTRACE"]
+    service_account: Optional[str] = None # Optionally specify a serviceAccountName to use while running jobs. Set to "null" if no serviceAccountName is desired.
 
     def check_path_in_volumes(self, path: str):
         # This is a helper method to help make sure users configure their k8s paths correctly.
