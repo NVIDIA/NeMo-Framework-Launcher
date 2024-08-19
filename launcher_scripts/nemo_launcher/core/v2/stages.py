@@ -166,6 +166,7 @@ class Training(Stage):
                 n_workers=self.n_workers,
                 gpus_per_worker=self.gpus_per_worker,
                 namespace=self.cluster_cfg.namespace,
+                api_version=self.cluster_cfg.custom_pytorchjob_api_version,
                 env=self.env,
                 command=[
                     "bash",
@@ -285,6 +286,7 @@ class PEFT(Stage):
                 n_workers=self.n_workers,
                 gpus_per_worker=self.gpus_per_worker,
                 namespace=self.cluster_cfg.namespace,
+                api_version=self.cluster_cfg.custom_pytorchjob_api_version,
                 env=self.env,
                 command=[
                     "bash",
@@ -466,6 +468,7 @@ class PileDataPreparation(Stage):
                 command=["bash", "-euxc", commands_str],
                 volumes=self.cluster_cfg.volumes,
                 network_interfaces=self.cluster_cfg.ib_interfaces,
+                api_version=self.cluster_cfg.custom_mpijob_api_version,
                 capabilities=self.cluster_cfg.capabilities,
             )
             with Steps(name="data-steps") as s:
@@ -571,6 +574,7 @@ class RLHFPPO(Stage):
                 n_workers=self.n_critic_workers,
                 gpus_per_worker=self.n_critic_gpus_per_worker,
                 namespace=self.cluster_cfg.namespace,
+                api_version=self.cluster_cfg.custom_pytorchjob_api_version,
                 env=self.env,
                 command=[
                     "bash",
@@ -599,6 +603,7 @@ torchrun {self.critic_script} --config-path=/config --config-name=config.yaml \
                 n_workers=self.n_actor_workers,
                 gpus_per_worker=self.n_actor_gpus_per_worker,
                 namespace=self.cluster_cfg.namespace,
+                api_version=self.cluster_cfg.custom_pytorchjob_api_version,
                 env=self.env,
                 command=[
                     "bash",
@@ -707,6 +712,7 @@ class RLHFRewardModel(Stage):
                 n_workers=self.n_workers,
                 gpus_per_worker=self.gpus_per_worker,
                 namespace=self.cluster_cfg.namespace,
+                api_version=self.cluster_cfg.custom_pytorchjob_api_version,
                 env=self.env,
                 command=[
                     "bash",
