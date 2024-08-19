@@ -23,3 +23,5 @@ ib_interfaces:
 dns_policy: null  # Specify a dnsPolicy to use in all pods, if necessary
 pull_secret: ngc-registry  # Kubernetes secret for the container registry to pull private containers.
 capabilities: []
+custom_mpijob_api_version: null  # Optionally specify a custom k8s API version for MPIJobs. Default is "kubeflow.org/v1". This occurs when a cluster has different API versions installed.
+custom_pytorchjob_api_version: null  # Optionally specify a custom k8s API version for PyTorchJobs. Default is "kubeflow.org/v1". This occurs when a cluster has different API versions installed.

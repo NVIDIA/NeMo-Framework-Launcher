@@ -179,6 +179,8 @@ class K8sClusterConfig(BaseModel):
     capabilities: Optional[list[str]] = [
         "IPC_LOCK"
     ]  # capabilities to add to all containers (useful for debugging), ex. ["IPC_LOCK", "SYS_PTRACE"]
+    custom_mpijob_api_version: Optional[str] = None  # Optionally specify a custom k8s API version for MPIJobs. Default is "kubeflow.org/v1". This occurs when a cluster has different API versions installed.
+    custom_pytorchjob_api_version: Optional[str] = None  # Optionally specify a custom k8s API version for PyTorchJobs. Default is "kubeflow.org/v1". This occurs when a cluster has different API versions installed.
 
     def check_path_in_volumes(self, path: str):
         # This is a helper method to help make sure users configure their k8s paths correctly.
