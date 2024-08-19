@@ -68,8 +68,7 @@ def run_search(cfg: omegaconf.dictconfig.DictConfig) -> None:
 
 
 def generate_grid_search_configs(
-    base_cfg: omegaconf.dictconfig.DictConfig,
-    cfg: omegaconf.dictconfig.DictConfig,
+    base_cfg: omegaconf.dictconfig.DictConfig, cfg: omegaconf.dictconfig.DictConfig,
 ) -> Tuple[str, List[str]]:
     """
     Generates the grid of all possible hyperparameter combinations for the given model based on search configuration,
@@ -101,9 +100,7 @@ def generate_grid_search_configs(
 
 
 def launch_grid_search_configs(
-    base_dir: str,
-    results_cfgs: List[str],
-    cfg: omegaconf.dictconfig.DictConfig,
+    base_dir: str, results_cfgs: List[str], cfg: omegaconf.dictconfig.DictConfig,
 ) -> List[int]:
     """
     Launches fine-tuning jobs for hyperparameter autoconfiguration in parallel. The maximum number of
