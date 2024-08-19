@@ -1,0 +1,37 @@
+defaults:
+  - _self_
+  - cluster: bcm
+  - override hydra/job_logging: stdout
+
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+
+cluster_type: bcm  # bcm or bcp
+ft_configurator_path: <PATH_TO_NEMO_LAUNCHER>/auto_configurator/tuning  # Path to the location of tuning autoconfigurator codebase.
+launcher_scripts_path: ${ft_configurator_path}/../../launcher_scripts
+base_results_dir: ${ft_configurator_path}/results
+data_dir: <DATA_DIRECTORY>
+
+training_container: nvcr.io/nvidia/nemo:24.05
+container_mounts:
+  - null
+
+wandb:  # Weights and Biases (W&B) logging.
+  enable: False  # Whether to save logs to W&B.
+  api_key_file: null # Path to the file where the W&B api key is stored. Key must be on the first line.
+  project: nemo-megatron-autoconfig # Name of the W&B project to store the logs in. The name of the run will be populated automatically.
+
+search_config:
+  start_time: "" # Specify start time if you want to only run analysis, otherwise leave empty.
+  base_config: <BASELINE_YAML_CONFIG_PATH> # Path to baseline model config for hyperparameter sweep.
+  base_model_path: <BASELINE_MODEL_PATH> # Path to baseline model to fine-tune.
+  model_name: "llama" # Model family name
+
+  limit_search_runs: 100 # Maximum number of search runs for the grid search.
+  max_steps_per_run: 100 # Max steps per run for the grid search.
+  max_minutes_per_run: 20 # minutes per run for the grid search.
+  param_grid: # Dictionary of hyperparameter values to use for grid search.
+    model.peft.lora_tuning.adapter_dim: [32,64]
+    model.optim.lr: [1e-4,5e-4]
