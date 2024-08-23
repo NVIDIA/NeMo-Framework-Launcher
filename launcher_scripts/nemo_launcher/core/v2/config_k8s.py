@@ -174,11 +174,27 @@ class K8sClusterConfig(BaseModel):
 
     ib_interfaces: Optional[K8sNetworkInterfaces] = None
     # dns_policy: str | None = None # Specify a dnsPolicy to use in all pods, if necessary
-    pull_secret: str = "ngc-registry"  # Kubernetes secret for the container registry to pull private containers.
-    shm_size: str = "512Gi"  # Amount of system memory to allocate in Pods. Should end in "Gi" for gigabytes.
+    shm_size: str = (
+        "512Gi"  # Amount of system memory to allocate in Pods. Should end in "Gi" for gigabytes.
+    )
+    pull_secret: Optional[str] = (
+        "ngc-registry"  # Kubernetes secret for the container registry to pull private containers. Set to "null" if the imagePullSecret is managed by the scheduler or otherwise not needed.
+    )
     capabilities: Optional[list[str]] = [
         "IPC_LOCK"
     ]  # capabilities to add to all containers (useful for debugging), ex. ["IPC_LOCK", "SYS_PTRACE"]
+    custom_mpijob_api_version: Optional[str] = (
+        None  # Optionally specify a custom k8s API version for MPIJobs. Default is "kubeflow.org/v1". This occurs when a cluster has different API versions installed.
+    )
+    custom_pytorchjob_api_version: Optional[str] = (
+        None  # Optionally specify a custom k8s API version for PyTorchJobs. Default is "kubeflow.org/v1". This occurs when a cluster has different API versions installed.
+    )
+    scheduler: Optional[str] = (
+        None  # Specify a custom kubernetes scheduler if different from default, such as "runai-scheduler". Leave as "null" if the default scheduler is desired.
+    )
+    service_account: Optional[str] = (
+        None  # Optionally specify a serviceAccountName to use while running jobs. Set to "null" if no serviceAccountName is desired.
+    )
 
     def check_path_in_volumes(self, path: str):
         # This is a helper method to help make sure users configure their k8s paths correctly.
