@@ -58,6 +58,7 @@ model:
   tensor_model_parallel_size: 8 # intra-layer model parallelism
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
 
+  tp_comm_overlap_disable_qkv: True
   global_batch_size: 128
   micro_batch_size: 1
   restore_from_path: ${peft.run.convert_dir}/results/megatron_mixtral.nemo # Path to an existing .nemo model you wish to add new tasks to or run inference with
@@ -105,6 +106,7 @@ model:
       position_embedding_strategy: null # used only when weight_tying is True
 
     lora_tuning:
+      target_modules: ['attention_qkv', 'attention_dense'] #
       adapter_dim: 32
       adapter_dropout: 0.0
       column_init_method: 'xavier' # IGNORED if linear_adapter is used, options: xavier, zero or normal
