@@ -668,6 +668,7 @@ def _make_sbatch_string(
     srun_args: Optional[Iterable[str]] = None,
     heterogeneous: bool = False,
     enable_vboost: bool = False,
+    nodelist: Optional[Union[str, List[str]]] = None,
 ) -> str:
     """Creates the content of an sbatch file with provided parameters
 
