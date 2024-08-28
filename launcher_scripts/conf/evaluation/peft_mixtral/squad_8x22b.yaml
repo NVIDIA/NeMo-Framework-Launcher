@@ -28,8 +28,8 @@ exp_manager:
 
 model:
   seed: 1234
-  tensor_model_parallel_size: 8
-  pipeline_model_parallel_size: 1
+  tensor_model_parallel_size: 1
+  pipeline_model_parallel_size: 8
 
   global_batch_size: 32
   micro_batch_size: 4
@@ -39,7 +39,7 @@ model:
   sync_batch_comm: False
   megatron_amp_02: False
 
-  sequence_parallel: True
+  sequence_parallel: False
 
   activations_checkpoint_granularity: null
   activations_checkpoint_method: null
