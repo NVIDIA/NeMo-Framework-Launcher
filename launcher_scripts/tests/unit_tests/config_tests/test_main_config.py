@@ -75,7 +75,6 @@ class TestConfig:
           TRANSFORMERS_OFFLINE: 0
           TORCH_NCCL_AVOID_RECORD_STREAMS: 1
           NCCL_NVLS_ENABLE: 0
-          NVTE_FUSED_ATTN: 0 # Disable cudnn FA until we've tested it more
         
         # GPU Mapping
         numa_mapping:
