@@ -124,7 +124,6 @@ model:
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
   sequence_parallel: false
-  sequence_parallel: false
   deterministic_mode: false
 
   ## Transformer Engine
@@ -170,8 +169,8 @@ model:
     skip_warmup: true
     num_workers: 2
     dataloader_type: single
-    reset_position_ids: false
-    reset_attention_mask: false
+    reset_position_ids: true
+    reset_attention_mask: true
     eod_mask_loss: false
     index_mapping_dir: null
     data_prefix:
