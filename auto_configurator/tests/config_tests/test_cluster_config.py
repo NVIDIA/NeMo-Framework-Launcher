@@ -12,7 +12,6 @@ class TestClusterConfig:
         gpus_per_node: 8
         mem: 0
         job_name_prefix: "nemo_megatron_autoconfig:"
-        nodelist: null
         srun_args:
           - "--no-container-mount-home"
         """
