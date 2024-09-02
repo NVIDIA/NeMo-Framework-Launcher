@@ -882,6 +882,7 @@ class Training(NeMoStage):
                 self.cfg.training.trainer.get("val_check_interval"),
             )
             hydra_override += [f"model.gc_interval={gc_interval}"]
+        hydra_override += ["++model.dist_ckpt_format='zarr'"]
         return hydra_override
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
