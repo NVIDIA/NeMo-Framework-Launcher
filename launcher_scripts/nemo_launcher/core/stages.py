@@ -944,7 +944,7 @@ class Training(NeMoStage):
             "mixtral": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "grok": self._nemo_code_path
-+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "qwen2": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
         }
