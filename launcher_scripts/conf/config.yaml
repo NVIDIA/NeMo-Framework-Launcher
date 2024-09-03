@@ -57,6 +57,8 @@ wandb_api_bcp_secret_key: null  # For BCP clusters, read the W&B api key directl
 
 bcp_no_redirect: True  # If True, all stdout and stderr will not be redirected and appear in the standard logs. If False, all stdout and stderr output will be redirected to individual files on a per-rank basis. Ignored for non-BCP clusters.
 
+enable_vboost: False # if True, sets video boost slider that rebalances the power budget between the compute engine and the memory such that the compute engines have greater power allocation. This can help improve the performance of compute-bound worklaods.
+
 env_vars:
   NCCL_TOPO_FILE: null # Should be a path to an XML file describing the topology
   UCX_IB_PCI_RELAXED_ORDERING: null # Needed to improve Azure performance
@@ -67,9 +69,6 @@ env_vars:
   TRANSFORMERS_OFFLINE: 0
   TORCH_NCCL_AVOID_RECORD_STREAMS: 1
   NCCL_NVLS_ENABLE: 0
-  NVTE_DP_AMAX_REDUCE_INTERVAL: 0 # Diable FP8 AMAX reduction in the data-parallel domain
-  NVTE_ASYNC_AMAX_REDUCTION: 1 # Enable asynchronous FP8 AMAX reduction
-  NVTE_FUSED_ATTN: 0 # Disable cudnn FA until we've tested it more
 
 # GPU Mapping
 numa_mapping:

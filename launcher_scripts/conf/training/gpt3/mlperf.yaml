@@ -268,7 +268,3 @@ model:
   gc_interval: 100
   name: megatron_gpt_full_te_layer_autocast
   fp8_params: true
-  tp_comm_split_ag: true
-  tp_comm_split_rs: false
-  tp_comm_atomic_ag: false
-  tp_comm_atomic_rs: true

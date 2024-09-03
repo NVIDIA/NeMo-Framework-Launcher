@@ -1094,6 +1094,7 @@ def launch_throughput_measure(
     cluster_cfg = cfg.get("cluster")
     partition = cluster_cfg.get("partition")
     account = cluster_cfg.get("account")
+    nodelist = cluster_cfg.get("nodelist")
     time_limit = "10:00"
     exclusive = cluster_cfg.get("exclusive")
     mem = cluster_cfg.get("mem")
@@ -1153,6 +1154,7 @@ def launch_throughput_measure(
             gpus_per_node=gpus_per_node,
             partition=partition,
             account=account,
+            nodelist=nodelist,
         )
         if os.getenv("NEMO_LAUNCHER_CI"):
             job_id = subprocess.check_output(

@@ -381,6 +381,8 @@ class NemoMegatronStage:
                     "container_mounts": container_mounts,
                 }
             )
+            if self.cfg.get("enable_vboost", False):
+                cluster_parameters.update({"enable_vboost": self.cfg["enable_vboost"]})
         elif cluster == "bcp":
             cluster_parameters.update(
                 {
@@ -723,6 +725,9 @@ class NeMoStage(NemoMegatronStage):
         hydra_override = []
         if self.cluster == "bcp":
             hydra_override += ["+rank=\${RANK}"]
+        # Temporary solution for torch_dist ckpt issue
+        if self.stage_name in ["training", "peft", "fine_tuning"]:
+            hydra_override += ["++model.dist_ckpt_format='zarr'"]
         return hydra_override
 
     def _copy_k8s_helm_chart(self, template_root: str, job_path: JobPaths):
@@ -880,6 +885,8 @@ class Training(NeMoStage):
                 self.cfg.training.trainer.get("val_check_interval"),
             )
             hydra_override += [f"model.gc_interval={gc_interval}"]
+        # Temporary solution for torch_dist ckpt issue
+        hydra_override += ["++model.dist_ckpt_format='zarr'"]
         return hydra_override
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
