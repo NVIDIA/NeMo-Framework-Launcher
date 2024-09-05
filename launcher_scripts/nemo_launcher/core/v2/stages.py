@@ -107,6 +107,8 @@ class Training(Stage):
             "gpt3": "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "llama": "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "nemotron": "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "mistral": "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "mixtral": "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "bert": "examples/nlp/language_modeling/megatron_bert_pretraining.py",
             "falcon": "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "retro": "examples/nlp/language_modeling/megatron_retro_pretraining.py",
@@ -114,6 +116,7 @@ class Training(Stage):
             "clip": "examples/multimodal/vision_language_foundation/clip/megatron_clip_pretrain.py",
             "nsfw": "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
             "stable_diffusion": "examples/multimodal/text_to_image/stable_diffusion/sd_train.py",
+            "sdxl": "examples/multimodal/text_to_image/stable_diffusion/sd_xl_train.py",
             "instruct_pix2pix": "examples/multimodal/text_to_image/instruct_pix2pix/sd_finetune.py",
             "imagen": "examples/multimodal/text_to_image/imagen/imagen_training.py",
             "dreambooth": "examples/multimodal/text_to_image/dreambooth/dreambooth.py",
@@ -157,14 +160,17 @@ class Training(Stage):
             entrypoint="training-steps",
             namespace=self.cluster_cfg.namespace,
             volumes=vols,
+            service_account_name=self.cluster_cfg.service_account,
         ) as w:
             pytorchjob = create_pytorchjob_resource(
                 generate_name="training-",
                 image=self.image,
                 image_pull_secret=self.cluster_cfg.pull_secret,
                 n_workers=self.n_workers,
+                scheduler_name=self.cluster_cfg.scheduler,
                 gpus_per_worker=self.gpus_per_worker,
                 namespace=self.cluster_cfg.namespace,
+                api_version=self.cluster_cfg.custom_pytorchjob_api_version,
                 env=self.env,
                 command=[
                     "bash",
@@ -254,6 +260,7 @@ class PEFT(Stage):
             entrypoint="peft-steps",
             namespace=self.cluster_cfg.namespace,
             volumes=vols,
+            service_account_name=self.cluster_cfg.service_account,
         ) as w:
             # TODO: to be backward compatible with current stage_cfg, "squad_data" dir is coded
             # here since it's not parametrized
@@ -282,8 +289,10 @@ class PEFT(Stage):
                 image=self.image,
                 image_pull_secret=self.cluster_cfg.pull_secret,
                 n_workers=self.n_workers,
+                scheduler_name=self.cluster_cfg.scheduler,
                 gpus_per_worker=self.gpus_per_worker,
                 namespace=self.cluster_cfg.namespace,
+                api_version=self.cluster_cfg.custom_pytorchjob_api_version,
                 env=self.env,
                 command=[
                     "bash",
@@ -424,6 +433,7 @@ class PileDataPreparation(Stage):
             entrypoint="data-steps",
             namespace=self.cluster_cfg.namespace,
             volumes=vols,
+            service_account_name=self.cluster_cfg.service_account,
         ) as w:
             # ++overide all parameters to avoid having to create config file in launcher & worker containers
             hydra_config_as_args = [
@@ -441,7 +451,7 @@ class PileDataPreparation(Stage):
             ]
 
             mpirun_template = (
-                lambda script_name: f'mpirun --allow-run-as-root -np { self.n_total_processes } -npernode { self.n_proc_per_worker } -bind-to none -map-by slot --oversubscribe -x PYTHONPATH -mca pml ob1 -mca btl ^openib python3 {script_name} {" ".join(hydra_config_as_args)}'
+                lambda script_name: f'mpirun --allow-run-as-root -np { self.n_total_processes } -npernode { self.n_proc_per_worker } -bind-to none -map-by slot --oversubscribe -x PYTHONPATH -x LD_LIBRARY_PATH -mca pml ob1 -mca btl ^openib python3 {script_name} {" ".join(hydra_config_as_args)}'
             )
             commands = []
             for script_path in (
@@ -465,6 +475,8 @@ class PileDataPreparation(Stage):
                 command=["bash", "-euxc", commands_str],
                 volumes=self.cluster_cfg.volumes,
                 network_interfaces=self.cluster_cfg.ib_interfaces,
+                api_version=self.cluster_cfg.custom_mpijob_api_version,
+                scheduler_name=self.cluster_cfg.scheduler,
                 capabilities=self.cluster_cfg.capabilities,
             )
             with Steps(name="data-steps") as s:
@@ -562,14 +574,17 @@ class RLHFPPO(Stage):
             entrypoint="rlhf-ppo-steps",
             namespace=self.cluster_cfg.namespace,
             volumes=vols,
+            service_account_name=self.cluster_cfg.service_account,
         ) as w:
             critic_job = create_pytorchjob_resource(
                 generate_name="critic-",
                 image=self.image,
                 image_pull_secret=self.cluster_cfg.pull_secret,
                 n_workers=self.n_critic_workers,
+                scheduler_name=self.cluster_cfg.scheduler,
                 gpus_per_worker=self.n_critic_gpus_per_worker,
                 namespace=self.cluster_cfg.namespace,
+                api_version=self.cluster_cfg.custom_pytorchjob_api_version,
                 env=self.env,
                 command=[
                     "bash",
@@ -596,8 +611,10 @@ torchrun {self.critic_script} --config-path=/config --config-name=config.yaml \
                 image=self.image,
                 image_pull_secret=self.cluster_cfg.pull_secret,
                 n_workers=self.n_actor_workers,
+                scheduler_name=self.cluster_cfg.scheduler,
                 gpus_per_worker=self.n_actor_gpus_per_worker,
                 namespace=self.cluster_cfg.namespace,
+                api_version=self.cluster_cfg.custom_pytorchjob_api_version,
                 env=self.env,
                 command=[
                     "bash",
@@ -698,14 +715,17 @@ class RLHFRewardModel(Stage):
             entrypoint="rlhf-rm-steps",
             namespace=self.cluster_cfg.namespace,
             volumes=vols,
+            service_account_name=self.cluster_cfg.service_account,
         ) as w:
             pytorchjob = create_pytorchjob_resource(
                 generate_name="rlhf-rm-",
                 image=self.image,
                 image_pull_secret=self.cluster_cfg.pull_secret,
                 n_workers=self.n_workers,
+                scheduler_name=self.cluster_cfg.scheduler,
                 gpus_per_worker=self.gpus_per_worker,
                 namespace=self.cluster_cfg.namespace,
+                api_version=self.cluster_cfg.custom_pytorchjob_api_version,
                 env=self.env,
                 command=[
                     "bash",

@@ -21,5 +21,9 @@ ib_interfaces:
     # nvidia.com/hostdev: 8
 
 dns_policy: null  # Specify a dnsPolicy to use in all pods, if necessary
-pull_secret: ngc-registry  # Kubernetes secret for the container registry to pull private containers.
+pull_secret: ngc-registry  # Kubernetes secret for the container registry to pull private containers. Set to "null" if the imagePullSecret is managed by the scheduler or otherwise not needed.
+custom_mpijob_api_version: null  # Optionally specify a custom k8s API version for MPIJobs. Default is "kubeflow.org/v1". This occurs when a cluster has different API versions installed.
+custom_pytorchjob_api_version: null  # Optionally specify a custom k8s API version for PyTorchJobs. Default is "kubeflow.org/v1". This occurs when a cluster has different API versions installed.
+scheduler: null  # Specify a custom kubernetes scheduler if different from default, such as "runai-scheduler". Leave as "null" if the default scheduler is desired.
+service_account: null # Optionally specify a serviceAccountName to use while running jobs. Set to "null" if no serviceAccountName is desired.
 capabilities: []

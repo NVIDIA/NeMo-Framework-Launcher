@@ -124,6 +124,8 @@ model:
   num_micro_batches_with_partial_activation_checkpoints: null
   activations_checkpoint_layers_per_pipeline: null
   sequence_parallel: false
+  deterministic_mode: false
+  cross_entropy_loss_fusion: true
 
   ## Transformer Engine
   transformer_engine: true
@@ -136,8 +138,6 @@ model:
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   use_emha: False
   ub_tp_comm_overlap: False
-  tp_comm_atomic_ag: False
-  tp_comm_atomic_rs: False
   use_flash_attention: true
   nsys_profile:
     enabled: False

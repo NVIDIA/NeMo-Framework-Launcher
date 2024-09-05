@@ -62,6 +62,7 @@ __MULTIMODAL_MODELS_LIST__ = [
     "nsfw",
     "neva",
     "video_neva",
+    "sdxl",
 ]
 
 
@@ -381,6 +382,8 @@ class NemoMegatronStage:
                     "container_mounts": container_mounts,
                 }
             )
+            if self.cfg.get("enable_vboost", False):
+                cluster_parameters.update({"enable_vboost": self.cfg["enable_vboost"]})
         elif cluster == "bcp":
             cluster_parameters.update(
                 {
@@ -723,6 +726,9 @@ class NeMoStage(NemoMegatronStage):
         hydra_override = []
         if self.cluster == "bcp":
             hydra_override += ["+rank=\${RANK}"]
+        # Temporary solution for torch_dist ckpt issue
+        if self.stage_name in ["training", "peft", "fine_tuning"]:
+            hydra_override += ["++model.dist_ckpt_format='zarr'"]
         return hydra_override
 
     def _copy_k8s_helm_chart(self, template_root: str, job_path: JobPaths):
@@ -880,6 +886,8 @@ class Training(NeMoStage):
                 self.cfg.training.trainer.get("val_check_interval"),
             )
             hydra_override += [f"model.gc_interval={gc_interval}"]
+        # Temporary solution for torch_dist ckpt issue
+        hydra_override += ["++model.dist_ckpt_format='zarr'"]
         return hydra_override
 
     def _get_nemo_code_path(self, model_type: str) -> Path:
@@ -922,6 +930,8 @@ class Training(NeMoStage):
             / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_pretrain.py",
             "stable_diffusion": self._nemo_code_path
             / "examples/multimodal/text_to_image/stable_diffusion/sd_train.py",
+            "sdxl": self._nemo_code_path
+            / "examples/multimodal/text_to_image/stable_diffusion/sd_xl_train.py",
             "instruct_pix2pix": self._nemo_code_path
             / "examples/multimodal/text_to_image/instruct_pix2pix/sd_finetune.py",
             "imagen": self._nemo_code_path
@@ -938,6 +948,8 @@ class Training(NeMoStage):
             "mistral": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "grok": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "qwen2": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
@@ -1329,6 +1341,8 @@ class FWInference(NeMoStage):
             / "examples/multimodal/vision_language_foundation/nsfw/megatron_nsfw_infer.py",
             "stable_diffusion": self._nemo_code_path
             / "examples/multimodal/text_to_image/stable_diffusion/sd_infer.py",
+            "sdxl": self._nemo_code_path
+            / "examples/multimodal/text_to_image/stable_diffusion/sd_xl_infer.py",
             "instruct_pix2pix": self._nemo_code_path
             / "examples/multimodal/text_to_image/instruct_pix2pix/sd_edit_cli.py",
             "dreambooth": self._nemo_code_path
@@ -1493,7 +1507,10 @@ class Conversion(NemoMegatronStage):
         choice_model_type, choice_name = self.get_stage_config_choice()
         model_cfg = self.stage_cfg.get("model")
 
-        if choice_model_type not in __LANGUAGE_MODELS_LIST__ + ["stable_diffusion"]:
+        if choice_model_type not in __LANGUAGE_MODELS_LIST__ + [
+            "stable_diffusion",
+            "sdxl",
+        ]:
             hparams_file = model_cfg.get("hparams_file")
             output_path = self.get_job_path().results_folder
             hparams_override = output_path / "hparams_override.yaml"
@@ -1874,6 +1891,8 @@ class NeMoEvaluation(NeMoStage):
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
             "peft_qwen2": self._nemo_code_path
             / "examples/nlp/language_modeling/tuning/megatron_gpt_generate.py",
+            "peft_t5": self._nemo_code_path
+            / "examples/nlp/language_modeling/tuning/megatron_t5_generate.py",
             "vit": self._nemo_code_path
             / "examples/vision/vision_transformer/megatron_vit_classification_evaluate.py",
             "clip": self._nemo_code_path

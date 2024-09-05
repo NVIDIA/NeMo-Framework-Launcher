@@ -521,6 +521,7 @@ def create_slurm_file(
     exclude: Optional[str] = None,
     output: Optional[str] = None,
     comment: Optional[str] = None,
+    nodelist: Optional[str] = None,
 ):
     """
     Creates a slurm script file to launch a job on a slurm based cluster. Saves the script
@@ -577,6 +578,8 @@ def create_slurm_file(
             f.writelines(f"#SBATCH --output={output}\n")
         if comment:
             f.writelines(f"#SBATCH --comment={comment}\n")
+        if nodelist:
+            f.writelines(f"#SBATCH --nodelist={nodelist}\n")
         f.writelines(f"#SBATCH --time={time}\n\n")
         for cmd in cmds:
             # assert "'" not in cmd
