@@ -222,12 +222,13 @@ class NemoMegatronStage:
         'NeMo-Framework-Launcher' was renamed to 'NeMo-Framework-Launcher'. We run git log for both for
         backwards compatibility.
         """
+        if self.cfg.cluster_type == "bcp":
+            return []
         append_to_file = f"{stage_cfg_path.parent}/git_log.txt"
         return [
-            f"(echo PYT$\"NVIDIA_PYTORCH_VERSION\" && \
-                git --git-dir=/opt/NeMo/.git log -n 5 --format='NeMo;%h;%aD;%s' && \
-                git --git-dir=/opt/megatron-lm/.git log -n 5 --format='megatron-lm;%h;%aD;%s' && \
-                git --git-dir=/opt/NeMo-Framework-Launcher/.git log -n 5 --format='NeMo-Framework-Launcher;%h;%aD;%s' && \
+            f"(echo PYT$\"NVIDIA_PYTORCH_VERSION\"; \
+                git --git-dir=/opt/NeMo/.git log -n 5 --format='NeMo;%h;%aD;%s'; \
+                git --git-dir=/opt/megatron-lm/.git log -n 5 --format='megatron-lm;%h;%aD;%s'; \
                 git --git-dir=/opt/NeMo-Framework-Launcher/.git log -n 5 --format='NeMo-Framework-Launcher;%h;%aD;%s') > {append_to_file}"
         ]
 
@@ -942,6 +943,8 @@ class Training(NeMoStage):
             "mistral": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "mixtral": self._nemo_code_path
+            / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
+            "grok": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
             "qwen2": self._nemo_code_path
             / "examples/nlp/language_modeling/megatron_gpt_pretraining.py",
