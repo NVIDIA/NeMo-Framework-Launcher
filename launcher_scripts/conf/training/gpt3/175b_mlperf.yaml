@@ -58,6 +58,7 @@ exp_manager:
     buffer_size: 5
 
 model:
+  name: megatron_gpt_full_te_layer_autocast # use Transformer-layer spec
   micro_batch_size: 2
   global_batch_size: 2048
   context_parallel_size: 1
@@ -150,6 +151,7 @@ model:
   fp8_amax_history_len: 1024 # Number of steps for which amax history is recorded per tensor
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   ub_tp_comm_overlap: True
+  fp8_params: true # performance param all-gather in fp8
 
   # miscellaneous
   seed: 1234
