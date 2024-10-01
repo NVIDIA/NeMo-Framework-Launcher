@@ -2083,6 +2083,7 @@ class EvalHarnessEvaluation(NemoMegatronStage):
             tensor_model_parallel_size=model_cfg.get("tensor_model_parallel_size"),
             pipeline_model_parallel_size=model_cfg.get("pipeline_model_parallel_size"),
             precision=model_cfg.get("precision"),
+            dist_ckpt_load_strictness=model_cfg.get("dist_ckpt_load_strictness", None),
         )
 
         if self.prompt_evaluation:
