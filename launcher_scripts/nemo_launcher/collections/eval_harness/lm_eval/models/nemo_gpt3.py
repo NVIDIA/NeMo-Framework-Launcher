@@ -149,7 +149,7 @@ def setup_trainer_and_model(args):
             )
             if trainer.precision == "16":
                 pretrained_cfg.megatron_amp_O2 = False
-            if args.dist_ckpt_load_strictness is not None:
+            if args.dist_ckpt_load_strictness is not None and args.dist_ckpt_load_strictness != "None":
                 pretrained_cfg.dist_ckpt_load_strictness = (
                     args.dist_ckpt_load_strictness
                 )
