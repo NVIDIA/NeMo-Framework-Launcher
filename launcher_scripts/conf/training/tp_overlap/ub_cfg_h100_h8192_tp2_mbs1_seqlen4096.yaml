@@ -1,0 +1,55 @@
+# UB communicator configurations
+# Model configs: H100/70B/TP2/MBS1/SeqLen4K/FP8
+
+# Bulk overlap with AllGather / ReduceScatter
+qkv_dgrad:
+  method: bulk
+  num_sm: 8
+  cga_size: 2
+  set_sm_margin: 0
+
+qkv_wgrad:
+  method: bulk
+  num_sm: 32
+  cga_size: 2 
+  set_sm_margin: 0
+
+fc1_dgrad:
+  method: bulk
+  num_sm: 2
+  cga_size: 2
+  set_sm_margin: 0
+
+fc1_wgrad:
+  method: bulk
+  num_sm: 8
+  cga_size: 2
+  set_sm_margin: 0
+
+## Ring-exchange overlap with AllGather
+qkv_fprop:
+  method: ring_exchange
+  aggregate: 0
+
+proj_dgrad:
+  method: ring_exchange
+  aggregate: 0
+
+fc1_fprop:
+  method: ring_exchange
+  aggregate: 0
+
+fc2_dgrad:
+  method: ring_exchange
+  aggregate: 0
+
+proj_fprop:
+  method: ring_exchange
+  num_sm: 1
+  set_sm_margin: 1
+
+fc2_fprop:
+  method: ring_exchange
+  num_sm: 1
+  set_sm_margin: 1
+
