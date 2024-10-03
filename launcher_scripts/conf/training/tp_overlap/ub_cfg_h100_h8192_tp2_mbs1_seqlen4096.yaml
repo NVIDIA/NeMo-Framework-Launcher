@@ -1,5 +1,5 @@
 # UB communicator configurations
-# Model configs: B200/70B/TP2/MBS1/SeqLen4K/FP8
+# Model configs: H100/70B/TP2/MBS1/SeqLen4K/FP8
 
 # Bulk overlap with AllGather / ReduceScatter
 qkv_dgrad:
