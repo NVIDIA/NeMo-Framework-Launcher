@@ -119,6 +119,9 @@ def parse_args(parser_main):
         "--pipeline_model_parallel_size", type=int, default=1, required=False,
     )
     parser.add_argument(
+        "--dist_ckpt_load_strictness", default=None, required=False,
+    )
+    parser.add_argument(
         "--hparams_file",
         type=str,
         default=None,
