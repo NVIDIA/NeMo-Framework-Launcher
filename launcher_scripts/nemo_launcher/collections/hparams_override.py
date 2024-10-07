@@ -16,6 +16,7 @@ import os
 import time
 
 import hydra
+from nemo.utils.env_var_parsing import get_envint
 from nemo.utils.get_rank import is_global_rank_zero
 from omegaconf import OmegaConf
 
@@ -86,6 +87,10 @@ def hparams_override(cfg):
         if is_global_rank_zero():
             with open(hparams_override_file, "w") as f:
                 OmegaConf.save(config=conf, f=f)
+
+        node_rank = get_envint("NODE_RANK", get_envint("GROUP_RANK", 0))
+        if node_rank != 0:
+            return
 
         wait_time = 0
         while not os.path.exists(hparams_override_file):
