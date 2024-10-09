@@ -31,7 +31,12 @@ def hparams_override(cfg):
     """
     hparams_file = cfg.get("hparams_file")
     if hparams_file is not None:
+        assert os.path.exists(hparams_file), hparams_file
+        assert os.access(hparams_file, os.R_OK), hparams_file
         output_path = cfg.get("output_path")
+        assert os.path.exists(output_path), output_path
+        assert os.path.isdir(output_path), output_path
+        assert os.access(output_path, os.W_OK), output_path
         hparams_override_file = os.path.join(output_path, "hparams_override.yaml")
         conf = OmegaConf.load(hparams_file)
 
@@ -84,20 +89,20 @@ def hparams_override(cfg):
             if "optim" in conf.cfg and conf.cfg.optim.name == "distributed_fused_adam":
                 conf.cfg.optim.name = "fused_adam"
 
-        if is_global_rank_zero():
-            with open(hparams_override_file, "w") as f:
-                OmegaConf.save(config=conf, f=f)
-
         node_rank = get_envint("NODE_RANK", get_envint("GROUP_RANK", 0))
         if node_rank != 0:
             return
 
-        wait_time = 0
-        while not os.path.exists(hparams_override_file):
-            time.sleep(1)
-            wait_time += 1
-            if wait_time > 60:
-                raise TimeoutError("Timeout waiting for config file to be created.")
+        if is_global_rank_zero():
+            with open(hparams_override_file, "w") as f:
+                OmegaConf.save(config=conf, f=f)
+        else:
+            wait_time = 0
+            while not os.path.exists(hparams_override_file):
+                time.sleep(1)
+                wait_time += 1
+                if wait_time > 60:
+                    raise TimeoutError("Timeout waiting for config file to be created.")
 
 
 if __name__ == "__main__":
