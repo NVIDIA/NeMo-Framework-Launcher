@@ -90,6 +90,7 @@ model:
   # LLM configs
   # use GPTModel from megatron.core
   mcore_gpt: True
+  dist_ckpt_format: 'zarr'
   
   moe_grouped_gemm: false
   moe_token_dispatcher_type: alltoall
