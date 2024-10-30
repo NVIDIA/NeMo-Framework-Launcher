@@ -160,7 +160,7 @@ model:
       warmup_steps: 107
       constant_steps: 11873
       min_lr: 1.0e-05
-  gc_interval: 0
+  gc_interval: 40
   precision: bf16
   mcore_customization_config:
     new_decoder_architecture: false

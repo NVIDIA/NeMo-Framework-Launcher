@@ -1,5 +1,8 @@
 # NeMo Framework Launcher
 
+> [!IMPORTANT]  
+> NeMo Framework Launcher is compatible with NeMo version 1.0 only.
+
 The NeMo Framework Launcher is a cloud-native tool for launching end-to-end NeMo Framework training jobs.
 
 Please refer to the [NeMo Launcher Guide](https://docs.nvidia.com/nemo-framework/user-guide/latest/launcherguide/index.html) for more information.
