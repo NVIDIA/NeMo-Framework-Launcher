@@ -286,8 +286,9 @@ class NemoMegatronStage:
                 f"-o {profile_out_path}/profile_{slurm_jobid}_node{slurm_node}_rank{slurm_rank} "
                 f"--force-overwrite true "
                 f"--capture-range=cudaProfilerApi "
-                f"--capture-range-end=stop"
-            )
+                f"--capture-range-end=stop "
+                f"--cuda-graph-trace=node "
+                )
         return nsys_prefix
 
     def _make_container_mounts_string(self) -> str:
