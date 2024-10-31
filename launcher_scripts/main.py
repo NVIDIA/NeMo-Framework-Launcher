@@ -115,6 +115,7 @@ STR2STAGECLASS = {
             "peft_mistral",
             "peft_mixtral",
             "peft_qwen2",
+            "peft_t5",
         ],
         DiffusionModelEvaluation: ["stable_diffusion", "imagen"],
     },

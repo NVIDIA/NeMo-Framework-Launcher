@@ -44,7 +44,7 @@ exp_manager:
     save_top_k: 10
     mode: min
     always_save_nemo: false
-    save_nemo_on_train_end: true
+    save_nemo_on_train_end: false
     filename: megatron_qwen2--{val_loss:.2f}-{step}-{consumed_samples}
     model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size},
       ${training.model.pipeline_model_parallel_size}}
@@ -138,8 +138,6 @@ model:
   fp8_amax_compute_algo: most_recent
   use_emha: false
   ub_tp_comm_overlap: true
-  tp_comm_atomic_ag: False
-  tp_comm_atomic_rs: False
   use_flash_attention: true
   optim:
     name: distributed_fused_adam

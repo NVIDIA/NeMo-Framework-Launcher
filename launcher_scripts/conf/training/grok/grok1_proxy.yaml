@@ -91,8 +91,8 @@ model:
   num_moe_experts: 8
   attention_type: multihead
   share_embeddings_and_output_weights: false
-  overlap_p2p_comm: false
-  batch_p2p_comm: true
+  overlap_p2p_comm: true
+  batch_p2p_comm: false
   seq_len_interpolation_factor: null
   num_query_groups: 8
   tokenizer:
@@ -149,7 +149,7 @@ model:
   optim:
     name: mcore_distributed_optim
     overlap_grad_sync: true 
-    overlap_param_sync: false
+    overlap_param_sync: true
     lr: 0.00012
     weight_decay: 0.1
     betas:

@@ -14,7 +14,7 @@ trainer:
   devices: 8
   accelerator: gpu
   num_nodes: 1
-  precision: bf16
+  precision: 16
   logger: False # logger provided by exp_manager
   enable_checkpointing: False
   use_distributed_sampler: False
@@ -58,7 +58,7 @@ model:
   tensor_model_parallel_size: 1 # intra-layer model parallelism
   pipeline_model_parallel_size: 1 # inter-layer model parallelism
   
-  global_batch_size: 128
+  global_batch_size: 32
   micro_batch_size: 4
   restore_from_path: ??? # Path to an existing .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
@@ -131,8 +131,10 @@ model:
       #   - /path/to/boolq.jsonl
       # Example of how each dataset is formatted
       # {'input': 'John von Neumann\nVon Neumann made fundamental contributions .... Q: What did the math of artificial viscosity do?', 'output': 'smoothed the shock transition without sacrificing basic physics'}
-      file_names:
-      - ${data_dir}/squad_data/v1.1/train-v1.1_gpt.json # Path to a list of JSONL files corresponding to the source data.
+      src_file_name: ${data_dir}/squad_data/v1.1/train-v1.1_src.txt
+      tgt_file_name: ${data_dir}/squad_data/v1.1/train-v1.1_tgt.txt
+      max_src_seq_length: 512
+      max_tgt_seq_length: 128
       global_batch_size: ${peft.model.global_batch_size}
       micro_batch_size: ${peft.model.micro_batch_size}
       shuffle: True
@@ -160,8 +162,10 @@ model:
       prompt_template: "{input} {output}" # fstring to use for assistant prompt. Example: "Q: {input}\nA: {output}"
 
     validation_ds:
-      file_names: 
-      - ${data_dir}/squad_data/v1.1/dev-v1.1_gpt.json # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
+      src_file_name: ${data_dir}/squad_data/v1.1/dev-v1.1_src.txt
+      tgt_file_name: ${data_dir}/squad_data/v1.1/dev-v1.1_tgt.txt
+      max_src_seq_length: 512
+      max_tgt_seq_length: 128
       names:
       - ${peft.run.task_name} # Names of the corresponding datasets used to log metrics.
       global_batch_size: ${peft.model.global_batch_size}
@@ -190,7 +194,10 @@ model:
         average: null # Average the metric over the dataset. Options: ['macro', 'micro']. Works only for 'F1', 'accuracy' etc. Refer to torchmetrics for metrics where this is supported.
         num_classes: null
     test_ds:
-        file_names: ${peft.model.data.validation_ds.file_names} # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
+        src_file_name: ${data_dir}/squad_data/v1.1/dev-v1.1_src.txt
+        tgt_file_name: ${data_dir}/squad_data/v1.1/dev-v1.1_tgt.txt
+        max_src_seq_length: 512
+        max_tgt_seq_length: 128
         names: null # Names of the corresponding datasets used to log metrics.
         global_batch_size: ${peft.model.global_batch_size}
         micro_batch_size: ${peft.model.micro_batch_size}

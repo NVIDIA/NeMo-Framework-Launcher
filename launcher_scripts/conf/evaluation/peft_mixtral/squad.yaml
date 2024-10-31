@@ -39,7 +39,7 @@ model:
   sync_batch_comm: False
   megatron_amp_02: False
 
-  sequence_parallel: False
+  sequence_parallel: True
 
   activations_checkpoint_granularity: null
   activations_checkpoint_method: null
