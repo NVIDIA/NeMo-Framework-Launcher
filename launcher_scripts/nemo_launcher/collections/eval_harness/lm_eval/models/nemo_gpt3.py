@@ -41,7 +41,7 @@ from nemo.utils.app_state import AppState
 from nemo.utils.get_rank import is_global_rank_zero
 from nemo.utils.model_utils import inject_model_parallel_rank
 from omegaconf import OmegaConf, open_dict
-from pytorch_lightning.trainer.trainer import Trainer
+from lightning.pytorch.trainer.trainer import Trainer
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
