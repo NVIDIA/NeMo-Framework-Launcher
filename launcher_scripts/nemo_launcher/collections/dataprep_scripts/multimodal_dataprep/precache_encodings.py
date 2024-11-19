@@ -22,7 +22,7 @@ from typing import Optional
 
 import hydra
 import numpy as np
-import pytorch_lightning as pl
+import lightning.pytorch as pl
 import torch
 import torch.utils.data as data
 import webdataset as wds
