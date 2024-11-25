@@ -177,7 +177,7 @@ model:
     checkpoint_name: null
 
   optim:
-    name: distributed_fused_adam
+    name: mcore_distributed_optim
     bucket_cap_mb: 200
     overlap_grad_sync: False
     contiguous_grad_buffer: True
