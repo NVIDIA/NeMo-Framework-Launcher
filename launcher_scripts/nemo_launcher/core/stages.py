@@ -289,7 +289,7 @@ class NemoMegatronStage:
                 f"--capture-range=cudaProfilerApi "
                 f"--capture-range-end=stop "
                 f"--cuda-graph-trace=node "
-                )
+            )
         return nsys_prefix
 
     def _make_container_mounts_string(self) -> str:
