@@ -143,7 +143,7 @@ model:
     - 0
     gen_shape: false
   optim:
-    name: distributed_fused_adam
+    name: mcore_distributed_optim
     lr: 0.0001
     weight_decay: 0.1
     betas:

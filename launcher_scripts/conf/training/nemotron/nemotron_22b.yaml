@@ -168,7 +168,7 @@ model:
     gen_shape: False # Generate model and kernel details including input shapes
 
   optim:
-    name: distributed_fused_adam
+    name: mcore_distributed_optim
     lr: 1e-4
     bucket_cap_mb: 100
     overlap_grad_sync: true

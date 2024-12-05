@@ -156,7 +156,7 @@ model:
   ub_tp_comm_overlap: False
 
   optim:
-    name: distributed_fused_adam
+    name: mcore_distributed_optim
     bucket_cap_mb: 50
     grad_sync_dtype: bf16
     dtype: bf16

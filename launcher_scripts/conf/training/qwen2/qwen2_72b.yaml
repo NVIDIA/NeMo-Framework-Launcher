@@ -142,7 +142,7 @@ model:
   batch_p2p_comm: false
   gc_interval: 3
   optim:
-    name: distributed_fused_adam
+    name: mcore_distributed_optim
     lr: 0.00015
     weight_decay: 0.1
     betas:

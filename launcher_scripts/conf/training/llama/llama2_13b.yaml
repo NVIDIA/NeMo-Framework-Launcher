@@ -147,7 +147,7 @@ model:
     ranks: [0] # Global rank IDs to profile
     gen_shape: False # Generate model and kernel details including input shapes
   optim:
-    name: distributed_fused_adam
+    name: mcore_distributed_optim
     lr: 0.0001
     weight_decay: 0.1
     betas:

@@ -86,7 +86,7 @@ def hparams_override(cfg):
                 conf.cfg.activations_checkpoint_method = None
             # if "sequence_parallel" in conf.cfg:
             #     conf.cfg.sequence_parallel = False
-            if "optim" in conf.cfg and conf.cfg.optim.name == "distributed_fused_adam":
+            if "optim" in conf.cfg and conf.cfg.optim.name == "mcore_distributed_optim":
                 conf.cfg.optim.name = "fused_adam"
 
         node_rank = get_envint("NODE_RANK", get_envint("GROUP_RANK", 0))

@@ -146,7 +146,7 @@ model:
   ub_tp_comm_overlap: False
   use_flash_attention: true
   optim:
-    name: distributed_fused_adam
+    name: mcore_distributed_optim
     lr: 1e-4
     weight_decay: 0.1
     betas:

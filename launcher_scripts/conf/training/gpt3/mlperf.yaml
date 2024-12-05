@@ -247,7 +247,7 @@ model:
     - nvtx
     - cuda
   optim:
-    name: distributed_fused_adam
+    name: mcore_distributed_optim
     lr: 2.0e-05
     weight_decay: 0.1
     betas:

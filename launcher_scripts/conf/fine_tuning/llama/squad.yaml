@@ -178,7 +178,7 @@ model:
         num_classes: null
 
   optim:
-    name: distributed_fused_adam # Supports distributed optimizer for memory savings. To enable, set to 'distributed_fused_adam'. Needs Apex to be built with specific args to work.
+    name: mcore_distributed_optim # Supports distributed optimizer for memory savings. To enable, set to 'mcore_distributed_optim'. Needs Apex to be built with specific args to work.
     lr: 1e-6
     weight_decay: 0.1 
     betas: 

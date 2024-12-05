@@ -149,7 +149,7 @@ class TestBaseConfigs:
             gen_shape: False # Generate model and kernel details including input shapes
 
           optim:
-            name: distributed_fused_adam
+            name: mcore_distributed_optim
             overlap_grad_sync: False
             bucket_cap_mb: ${training.model.grad_allreduce_chunk_size_mb}
             lr: 6e-4
@@ -336,7 +336,7 @@ class TestBaseConfigs:
             ranks: [0] # Global rank IDs to profile
             gen_shape: False # Generate model and kernel details including input shapes
           optim:
-            name: distributed_fused_adam
+            name: mcore_distributed_optim
             lr: 1e-4
             weight_decay: 0.1
             betas:
@@ -594,7 +594,7 @@ class TestBaseConfigs:
             - 0
             gen_shape: false
           optim:
-            name: distributed_fused_adam
+            name: mcore_distributed_optim
             lr: 0.0001
             weight_decay: 0.1
             betas:
@@ -867,7 +867,7 @@ class TestBaseConfigs:
             gen_shape: False # Generate model and kernel details including input shapes
 
           optim:
-            name: distributed_fused_adam
+            name: mcore_distributed_optim
             overlap_grad_sync: False
             bucket_cap_mb: ${training.model.grad_allreduce_chunk_size_mb}
             lr: 0.0001
@@ -1092,7 +1092,7 @@ class TestBaseConfigs:
             gen_shape: False # Generate model and kernel details including input shapes
 
           optim:
-            name: distributed_fused_adam
+            name: mcore_distributed_optim
             overlap_grad_sync: False
             bucket_cap_mb: ${training.model.grad_allreduce_chunk_size_mb}
             lr: 0.0001
@@ -1263,7 +1263,7 @@ class TestBaseConfigs:
             short_seq_prob: 0.1 # Probability of producing a short sequence.
   
           optim:
-            name: distributed_fused_adam
+            name: mcore_distributed_optim
             overlap_grad_sync: False
             bucket_cap_mb: ${training.model.grad_allreduce_chunk_size_mb}
             lr: 2e-4
