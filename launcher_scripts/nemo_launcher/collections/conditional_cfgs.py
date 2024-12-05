@@ -30,7 +30,7 @@ def get_ln_sm_margin(cfg):
     Set SM margin to LayerNorm layer at H100. This is to overlap LN kernel with communication kernels.
     """
     global cuda_capability
-    if cuda_capability == 9:
+    if cuda_capability >= 9:
         print(8)
     else:
         print(0)
