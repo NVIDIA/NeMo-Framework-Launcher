@@ -58,8 +58,8 @@ model:
   rampup_batch_size: null
   context_parallel_size: 1
   tensor_model_parallel_size: 8
-  pipeline_model_parallel_size: 12
-  virtual_pipeline_model_parallel_size: 8
+  pipeline_model_parallel_size: 8
+  virtual_pipeline_model_parallel_size: 12
   encoder_seq_length: 4096
   max_position_embeddings: 4096
   num_layers: 96
@@ -131,9 +131,17 @@ model:
   fsdp_sharding_strategy: 'full' # Method to shard model states. Available options are 'full', 'hybrid', and 'grad'.
   fsdp_grad_reduce_dtype: 32 # Gradient reduction data type.
   fsdp_sharded_checkpoint: False # Store and load FSDP shared checkpoint.
+
+  defer_embedding_wgrad_compute: True
+  wgrad_deferral_limit: 22
+  cross_entropy_loss_fusion: True
+  enable_vboost: True
+  ub_tp_comm_overlap: True
+  apply_rope_fusion: True
+  deteministic_mode: False
+  overlap_p2p_comm: True # Overlap p2p communication with computes. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
+  batch_p2p_comm: False # Batch consecutive inter-peer send/recv operations. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
   
-  overlap_p2p_comm: False # Overlap p2p communication with computes. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
-  batch_p2p_comm: True # Batch consecutive inter-peer send/recv operations. This argument is valid only when `virtual_pipeline_model_parallel_size` is larger than 1
   num_query_groups: 8 # Number of query groups for group query attention. If None, normal attention is used.
   
   ## Network
