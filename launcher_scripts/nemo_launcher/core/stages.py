@@ -574,6 +574,17 @@ class NemoMegatronStage:
         tensor_model_parallel_size = model_cfg.get("tensor_model_parallel_size", 1)
         context_parallel_size = model_cfg.get("context_parallel_size", 1)
         fsdp = model_cfg.get("fsdp", False)
+        if (
+            (tensor_model_parallel_size > 1 or context_parallel_size > 1)
+            and not fsdp
+        ):
+            get_cuda_device_max_connections_command= (
+                f"python3 {self._launcher_scripts_path / 'nemo_launcher/collections/conditional_cfgs.py'} "
+                f"name=get_cuda_device_max_connections"
+            )
+            return f"CUDA_DEVICE_MAX_CONNECTIONS=\$({get_cuda_device_max_connections_command})"
+        return ""
+
         return (
             "CUDA_DEVICE_MAX_CONNECTIONS=1"
             if (
