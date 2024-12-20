@@ -1,7 +1,11 @@
+defaults:
+    - _self_
+    - optional tp_overlap@model.ub_tp_comm_overlap_cfg:
+
 hydra:
   searchpath:
     - file:///opt/NeMo/examples/nlp/language_modeling/conf
-
+ 
 run:
   name: nemotron4-340B
   results_dir: ${base_results_dir}/${.name}
@@ -119,7 +123,7 @@ model:
   apex_transformer_log_level: 30
   gradient_as_bucket_view: True # Allocate gradients in a contiguous bucket to save memory (less fragmentation and buffer memory)
   sync_batch_comm: false
-  activations_checkpoint_granularity: selective
+  activations_checkpoint_granularity: null
   activations_checkpoint_method: null
   activations_checkpoint_num_layers: null
   num_micro_batches_with_partial_activation_checkpoints: null
@@ -161,7 +165,7 @@ model:
   fp8_amax_history_len: 1024 # Number of steps for which amax history is recorded per tensor
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   fp8_wgrad: True
-  ub_tp_comm_overlap: False
+  ub_tp_comm_overlap: True
 
   optim:
     name: mcore_distributed_optim
@@ -191,7 +195,7 @@ model:
     reset_position_ids: false
     reset_attention_mask: false
     eod_mask_loss: false
-    index_mapping_dir: /lustre/fsw/coreai_dlalgo_llm/aot/cache/nemotron340b
+    index_mapping_dir: null 
     data_prefix:
       - .0333
       - ${data_dir}/my-nemotron_00_text_document
