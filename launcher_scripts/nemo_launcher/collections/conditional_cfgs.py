@@ -52,11 +52,23 @@ def get_ag_overlap(cfg):
     else:
         print(1)
 
+@hydra.main(version_base=None, config_path="conf", config_name="get_cuda_device_max_connections")
+def get_cuda_device_max_connections(cfg):
+    """
+    Set CUDA_DEVICE_MAX_CONNECTIONS to 32 for blackwell, to 1 for hopper and earlier generations
+    """
+    global cuda_capability
+    if cuda_capability >= 10:
+        print(32)
+    else:
+        print(1)
 
 if __name__ == "__main__":
     if sys.argv[1] == "name=get_ln_sm_margin":
         get_ln_sm_margin()
     elif sys.argv[1] == "name=get_ag_overlap":
         get_ag_overlap()
+    elif sys.argv[1] == "name=get_cuda_device_max_connections":
+        get_cuda_device_max_connections()
     else:
         raise ValueError("The provided conditional config function does not exist.")
