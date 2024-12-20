@@ -54,7 +54,6 @@ exp_manager:
   step_timing_kwargs:
     sync_cuda: True
     buffer_size: 5
-  seconds_to_sleep: 150
 
 model:
   micro_batch_size: 1
