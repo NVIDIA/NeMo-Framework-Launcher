@@ -5,7 +5,7 @@ defaults:
 hydra:
   searchpath:
     - file:///opt/NeMo/examples/nlp/language_modeling/conf
- 
+
 run:
   name: nemotron4-340B
   results_dir: ${base_results_dir}/${.name}
