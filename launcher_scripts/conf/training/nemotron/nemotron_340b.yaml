@@ -135,7 +135,6 @@ model:
   defer_embedding_wgrad_compute: True
   wgrad_deferral_limit: 22
   cross_entropy_loss_fusion: True
-  enable_vboost: True
   ub_tp_comm_overlap: True
   apply_rope_fusion: True
   deteministic_mode: False
@@ -161,7 +160,6 @@ model:
   fp8_amax_history_len: 1024 # Number of steps for which amax history is recorded per tensor
   fp8_amax_compute_algo: max # 'most_recent' or 'max'. Algorithm for computing amax from history
   fp8_wgrad: True
-  ub_tp_comm_overlap: False
 
   optim:
     name: mcore_distributed_optim
