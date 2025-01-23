@@ -292,7 +292,7 @@ class NemoMegatronStage:
             )
             if nsys_cfg.get("gpu_metrics", False):
                 slurm_local_rank = "\${SLURM_LOCALID}"
-                nsys_prefix += (f"--gpu-metrics-device={slurm_local_rank} ")
+                nsys_prefix += f"--gpu-metrics-device={slurm_local_rank} "
         return nsys_prefix
 
     def _make_container_mounts_string(self) -> str:
