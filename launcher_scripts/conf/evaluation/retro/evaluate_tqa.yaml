@@ -2,24 +2,51 @@ run:
   name: ${.eval_name}_${.model_train_name}
   time_limit: "4:00:00"
   dependency: "singleton"
-  nodes: ${divide_ceil:${evaluation.model.model_parallel_size}, 8} # 8 gpus per node
-  ntasks_per_node: ${divide_ceil:${evaluation.model.model_parallel_size}, ${.nodes}}
-  eval_name: eval_lambada
-  model_train_name: gpt3_5b
-  train_dir: ${base_results_dir}/${.model_train_name}
-  tasks: lambada  # supported: lambada, boolq, race, piqa, hellaswag, winogrande, wikitext2, wikitext103 OR all_tasks
+  nodes: 1
+  ntasks_per_node: 1
+  eval_name: eval_tqa # nq: Natural Question; tqa: TriviaQA
+  model_train_name: retro_300m
   results_dir: ${base_results_dir}/${.model_train_name}/${.eval_name}
 
-model:
-  model_type: nemo-gpt3
-  nemo_model: null # run eval with a .nemo file, produced when converted interleaved checkpoints
-  checkpoint_folder: ${evaluation.run.train_dir}/results/checkpoints
-  checkpoint_name: latest # latest OR name pattern of a checkpoint (e.g. megatron_gpt-*last.ckpt)
-  hparams_file: ${evaluation.run.train_dir}/results/hparams.yaml
-  tensor_model_parallel_size: 1
-  pipeline_model_parallel_size: 1
-  model_parallel_size: ${multiply:${.tensor_model_parallel_size}, ${.pipeline_model_parallel_size}}
-  precision: bf16 # must match training precision - 32, 16 or bf16
-  eval_batch_size: 4
-  vocab_file: ${data_dir}/bpe/vocab.json
-  merge_file: ${data_dir}/bpe/merges.txt
+inference:
+  greedy: False # Whether or not to use sampling ; use greedy decoding otherwise
+  top_k: 0  # The number of highest probability vocabulary tokens to keep for top-k-filtering.
+  top_p: 0.9 # If set to float < 1, only the most probable tokens with probabilities that add up to top_p or higher are kept for generation.
+  temperature: 1.0 # sampling temperature
+  add_BOS: False # add the bos token at the begining of the prompt
+  tokens_to_generate: 10 # The minimum length of the sequence to be generated.
+  all_probs: False  # whether return the log prob for all the tokens in vocab
+  repetition_penalty: 1.2  # The parameter for repetition penalty. 1.0 means no penalty.
+  min_tokens_to_generate: 0  # The minimum length of the sequence to be generated.
+  compute_logprob: False  # a flag used to compute logprob of all the input text, a very special case of running inference, default False
+  end_strings: ["<|endoftext|>"]  # generation will stop when one of these tokens is generated
+  # RETRO-specific arguments
+  retro_inference:
+    retro_gpt_retrieved_length: 128
+    retro_num_neighbors: 2
+    ft_neighbours: 0
+    reuse_top: False
+
+trainer:
+  devices: 1
+  num_nodes: 1
+  accelerator: gpu
+  logger: False # logger provided by exp_manager
+  precision: 32 # 16, 32, or bf16
+  use_distributed_sampler: False
+  
+
+tensor_model_parallel_size: -1
+pipeline_model_parallel_size: -1
+pipeline_model_parallel_split_rank: -1 # used for encoder and decoder model (0 for others)
+megatron_amp_O2: False  # Enable O2-level automatic mixed precision to save memory
+
+
+retro_model_file: null  # Retro nemo file path
+checkpoint_dir: /lustre/fsw/coreai_dlalgo_genai/huvu/data/retro/mcore_retro_dataloader/mcore_retro_mlmcheckpoint_converting/megatron_gpt/checkpoints # checkpoint file dir. This is used to load the PTL checkpoint generated during the Retro training
+checkpoint_name: \'megatron_gpt--val_loss=2.36-step=2-consumed_samples=512.0-last\' # PTL checkpoint file name, only used for PTL checkpoint loading
+hparams_file: null # model configuration file, only used for PTL checkpoint loading
+
+# qa tasks
+qa_file_path: /lustre/fsw/coreai_dlalgo_genai/huvu/data/retro/eval_pipeline/tasks_data/TQA/test.json
+pred_file_path: /lustre/fsw/coreai_dlalgo_genai/huvu/data/retro/mcore_retro_dataloader/mcore_retro_mlmcheckpoint_converting/megatron_gpt/checkpoints/TQA_predictions.txt
