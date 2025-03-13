@@ -248,7 +248,7 @@ class ChooseLanguage:
 
 
 class QualityFiltering(DataCurationSubStage):
-    """ DataCurationSubStage for performing quality filtering on documents """
+    """DataCurationSubStage for performing quality filtering on documents"""
 
     def __init__(self, cfg, memory):
         super().__init__(cfg, memory)
@@ -259,7 +259,7 @@ class QualityFiltering(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         # Write out the filter configuration as a separate config file
@@ -428,7 +428,7 @@ class LanguageIdentification(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         command_groups = [[]]
@@ -488,7 +488,7 @@ class SeparateByLanguage(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         # Write out the filter configuration as a separate config file
@@ -544,7 +544,7 @@ class TextCleaning(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         # Write out the filter configuration as a separate config file
@@ -589,7 +589,7 @@ class PrepareTaskData(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         command_groups = [[]]
@@ -639,7 +639,7 @@ class FindMatchingNgrams(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         # Write out the filter configuration as a separate config file
@@ -698,7 +698,7 @@ class RemoveMatchingNgrams(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         # Write out the filter configuration as a separate config file
@@ -770,6 +770,7 @@ class DataCurationStage(NemoMegatronStage):
             "connected_component": ConnectedComponent,
             "write_deduped_result_with_text": WriteDedupedResultWithText,
             "verify_all_pairs_jaccard": VerifyAllPairsJaccard,
+            "add_id": AddId,
         }
 
     def setup_stage_vars(self, cfg):
@@ -840,7 +841,7 @@ class ComputeMinhashes(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         command_groups = [[]]
@@ -885,7 +886,7 @@ class MinhashBuckets(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         command_groups = [[]]
@@ -928,7 +929,7 @@ class JaccardMapBuckets(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         command_groups = [[]]
@@ -969,7 +970,7 @@ class JaccardShuffle(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         command_groups = [[]]
@@ -1011,7 +1012,7 @@ class JaccardCompute(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         command_groups = [[]]
@@ -1052,7 +1053,7 @@ class ConnectedComponent(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         command_groups = [[]]
@@ -1092,7 +1093,7 @@ class WriteDedupedResultWithText(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         command_groups = [[]]
@@ -1132,7 +1133,7 @@ class VerifyAllPairsJaccard(DataCurationSubStage):
         self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
 
     def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
-        """ Builds the command groups for the current stage """
+        """Builds the command groups for the current stage"""
         stage_cfg = self.stage_cfg
 
         command_groups = [[]]
@@ -1148,6 +1149,50 @@ class VerifyAllPairsJaccard(DataCurationSubStage):
 
         runscript = " \\\n  ".join(["verify_all_pairs_jaccard", *args])
         runscript_path = os.path.join(self.log_folder, "verify_all_pairs_jaccard.sh")
+
+        with open(runscript_path, "w") as f:
+            f.write(runscript)
+
+        core_command = [self.make_dask_command_string(runscript_path)]
+
+        core_command_string = " \\\n  ".join(core_command)
+        command_groups[-1] += [core_command_string]
+        command_groups = clean_command_groups(command_groups)
+
+        return command_groups
+
+
+class AddId(DataCurationSubStage):
+    def __init__(self, cfg, memory):
+        super().__init__(cfg, memory)
+
+    def setup_stage_vars(self, cfg):
+        """Setup the stage vars, i.e. stage name and stage cfg"""
+        self.stage_name = "add_id"
+        self.stage_cfg = self._get_sub_stage_confg(self.stage_name)
+
+    def make_stage_command_groups(self, stage_cfg_path: Path) -> List[List[str]]:
+        """Builds the command groups for the current stage"""
+        stage_cfg = self.stage_cfg
+
+        command_groups = [[]]
+
+        # Create the list of arguments for the filter_documents command
+        args = create_args_list(
+            replace_underscore=True,
+            input_data_dir=self.memory.data_dir,
+            output_data_dir=stage_cfg.get("output_data_dir"),
+            id_field_name=stage_cfg.get("id_field_name"),
+            id_prefix=stage_cfg.get("id_prefix"),
+            input_file_type=stage_cfg.get("input_file_type"),
+            output_file_type=stage_cfg.get("output_file_type"),
+            scheduler_file=self.log_folder / "scheduler.json",
+        )
+
+        self.memory.data_dir = stage_cfg.get("output_data_dir")
+
+        runscript = " \\\n  ".join(["add_id", *args])
+        runscript_path = os.path.join(self.log_folder, "add_id.sh")
 
         with open(runscript_path, "w") as f:
             f.write(runscript)

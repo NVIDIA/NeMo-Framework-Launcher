@@ -1,0 +1,13 @@
+run:
+  name: 'add-id'
+  results_dir: ${data_curation.run.results_dir}/${.name}
+  dependency: "singleton"
+  time_limit: "01:00:00"
+  nodes: 1
+  node_type: cpu
+
+output_data_dir: ${.run.results_dir}/id_added
+id_field_name: adlr_id
+id_prefix: doc_id
+input_file_type: jsonl
+output_file_type: jsonl
