@@ -142,6 +142,7 @@ def create_pytorchjob_resource(
     container = V1Container(
         name="pytorch",
         image=image,
+        image_pull_policy="Always",
         command=command,
         args=args,
         env=to_env_list(env),
@@ -256,6 +257,7 @@ def create_mpijob_resource(
     launch_container = V1Container(
         name="mpi-launcher",
         image=image,
+        image_pull_policy="Always",
         command=command,
         args=args,
         env=to_env_list(env),
@@ -265,6 +267,7 @@ def create_mpijob_resource(
     worker_container = V1Container(
         name="mpi-worker",
         image=image,
+        image_pull_policy="Always",
         command=["/usr/sbin/sshd"],
         args=["-De"],
         env=to_env_list(env),
