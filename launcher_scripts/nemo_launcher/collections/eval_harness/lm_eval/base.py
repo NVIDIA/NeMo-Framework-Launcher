@@ -23,7 +23,13 @@ from functools import partial
 import numpy as np
 import spacy
 from lm_eval.metrics import mean, weighted_mean, weighted_perplexity
-from sqlitedict import SqliteDict
+
+try:
+    from sqlitedict import SqliteDict
+    HAS_SQLITEDICT = True
+except ImportError:
+    print("Eval harness with sqlitedict is deprecated. Sqlitedict has known vulnerability GHSA-g4r7-86gm-pgqc")
+    HAS_SQLITEDICT = True
 
 
 def _SPACY_NLP(*args, **kwargs):
@@ -607,7 +613,8 @@ class CachingLM:
         self.cache_db = cache_db
         if os.path.dirname(cache_db):
             os.makedirs(os.path.dirname(cache_db), exist_ok=True)
-        self.dbdict = SqliteDict(cache_db, autocommit=True)
+        if HAS_SQLITEDICT:
+           self.dbdict = SqliteDict(cache_db, autocommit=True)
 
         # add hook to lm
         lm.set_cache_hook(self.get_cache_hook())
