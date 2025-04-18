@@ -32,7 +32,7 @@ except ImportError:
     print(
         "Eval harness with sqlitedict is deprecated. Sqlitedict has known vulnerability GHSA-g4r7-86gm-pgqc"
     )
-    HAS_SQLITEDICT = True
+    HAS_SQLITEDICT = False
 
 
 def _SPACY_NLP(*args, **kwargs):
@@ -618,6 +618,8 @@ class CachingLM:
             os.makedirs(os.path.dirname(cache_db), exist_ok=True)
         if HAS_SQLITEDICT:
             self.dbdict = SqliteDict(cache_db, autocommit=True)
+        else:
+            self.dbdict = None
 
         # add hook to lm
         lm.set_cache_hook(self.get_cache_hook())
