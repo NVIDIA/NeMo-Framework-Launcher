@@ -55,8 +55,8 @@ exp_manager:
 
 model:
   seed: 1234
-  tensor_model_parallel_size: 8 # intra-layer model parallelism
-  pipeline_model_parallel_size: 1 # inter-layer model parallelism
+  tensor_model_parallel_size: 1 # intra-layer model parallelism
+  pipeline_model_parallel_size: 8 # inter-layer model parallelism
 
   tp_comm_overlap_disable_qkv: True
   global_batch_size: 128
@@ -71,7 +71,7 @@ model:
   ## Sequence Parallelism
   # Makes tensor parallelism more memory efficient for LLMs (20B+) by parallelizing layer norms and dropout sequentially
   # See Reducing Activation Recomputation in Large Transformer Models: https://arxiv.org/abs/2205.05198 for more details.
-  sequence_parallel: True
+  sequence_parallel: False
 
   ## Activation Checkpoint
   activations_checkpoint_granularity: null # 'selective' or 'full'
