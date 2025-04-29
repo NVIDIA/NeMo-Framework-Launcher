@@ -89,6 +89,7 @@ model:
   openai_gelu: false
   normalize_attention_scores: true
   position_embedding_type: rope
+  rotary_base: 500000.0
   rotary_percentage: 1.0
   apply_rope_fusion: true
   attention_type: multihead
