@@ -30,6 +30,7 @@ filter_quality:
   - quality_filtering
 
 fuzzy_deduplication:
+  - add_id
   - compute_minhashes
   - minhash_buckets
   - jaccard_map_buckets
@@ -58,6 +59,7 @@ defaults:
   - common_crawl/connected_component/connected_component
   - common_crawl/write_deduped_result_with_text/write_deduped_result_with_text
   - common_crawl/verify_all_pairs_jaccard/verify_all_pairs_jaccard
+  - common_crawl/add_id/add_id
 
 special:
   choose_language:
