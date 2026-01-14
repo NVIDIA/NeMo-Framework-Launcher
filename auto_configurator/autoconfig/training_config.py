@@ -24,6 +24,137 @@ import yaml
 from autoconfig import train, utils
 
 
+def estimate_moe_memory_gb(
+    base_cfg: dict,
+    tp_val: int,
+    pp_val: int,
+    ep_val: int,
+    mbs_val: int,
+) -> float:
+    """
+    Estimate GPU memory usage for MoE models based on Megatron-LM theoretical_memory_usage.py.
+    Reference: https://arxiv.org/pdf/2205.05198.pdf
+    
+    Activation memory formula: sbh * (10 + 24/TP)
+    - 10sbh: LayerNorm outputs, dropout inputs (not TP-sharded)
+    - 24sbh/TP: QKV projections, attention scores, MLP activations (TP-sharded)
+    
+    Recompute savings (TP=1, total=34sbh):
+    - core_attn: recomputes 13sbh -> saves 38%, factor = 0.62
+    - core_attn + mlp: recomputes 31sbh -> saves 91%, factor = 0.09
+    - full: only keeps input 2sbh -> saves 94%, factor = 0.06
+    
+    :param base_cfg: model configuration dictionary
+    :param tp_val: tensor parallelism value
+    :param pp_val: pipeline parallelism value  
+    :param ep_val: expert parallelism value
+    :param mbs_val: micro batch size value
+    :return: estimated memory in GB
+    """
+    # Extract model parameters
+    num_experts = base_cfg["model"].get("num_moe_experts", 8)
+    moe_ffn_hidden_size = base_cfg["model"].get("moe_ffn_hidden_size", 768)
+    hidden_size = base_cfg["model"].get("hidden_size", 2048)
+    num_layers = base_cfg["model"].get("num_layers", 48)
+    num_attention_heads = base_cfg["model"].get("num_attention_heads", 32)
+    num_query_groups = base_cfg["model"].get("num_query_groups", 4)
+    vocab_size = base_cfg["model"].get("override_vocab_size", 128256)
+    seq_len = base_cfg["model"]["data"].get("seq_length", 4096)
+    num_gpus = base_cfg["trainer"]["num_nodes"] * base_cfg["trainer"]["devices"]
+    use_swiglu = "swiglu" in str(base_cfg["model"].get("activation", "")).lower()
+    gated_multiplier = 1.5 if use_swiglu else 1.0
+    topk = base_cfg["model"].get("moe_router_topk", 8)
+    
+    # Recompute parameters (Megatron-LM style)
+    recompute_granularity = base_cfg["model"].get("recompute_granularity", None)
+    recompute_modules = base_cfg["model"].get("recompute_modules", [])
+    if isinstance(recompute_modules, str):
+        recompute_modules = [recompute_modules]
+    
+    # Calculate number of MoE layers from moe_layer_freq
+    moe_layer_freq = base_cfg["model"].get("moe_layer_freq", None)
+    if moe_layer_freq is None:
+        num_moe_layers = num_layers
+    elif isinstance(moe_layer_freq, int):
+        if moe_layer_freq == 1:
+            num_moe_layers = num_layers
+        else:
+            num_moe_layers = num_layers // moe_layer_freq
+    elif isinstance(moe_layer_freq, list):
+        num_moe_layers = sum(moe_layer_freq)
+    else:
+        num_moe_layers = num_layers
+    
+    dp = num_gpus // (tp_val * pp_val)
+    
+    # 1. Dense Activation memory (Megatron formula: sbh * (10 + 24/TP))
+    # Calculate activation factor based on recompute settings (theoretical values for TP=1)
+    # Total activation per layer = 10 + 24/TP = 34 (when TP=1)
+    total_act_coeff = 10 + 24 / tp_val
+    
+    if recompute_granularity == 'full':
+        # Full recompute: only keep input (2sbh)
+        # factor = 2 / 34 ≈ 0.06
+        dense_factor = 2 / total_act_coeff
+    elif recompute_granularity == 'selective':
+        # Selective recompute based on modules
+        # core_attn recomputes: 4sbh (attention output) + 9sbh/TP (QKV, scores, softmax)
+        # mlp recomputes: 2sbh (mlp output) + 16sbh/TP (fc1 output, gate)
+        recomputed = 0
+        if 'core_attn' in recompute_modules:
+            recomputed += 4 + 9 / tp_val  # 13 when TP=1
+        if 'mlp' in recompute_modules:
+            recomputed += 2 + 16 / tp_val  # 18 when TP=1
+        dense_factor = (total_act_coeff - recomputed) / total_act_coeff
+    else:
+        dense_factor = 1.0
+    
+    per_layer_activation = seq_len * mbs_val * hidden_size * total_act_coeff
+    dense_activation = per_layer_activation * num_layers * 1.05 * dense_factor
+    
+    # 2. MoE-specific activation memory
+    # Token dispatch buffer: each token is replicated topk times
+    # This is a temporary buffer reused across layers (not stored per layer)
+    expanded_tokens = mbs_val * seq_len * topk
+    # Dispatch input + output buffer (reused across layers)
+    moe_dispatch_buffer = expanded_tokens * hidden_size * 2 * 2  # 2 bytes bf16, x2 for in+out
+    # Expert FFN activation (gate + up for SwiGLU, reused across layers)
+    moe_expert_activation = expanded_tokens * moe_ffn_hidden_size * 2 * 2  # x2 for gate+up
+    # Router logits buffer (FP32, per layer for backward, multiply by num_moe_layers)
+    moe_router_buffer = mbs_val * seq_len * num_experts * 4 * num_moe_layers
+    
+    # MoE activation factor (separate from dense activation)
+    # 'moe' in recompute_modules: recomputes expert FFN, but dispatch/router buffers cannot be fully recomputed
+    # Theoretical: moe recompute saves ~40% of MoE activation
+    if recompute_granularity == 'selective' and 'moe' in recompute_modules:
+        moe_factor = 0.6  # Expert FFN can be recomputed, but dispatch/router buffers remain
+    elif recompute_granularity == 'full':
+        moe_factor = 0.5  # Full recompute has limited effect on MoE buffers
+    else:
+        moe_factor = 1.0
+    
+    # Total MoE extra activation (dispatch and expert FFN are reused, only router is per-layer)
+    moe_extra_activation = (moe_dispatch_buffer + moe_expert_activation + moe_router_buffer) * moe_factor
+    
+    # 3. MoE layer parameters (per layer)
+    attention_params = 2 * hidden_size * hidden_size * (1 + num_query_groups / num_attention_heads)
+    moe_mlp_params = 2 * hidden_size * moe_ffn_hidden_size * num_experts * gated_multiplier
+    layernorm_params = 2 * hidden_size * 2
+    
+    # 4. Per-GPU parameters (EP shards expert params, TP shards shared params)
+    expert_params = moe_mlp_params * num_moe_layers / ep_val
+    shared_params = (attention_params + layernorm_params) * num_layers / tp_val
+    embedding_params = 2 * hidden_size * vocab_size / tp_val  # untied embeddings
+    total_params_per_gpu = expert_params + shared_params + embedding_params
+    
+    # 5. Optimizer memory (distributed optimizer: 6 + 12/DP bytes per param)
+    bytes_per_param = 6 + 12 / max(dp, 1)
+    weight_and_optimizer = total_params_per_gpu * bytes_per_param
+    
+    # Total memory: params + optimizer + dense activation + MoE activation
+    return (weight_and_optimizer + dense_activation + moe_extra_activation) / 1e9
+
+
 def search_training_config(
     base_cfg: dict,
     model_size_in_b: float,
@@ -47,6 +178,18 @@ def search_training_config(
     base_dir, results_cfgs, num_nodes = generate_grid_search_configs(
         base_cfg, model_size_in_b, model_name, cfg
     )
+    
+    # Check if we should skip actual job submission (for config generation only)
+    skip_job_submission = cfg.get("skip_job_submission", False)
+    
+    if skip_job_submission:
+        print("\n" + "="*80)
+        print("SKIP_JOB_SUBMISSION mode: Only generating configurations, not submitting jobs.")
+        print(f"Generated {len([f for cfg_list in results_cfgs for f in cfg_list])} candidate configurations.")
+        print(f"Configurations saved to: {base_dir}")
+        print("="*80 + "\n")
+        return
+    
     # Launch candidate configs.
     job_ids = launch_grid_search_configs(base_dir, results_cfgs, model_name, cfg)
     # Measure and compare throughputs for each config.
@@ -83,7 +226,7 @@ def generate_grid_search_configs(
     multiplier = (
         1
         if model_name
-        in ["gpt3", "bert", "llama", "baichuan2", "chatglm", "qwen2", "mixtral"]
+        in ["gpt3", "bert", "llama", "baichuan2", "chatglm", "qwen2", "qwen3", "qwen3_moe", "mixtral"]
         else 2
     )
 
@@ -91,7 +234,7 @@ def generate_grid_search_configs(
     num_layers = (
         base_cfg["model"]["num_layers"]
         if model_name
-        in ["gpt3", "bert", "llama", "baichuan2", "chatglm", "qwen2", "mixtral"]
+        in ["gpt3", "bert", "llama", "baichuan2", "chatglm", "qwen2", "qwen3", "qwen3_moe", "mixtral"]
         else base_cfg["model"]["encoder"]["num_layers"]
     )
 
@@ -102,6 +245,8 @@ def generate_grid_search_configs(
         "baichuan2",
         "chatglm",
         "qwen2",
+        "qwen3",
+        "qwen3_moe",
         "mixtral",
     ]:
         act_method = base_cfg["model"].get("activations_checkpoint_method", "None")
@@ -124,6 +269,7 @@ def generate_grid_search_configs(
         model_name=model_name,
         seq_length=seq_length,
         train_cfg=train_cfg,
+        base_cfg=base_cfg,
     )
 
     base_dir = f"{cfg.search_config.train_settings.logs}/candidate_configs"
@@ -131,6 +277,7 @@ def generate_grid_search_configs(
 
     max_minutes = train_cfg.get("max_minutes_per_run")
     max_steps = train_cfg.get("max_steps_per_run")
+    gpu_memory_gb = train_cfg.get("gpu_memory_gb", 80)
 
     valid_tp_pp_list = []
     for tp in tp_list:
@@ -150,6 +297,8 @@ def generate_grid_search_configs(
                             "baichuan2",
                             "chatglm",
                             "qwen2",
+                            "qwen3",
+                            "qwen3_moe",
                             "mixtral",
                         ]:
                             att_heads = base_cfg["model"]["num_attention_heads"]
@@ -201,6 +350,14 @@ def generate_grid_search_configs(
             model_name,
         )
         for mbs in mbs_list:
+            # For MoE models, check memory estimation before generating config
+            if model_name in ["qwen3_moe", "mixtral"] and ep is not None:
+                estimated_memory = estimate_moe_memory_gb(base_cfg, tp, pp, ep, mbs)
+                memory_limit = gpu_memory_gb * 0.9
+                if estimated_memory > memory_limit:
+                    # Skip this (EP, MBS) combination - would OOM
+                    continue
+            
             kwargs = {
                 "base_cfg": base_cfg,
                 "act": None,
@@ -270,7 +427,7 @@ def _set_activations_checkpoint_params(
     interval_layers_per_pipe = act_multiple
     if (
         model_name
-        in ["gpt3", "bert", "llama", "baichuan2", "chatglm", "qwen2", "mixtral"]
+        in ["gpt3", "bert", "llama", "baichuan2", "chatglm", "qwen2", "qwen3", "qwen3_moe", "mixtral"]
         and pp > 2
     ):  # Interleaved pipeline scheduling.
         virtual_pipelines = (
@@ -881,6 +1038,7 @@ def _calculate_tp_pp_mbs_grid(
     model_name: str,
     seq_length: int,
     train_cfg: omegaconf.dictconfig.DictConfig,
+    base_cfg: dict = None,
 ) -> Tuple[int, int, int]:
     """
     Selects grid search space for TP, PP, MBS parameters for any model, and calls the necessary
@@ -889,6 +1047,7 @@ def _calculate_tp_pp_mbs_grid(
     :param int num_layers: number of layers in the model config.
     :param str model_name: name of the model to be used, such as gpt3, t5, mt5...
     :param omegaconf.dictconfig.DictConfig train_cfg: config of the model that will be launched.
+    :param dict base_cfg: base model config (required for MoE models).
     :returns: tuple (tp, pp, cp, ep, mbs)
         WHERE
         int tp is the Tensor Parallelism value to use for training.
@@ -911,20 +1070,20 @@ def _calculate_tp_pp_mbs_grid(
     multiplier = (
         1
         if model_name
-        in ["gpt3", "bert", "llama", "baichuan2", "chatglm", "qwen2", "mixtral"]
+        in ["gpt3", "bert", "llama", "baichuan2", "chatglm", "qwen2", "qwen3", "qwen3_moe", "mixtral"]
         else 2
     )
     init_pp = (
         []
-        if model_name in ["gpt3", "llama", "baichuan2", "chatglm", "qwen2", "mixtral"]
+        if model_name in ["gpt3", "llama", "baichuan2", "chatglm", "qwen2", "qwen3", "qwen3_moe", "mixtral"]
         else [1]
     )
     valid_pp = init_pp + [
         multiplier * x for x in range(1, num_layers + 1) if num_layers % x == 0
     ]  # Only divisors of num_layers are possible.
 
-    if model_name in ["gpt3", "llama", "baichuan2", "chatglm", "qwen2", "mixtral"]:
-        if gpu_memory_gb == 80:
+    if model_name in ["gpt3", "llama", "baichuan2", "chatglm", "qwen2", "qwen3", "qwen3_moe", "mixtral"]:
+        if gpu_memory_gb >= 80:
             (
                 tp,
                 pp,
@@ -938,6 +1097,55 @@ def _calculate_tp_pp_mbs_grid(
                 valid_pp=valid_pp,
                 seq_length=seq_length,
             )
+            # For GPUs with more than 80GB, expand MBS search space to utilize extra memory
+            if gpu_memory_gb > 80:
+                # Extend MBS range for larger GPU memory
+                mbs = list(set(mbs + [x for x in [6, 8, 12, 16] if x not in mbs]))
+                # Keep original MBS if user specified custom range
+                if train_cfg.get("micro_batch_sizes") not in [None, "auto"]:
+                    mbs = train_cfg.get("micro_batch_sizes")
+            # MoE models: precise memory estimation based on Megatron-LM theoretical_memory_usage.py
+            if model_name in ["qwen3_moe", "mixtral"] and base_cfg is not None:
+                # Extract only parameters needed for valid_ep calculation
+                num_experts = base_cfg["model"].get("num_moe_experts", 8)
+                num_gpus = base_cfg["trainer"]["num_nodes"] * base_cfg["trainer"]["devices"]
+                
+                # Calculate valid EP values (all divisors of num_experts, <= num_gpus)
+                def get_divisors(n):
+                    divisors = []
+                    for i in range(1, int(n**0.5) + 1):
+                        if n % i == 0:
+                            divisors.append(i)
+                            if i != n // i:
+                                divisors.append(n // i)
+                    return sorted(divisors)
+                
+                valid_ep = [e for e in get_divisors(num_experts) if e <= num_gpus]
+                
+                # Filter valid (EP, MBS) combinations based on memory estimation
+                ep_mbs_pairs = []
+                print(f"\n  Memory estimation for {model_name} (gpu_memory={gpu_memory_gb}GB):")
+                for ep_val in valid_ep:
+                    for mbs_val in [1, 2, 3, 4, 6]:
+                        estimated_memory = estimate_moe_memory_gb(base_cfg, 1, 1, ep_val, mbs_val)
+                        if estimated_memory < gpu_memory_gb * 0.9:
+                            ep_mbs_pairs.append((ep_val, mbs_val, estimated_memory))
+                            print(f"    EP={ep_val}, MBS={mbs_val} -> {estimated_memory:.1f} GB [OK]")
+                        else:
+                            print(f"    EP={ep_val}, MBS={mbs_val} -> {estimated_memory:.1f} GB [SKIP: exceeds {gpu_memory_gb*0.9:.0f} GB limit]")
+                
+                # Select top EP values and their valid MBS
+                if ep_mbs_pairs:
+                    ep = sorted(list(set([p[0] for p in ep_mbs_pairs])))[-2:]  # Top 2 EP values
+                    mbs = sorted(list(set([p[1] for p in ep_mbs_pairs])))
+                else:
+                    ep = valid_ep[-2:] if len(valid_ep) >= 2 else valid_ep
+                    mbs = [1]
+                    print(f"    Warning: No valid (EP, MBS) combinations found, using defaults: EP={ep}, MBS={mbs}")
+                
+                tp = [1]  # MoE with small active params doesn't need TP
+                pp = [1]
+                min_model_parallel = min(ep) if ep else 1
         elif gpu_memory_gb == 40:
             (
                 tp,
@@ -951,7 +1159,7 @@ def _calculate_tp_pp_mbs_grid(
                 model_size_in_b=model_size_in_b, valid_pp=valid_pp
             )
     elif model_name in ["t5", "mt5"]:
-        if gpu_memory_gb == 80:
+        if gpu_memory_gb >= 80:
             (
                 tp,
                 pp,
@@ -963,6 +1171,9 @@ def _calculate_tp_pp_mbs_grid(
             ) = _tp_pp_mbs_grid_t5_80gb(
                 model_size_in_b=model_size_in_b, valid_pp=valid_pp
             )
+            # For GPUs with more than 80GB, expand MBS search space
+            if gpu_memory_gb > 80 and train_cfg.get("micro_batch_sizes") in [None, "auto"]:
+                mbs = list(set(mbs + [x for x in [6, 8, 12, 16] if x not in mbs]))
         elif gpu_memory_gb == 40:
             (
                 tp,
@@ -976,7 +1187,7 @@ def _calculate_tp_pp_mbs_grid(
                 model_size_in_b=model_size_in_b, valid_pp=valid_pp
             )
     elif model_name == "bert":
-        if gpu_memory_gb == 80:
+        if gpu_memory_gb >= 80:
             (
                 tp,
                 pp,
@@ -988,6 +1199,9 @@ def _calculate_tp_pp_mbs_grid(
             ) = _tp_pp_mbs_grid_bert_80gb(
                 model_size_in_b=model_size_in_b, valid_pp=valid_pp
             )
+            # For GPUs with more than 80GB, expand MBS search space
+            if gpu_memory_gb > 80 and train_cfg.get("micro_batch_sizes") in [None, "auto"]:
+                mbs = list(set(mbs + [x for x in [6, 8, 12, 16] if x not in mbs]))
         elif gpu_memory_gb == 40:
             (
                 tp,
@@ -1044,6 +1258,12 @@ def launch_grid_search_configs(
     limit = train_cfg.get("limit_search_runs")
     results_dir = os.path.join(train_cfg.get("logs"), "training_logs")
 
+    # Create the training config directory if it doesn't exist
+    training_config_dir = os.path.join(
+        launcher_scripts_path, "conf/training", model_name
+    )
+    os.makedirs(training_config_dir, exist_ok=True)
+
     job_ids = []
     for cfg_list in results_cfgs:
         for file_name in cfg_list:
@@ -1070,6 +1290,10 @@ def launch_throughput_measure(
     hydra_args: str,
     cfg: omegaconf.dictconfig.DictConfig,
 ) -> str:
+    # Skip if no jobs were submitted
+    if not dependency_list or all(job_id is None for job_id in dependency_list):
+        print("\nSkipping throughput measurement (no jobs were submitted).")
+        return ""
     """
     Launch job that measures the throughput of each run in the grid search. This
     job will get scheduled with dependencies on all the job ids in dependency_list,

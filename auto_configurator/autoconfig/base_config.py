@@ -92,7 +92,7 @@ def _estimate_model_size(
     :raises NotImplementedError: if the model_name is not one of the supported models.
     """
     model_penalty = 0.87 if model_name == "mt5" else 1.0
-    valid_models = ["gpt3", "t5", "mt5", "bert"]
+    valid_models = ["gpt3", "t5", "mt5", "bert", "llama", "baichuan2", "chatglm", "qwen2", "qwen3", "qwen3_moe", "mixtral"]
     try:
         if model_name in valid_models:
             return round(
@@ -135,7 +135,7 @@ def _estimate_training_time(
     :raises NotImplementedError: if the model_name is not one of the supported models.
     """
     model_penalty = 1.15 if model_name == "mt5" else 1.0
-    valid_models = ["gpt3", "t5", "mt5", "bert"]
+    valid_models = ["gpt3", "t5", "mt5", "bert", "llama", "baichuan2", "chatglm", "qwen2", "qwen3", "qwen3_moe", "mixtral"]
     try:
         if model_name in valid_models:
             return round(
@@ -186,7 +186,7 @@ def _calculate_gbs_tp_pp(
                 model_size_in_b=model_size_in_b, seq_length=seq_length
             )
     elif model_name in ["t5", "mt5"]:
-        if gpu_memory_gb == 80:
+        if gpu_memory_gb >= 80:
             return _gbs_tp_pp_t5_80gb(
                 model_size_in_b=model_size_in_b, seq_length=seq_length
             )
@@ -195,7 +195,7 @@ def _calculate_gbs_tp_pp(
                 model_size_in_b=model_size_in_b, seq_length=seq_length
             )
     elif model_name == "bert":
-        if gpu_memory_gb == 80:
+        if gpu_memory_gb >= 80:
             return _gbs_tp_pp_bert_80gb(
                 model_size_in_b=model_size_in_b, seq_length=seq_length
             )

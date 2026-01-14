@@ -29,6 +29,8 @@ SUPPORTED_MODELS = [
     "baichuan2",
     "chatglm",
     "qwen2",
+    "qwen3",
+    "qwen3_moe",
     "mixtral",
 ]
 
@@ -69,10 +71,10 @@ def search_config(
     assert (
         isinstance(gpu_count, int) and gpu_count > 0
     ), "nodes * gpus_per_node must be an int larger than zero."
-    assert isinstance(gpu_memory_gb, int) and gpu_memory_gb in (
-        40,
-        80,
-    ), "gpu_memory_gb can only be 40 or 80."
+    assert isinstance(gpu_memory_gb, int) and gpu_memory_gb >= 40, "gpu_memory_gb must be at least 40."
+    # For GPUs with more than 80GB, use 80GB heuristics but allow larger MBS
+    # The actual gpu_memory_gb will be passed through for logging, but heuristics use 80GB
+    effective_gpu_memory_gb = 80 if gpu_memory_gb > 80 else gpu_memory_gb
     assert (
         isinstance(max_minutes_per_run, int) and max_minutes_per_run >= 10
     ), "max_minutes_per_run must be an int and be at least 10 minutes."
@@ -101,7 +103,7 @@ def search_config(
         model_size_in_b=model_size_in_b,
         nodes=nodes,
         gpus_per_node=gpus_per_node,
-        gpu_memory_gb=gpu_memory_gb,
+        gpu_memory_gb=effective_gpu_memory_gb,
         max_training_days=max_training_days,
         num_tokens_in_b=num_tokens_in_b,
         vocab_size=vocab_size,

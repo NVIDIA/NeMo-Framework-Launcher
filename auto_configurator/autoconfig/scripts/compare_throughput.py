@@ -83,7 +83,7 @@ def main(cfg):
         enc_seq_len = (
             model_cfg.get("encoder_seq_length")
             if model_name
-            in ("gpt3", "bert", "llama", "baichuan2", "chatglm", "qwen2", "mixtral")
+            in ("gpt3", "bert", "llama", "baichuan2", "chatglm", "qwen2", "qwen3", "mixtral")
             else model_cfg.get("seq_length")
         )
         dec_seq_len = data_cfg.get("seq_length_dec")
@@ -95,6 +95,7 @@ def main(cfg):
             "baichuan2",
             "chatglm",
             "qwen2",
+            "qwen3",
             "mixtral",
         ):
             hs = model_cfg.get("hidden_size")
@@ -270,7 +271,7 @@ def calculate_tflops(
     Bert Formula: 
         Model FLOPs = 72BLsh^2 * ( 1 + (s/6h) + (v/12hL))
     """
-    if model_name in ["gpt3", "llama", "baichuan2", "chatglm", "qwen2", "mixtral"]:
+    if model_name in ["gpt3", "llama", "baichuan2", "chatglm", "qwen2", "qwen3", "qwen3_moe", "mixtral"]:
         # Model FLOPS calculation
         model_flops = (
             (

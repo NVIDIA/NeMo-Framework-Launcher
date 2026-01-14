@@ -45,7 +45,7 @@ def _calculate_model_size(
     :rtype: float
     :raises NotImplementedError: if the model name is not valid.
     """
-    if model_name in ["gpt3", "llama", "baichuan2", "chatglm", "qwen2", "mixtral"]:
+    if model_name in ["gpt3", "llama", "baichuan2", "chatglm", "qwen2", "qwen3", "qwen3_moe", "mixtral"]:
         model_size = (
             12
             * num_layers
@@ -113,7 +113,7 @@ def calculate_model_size_params(
     :raises NotImplementedError: if the model name is not supported.
     """
     ffn, kv = None, None  # Only needed for some models.
-    if model_name in ["gpt3", "llama", "baichuan2", "chatglm", "qwen2", "mixtral"]:
+    if model_name in ["gpt3", "llama", "baichuan2", "chatglm", "qwen2", "qwen3", "qwen3_moe", "mixtral"]:
         if model_size_in_b < 0.25:
             hs, att_h, lr = 768, 12, 6e-4
         elif model_size_in_b < 0.5:
@@ -406,6 +406,8 @@ def modify_cfg(
             "baichuan2",
             "chatglm",
             "qwen2",
+            "qwen3",
+            "qwen3_moe",
             "mixtral",
         ]:
             new_cfg["model"]["activations_checkpoint_num_layers"] = act
@@ -420,6 +422,8 @@ def modify_cfg(
         "baichuan2",
         "chatglm",
         "qwen2",
+        "qwen3",
+        "qwen3_moe",
         "mixtral",
     ]:
         new_cfg["model"][
@@ -433,6 +437,8 @@ def modify_cfg(
         "baichuan2",
         "chatglm",
         "qwen2",
+        "qwen3",
+        "qwen3_moe",
         "mixtral",
     ]:
         new_cfg["model"]["activations_checkpoint_layers_per_pipeline"] = act_per_pipe
@@ -465,6 +471,8 @@ def modify_cfg(
         "baichuan2",
         "chatglm",
         "qwen2",
+        "qwen3",
+        "qwen3_moe",
         "mixtral",
     ]:
         att_heads = new_cfg["model"]["num_attention_heads"]

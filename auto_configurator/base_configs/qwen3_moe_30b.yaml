@@ -1,0 +1,147 @@
+run:
+  name: qwen3_moe_30b
+  results_dir: ${base_results_dir}/${.name}
+  time_limit: "0-01:00:00"
+  dependency: "singleton"
+name: megatron_qwen3_moe
+restore_from_path: /mnt/pre-train/james/share_ckpts/Qwen/Qwen3-30B-A3B-Base
+trainer:
+  num_nodes: 1
+  devices: 8
+  accelerator: gpu
+  precision: bf16
+  logger: False
+  enable_checkpointing: False
+  use_distributed_sampler: False
+  max_epochs: null
+  max_steps: 300000
+  max_time: "05:23:30:00"
+  log_every_n_steps: 1
+  val_check_interval: 2000
+  limit_val_batches: 32
+  limit_test_batches: 50
+  accumulate_grad_batches: 1
+  gradient_clip_val: 1.0
+exp_manager:
+  explicit_log_dir: ${training.run.results_dir}/results
+  exp_dir: null
+  name: megatron_qwen3_moe
+  create_wandb_logger: true
+  wandb_logger_kwargs:
+    project: nemo_qwen3_moe_pretrain
+    name: ${training.run.name}
+  resume_if_exists: false
+  resume_ignore_no_checkpoint: true
+  create_checkpoint_callback: true
+  checkpoint_callback_params:
+    monitor: val_loss
+    save_top_k: 10
+    mode: min
+    always_save_nemo: false
+    save_nemo_on_train_end: false
+    filename: 'megatron_qwen3_moe--{val_loss:.2f}-{step}-{consumed_samples}'
+    model_parallel_size: ${multiply:${training.model.tensor_model_parallel_size}, ${training.model.pipeline_model_parallel_size}}
+  log_step_timing: true
+  step_timing_kwargs:
+    sync_cuda: true
+    buffer_size: 5
+model:
+  mcore_gpt: true
+  moe_grouped_gemm: true
+  moe_token_dispatcher_type: flex
+  moe_enable_deepep: true
+  moe_aux_loss_coeff: 0.01
+  moe_router_topk: 8
+  num_moe_experts: 128
+  moe_ffn_hidden_size: 768
+  moe_router_dtype: fp32
+  moe_router_load_balancing_type: aux_loss
+  moe_permute_fusion: true
+  moe_router_fusion: true
+  moe_use_legacy_grouped_gemm: true
+  moe_layer_freq: 1  # 1 means every layer is MoE (all 48 layers)
+  expert_model_parallel_size: 8
+  expert_tensor_parallel_size: 1
+  micro_batch_size: 3
+  global_batch_size: 3072
+  rampup_batch_size: null
+  tensor_model_parallel_size: 1
+  pipeline_model_parallel_size: 1
+  virtual_pipeline_model_parallel_size: null
+  encoder_seq_length: 4096
+  max_position_embeddings: 4096
+  num_layers: 48
+  hidden_size: 2048
+  ffn_hidden_size: 6144
+  num_attention_heads: 32
+  num_query_groups: 4
+  override_vocab_size: 128256
+  rotary_base: 10000
+  init_method_std: 0.006
+  use_scaled_init_method: true
+  hidden_dropout: 0.0
+  attention_dropout: 0.0
+  ffn_dropout: 0.0
+  kv_channels: 128
+  apply_query_key_layer_scaling: false
+  normalization: rmsnorm
+  layernorm_epsilon: 1.0e-06
+  do_layer_norm_weight_decay: false
+  make_vocab_size_divisible_by: 1187
+  pre_process: true
+  post_process: true
+  persist_layer_norm: true
+  bias: false
+  qkv_bias: false
+  activation: fast-swiglu
+  headscale: false
+  transformer_block_type: pre_ln
+  openai_gelu: false
+  normalize_attention_scores: true
+  position_embedding_type: rope
+  apply_rope_fusion: false
+  rotary_percentage: 1.0
+  attention_type: multihead
+  share_embeddings_and_output_weights: false
+  untie_embeddings_and_output_weights: true
+  group_query_attention: true
+  tokenizer:
+    library: huggingface
+    type: /mnt/pre-train/james/share_ckpts/Qwen/Qwen3-30B-A3B-Base
+    use_fast: true
+  transformer_engine: true
+  use_flash_attention: true
+  optim:
+    name: mcore_distributed_optim
+    lr: 3.0e-4
+    weight_decay: 0.1
+    betas:
+    - 0.9
+    - 0.95
+    bucket_cap_mb: 125
+    overlap_grad_sync: true
+    overlap_param_sync: true
+    contiguous_grad_buffer: true
+    sched:
+      name: Constant
+      warmup_steps: 2000
+      constant_steps: 0
+      min_lr: 3.0e-4
+  data:
+    data_impl: mmap
+    splits_string: "100,0,0"
+    seq_length: 4096
+    skip_warmup: true
+    num_workers: 1
+    dataloader_type: single
+    reset_position_ids: true
+    reset_attention_mask: true
+    eod_mask_loss: false
+    index_mapping_dir: null
+    validation_drop_last: true
+    no_seqlen_plus_one_input_tokens: false
+    pad_samples_to_global_batch_size: false
+    shuffle_documents: true
+    data_prefix:
+    - 1.0
+    - /mnt/pre-train/james/tokenized_data_megatron/huggingface_preview/Qwen3-30B-A3B-Base/HuggingFaceTB/issues-kaggle-notebooks/kaggle/processed_data_text_document

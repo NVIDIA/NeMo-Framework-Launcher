@@ -1,0 +1,27 @@
+train_settings:
+  model_size_in_b: 30
+  num_nodes: 1
+  gpus_per_node: 8
+  gpu_memory_gb: 140
+  max_training_days: 5
+  limit_search_runs: 100
+  output_top_n: 10
+  max_steps_per_run: 100
+  max_minutes_per_run: 30
+  tflops_per_gpu: 150
+  num_tokens_in_b: 300
+  vocab_size: 128256
+  seq_length: 4096
+  custom_config: ${auto_configurator_path}/base_configs/qwen3_moe_30b.yaml
+  logs: ${base_results_dir}/${search_config_value}_${.gpu_memory_gb}gb
+  tensor_parallel_sizes: auto  # auto uses MoE heuristics
+  pipeline_parallel_sizes: auto
+  expert_parallel_sizes: auto  # auto calculates based on num_experts
+  min_model_parallel_size: auto
+  max_model_parallel_size: auto
+  micro_batch_sizes: auto
+  act_ckpt_layers: auto
+
+inference_settings:
+  run:
+    model_type: qwen3_moe
